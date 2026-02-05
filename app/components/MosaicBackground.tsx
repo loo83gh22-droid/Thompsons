@@ -10,14 +10,18 @@ function offsetFor(i: number) {
 }
 
 export async function MosaicBackground() {
-  const supabase = await createClient();
-  const { data: photos } = await supabase
-    .from("home_mosaic_photos")
-    .select("id, url")
-    .order("sort_order")
-    .limit(80);
-
-  const urls = (photos || []).map((p) => p.url);
+  let urls: string[] = [];
+  try {
+    const supabase = await createClient();
+    const { data: photos } = await supabase
+      .from("home_mosaic_photos")
+      .select("id, url")
+      .order("sort_order")
+      .limit(80);
+    urls = (photos || []).map((p) => p.url);
+  } catch {
+    // Table may not exist yet or Supabase unavailable - use fallback
+  }
   const tiles = urls.length
     ? Array.from({ length: Math.min(urls.length * 2, 24) }, (_, i) => ({
         url: urls[i % urls.length],
