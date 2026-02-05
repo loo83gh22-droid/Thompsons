@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+:root {
+  --background: #0f1419;
+  --foreground: #e8e6e3;
+  --accent: #d4a853;
+  --accent-muted: #b8923f;
+  --surface: #1a2332;
+  --surface-hover: #243044;
+  --border: #2d3a4d;
+  --muted: #8b9aad;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-surface: var(--surface);
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: transparent;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+.font-display {
+  font-family: var(--font-serif);
+}
+
+/* Thompsons logo - Simpsons-style: yellow with black outline */
+.thompsons-logo {
+  font-family: 'Bangers', cursive;
+  color: #FFD90F;
+  -webkit-text-stroke: 3px #000;
+  text-shadow:
+    -3px -3px 0 #000,
+    3px -3px 0 #000,
+    -3px 3px 0 #000,
+    3px 3px 0 #000,
+    0 0 20px rgba(255, 217, 15, 0.5),
+    0 6px 12px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.04em;
+}
+
+.thompsons-logo-sm {
+  font-family: 'Bangers', cursive;
+  color: #FFD90F;
+  -webkit-text-stroke: 2px #000;
+  text-shadow:
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    2px 2px 0 #000,
+    0 0 12px rgba(255, 217, 15, 0.4),
+    0 4px 8px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.04em;
+}
+
+/* Leaflet map overrides for dark theme */
+.leaflet-container {
+  background: var(--surface) !important;
+  font-family: var(--font-sans) !important;
+}
+
+/* Sports section - vintage trophy case / pennant aesthetic */
+.sports-page {
+  --sports-cream: #f5f0e6;
+  --sports-gold: #c9a227;
+  --sports-gold-hover: #b8921f;
+  --sports-dark: #2c2416;
+  --sports-muted: #6b5d4a;
+  --sports-border: #d4c4a8;
+}
+
+.sports-title {
+  color: var(--sports-dark);
+  text-shadow: 1px 1px 0 var(--sports-gold);
+}
+
+.sports-trophy-case {
+  background: linear-gradient(180deg, var(--sports-cream) 0%, #ebe4d4 100%);
+  border: 3px solid var(--sports-gold);
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: inset 0 0 40px rgba(201, 162, 39, 0.1), 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.sports-trophy-frame {
+  background: var(--sports-cream);
+  border: 2px solid var(--sports-gold);
+  border-radius: 4px;
+  padding: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sports-pennant {
+  background: linear-gradient(135deg, var(--sports-gold) 0%, var(--sports-gold-hover) 100%);
+  color: var(--sports-dark);
+  padding: 0.5rem 1.5rem;
+  clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.sports-pennant-label {
+  border-left: 3px solid var(--sports-gold);
+}
+
+.sports-empty {
+  background: rgba(245, 240, 230, 0.5);
+}
