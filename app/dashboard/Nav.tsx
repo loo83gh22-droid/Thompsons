@@ -38,6 +38,7 @@ const thriveItems: { href: string; label: string }[] = [
 ];
 
 const navItemsAfterThrive: { href: string; label: string; muted?: boolean }[] = [
+  { href: "/dashboard/onboarding", label: "Add members" },
   { href: "/dashboard/death-box", label: "Da Box", muted: true },
 ];
 

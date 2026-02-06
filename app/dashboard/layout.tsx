@@ -18,17 +18,43 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  // Sync current user's email to their family member for message notifications
-  const { data: myMember } = await supabase
+  // Get or create family member for this user
+  let { data: myMember } = await supabase
     .from("family_members")
-    .select("id, contact_email")
+    .select("id, contact_email, relationship")
     .eq("user_id", user.id)
     .single();
-  if (myMember && !myMember.contact_email && user.email) {
-    await supabase
+
+  if (!myMember) {
+    // Check if they were invited (family_member exists with their email, no user_id)
+    const { data: invited } = await supabase
       .from("family_members")
-      .update({ contact_email: user.email })
-      .eq("id", myMember.id);
+      .select("id")
+      .eq("contact_email", user.email ?? "")
+      .is("user_id", null)
+      .limit(1)
+      .single();
+    if (invited) {
+      await supabase.from("family_members").update({ user_id: user.id }).eq("id", invited.id);
+      const { data: linked } = await supabase.from("family_members").select("id, contact_email, relationship").eq("id", invited.id).single();
+      myMember = linked;
+    } else {
+      // New signup: create family_member from auth metadata
+      const meta = user.user_metadata as { full_name?: string; relationship?: string };
+      const { data: created } = await supabase
+        .from("family_members")
+        .insert({
+          user_id: user.id,
+          name: meta?.full_name || user.email?.split("@")[0] || "Family Member",
+          relationship: meta?.relationship || null,
+          contact_email: user.email || null,
+        })
+        .select("id, contact_email, relationship")
+        .single();
+      myMember = created;
+    }
+  } else if (!myMember.contact_email && user.email) {
+    await supabase.from("family_members").update({ contact_email: user.email }).eq("id", myMember.id);
   }
 
   const playlistId =

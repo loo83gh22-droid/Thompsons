@@ -48,6 +48,12 @@ export default function DashboardPage() {
           icon="⭐"
         />
         <DashboardCard
+          href="/dashboard/onboarding"
+          title="Add family members"
+          description="Invite family with name, relationship, and email. They can sign up to join."
+          icon="👋"
+        />
+        <DashboardCard
           href="/dashboard/messages"
           title="Messages"
           description="Send a message that pops up when family logs in. Perfect for Valentine's Day!"

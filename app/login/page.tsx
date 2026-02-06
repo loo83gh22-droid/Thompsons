@@ -10,6 +10,8 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const isSignUp = searchParams.get("mode") === "signup";
 
+  const [name, setName] = useState("");
+  const [relationship, setRelationship] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,6 +31,7 @@ function LoginForm() {
           password,
           options: {
             emailRedirectTo: typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined,
+            data: { full_name: name.trim(), relationship: relationship.trim() || undefined },
           },
         });
         if (error) throw error;
@@ -64,15 +67,46 @@ function LoginForm() {
         </Link>
 
         <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-          {isSignUp ? "Create account" : "Welcome back"}
+          {isSignUp ? "Sign up my Family" : "Welcome back"}
         </h1>
         <p className="mt-2 text-[var(--muted)]">
           {isSignUp
-            ? "Join the family site. You'll need an invite to sign up."
-            : "Sign in to access the family site."}
+            ? "Create your family site. Add members after signing up."
+            : "Sign in to access your family site."}
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+          {isSignUp && (
+            <>
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-[var(--muted)]">
+                  Your name
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required={isSignUp}
+                  className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+                  placeholder="e.g. Sarah"
+                />
+              </div>
+              <div>
+                <label htmlFor="relationship" className="block text-sm font-medium text-[var(--muted)]">
+                  Your relationship
+                </label>
+                <input
+                  id="relationship"
+                  type="text"
+                  value={relationship}
+                  onChange={(e) => setRelationship(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+                  placeholder="e.g. Mom, Dad, Child"
+                />
+              </div>
+            </>
+          )}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-[var(--muted)]">
               Email
@@ -120,7 +154,7 @@ function LoginForm() {
             disabled={loading}
             className="w-full rounded-lg bg-[var(--accent)] py-3 font-semibold text-[var(--background)] transition-all hover:bg-[var(--accent-muted)] disabled:opacity-50"
           >
-            {loading ? "..." : isSignUp ? "Create account" : "Sign in"}
+            {loading ? "..." : isSignUp ? "Sign up my Family" : "Sign in"}
           </button>
         </form>
 
@@ -136,7 +170,7 @@ function LoginForm() {
             <>
               Don&apos;t have an account?{" "}
               <Link href="/login?mode=signup" className="text-[var(--accent)] hover:underline">
-                Create one
+                Sign up my Family
               </Link>
             </>
           )}
