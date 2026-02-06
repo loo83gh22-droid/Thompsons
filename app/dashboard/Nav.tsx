@@ -31,14 +31,10 @@ const favouritesItems: { href: string; label: string }[] = [
 
 const navItemsBetweenDropdowns: { href: string; label: string }[] = [
   { href: "/dashboard/messages", label: "Messages" },
-];
-
-const thriveItems: { href: string; label: string }[] = [
-  { href: "/dashboard/spanish", label: "Spanish Lessons" },
-];
-
-const navItemsAfterThrive: { href: string; label: string; muted?: boolean }[] = [
   { href: "/dashboard/onboarding", label: "Add members" },
+];
+
+const navItemsAfterDropdowns: { href: string; label: string; muted?: boolean }[] = [
   { href: "/dashboard/death-box", label: "Da Box", muted: true },
 ];
 
@@ -47,11 +43,9 @@ export function Nav({ user, familyName = "My Family" }: { user: User; familyName
   const router = useRouter();
   const [memoriesOpen, setMemoriesOpen] = useState(false);
   const [favouritesOpen, setFavouritesOpen] = useState(false);
-  const [thriveOpen, setThriveOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const memoriesRef = useRef<HTMLDivElement>(null);
   const favouritesRef = useRef<HTMLDivElement>(null);
-  const thriveRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const isMemoriesActive = memoriesItems.some(
@@ -60,16 +54,11 @@ export function Nav({ user, familyName = "My Family" }: { user: User; familyName
   const isFavouritesActive = favouritesItems.some(
     (item) => pathname === item.href || pathname.startsWith(item.href + "/")
   );
-  const isThriveActive = thriveItems.some(
-    (item) => pathname === item.href || pathname.startsWith(item.href + "/")
-  );
-
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       const target = e.target as Node;
       if (memoriesRef.current && !memoriesRef.current.contains(target)) setMemoriesOpen(false);
       if (favouritesRef.current && !favouritesRef.current.contains(target)) setFavouritesOpen(false);
-      if (thriveRef.current && !thriveRef.current.contains(target)) setThriveOpen(false);
       if (menuRef.current && !menuRef.current.contains(target)) setMenuOpen(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -184,39 +173,7 @@ export function Nav({ user, familyName = "My Family" }: { user: User; familyName
               {item.label}
             </Link>
           ))}
-          <div className="relative" ref={thriveRef}>
-            <button
-              type="button"
-              onClick={() => setThriveOpen((o) => !o)}
-              className={`flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                isThriveActive
-                  ? "bg-[var(--surface)] text-[var(--accent)]"
-                  : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"
-              }`}
-            >
-              Thrive
-              <span className={`transition-transform ${thriveOpen ? "rotate-180" : ""}`}>▼</span>
-            </button>
-            {thriveOpen && (
-              <div className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-lg">
-                {thriveItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setThriveOpen(false)}
-                    className={`block px-4 py-2 text-sm transition-colors hover:bg-[var(--surface-hover)] ${
-                      pathname === item.href || pathname.startsWith(item.href + "/")
-                        ? "text-[var(--accent)]"
-                        : "text-[var(--foreground)]"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-          {navItemsAfterThrive.map((item) => (
+          {navItemsAfterDropdowns.map((item) => (
             <Link
               key={item.href}
               href={item.href}

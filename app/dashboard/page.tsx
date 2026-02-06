@@ -60,12 +60,6 @@ export default function DashboardPage() {
           icon="💌"
         />
         <DashboardCard
-          href="/dashboard/spanish"
-          title="Spanish Lessons"
-          description="Flashcards, grammar quiz, AI tutor. Track your progress."
-          icon="🇪🇸"
-        />
-        <DashboardCard
           href="/dashboard/death-box"
           title="Da Box"
           description="Sensitive documents and wishes. Password protected."

@@ -4,7 +4,7 @@ export default function HomePage() {
   return (
     <div className="relative min-h-screen">
       <main className="relative flex min-h-screen flex-col items-center justify-center px-6 py-20">
-        <div className="mx-auto max-w-2xl text-center">
+        <div className="mx-auto max-w-3xl text-center">
           <h1 className="font-display text-5xl font-bold tracking-tight text-[var(--foreground)] sm:text-7xl md:text-8xl">
             My Family Nest
           </h1>
@@ -13,8 +13,8 @@ export default function HomePage() {
           </p>
 
           <p className="mt-8 text-lg text-[var(--muted)]">
-            A private space for your family — travels, memories, lessons, and the
-            stories that bind you together.
+            <strong className="text-[var(--foreground)]">100% private.</strong> No ads, no tracking, no strangers.
+            Just your family — travels, memories, favourites, and the stories that bind you together.
           </p>
 
           <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:justify-center">
@@ -36,24 +36,43 @@ export default function HomePage() {
             Free to start. Add your family, share memories, and stay connected.
           </p>
 
-          <div className="mt-14 flex flex-wrap justify-center gap-3 sm:gap-4">
-            <span className="rounded-full border border-[var(--border)] bg-[var(--surface)]/60 px-4 py-2 text-sm text-[var(--muted)] backdrop-blur">
-              🗺️ Map & Journal
-            </span>
-            <span className="rounded-full border border-[var(--border)] bg-[var(--surface)]/60 px-4 py-2 text-sm text-[var(--muted)] backdrop-blur">
-              ⭐ Favourites
-            </span>
-            <span className="rounded-full border border-[var(--border)] bg-[var(--surface)]/60 px-4 py-2 text-sm text-[var(--muted)] backdrop-blur">
-              💌 Messages
-            </span>
-            <span className="rounded-full border border-[var(--border)] bg-[var(--surface)]/60 px-4 py-2 text-sm text-[var(--muted)] backdrop-blur">
-              🇪🇸 Spanish
-            </span>
+          {/* Map preview */}
+          <div className="mt-14 w-full max-w-2xl">
+            <p className="mb-4 text-sm font-medium text-[var(--muted)]">What&apos;s inside</p>
+            <div className="rounded-xl border-2 border-[var(--border)] bg-[var(--surface)]/80 p-6 backdrop-blur">
+              <div className="aspect-video w-full overflow-hidden rounded-lg bg-[var(--background)]">
+                <div className="flex h-full items-center justify-center bg-gradient-to-br from-[var(--surface)] to-[var(--background)]">
+                  <div className="text-center">
+                    <span className="text-5xl">🗺️</span>
+                    <p className="mt-2 font-display text-lg font-semibold text-[var(--foreground)]">
+                      Family travel map
+                    </p>
+                    <p className="mt-1 text-sm text-[var(--muted)]">
+                      Pin where you&apos;ve been. See where the family has explored together.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                <span className="rounded-full border border-[var(--border)] bg-[var(--background)]/60 px-3 py-1 text-xs text-[var(--muted)]">
+                  📔 Journal
+                </span>
+                <span className="rounded-full border border-[var(--border)] bg-[var(--background)]/60 px-3 py-1 text-xs text-[var(--muted)]">
+                  ⭐ Favourites
+                </span>
+                <span className="rounded-full border border-[var(--border)] bg-[var(--background)]/60 px-3 py-1 text-xs text-[var(--muted)]">
+                  💌 Messages
+                </span>
+                <span className="rounded-full border border-[var(--border)] bg-[var(--background)]/60 px-3 py-1 text-xs text-[var(--muted)]">
+                  🌳 Family tree
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
         <footer className="absolute bottom-8 text-sm text-[var(--muted)]">
-          Private · Family only
+          Private · Family only · No ads
         </footer>
       </main>
     </div>
