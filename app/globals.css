@@ -65,12 +65,6 @@ body {
   letter-spacing: 0.04em;
 }
 
-/* Leaflet map overrides for dark theme */
-.leaflet-container {
-  background: var(--surface) !important;
-  font-family: var(--font-sans) !important;
-}
-
 /* Sports section - vintage trophy case / pennant aesthetic */
 .sports-page {
   --sports-cream: #f5f0e6;

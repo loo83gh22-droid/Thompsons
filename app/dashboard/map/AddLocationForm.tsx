@@ -37,17 +37,26 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
     try {
       const supabase = createClient();
 
-      // Geocode location name to get coordinates
-      // User can manually add lat/lng later or we use a geocoding API
+      // Geocode location name using Google Geocoding API
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+      if (!apiKey) {
+        throw new Error("Google Maps API key is not configured. Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to .env.local");
+      }
       const geocodeRes = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(locationName)}&limit=1`,
-        { headers: { "User-Agent": "Thompsons-Family-Site/1.0" } }
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(locationName)}&key=${apiKey}`
       );
       const geocode = await geocodeRes.json();
-      const result = geocode[0];
-      const lat = result?.lat ? parseFloat(result.lat) : 0;
-      const lng = result?.lon ? parseFloat(result.lon) : 0;
-      const countryCode = result?.address?.country_code?.toUpperCase() || null;
+      if (geocode.status !== "OK" || !geocode.results?.[0]) {
+        throw new Error("Could not find that location. Try a more specific place name.");
+      }
+      const result = geocode.results[0];
+      const loc = result.geometry.location;
+      const lat = loc.lat;
+      const lng = loc.lng;
+      const countryComp = result.address_components?.find((c: { types: string[] }) =>
+        c.types.includes("country")
+      );
+      const countryCode = countryComp?.short_name?.toUpperCase() || null;
 
       if (!lat || !lng) {
         throw new Error("Could not find coordinates for that location. Try a more specific place name.");

@@ -26,7 +26,7 @@ export default function DashboardPage() {
         <DashboardCard
           href="/dashboard/photos"
           title="Photos"
-          description="Upload photos for the background mosaic on every page."
+          description="All uploaded photos can be found here and these are used to complete your background mosaics."
           icon="🖼️"
         />
         <DashboardCard
@@ -48,9 +48,9 @@ export default function DashboardPage() {
           icon="⭐"
         />
         <DashboardCard
-          href="/dashboard/onboarding"
-          title="Add family members"
-          description="Invite family with name, relationship, and email. They can sign up to join."
+          href="/dashboard/members"
+          title="Members"
+          description="See everyone in your family. Add new members with name, relationship, and email."
           icon="👋"
         />
         <DashboardCard

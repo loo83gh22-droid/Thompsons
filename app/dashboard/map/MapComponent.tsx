@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { useJsApiLoader, GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
 import { createClient } from "@/src/lib/supabase/client";
-import { CountryLayer } from "./CountryLayer";
+import { GoogleMapsCountryLayer } from "./GoogleMapsCountryLayer";
 
 type TravelLocation = {
   id: string;
@@ -23,43 +21,16 @@ type TravelLocation = {
     | null;
 };
 
-const CLUSTER_RADIUS = 0.04; // degrees - spread for overlapping pins
-const LOCATION_TOLERANCE = 0.02; // degrees - consider "same" location
+const CLUSTER_RADIUS = 0.04;
+const LOCATION_TOLERANCE = 0.02;
 
-function createPinIcon(
-  color: string,
-  symbol: string,
-  dateLabel: string,
-  isFamily: boolean
-) {
-  const size = isFamily ? 20 : 14;
-  const border = "2px solid white";
-  const shadow = "0 1px 3px rgba(0,0,0,0.4)";
+const mapContainerStyle = {
+  width: "100%",
+  height: "500px",
+  borderRadius: "0.75rem",
+};
 
-  const shapeDivs: Record<string, string> = {
-    circle: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:${border};box-shadow:${shadow};"></div>`,
-    square: `<div style="width:${size}px;height:${size}px;background:${color};border:${border};box-shadow:${shadow};"></div>`,
-    triangle: `<div style="width:0;height:0;border-left:${size/2}px solid transparent;border-right:${size/2}px solid transparent;border-bottom:${size}px solid ${color};filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5));"></div>`,
-    diamond: `<div style="width:${size}px;height:${size}px;background:${color};border:${border};box-shadow:${shadow};transform:rotate(45deg);"></div>`,
-    star: `<div style="width:${size}px;height:${size}px;background:${color};border:${border};box-shadow:${shadow};clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);"></div>`,
-    balloons: `<div style="display:flex;flex-direction:column;align-items:center;"><div style="display:flex;gap:2px;align-items:flex-end;"><div style="width:${size*0.6}px;height:${size}px;border-radius:50%;background:${color};border:${border};box-shadow:${shadow};"></div><div style="width:${size*0.6}px;height:${size}px;border-radius:50%;background:${color};border:${border};box-shadow:${shadow};"></div></div><div style="width:1px;height:${size*0.3}px;background:${color};opacity:0.6;margin-top:-2px;"></div></div>`,
-    pin: `<div style="display:flex;flex-direction:column;align-items:center;"><div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:${border};box-shadow:${shadow};"></div><div style="width:0;height:0;border-left:${size/2}px solid transparent;border-right:${size/2}px solid transparent;border-top:${size*0.6}px solid ${color};margin-top:-2px;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.4));"></div></div>`,
-  };
-
-  const shapeHtml = shapeDivs[symbol] || shapeDivs.circle;
-
-  return L.divIcon({
-    className: "custom-marker",
-    html: `
-      <div style="display:flex;flex-direction:column;align-items:center;">
-        ${shapeHtml}
-        ${dateLabel ? `<span style="font-size:9px;color:white;text-shadow:0 0 2px black,0 1px 2px black;white-space:nowrap;margin-top:2px;">${dateLabel}</span>` : ""}
-      </div>
-    `,
-    iconSize: [size + 40, size + 24],
-    iconAnchor: [(size + 40) / 2, size + 22],
-  });
-}
+const defaultCenter = { lat: 56, lng: -100 };
 
 function offsetPosition(
   lat: number,
@@ -99,9 +70,63 @@ function groupLocations(locations: TravelLocation[]) {
   return groups;
 }
 
+function createPinSvgUrl(
+  color: string,
+  symbol: string,
+  dateLabel: string,
+  isFamily: boolean
+): string {
+  const size = isFamily ? 20 : 14;
+
+  const shapes: Record<string, string> = {
+    circle: `<circle cx="12" cy="12" r="${size / 2}" fill="${color}" stroke="white" stroke-width="2"/>`,
+    square: `<rect x="${12 - size / 2}" y="${12 - size / 2}" width="${size}" height="${size}" fill="${color}" stroke="white" stroke-width="2"/>`,
+    triangle: `<polygon points="12,${12 - size / 2} ${12 - size / 2},${12 + size / 2} ${12 + size / 2},${12 + size / 2}" fill="${color}" stroke="white" stroke-width="2"/>`,
+    diamond: `<polygon points="12,${12 - size / 2} ${12 + size / 2},12 12,${12 + size / 2} ${12 - size / 2},12" fill="${color}" stroke="white" stroke-width="2"/>`,
+    star: `<polygon points="12,2 14,9 22,9 16,14 18,22 12,17 6,22 8,14 2,9" fill="${color}" stroke="white" stroke-width="2"/>`,
+    pin: `<circle cx="12" cy="10" r="6" fill="${color}" stroke="white" stroke-width="2"/><polygon points="12,16 8,24 16,24" fill="${color}" stroke="white" stroke-width="1"/>`,
+    balloons: `<circle cx="9" cy="10" r="5" fill="${color}" stroke="white" stroke-width="2"/><circle cx="15" cy="10" r="5" fill="${color}" stroke="white" stroke-width="2"/><line x1="12" y1="15" x2="12" y2="22" stroke="${color}" stroke-width="1" opacity="0.6"/>`,
+  };
+
+  const shapeSvg = shapes[symbol] || shapes.circle;
+  const labelSvg = dateLabel
+    ? `<text x="12" y="28" font-size="9" fill="white" text-anchor="middle" style="text-shadow: 0 0 2px black;">${dateLabel}</text>`
+    : "";
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="40" viewBox="0 0 24 40">
+    <g transform="translate(0,0)">
+      ${shapeSvg}
+      ${labelSvg}
+    </g>
+  </svg>`;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
 export default function MapComponent() {
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: apiKey || "",
+  });
+
   const [locations, setLocations] = useState<TravelLocation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedLoc, setSelectedLoc] = useState<{
+    loc: TravelLocation;
+    pos: [number, number];
+    index: number;
+    total: number;
+  } | null>(null);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+
+  const onLoad = useCallback((map: google.maps.Map) => {
+    setMap(map);
+  }, []);
+
+  const onUnmount = useCallback(() => {
+    setMap(null);
+  }, []);
 
   function fetchLocations(showLoading = true) {
     if (showLoading) setLoading(true);
@@ -166,7 +191,26 @@ export default function MapComponent() {
     return result;
   }, [locations]);
 
-  if (loading) {
+  if (!apiKey) {
+    return (
+      <div className="flex h-[500px] items-center justify-center rounded-xl bg-[var(--surface)]">
+        <p className="max-w-md text-center text-[var(--muted)]">
+          Add <code className="rounded bg-[var(--surface-hover)] px-1">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to your{" "}
+          <code className="rounded bg-[var(--surface-hover)] px-1">.env.local</code> to enable the map.
+        </p>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex h-[500px] items-center justify-center rounded-xl bg-[var(--surface)]">
+        <p className="text-red-400">Error loading Google Maps. Check your API key.</p>
+      </div>
+    );
+  }
+
+  if (!isLoaded || loading) {
     return (
       <div className="flex h-[500px] items-center justify-center rounded-xl bg-[var(--surface)]">
         <span className="text-[var(--muted)]">Loading map...</span>
@@ -175,71 +219,103 @@ export default function MapComponent() {
   }
 
   return (
-    <MapContainer
-      center={[56, -100]}
-      zoom={4}
-      minZoom={1}
-      maxZoom={18}
-      className="h-[500px] w-full rounded-xl"
-      scrollWheelZoom={true}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-      />
-      <CountryLayer visitedCodes={visitedCountryCodes} />
-      {positionedPins.map(({ loc, pos, index, total }) => {
-        const member = Array.isArray(loc.family_members)
-          ? loc.family_members[0]
-          : loc.family_members;
-        const color = member?.color || "#3b82f6";
-        const isFamily = member?.name === "Family";
-        const isBirthPlace = loc.is_birth_place === true;
-        const symbol = isBirthPlace ? "balloons" : isFamily ? "star" : "pin";
-        const dateLabel =
-          loc.trip_date
-            ? (() => {
-                const [yr, mo, day] = loc.trip_date.split("-").map(Number);
-                return new Date(yr, mo - 1, day).getFullYear().toString();
-              })()
-            : loc.year_visited
-              ? loc.year_visited.toString()
-              : "";
+    <div className="overflow-hidden rounded-xl">
+      <GoogleMap
+        mapContainerStyle={mapContainerStyle}
+        center={defaultCenter}
+        zoom={4}
+        onLoad={onLoad}
+        onUnmount={onUnmount}
+        options={{
+          minZoom: 1,
+          maxZoom: 20,
+          styles: [
+            {
+              featureType: "poi",
+              elementType: "labels",
+              stylers: [{ visibility: "off" }],
+            },
+            {
+              featureType: "transit",
+              elementType: "labels",
+              stylers: [{ visibility: "off" }],
+            },
+          ],
+          mapTypeControl: true,
+          mapTypeControlOptions: {
+            style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+            position: google.maps.ControlPosition.TOP_RIGHT,
+          },
+          streetViewControl: true,
+          fullscreenControl: true,
+          zoomControl: true,
+        }}
+      >
+        <GoogleMapsCountryLayer map={map} visitedCodes={visitedCountryCodes} />
+        {positionedPins.map(({ loc, pos, index, total }) => {
+          const member = Array.isArray(loc.family_members)
+            ? loc.family_members[0]
+            : loc.family_members;
+          const color = member?.color || "#3b82f6";
+          const isFamily = member?.name === "Family";
+          const isBirthPlace = loc.is_birth_place === true;
+          const symbol = isBirthPlace ? "balloons" : isFamily ? "star" : "pin";
+          const dateLabel =
+            loc.trip_date
+              ? new Date(loc.trip_date + "T12:00:00").getFullYear().toString()
+              : loc.year_visited
+                ? loc.year_visited.toString()
+                : "";
 
-        return (
-          <Marker
-            key={`${loc.id}-${index}`}
-            position={pos}
-            icon={createPinIcon(color, symbol, dateLabel, isFamily)}
+          return (
+            <Marker
+              key={`${loc.id}-${index}`}
+              position={{ lat: pos[0], lng: pos[1] }}
+              icon={{
+                url: createPinSvgUrl(color, symbol, dateLabel, isFamily),
+                scaledSize: new google.maps.Size(48, 40),
+                anchor: new google.maps.Point(24, 38),
+              }}
+              onClick={() => setSelectedLoc({ loc, pos, index, total })}
+            />
+          );
+        })}
+        {selectedLoc && (
+          <InfoWindow
+            position={{ lat: selectedLoc.pos[0], lng: selectedLoc.pos[1] }}
+            onCloseClick={() => setSelectedLoc(null)}
           >
-            <Popup>
-              <strong>{loc.location_name}</strong>
+            <div className="min-w-[180px] p-1 text-[var(--foreground)]">
+              <strong>{selectedLoc.loc.location_name}</strong>
               <br />
-              {member?.name || "Family"}
-              {(loc.year_visited || loc.trip_date) &&
-                ` · ${
-                  dateLabel ||
-                  (loc.trip_date
-                    ? (() => {
-                        const [yr, mo, day] = loc.trip_date.split("-").map(Number);
-                        return new Date(yr, mo - 1, day).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        });
-                      })()
-                    : "")
-                }`}
-              {loc.notes && (
+              {(() => {
+                const m = Array.isArray(selectedLoc.loc.family_members)
+                  ? selectedLoc.loc.family_members[0]
+                  : selectedLoc.loc.family_members;
+                return m?.name || "Family";
+              })()}
+              {selectedLoc.loc.year_visited || selectedLoc.loc.trip_date ? (
+                <>
+                  {" · "}
+                  {selectedLoc.loc.trip_date
+                    ? new Date(selectedLoc.loc.trip_date + "T12:00:00").toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : selectedLoc.loc.year_visited}
+                </>
+              ) : null}
+              {selectedLoc.loc.notes && (
                 <>
                   <br />
-                  <span className="text-sm text-gray-500">{loc.notes}</span>
+                  <span className="text-sm text-gray-500">{selectedLoc.loc.notes}</span>
                 </>
               )}
-            </Popup>
-          </Marker>
-        );
-      })}
-    </MapContainer>
+            </div>
+          </InfoWindow>
+        )}
+      </GoogleMap>
+    </div>
   );
 }

@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { AddLocationForm } from "./AddLocationForm";
 
-// Leaflet requires window - load client-side only
+// Google Maps loads client-side only
 const MapComponent = dynamic(() => import("./MapComponent"), {
   ssr: false,
   loading: () => (

@@ -31,7 +31,7 @@ const favouritesItems: { href: string; label: string }[] = [
 
 const navItemsBetweenDropdowns: { href: string; label: string }[] = [
   { href: "/dashboard/messages", label: "Messages" },
-  { href: "/dashboard/onboarding", label: "Add members" },
+  { href: "/dashboard/members", label: "Members" },
 ];
 
 const navItemsAfterDropdowns: { href: string; label: string; muted?: boolean }[] = [

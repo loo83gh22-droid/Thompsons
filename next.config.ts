@@ -6,7 +6,7 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(
 )?.split("/")[0];
 
 const nextConfig: NextConfig = {
-  reactStrictMode: false, // Prevents duplicate Leaflet map in dev (Strict Mode double-mount)
+  reactStrictMode: false, // Prevents duplicate map in dev (Strict Mode double-mount)
   images: supabaseHost
     ? {
         remotePatterns: [

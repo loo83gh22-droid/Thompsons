@@ -13,9 +13,28 @@ export default function HomePage() {
           </p>
 
           <p className="mt-8 text-lg text-[var(--muted)]">
-            <strong className="text-[var(--foreground)]">100% private.</strong> No ads, no tracking, no strangers.
-            Just your family — travels, memories, favourites, and the stories that bind you together.
+            The private place for your family to document life and share it with family members. You start it. Your kids take it over.
           </p>
+
+          {/* What they want / What they're avoiding */}
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 sm:gap-8">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)]/60 p-6 text-left">
+              <h2 className="font-display text-lg font-semibold text-[var(--accent)]">What you get</h2>
+              <ul className="mt-4 space-y-2 text-sm text-[var(--muted)]">
+                <li>• A simple way to document family life — trips, milestones, everyday moments</li>
+                <li>• A private place to share with family members — no public social media</li>
+                <li>• Something the kids can look back on later</li>
+              </ul>
+            </div>
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)]/60 p-6 text-left">
+              <h2 className="font-display text-lg font-semibold text-[var(--accent)]">What you leave behind</h2>
+              <ul className="mt-4 space-y-2 text-sm text-[var(--muted)]">
+                <li>• Public social media — privacy, algorithms, strangers</li>
+                <li>• Scattered photos and updates across apps</li>
+                <li>• Family members feeling left out</li>
+              </ul>
+            </div>
+          </div>
 
           <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:justify-center">
             <Link
@@ -58,6 +77,9 @@ export default function HomePage() {
                   📔 Journal
                 </span>
                 <span className="rounded-full border border-[var(--border)] bg-[var(--background)]/60 px-3 py-1 text-xs text-[var(--muted)]">
+                  🖼️ Photos
+                </span>
+                <span className="rounded-full border border-[var(--border)] bg-[var(--background)]/60 px-3 py-1 text-xs text-[var(--muted)]">
                   ⭐ Favourites
                 </span>
                 <span className="rounded-full border border-[var(--border)] bg-[var(--background)]/60 px-3 py-1 text-xs text-[var(--muted)]">
@@ -65,6 +87,9 @@ export default function HomePage() {
                 </span>
                 <span className="rounded-full border border-[var(--border)] bg-[var(--background)]/60 px-3 py-1 text-xs text-[var(--muted)]">
                   🌳 Family tree
+                </span>
+                <span className="rounded-full border border-[var(--border)] bg-[var(--background)]/60 px-3 py-1 text-xs text-[var(--muted)]">
+                  🎵 Your family&apos;s Spotify
                 </span>
               </div>
             </div>

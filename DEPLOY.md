@@ -38,6 +38,7 @@ In your Vercel project: **Settings** → **Environment Variables**. Add:
 | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon key |
 | `NEXT_PUBLIC_DEATH_BOX_PASSWORD` | Password for Da Box (optional) |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps API key for map & geocoding (optional) |
 | `RESEND_API_KEY` | For message emails (optional) |
 | `RESEND_FROM_EMAIL` | e.g. `Thompsons <noreply@yourdomain.com>` |
 
@@ -47,8 +48,8 @@ In your Vercel project: **Settings** → **Environment Variables**. Add:
 
 1. In Supabase: **Authentication** → **URL Configuration**.
 2. Add your production URL to **Redirect URLs**:
-   - `https://your-app.vercel.app/auth/callback`
-   - Or your custom domain: `https://thompsons.yourdomain.com/auth/callback`
+   - `https://thompsons.vercel.app/auth/callback`
+   - Or your custom domain: `https://yourdomain.com/auth/callback`
 
 ---
 
