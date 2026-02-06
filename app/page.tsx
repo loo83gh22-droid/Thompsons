@@ -13,7 +13,7 @@ export default function HomePage() {
           </p>
 
           <p className="mt-8 text-lg text-[var(--muted)]">
-            The private place for your family to document life and share it with family members. You start it. Your kids take it over.
+            Document your family&apos;s life. Share it privately with the people who matter, no matter where they live. You start it. Your kids take it over.
           </p>
 
           {/* What they want / What they're avoiding */}
@@ -21,15 +21,15 @@ export default function HomePage() {
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)]/60 p-6 text-left">
               <h2 className="font-display text-lg font-semibold text-[var(--accent)]">What you get</h2>
               <ul className="mt-4 space-y-2 text-sm text-[var(--muted)]">
-                <li>• A simple way to document family life — trips, milestones, everyday moments</li>
-                <li>• A private place to share with family members — no public social media</li>
+                <li>• A simple way to document family life: trips, milestones, everyday moments</li>
+                <li>• A private place to share with family members, no public social media</li>
                 <li>• Something the kids can look back on later</li>
               </ul>
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)]/60 p-6 text-left">
               <h2 className="font-display text-lg font-semibold text-[var(--accent)]">What you leave behind</h2>
               <ul className="mt-4 space-y-2 text-sm text-[var(--muted)]">
-                <li>• Public social media — privacy, algorithms, strangers</li>
+                <li>• Public social media: privacy, algorithms, strangers</li>
                 <li>• Scattered photos and updates across apps</li>
                 <li>• Family members feeling left out</li>
               </ul>
