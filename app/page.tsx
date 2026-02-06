@@ -5,12 +5,11 @@ export default function HomePage() {
     <div className="relative min-h-screen">
       <main className="relative flex min-h-screen flex-col items-center justify-center px-6 py-20">
         <div className="mx-auto max-w-2xl text-center">
-          <h1 className="thompsons-logo text-6xl sm:text-8xl md:text-9xl">
-            <span className="block text-3xl sm:text-4xl md:text-5xl">THE</span>
-            THOMPSONS
+          <h1 className="font-display text-5xl font-bold tracking-tight text-[var(--foreground)] sm:text-7xl md:text-8xl">
+            My Family Nest
           </h1>
           <p className="mt-2 font-display text-2xl italic text-[var(--accent)] sm:text-3xl">
-            Our corner of the world
+            Your corner of the world
           </p>
 
           <p className="mt-8 text-lg text-[var(--muted)]">

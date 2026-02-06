@@ -10,6 +10,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const isSignUp = searchParams.get("mode") === "signup";
 
+  const [familyName, setFamilyName] = useState("");
   const [name, setName] = useState("");
   const [relationship, setRelationship] = useState("");
   const [email, setEmail] = useState("");
@@ -31,7 +32,7 @@ function LoginForm() {
           password,
           options: {
             emailRedirectTo: typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined,
-            data: { full_name: name.trim(), relationship: relationship.trim() || undefined },
+            data: { full_name: name.trim(), relationship: relationship.trim() || undefined, family_name: familyName.trim() || undefined },
           },
         });
         if (error) throw error;
@@ -63,7 +64,7 @@ function LoginForm() {
           className="mb-8 inline-flex items-center gap-2 text-[var(--muted)] hover:text-[var(--foreground)]"
         >
           <span>←</span>
-          <span className="thompsons-logo-sm text-2xl">THOMPSONS</span>
+          <span className="font-display text-2xl font-semibold">My Family Nest</span>
         </Link>
 
         <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
@@ -78,6 +79,19 @@ function LoginForm() {
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           {isSignUp && (
             <>
+              <div>
+                <label htmlFor="familyName" className="block text-sm font-medium text-[var(--muted)]">
+                  Family name
+                </label>
+                <input
+                  id="familyName"
+                  type="text"
+                  value={familyName}
+                  onChange={(e) => setFamilyName(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+                  placeholder="e.g. Thompsons"
+                />
+              </div>
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-[var(--muted)]">
                   Your name

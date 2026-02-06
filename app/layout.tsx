@@ -3,8 +3,8 @@ import "./globals.css";
 import { MosaicBackground } from "./components/MosaicBackground";
 
 export const metadata: Metadata = {
-  title: "Thompsons | Our Corner of the World",
-  description: "A private space for family — travels, memories, and growth.",
+  title: "My Family Nest | Your Corner of the World",
+  description: "A private space for your family — travels, memories, and growth.",
 };
 
 export default function RootLayout({

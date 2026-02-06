@@ -42,7 +42,7 @@ const navItemsAfterThrive: { href: string; label: string; muted?: boolean }[] = 
   { href: "/dashboard/death-box", label: "Da Box", muted: true },
 ];
 
-export function Nav({ user }: { user: User }) {
+export function Nav({ user, familyName = "My Family" }: { user: User; familyName?: string }) {
   const pathname = usePathname();
   const router = useRouter();
   const [memoriesOpen, setMemoriesOpen] = useState(false);
@@ -88,9 +88,9 @@ export function Nav({ user }: { user: User }) {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link
           href="/dashboard"
-          className="thompsons-logo-sm text-3xl transition-transform hover:scale-105"
+          className="font-display text-2xl font-semibold transition-transform hover:scale-105 sm:text-3xl"
         >
-          THOMPSONS
+          {familyName} Nest
         </Link>
 
         <nav className="flex items-center gap-1">
