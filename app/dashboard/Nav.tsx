@@ -38,7 +38,7 @@ const navItemsAfterDropdowns: { href: string; label: string; muted?: boolean }[]
   { href: "/dashboard/death-box", label: "Da Box", muted: true },
 ];
 
-export function Nav({ user, familyName = "My Family" }: { user: User; familyName?: string }) {
+export function Nav({ user, familyName = "Our Family" }: { user: User; familyName?: string }) {
   const pathname = usePathname();
   const router = useRouter();
   const [memoriesOpen, setMemoriesOpen] = useState(false);

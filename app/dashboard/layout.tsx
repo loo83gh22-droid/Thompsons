@@ -71,10 +71,10 @@ export default async function DashboardLayout({
 
   let { data: settings } = await supabase.from("family_settings").select("family_name").limit(1).single();
   if (!settings) {
-    await supabase.from("family_settings").insert({ family_name: "My Family" });
-    settings = { family_name: "My Family" };
+    await supabase.from("family_settings").insert({ family_name: "Our Family" });
+    settings = { family_name: "Our Family" };
   }
-  const familyName = settings?.family_name?.trim() || "My Family";
+  const familyName = settings?.family_name?.trim() || "Our Family";
 
   return (
     <div className="min-h-screen">

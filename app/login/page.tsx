@@ -64,11 +64,11 @@ function LoginForm() {
           className="mb-8 inline-flex items-center gap-2 text-[var(--muted)] hover:text-[var(--foreground)]"
         >
           <span>←</span>
-          <span className="font-display text-2xl font-semibold">My Family Nest</span>
+          <span className="font-display text-2xl font-semibold">Our Family Nest</span>
         </Link>
 
         <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-          {isSignUp ? "Sign up my Family" : "Welcome back"}
+          {isSignUp ? "Sign up our Family" : "Welcome back"}
         </h1>
         <p className="mt-2 text-[var(--muted)]">
           {isSignUp
@@ -168,7 +168,7 @@ function LoginForm() {
             disabled={loading}
             className="w-full rounded-lg bg-[var(--accent)] py-3 font-semibold text-[var(--background)] transition-all hover:bg-[var(--accent-muted)] disabled:opacity-50"
           >
-            {loading ? "..." : isSignUp ? "Sign up my Family" : "Sign in"}
+            {loading ? "..." : isSignUp ? "Sign up our Family" : "Sign in"}
           </button>
         </form>
 
@@ -184,7 +184,7 @@ function LoginForm() {
             <>
               Don&apos;t have an account?{" "}
               <Link href="/login?mode=signup" className="text-[var(--accent)] hover:underline">
-                Sign up my Family
+                Sign up our Family
               </Link>
             </>
           )}

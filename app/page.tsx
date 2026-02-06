@@ -6,7 +6,7 @@ export default function HomePage() {
       <main className="relative flex min-h-screen flex-col items-center justify-center px-6 py-20">
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="font-display text-5xl font-bold tracking-tight text-[var(--foreground)] sm:text-7xl md:text-8xl">
-            My Family Nest
+            Our Family Nest
           </h1>
           <p className="mt-2 font-display text-2xl italic text-[var(--accent)] sm:text-3xl">
             Your corner of the world
@@ -41,7 +41,7 @@ export default function HomePage() {
               href="/login?mode=signup"
               className="inline-flex items-center justify-center rounded-lg bg-[var(--accent)] px-8 py-4 font-semibold text-[var(--background)] transition-all hover:bg-[var(--accent-muted)] hover:scale-[1.02]"
             >
-              Sign up my Family
+              Sign up our Family
             </Link>
             <Link
               href="/login"

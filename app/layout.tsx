@@ -3,7 +3,7 @@ import "./globals.css";
 import { MosaicBackground } from "./components/MosaicBackground";
 
 export const metadata: Metadata = {
-  title: "My Family Nest | Your Corner of the World",
+  title: "Our Family Nest | Your Corner of the World",
   description: "A private space for your family — travels, memories, and growth.",
 };
 
