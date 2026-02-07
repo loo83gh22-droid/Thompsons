@@ -36,6 +36,12 @@ export default function DashboardPage() {
           icon="🏆"
         />
         <DashboardCard
+          href="/dashboard/voice-memos"
+          title="Voice Memos"
+          description="Record voices for the future—stories, songs, jokes. Preserve personality."
+          icon="🎙️"
+        />
+        <DashboardCard
           href="/dashboard/time-capsules"
           title="Time Capsules"
           description="Write letters for the future. Seal them until a date like &quot;Read when you turn 18.&quot;"
