@@ -16,6 +16,7 @@ const navItemsBeforeDropdowns: { href: string; label: string }[] = [
 const memoriesItems: { href: string; label: string }[] = [
   { href: "/dashboard/map", label: "Family Map" },
   { href: "/dashboard/journal", label: "Journal" },
+  { href: "/dashboard/stories", label: "Stories" },
   { href: "/dashboard/photos", label: "Photos" },
   { href: "/dashboard/achievements", label: "Achievements" },
   { href: "/dashboard/voice-memos", label: "Voice Memos" },

@@ -24,6 +24,12 @@ export default function DashboardPage() {
           icon="📔"
         />
         <DashboardCard
+          href="/dashboard/stories"
+          title="Collaborative Stories"
+          description="Dad's version vs. the kids' version — different angles on the same memory."
+          icon="📖"
+        />
+        <DashboardCard
           href="/dashboard/photos"
           title="Photos"
           description="All uploaded photos can be found here and these are used to complete your background mosaics."
