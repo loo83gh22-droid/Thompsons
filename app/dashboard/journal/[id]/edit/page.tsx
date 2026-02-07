@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/client";
+import { useFamily } from "@/app/dashboard/FamilyContext";
 import {
   updateJournalEntry,
   addJournalPhotos,
@@ -18,6 +19,7 @@ export default function EditJournalPage() {
   const router = useRouter();
   const params = useParams();
   const entryId = params.id as string;
+  const { activeFamilyId } = useFamily();
 
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [entry, setEntry] = useState<{
@@ -34,10 +36,14 @@ export default function EditJournalPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!activeFamilyId) {
+      setLoading(false);
+      return;
+    }
     async function load() {
       const supabase = createClient();
       const [membersRes, entryRes, photosRes] = await Promise.all([
-        supabase.from("family_members").select("id, name, color, symbol").order("name"),
+        supabase.from("family_members").select("id, name, color, symbol").eq("family_id", activeFamilyId).order("name"),
         supabase
           .from("journal_entries")
           .select("title, content, location, trip_date, author_id")
@@ -65,7 +71,7 @@ export default function EditJournalPage() {
       setLoading(false);
     }
     load();
-  }, [entryId]);
+  }, [entryId, activeFamilyId]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

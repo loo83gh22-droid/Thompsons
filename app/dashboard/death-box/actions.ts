@@ -2,6 +2,7 @@
 
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { getActiveFamilyId } from "@/src/lib/family";
 
 export type DeathBoxItem = {
   id: string;
@@ -20,9 +21,13 @@ export async function getDeathBoxItems(): Promise<DeathBoxItem[]> {
   } = await supabase.auth.getUser();
   if (!user) return [];
 
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return [];
+
   const { data, error } = await supabase
     .from("death_box_items")
     .select("id, title, content, category, sort_order, is_completed, file_url")
+    .eq("family_id", activeFamilyId)
     .order("sort_order", { ascending: true });
 
   if (error) return [];

@@ -2,6 +2,7 @@
 
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { getActiveFamilyId } from "@/src/lib/family";
 
 export type FavouriteCategory = "books" | "movies" | "shows" | "music" | "podcasts" | "games" | "recipes";
 
@@ -15,16 +16,20 @@ export async function addFavourite(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
 
   const { data: maxOrder } = await supabase
     .from("favourites")
     .select("sort_order")
+    .eq("family_id", activeFamilyId)
     .eq("category", category)
     .order("sort_order", { ascending: false })
     .limit(1)
     .single();
 
   const { error } = await supabase.from("favourites").insert({
+    family_id: activeFamilyId,
     category,
     title,
     description: description || null,

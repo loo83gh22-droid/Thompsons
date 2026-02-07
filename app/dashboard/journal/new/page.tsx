@@ -4,27 +4,31 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/client";
+import { useFamily } from "@/app/dashboard/FamilyContext";
 import { createJournalEntry } from "../actions";
 
 type FamilyMember = { id: string; name: string; color: string; symbol: string };
 
 export default function NewJournalPage() {
   const router = useRouter();
+  const { activeFamilyId } = useFamily();
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!activeFamilyId) return;
     async function fetchMembers() {
       const supabase = createClient();
       const { data } = await supabase
         .from("family_members")
         .select("id, name, color, symbol")
+        .eq("family_id", activeFamilyId)
         .order("name");
       if (data) setMembers(data as FamilyMember[]);
     }
     fetchMembers();
-  }, []);
+  }, [activeFamilyId]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

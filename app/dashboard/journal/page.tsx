@@ -2,9 +2,12 @@ import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/server";
 import Image from "next/image";
 import { formatDateOnly } from "@/src/lib/date";
+import { getActiveFamilyId } from "@/src/lib/family";
 
 export default async function JournalPage() {
   const supabase = await createClient();
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return null;
 
   const { data: entries } = await supabase
     .from("journal_entries")
@@ -17,6 +20,7 @@ export default async function JournalPage() {
       created_at,
       family_members (name)
     `)
+    .eq("family_id", activeFamilyId)
     .order("trip_date", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
 

@@ -1,6 +1,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
+import { getActiveFamilyId } from "@/src/lib/family";
 
 type FamilyMember = {
   id: string;
@@ -16,16 +17,20 @@ type Relationship = {
 
 export default async function FamilyTreePage() {
   const supabase = await createClient();
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return null;
 
   const { data: members } = await supabase
     .from("family_members")
     .select("id, name, color")
+    .eq("family_id", activeFamilyId)
     .not("name", "eq", "Family")
     .order("name");
 
   const { data: relationships } = await supabase
     .from("family_relationships")
-    .select("member_id, related_id, relationship_type");
+    .select("member_id, related_id, relationship_type")
+    .eq("family_id", activeFamilyId);
 
   const memberMap = new Map<string, FamilyMember>();
   (members || []).forEach((m) => memberMap.set(m.id, m));
@@ -143,7 +148,7 @@ export default async function FamilyTreePage() {
                   className="flex items-center gap-1 text-sm text-[var(--muted)] hover:text-[var(--accent)]"
                 >
                   <MapPin className="h-4 w-4" />
-                  View on map
+                  View on Family Map
                 </Link>
               </li>
             ))}

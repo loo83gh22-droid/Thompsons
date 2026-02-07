@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
+import { getActiveFamilyId } from "@/src/lib/family";
 import { FavouritesList } from "../FavouritesList";
 import { AddFavouriteForm } from "../AddFavouriteForm";
 import Link from "next/link";
@@ -25,6 +26,8 @@ export default async function FavouriteCategoryPage({
   if (!cat) notFound();
 
   const supabase = await createClient();
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return null;
 
   const { data: favourites } = await supabase
     .from("favourites")
@@ -38,12 +41,14 @@ export default async function FavouriteCategoryPage({
       added_by,
       family_members (name)
     `)
+    .eq("family_id", activeFamilyId)
     .eq("category", category)
     .order("sort_order");
 
   const { data: familyMembers } = await supabase
     .from("family_members")
     .select("id, name")
+    .eq("family_id", activeFamilyId)
     .order("name");
 
   return (

@@ -2,6 +2,7 @@
 
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { getActiveFamilyId } from "@/src/lib/family";
 import { Resend } from "resend";
 
 export async function sendFamilyMessage(
@@ -14,10 +15,13 @@ export async function sendFamilyMessage(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
 
   const { data: message, error: msgError } = await supabase
     .from("family_messages")
     .insert({
+      family_id: activeFamilyId,
       sender_id: senderFamilyMemberId,
       title,
       content,
@@ -49,7 +53,7 @@ export async function sendFamilyMessage(
 
     let memberIds = recipientIds;
     if (memberIds.length === 0) {
-      const { data: all } = await supabase.from("family_members").select("id");
+      const { data: all } = await supabase.from("family_members").select("id").eq("family_id", activeFamilyId);
       memberIds = (all || []).map((m) => m.id);
     }
 

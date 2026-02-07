@@ -2,6 +2,7 @@
 
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { getActiveFamilyId } from "@/src/lib/family";
 
 export async function addPhoto(file: File) {
   const supabase = await createClient();
@@ -9,6 +10,8 @@ export async function addPhoto(file: File) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
 
   const ext = file.name.split(".").pop() || "jpg";
   const path = `${crypto.randomUUID()}.${ext}`;
@@ -26,6 +29,7 @@ export async function addPhoto(file: File) {
   const { data: photos } = await supabase
     .from("home_mosaic_photos")
     .select("sort_order")
+    .eq("family_id", activeFamilyId)
     .order("sort_order", { ascending: false })
     .limit(1);
 
@@ -33,7 +37,7 @@ export async function addPhoto(file: File) {
 
   const { data: inserted, error: insertError } = await supabase
     .from("home_mosaic_photos")
-    .insert({ url: urlData.publicUrl, sort_order: nextOrder })
+    .insert({ family_id: activeFamilyId, url: urlData.publicUrl, sort_order: nextOrder })
     .select("id, url, sort_order")
     .single();
 

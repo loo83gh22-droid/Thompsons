@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useJsApiLoader, GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
 import { createClient } from "@/src/lib/supabase/client";
+import { useFamily } from "@/app/dashboard/FamilyContext";
 import { GoogleMapsCountryLayer } from "./GoogleMapsCountryLayer";
 
 type TravelLocation = {
@@ -15,6 +16,7 @@ type TravelLocation = {
   notes: string | null;
   country_code?: string;
   is_birth_place?: boolean;
+  journal_entry_id?: string | null;
   family_members:
     | { name: string; color: string; symbol: string }
     | { name: string; color: string; symbol: string }[]
@@ -104,6 +106,7 @@ function createPinSvgUrl(
 }
 
 export default function MapComponent() {
+  const { activeFamilyId } = useFamily();
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
@@ -129,6 +132,7 @@ export default function MapComponent() {
   }, []);
 
   function fetchLocations(showLoading = true) {
+    if (!activeFamilyId) return;
     if (showLoading) setLoading(true);
     const supabase = createClient();
     supabase
@@ -143,8 +147,10 @@ export default function MapComponent() {
         notes,
         country_code,
         is_birth_place,
+        journal_entry_id,
         family_members (name, color, symbol)
       `)
+      .eq("family_id", activeFamilyId)
       .order("created_at", { ascending: true })
       .then(({ data, error }) => {
         if (!error && data) {
@@ -159,7 +165,7 @@ export default function MapComponent() {
 
   useEffect(() => {
     fetchLocations(true);
-  }, []);
+  }, [activeFamilyId]);
 
   useEffect(() => {
     function onRefresh() {
@@ -310,6 +316,17 @@ export default function MapComponent() {
                 <>
                   <br />
                   <span className="text-sm text-gray-500">{selectedLoc.loc.notes}</span>
+                </>
+              )}
+              {selectedLoc.loc.journal_entry_id && (
+                <>
+                  <br />
+                  <a
+                    href={`/dashboard/journal/${selectedLoc.loc.journal_entry_id}/edit`}
+                    className="mt-2 inline-block text-sm font-medium text-[var(--accent)] hover:underline"
+                  >
+                    View journal entry →
+                  </a>
                 </>
               )}
             </div>

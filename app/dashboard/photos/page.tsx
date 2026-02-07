@@ -1,5 +1,6 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getActiveFamilyId } from "@/src/lib/family";
 import { PhotosManager } from "./PhotosManager";
 
 export default async function PhotosPage() {
@@ -8,10 +9,13 @@ export default async function PhotosPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return null;
 
   const { data: photos } = await supabase
     .from("home_mosaic_photos")
     .select("id, url, sort_order")
+    .eq("family_id", activeFamilyId)
     .order("sort_order");
 
   return (

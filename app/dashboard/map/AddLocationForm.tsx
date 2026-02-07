@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/src/lib/supabase/client";
+import { useFamily } from "@/app/dashboard/FamilyContext";
 
 type FamilyMember = { id: string; name: string; color: string; symbol: string };
 
 export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
+  const { activeFamilyId } = useFamily();
   const [open, setOpen] = useState(false);
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(false);
@@ -18,16 +20,18 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
+    if (!activeFamilyId) return;
     async function fetchMembers() {
       const supabase = createClient();
       const { data } = await supabase
         .from("family_members")
         .select("id, name, color, symbol")
+        .eq("family_id", activeFamilyId)
         .order("name");
       if (data) setMembers(data as FamilyMember[]);
     }
     fetchMembers();
-  }, []);
+  }, [activeFamilyId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -62,7 +66,12 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
         throw new Error("Could not find coordinates for that location. Try a more specific place name.");
       }
 
+      if (!activeFamilyId) {
+        setError("No active family selected.");
+        return;
+      }
       const { error: insertError } = await supabase.from("travel_locations").insert({
+        family_id: activeFamilyId,
         family_member_id: familyMemberId,
         lat,
         lng,

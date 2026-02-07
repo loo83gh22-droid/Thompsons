@@ -13,7 +13,7 @@ export default function DashboardPage() {
       <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <DashboardCard
           href="/dashboard/map"
-          title="Map"
+          title="Family Map"
           description="See where the family has been. Add your own pins."
           icon="🗺️"
         />
@@ -30,9 +30,9 @@ export default function DashboardPage() {
           icon="🖼️"
         />
         <DashboardCard
-          href="/dashboard/sports"
-          title="Sports"
-          description="Team photos, action shots, and championship moments."
+          href="/dashboard/achievements"
+          title="Achievements"
+          description="Log achievements, team photos, and keep live resumes."
           icon="🏆"
         />
         <DashboardCard

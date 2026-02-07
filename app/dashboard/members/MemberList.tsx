@@ -9,6 +9,8 @@ type Member = {
   relationship: string | null;
   contact_email: string | null;
   user_id: string | null;
+  birth_date: string | null;
+  birth_place: string | null;
 };
 
 export function MemberList({ members }: { members: Member[] }) {
@@ -26,6 +28,8 @@ function MemberRow({ member }: { member: Member }) {
   const [name, setName] = useState(member.name);
   const [relationship, setRelationship] = useState(member.relationship ?? "");
   const [email, setEmail] = useState(member.contact_email ?? "");
+  const [birthDate, setBirthDate] = useState(member.birth_date ?? "");
+  const [birthPlace, setBirthPlace] = useState(member.birth_place ?? "");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -35,7 +39,7 @@ function MemberRow({ member }: { member: Member }) {
     setLoading(true);
     setMessage(null);
     try {
-      await updateFamilyMember(member.id, name, relationship, email);
+      await updateFamilyMember(member.id, name, relationship, email, birthDate, birthPlace);
       setMessage({ type: "success", text: "Updated." });
       setEditing(false);
     } catch (err) {
@@ -99,6 +103,33 @@ function MemberRow({ member }: { member: Member }) {
               placeholder="their@email.com"
             />
           </div>
+          <div className="rounded-lg border border-[var(--border)]/50 bg-[var(--background)]/30 p-4">
+            <p className="text-sm font-medium text-[var(--muted)]">Birth</p>
+            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label htmlFor={`birth-date-${member.id}`} className="block text-xs font-medium text-[var(--muted)]">Birth date</label>
+                <input
+                  id={`birth-date-${member.id}`}
+                  type="date"
+                  value={birthDate}
+                  onChange={(e) => setBirthDate(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor={`birth-place-${member.id}`} className="block text-xs font-medium text-[var(--muted)]">Birth place</label>
+                <input
+                  id={`birth-place-${member.id}`}
+                  type="text"
+                  value={birthPlace}
+                  onChange={(e) => setBirthPlace(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none"
+                  placeholder="e.g. Vancouver, BC"
+                />
+                <p className="mt-1 text-xs text-[var(--muted)]">Creates a balloon pin on the map</p>
+              </div>
+            </div>
+          </div>
           {message && (
             <div className={`rounded-lg px-4 py-2 text-sm ${message.type === "success" ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
               {message.text}
@@ -123,6 +154,8 @@ function MemberRow({ member }: { member: Member }) {
         <p className="font-medium text-[var(--foreground)]">{member.name}</p>
         <div className="mt-1 flex flex-wrap gap-3 text-sm text-[var(--muted)]">
           {member.relationship && <span>{member.relationship}</span>}
+          {member.birth_date && <span>Born {new Date(member.birth_date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>}
+          {member.birth_place && <span>{member.birth_place}</span>}
           {member.contact_email && <span>{member.contact_email}</span>}
           {member.user_id ? (
             <span className="text-emerald-500/80">Signed in</span>

@@ -1,4 +1,5 @@
 import { createClient } from "@/src/lib/supabase/server";
+import { getActiveFamilyId } from "@/src/lib/family";
 import { MessagePopup } from "./MessagePopup";
 
 export async function UnreadMessagesFetcher() {
@@ -6,20 +7,25 @@ export async function UnreadMessagesFetcher() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return null;
+
   const { data: myMember } = await supabase
     .from("family_members")
     .select("id")
     .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
     .single();
 
   if (!myMember) return null;
 
   const today = new Date().toISOString().slice(0, 10);
 
-  // Get all messages that could be for this user
+  // Get all messages that could be for this user (active family only)
   const { data: allMessages } = await supabase
     .from("family_messages")
     .select("id, title, content, show_on_date, created_at, sender_id")
+    .eq("family_id", activeFamilyId)
     .or(`show_on_date.is.null,show_on_date.lte.${today}`)
     .order("created_at", { ascending: false });
 
