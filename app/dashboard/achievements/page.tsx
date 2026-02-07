@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { AchievementsGallery } from "./AchievementsGallery";
@@ -25,7 +24,7 @@ export default async function AchievementsPage() {
           Achievements
         </h1>
         <p className="mt-3 text-lg text-[var(--sports-muted)]">
-          Log cool achievements, team photos, and keep live resumes.
+          Log cool achievements and team photos.
         </p>
       </div>
 
@@ -40,29 +39,6 @@ export default async function AchievementsPage() {
           </span>
         </div>
         <AchievementsGallery achievements={achievements || []} />
-      </div>
-
-      <div className="mt-12 sports-trophy-case bg-white/30">
-        <div className="sports-pennant mb-6 inline-block">
-          <span className="text-sm font-semibold uppercase tracking-widest text-[var(--sports-gold)]">
-            Resumes
-          </span>
-        </div>
-        <p className="mb-6 text-[var(--sports-muted)]">
-          Keep live resumes for each family member. Easy to update and share.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          {members?.map((m) => (
-            <Link
-              key={m.id}
-              href={`/dashboard/achievements/resume/${m.id}`}
-              className="sports-trophy-frame inline-flex items-center gap-2 rounded-lg border-2 border-[var(--sports-gold)] bg-white px-4 py-3 font-medium text-[var(--sports-dark)] transition-colors hover:bg-[var(--sports-cream)]"
-            >
-              <span>📄</span>
-              {m.name}&apos;s resume
-            </Link>
-          ))}
-        </div>
       </div>
     </div>
   );

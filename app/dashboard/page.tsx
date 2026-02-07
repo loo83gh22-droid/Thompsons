@@ -32,8 +32,14 @@ export default function DashboardPage() {
         <DashboardCard
           href="/dashboard/achievements"
           title="Achievements"
-          description="Log achievements, team photos, and keep live resumes."
+          description="Log achievements and team photos."
           icon="🏆"
+        />
+        <DashboardCard
+          href="/dashboard/time-capsules"
+          title="Time Capsules"
+          description="Write letters for the future. Seal them until a date like &quot;Read when you turn 18.&quot;"
+          icon="📮"
         />
         <DashboardCard
           href="/dashboard/family-tree"

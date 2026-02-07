@@ -18,6 +18,7 @@ const memoriesItems: { href: string; label: string }[] = [
   { href: "/dashboard/journal", label: "Journal" },
   { href: "/dashboard/photos", label: "Photos" },
   { href: "/dashboard/achievements", label: "Achievements" },
+  { href: "/dashboard/time-capsules", label: "Time Capsules" },
   { href: "/dashboard/family-tree", label: "Family Tree" },
 ];
 
