@@ -54,6 +54,12 @@ export default function DashboardPage() {
           icon="🍳"
         />
         <DashboardCard
+          href="/dashboard/traditions"
+          title="Traditions"
+          description="Taco Tuesday chants, holiday rituals, inside jokes — the cultural DNA that gets lost."
+          icon="🏠"
+        />
+        <DashboardCard
           href="/dashboard/family-tree"
           title="Family Tree"
           description="See how the family connects. Parents, children, and relationships."
