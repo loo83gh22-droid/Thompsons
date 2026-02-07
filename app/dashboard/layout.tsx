@@ -43,7 +43,7 @@ export default async function DashboardLayout({
         .eq("id", invited.id);
       const { data: linked } = await supabase
         .from("family_members")
-        .select("id, contact_email, relationship")
+        .select("id, family_id, contact_email, relationship")
         .eq("id", invited.id)
         .single();
       myMembers = linked ? [linked] : [];
@@ -74,7 +74,7 @@ export default async function DashboardLayout({
           relationship: meta?.relationship || null,
           contact_email: user.email || null,
         })
-        .select("id, contact_email, relationship")
+        .select("id, family_id, contact_email, relationship")
         .single();
 
       if (created) {

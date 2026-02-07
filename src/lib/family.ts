@@ -20,7 +20,8 @@ export async function getUserFamilies(
   const seen = new Set<string>();
   const families: Family[] = [];
   for (const m of members) {
-    const f = m.families as { id: string; name: string } | null;
+    const raw = m.families as { id: string; name: string } | { id: string; name: string }[] | null;
+    const f = Array.isArray(raw) ? raw[0] : raw;
     if (f && !seen.has(f.id)) {
       seen.add(f.id);
       families.push({ id: f.id, name: f.name });

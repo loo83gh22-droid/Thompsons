@@ -11,7 +11,7 @@ type Achievement = {
   location: string | null;
   description: string | null;
   attachment_url: string | null;
-  family_members: { name: string } | null;
+  family_members: { name: string } | { name: string }[] | null;
 };
 
 const IMAGE_EXT = /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i;
@@ -82,7 +82,7 @@ export function AchievementsGallery({ achievements }: { achievements: Achievemen
             </h3>
             {a.family_members && (
               <p className="mt-0.5 text-xs text-[var(--sports-muted)]">
-                {a.family_members.name}
+                {(Array.isArray(a.family_members) ? a.family_members[0] : a.family_members)?.name}
               </p>
             )}
             {(a.achievement_date || a.location) && (
