@@ -13,7 +13,6 @@ const CATEGORIES: Record<string, { label: string; icon: string }> = {
   music: { label: "Music", icon: "🎵" },
   podcasts: { label: "Podcasts", icon: "🎙️" },
   games: { label: "Games", icon: "🎮" },
-  recipes: { label: "Recipes", icon: "🍳" },
 };
 
 export default async function FavouriteCategoryPage({

@@ -20,6 +20,7 @@ const memoriesItems: { href: string; label: string }[] = [
   { href: "/dashboard/achievements", label: "Achievements" },
   { href: "/dashboard/voice-memos", label: "Voice Memos" },
   { href: "/dashboard/time-capsules", label: "Time Capsules" },
+  { href: "/dashboard/recipes", label: "Recipes" },
   { href: "/dashboard/family-tree", label: "Family Tree" },
 ];
 
@@ -31,7 +32,6 @@ const favouritesItems: { href: string; label: string }[] = [
   { href: "/dashboard/favourites/music", label: "Music" },
   { href: "/dashboard/favourites/podcasts", label: "Podcasts" },
   { href: "/dashboard/favourites/games", label: "Games" },
-  { href: "/dashboard/favourites/recipes", label: "Recipes" },
 ];
 
 const navItemsBetweenDropdowns: { href: string; label: string }[] = [

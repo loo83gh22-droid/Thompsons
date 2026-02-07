@@ -48,6 +48,12 @@ export default function DashboardPage() {
           icon="📮"
         />
         <DashboardCard
+          href="/dashboard/recipes"
+          title="Recipes"
+          description="The story behind the food — who taught it, what occasions, photos from dinners."
+          icon="🍳"
+        />
+        <DashboardCard
           href="/dashboard/family-tree"
           title="Family Tree"
           description="See how the family connects. Parents, children, and relationships."
@@ -56,7 +62,7 @@ export default function DashboardPage() {
         <DashboardCard
           href="/dashboard/favourites"
           title="Favourites"
-          description="Books, movies, shows, games, recipes — the stuff we love."
+          description="Books, movies, shows, games — the stuff we love."
           icon="⭐"
         />
         <DashboardCard
