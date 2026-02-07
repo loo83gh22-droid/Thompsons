@@ -254,3 +254,34 @@ export async function deleteJournalPhoto(photoId: string, entryId?: string) {
   revalidatePath("/dashboard/journal");
   if (entryId) revalidatePath(`/dashboard/journal/${entryId}/edit`);
 }
+
+export async function addJournalPerspective(
+  entryId: string,
+  content: string,
+  familyMemberId: string
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase.from("journal_perspectives").insert({
+    journal_entry_id: entryId,
+    family_member_id: familyMemberId,
+    content: content.trim(),
+  });
+
+  if (error) throw error;
+  revalidatePath("/dashboard/journal");
+  revalidatePath(`/dashboard/journal/${entryId}/edit`);
+}
+
+export async function removeJournalPerspective(id: string, entryId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase.from("journal_perspectives").delete().eq("id", id);
+  if (error) throw error;
+  revalidatePath("/dashboard/journal");
+  revalidatePath(`/dashboard/journal/${entryId}/edit`);
+}

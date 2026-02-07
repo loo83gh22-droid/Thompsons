@@ -20,14 +20,8 @@ export default function DashboardPage() {
         <DashboardCard
           href="/dashboard/journal"
           title="Journal"
-          description="Write about trips, birthdays, celebrations. Upload photos, relive memories."
+          description="Trips, birthdays, celebrations. Add photos. Others can add their perspective to any entry."
           icon="📔"
-        />
-        <DashboardCard
-          href="/dashboard/stories"
-          title="Collaborative Stories"
-          description="Dad's version vs. the kids' version — different angles on the same memory."
-          icon="📖"
         />
         <DashboardCard
           href="/dashboard/photos"

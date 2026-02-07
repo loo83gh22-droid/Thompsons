@@ -11,6 +11,7 @@ import {
   addJournalPhotos,
   deleteJournalPhoto,
 } from "../../actions";
+import { JournalPerspectives } from "../../JournalPerspectives";
 
 type FamilyMember = { id: string; name: string; color: string; symbol: string };
 type JournalPhoto = { id: string; url: string; caption: string | null };
@@ -334,6 +335,8 @@ export default function EditJournalPage() {
           </button>
         )}
       </div>
+
+      <JournalPerspectives entryId={entryId} />
     </div>
   );
 }

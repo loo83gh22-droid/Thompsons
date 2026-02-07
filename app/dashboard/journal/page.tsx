@@ -32,7 +32,7 @@ export default async function JournalPage() {
             Journal
           </h1>
           <p className="mt-2 text-[var(--muted)]">
-            Stories and photos from trips, birthdays, and celebrations. Chronological by date.
+            Stories and photos from trips, birthdays, celebrations. Anyone can add their perspective to an entry.
           </p>
         </div>
         <Link
@@ -52,11 +52,12 @@ export default async function JournalPage() {
           </div>
         ) : (
           entries.map(async (entry) => {
-            const { data: photos } = await supabase
-              .from("journal_photos")
-              .select("id, url, caption")
-              .eq("entry_id", entry.id)
-              .order("sort_order");
+            const [photosRes, perspectivesRes] = await Promise.all([
+              supabase.from("journal_photos").select("id, url, caption").eq("entry_id", entry.id).order("sort_order"),
+              supabase.from("journal_perspectives").select("id", { count: "exact", head: true }).eq("journal_entry_id", entry.id),
+            ]);
+            const photos = photosRes.data;
+            const perspectiveCount = perspectivesRes.count ?? 0;
 
             const date = entry.trip_date
               ? formatDateOnly(entry.trip_date)
@@ -105,12 +106,19 @@ export default async function JournalPage() {
                     </div>
                   )}
                     </div>
-                    <Link
-                      href={`/dashboard/journal/${entry.id}/edit`}
-                      className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-medium hover:bg-[var(--surface-hover)]"
-                    >
-                      Edit
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      {perspectiveCount > 0 && (
+                        <span className="rounded-full bg-[var(--accent)]/20 px-2 py-0.5 text-xs font-medium text-[var(--accent)]">
+                          {perspectiveCount} perspective{perspectiveCount !== 1 ? "s" : ""}
+                        </span>
+                      )}
+                      <Link
+                        href={`/dashboard/journal/${entry.id}/edit`}
+                        className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-medium hover:bg-[var(--surface-hover)]"
+                      >
+                        Edit
+                      </Link>
+                    </div>
                   </div>
                 </div>
                 {photos && photos.length > 0 && (
