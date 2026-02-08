@@ -62,7 +62,26 @@ That’s it. New migrations run automatically in order.
 
 A workflow runs migrations when you push to `main` (and migration files change).
 
-### One-time setup: Add GitHub secrets
+### Option A: Supabase GitHub Integration (recommended – most reliable)
+
+Supabase runs migrations on their infrastructure, avoiding pooler connection issues entirely.
+
+1. Go to **Supabase Dashboard** → your project → **Project Settings** → **Integrations**
+2. Under **GitHub Integration**, click **Authorize GitHub**
+3. Choose your repository (e.g. Thompsons)
+4. Set **Supabase directory path** to `supabase` (relative to repo root)
+5. Enable **Deploy to production** for the `main` branch
+6. Click **Enable integration**
+
+Migrations will run automatically when you push to `main`. No GitHub secrets needed for this.
+
+---
+
+### Option B: GitHub Actions workflow (needs SUPABASE_DB_URL)
+
+If you prefer the workflow, add `SUPABASE_DB_URL` to avoid pooler EOF/timeout errors.
+
+#### One-time setup: Add GitHub secrets
 
 1. Go to your repo: **GitHub** → **Thompsons** → **Settings** → **Secrets and variables** → **Actions**
 2. Click **New repository secret** and add:
@@ -72,11 +91,16 @@ A workflow runs migrations when you push to `main` (and migration files change).
 | `SUPABASE_ACCESS_TOKEN` | [supabase.com/dashboard](https://supabase.com/dashboard) → **Account** (avatar) → **Access Tokens** → generate new |
 | `SUPABASE_DB_PASSWORD` | Your Supabase project database password (set when creating the project) |
 | `SUPABASE_PROJECT_REF` | Supabase dashboard → your project → **Settings** → **General** → **Reference ID** |
+| `SUPABASE_DB_URL` | **Recommended.** Supabase dashboard → your project → **Connect** → **URI** tab → copy the **Transaction pooler** connection string (port 6543). Replace `[YOUR-PASSWORD]` with your actual DB password. Example: `postgresql://postgres.xxxx:PASSWORD@aws-0-us-west-2.pooler.supabase.com:6543/postgres` |
 
-### What runs
+**Important:** Use the **Transaction pooler** URI (port 6543), not Session mode (5432). It tends to be more stable in CI.
+
+If `SUPABASE_DB_URL` is not set, the workflow falls back to `supabase link` + `db push`, which can fail with "unexpected EOF" due to known pooler issues.
+
+#### What runs
 
 - **Trigger:** Push to `main` when `supabase/migrations/**` changes, or manual run (Actions → Supabase Migrations → Run workflow)
-- **Steps:** Checkout → install Supabase CLI → init → link project → `supabase db push`
+- **Steps:** Checkout → install Supabase CLI → init → `supabase db push` (using `--db-url` when SUPABASE_DB_URL is set, else link + push)
 
 ---
 
@@ -84,6 +108,7 @@ A workflow runs migrations when you push to `main` (and migration files change).
 
 | Issue | Fix |
 |-------|-----|
+| "unexpected EOF" / "failed to receive message" | Add `SUPABASE_DB_URL` secret with Transaction pooler URI (port 6543), or use **Supabase GitHub Integration** (Option A) |
 | "Cannot find project ref" | Run `supabase link` first (Step 4) |
 | "Database password" | Use the password from Supabase project creation |
 | "Permission denied" | Ensure you’re logged in: `supabase login` |
