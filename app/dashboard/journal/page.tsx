@@ -24,6 +24,36 @@ export default async function JournalPage() {
     .order("trip_date", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
 
+  // Batch fetch photos and perspective counts (avoids N+1 queries)
+  let photosByEntryId = new Map<string, { id: string; url: string; caption: string | null }[]>();
+  let perspectiveCountByEntryId = new Map<string, number>();
+  if (entries && entries.length > 0) {
+    const entryIds = entries.map((e) => e.id);
+    const [photosRes, perspectivesRes] = await Promise.all([
+      supabase
+        .from("journal_photos")
+        .select("id, url, caption, entry_id")
+        .in("entry_id", entryIds)
+        .order("entry_id")
+        .order("sort_order"),
+      supabase.from("journal_perspectives").select("id, journal_entry_id").in("journal_entry_id", entryIds),
+    ]);
+    const photos = photosRes.data ?? [];
+    const perspectives = perspectivesRes.data ?? [];
+    for (const p of photos) {
+      if (p.entry_id) {
+        const list = photosByEntryId.get(p.entry_id) ?? [];
+        list.push({ id: p.id, url: p.url, caption: p.caption });
+        photosByEntryId.set(p.entry_id, list);
+      }
+    }
+    for (const p of perspectives) {
+      if (p.journal_entry_id) {
+        perspectiveCountByEntryId.set(p.journal_entry_id, (perspectiveCountByEntryId.get(p.journal_entry_id) ?? 0) + 1);
+      }
+    }
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -51,13 +81,9 @@ export default async function JournalPage() {
             </p>
           </div>
         ) : (
-          entries.map(async (entry) => {
-            const [photosRes, perspectivesRes] = await Promise.all([
-              supabase.from("journal_photos").select("id, url, caption").eq("entry_id", entry.id).order("sort_order"),
-              supabase.from("journal_perspectives").select("id", { count: "exact", head: true }).eq("journal_entry_id", entry.id),
-            ]);
-            const photos = photosRes.data;
-            const perspectiveCount = perspectivesRes.count ?? 0;
+          entries.map((entry) => {
+            const photos = photosByEntryId.get(entry.id) ?? [];
+            const perspectiveCount = perspectiveCountByEntryId.get(entry.id) ?? 0;
 
             const date = entry.trip_date
               ? formatDateOnly(entry.trip_date)
