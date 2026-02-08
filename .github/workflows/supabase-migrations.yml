@@ -34,4 +34,9 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: supabase db push --linked --yes
+        run: |
+          for i in 1 2 3; do
+            if supabase db push --linked --yes; then exit 0; fi
+            if [ $i -lt 3 ]; then echo "Attempt $i failed (pooler EOF/timeout), retrying in 15s..."; sleep 15; fi
+          done
+          exit 1
