@@ -107,11 +107,11 @@ export async function addFamilyMember(
 
         const resend = new Resend(process.env.RESEND_API_KEY);
         const from = process.env.RESEND_FROM_EMAIL || "Thompsons <onboarding@resend.dev>";
-        const result = await resend.emails.send({
-        from,
-        to: trimmedEmail,
-        subject: `You've been added to ${familyName}!`,
-        html: `
+        const { data, error } = await resend.emails.send({
+          from,
+          to: trimmedEmail,
+          subject: `You've been added to ${familyName}!`,
+          html: `
           <h2>You've been added to ${familyName.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</h2>
           <p>Hi${name.trim() ? ` ${name.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")}` : ""},</p>
           <p>Someone has added you to their family on Our Family Nest. Sign up to join and see photos, memories, and more.</p>
@@ -121,7 +121,11 @@ export async function addFamilyMember(
           </p>
         `,
         });
-        console.log("[Invite email] sent", result);
+        if (error) {
+          console.error("[Invite email] Resend API error", error);
+        } else {
+          console.log("[Invite email] sent", data?.id);
+        }
       } catch (err) {
         console.error("[Invite email failed]", err);
       }
