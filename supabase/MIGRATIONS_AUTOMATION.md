@@ -56,9 +56,27 @@ That’s it. New migrations run automatically in order.
 
 ---
 
-## Optional: GitHub Actions (free, auto-deploy on push)
+---
 
-Supabase's native GitHub integration requires Pro. For free automation, use GitHub Actions — a workflow file runs `supabase db push` when you push to main. Ask for the workflow setup when you're ready.
+## GitHub Actions (free, auto-deploy on push)
+
+A workflow runs migrations when you push to `main` (and migration files change).
+
+### One-time setup: Add GitHub secrets
+
+1. Go to your repo: **GitHub** → **Thompsons** → **Settings** → **Secrets and variables** → **Actions**
+2. Click **New repository secret** and add:
+
+| Secret | Where to get it |
+|--------|-----------------|
+| `SUPABASE_ACCESS_TOKEN` | [supabase.com/dashboard](https://supabase.com/dashboard) → **Account** (avatar) → **Access Tokens** → generate new |
+| `SUPABASE_DB_PASSWORD` | Your Supabase project database password (set when creating the project) |
+| `SUPABASE_PROJECT_REF` | Supabase dashboard → your project → **Settings** → **General** → **Reference ID** |
+
+### What runs
+
+- **Trigger:** Push to `main` when `supabase/migrations/**` changes, or manual run (Actions → Supabase Migrations → Run workflow)
+- **Steps:** Checkout → install Supabase CLI → init → link project → `supabase db push`
 
 ---
 
