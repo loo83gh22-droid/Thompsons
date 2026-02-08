@@ -5,7 +5,8 @@
 Set-Location $PSScriptRoot\..
 
 Get-ChildItem supabase\migrations\*.sql | ForEach-Object {
-  $version = [System.IO.Path]::GetFileNameWithoutExtension($_.Name)
+  # Version is the numeric prefix (e.g. "001" from "001_initial_schema.sql")
+  $version = $_.BaseName -replace '_.*', ''
   Write-Host "Repairing: $version"
   npx supabase migration repair $version --status applied --linked
 }
