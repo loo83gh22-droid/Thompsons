@@ -3,7 +3,6 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId, getActiveFamilyName } from "@/src/lib/family";
-import { Resend } from "resend";
 
 export async function addFamilyMember(
   name: string,
@@ -12,7 +11,6 @@ export async function addFamilyMember(
   birthDate: string,
   birthPlace: string
 ) {
-  console.log("[addFamilyMember] called", { name: name?.slice(0, 20), email: email ? "present" : "empty" });
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
@@ -92,43 +90,23 @@ export async function addFamilyMember(
     }
   }
 
-  // Send invite email when adding a member with an email
+  // Send invite email when adding a member with an email (via API route for reliable Resend)
   const trimmedEmail = email?.trim();
-  if (trimmedEmail) {
-    const hasKey = !!process.env.RESEND_API_KEY;
-    console.log("[Invite email]", { to: trimmedEmail, hasKey, env: process.env.NODE_ENV });
-    if (hasKey) {
-      try {
-        const familyName = await getActiveFamilyName(supabase);
-        const baseUrl =
-          process.env.NEXT_PUBLIC_APP_URL ||
-          (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
-        const signupUrl = baseUrl ? `${baseUrl}/login` : null;
-
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        const from = process.env.RESEND_FROM_EMAIL || "Thompsons <onboarding@resend.dev>";
-        const { data, error } = await resend.emails.send({
-          from,
-          to: trimmedEmail,
-          subject: `You've been added to ${familyName}!`,
-          html: `
-          <h2>You've been added to ${familyName.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</h2>
-          <p>Hi${name.trim() ? ` ${name.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")}` : ""},</p>
-          <p>Someone has added you to their family on Our Family Nest. Sign up to join and see photos, memories, and more.</p>
-          ${signupUrl ? `<p><a href="${signupUrl}" style="display: inline-block; background: #333; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Sign up to join</a></p>` : ""}
-          <p style="margin-top: 24px; color: #888; font-size: 12px;">
-            If you didn't expect this, you can ignore this email.
-          </p>
-        `,
+  if (trimmedEmail && process.env.RESEND_API_KEY) {
+    try {
+      const familyName = await getActiveFamilyName(supabase);
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
+      if (baseUrl) {
+        await fetch(`${baseUrl}/api/send-invite`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ to: trimmedEmail, name: name.trim(), familyName }),
         });
-        if (error) {
-          console.error("[Invite email] Resend API error", error);
-        } else {
-          console.log("[Invite email] sent", data?.id);
-        }
-      } catch (err) {
-        console.error("[Invite email failed]", err);
       }
+    } catch {
+      // Non-blocking
     }
   }
 
@@ -242,25 +220,15 @@ export async function updateFamilyMember(
         const baseUrl =
           process.env.NEXT_PUBLIC_APP_URL ||
           (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
-        const signupUrl = baseUrl ? `${baseUrl}/login` : null;
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        const from = process.env.RESEND_FROM_EMAIL || "Thompsons <onboarding@resend.dev>";
-        await resend.emails.send({
-          from,
-          to: trimmedEmail,
-          subject: `You've been added to ${familyName}!`,
-          html: `
-            <h2>You've been added to ${familyName.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</h2>
-            <p>Hi${name.trim() ? ` ${name.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")}` : ""},</p>
-            <p>Someone has added you to their family on Our Family Nest. Sign up to join and see photos, memories, and more.</p>
-            ${signupUrl ? `<p><a href="${signupUrl}" style="display: inline-block; background: #333; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Sign up to join</a></p>` : ""}
-            <p style="margin-top: 24px; color: #888; font-size: 12px;">
-              If you didn't expect this, you can ignore this email.
-            </p>
-          `,
-        });
-      } catch (err) {
-        console.error("[Invite email failed]", err);
+        if (baseUrl) {
+          await fetch(`${baseUrl}/api/send-invite`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ to: trimmedEmail, name: name.trim(), familyName }),
+          });
+        }
+      } catch {
+        // Non-blocking
       }
     }
   }
