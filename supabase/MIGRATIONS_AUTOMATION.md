@@ -87,3 +87,4 @@ A workflow runs migrations when you push to `main` (and migration files change).
 | "Cannot find project ref" | Run `supabase link` first (Step 4) |
 | "Database password" | Use the password from Supabase project creation |
 | "Permission denied" | Ensure you’re logged in: `supabase login` |
+| "relation ... already exists" | Database was set up manually. Run `bash supabase/repair-migration-history.sh` (or `.\supabase\repair-migration-history.ps1` on Windows) once. Requires `supabase link` first. |
