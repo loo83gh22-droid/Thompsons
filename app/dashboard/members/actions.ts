@@ -2,7 +2,8 @@
 
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { getActiveFamilyId } from "@/src/lib/family";
+import { getActiveFamilyId, getActiveFamilyName } from "@/src/lib/family";
+import { Resend } from "resend";
 
 export async function addFamilyMember(
   name: string,
@@ -87,6 +88,37 @@ export async function addFamilyMember(
       }
     } catch {
       // Geocoding failed
+    }
+  }
+
+  // Send invite email when adding a member with an email
+  const trimmedEmail = email?.trim();
+  if (trimmedEmail && process.env.RESEND_API_KEY) {
+    try {
+      const familyName = await getActiveFamilyName(supabase);
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
+      const signupUrl = baseUrl ? `${baseUrl}/login` : null;
+
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const from = process.env.RESEND_FROM_EMAIL || "Thompsons <onboarding@resend.dev>";
+      await resend.emails.send({
+        from,
+        to: trimmedEmail,
+        subject: `You've been added to ${familyName}!`,
+        html: `
+          <h2>You've been added to ${familyName.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</h2>
+          <p>Hi${name.trim() ? ` ${name.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")}` : ""},</p>
+          <p>Someone has added you to their family on Our Family Nest. Sign up to join and see photos, memories, and more.</p>
+          ${signupUrl ? `<p><a href="${signupUrl}" style="display: inline-block; background: #333; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Sign up to join</a></p>` : ""}
+          <p style="margin-top: 24px; color: #888; font-size: 12px;">
+            If you didn't expect this, you can ignore this email.
+          </p>
+        `,
+      });
+    } catch (err) {
+      console.error("[Invite email failed]", err);
     }
   }
 

@@ -39,8 +39,9 @@ In your Vercel project: **Settings** → **Environment Variables**. Add:
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon key |
 | `NEXT_PUBLIC_DEATH_BOX_PASSWORD` | Password for Da Box (optional) |
 | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps API key for map & geocoding (optional) |
-| `RESEND_API_KEY` | For message emails (optional) |
-| `RESEND_FROM_EMAIL` | e.g. `Thompsons <noreply@yourdomain.com>` |
+| `RESEND_API_KEY` | For message emails & invite emails (optional). See [RESEND_SETUP.md](RESEND_SETUP.md) for setup. |
+| `RESEND_FROM_EMAIL` | e.g. `Thompsons <noreply@yourdomain.com>` or `Thompsons <onboarding@resend.dev>` for testing |
+| `NEXT_PUBLIC_APP_URL` | Full site URL for invite links (e.g. `https://thompsons.vercel.app`). Vercel sets this automatically; override for custom domains. |
 
 ---
 

@@ -102,17 +102,25 @@ values ('YOUR_USER_ID', 'Your Name', '#3b82f6');
 
 ---
 
-## 10. (Optional) Email Notifications for Family Messages
+## 10. (Optional) Email – Family Messages & Invites
 
-To send email when someone receives a family message:
+To send emails when someone receives a family message or when you add a member with an email:
 
 1. Sign up at [resend.com](https://resend.com) (free tier available).
-2. Add to `.env.local`:
+2. Create an API key: **API Keys** → **Create API Key** → copy the key (starts with `re_`).
+3. Add to `.env.local`:
    ```
    RESEND_API_KEY=re_...
-   RESEND_FROM_EMAIL=Thompsons <noreply@yourdomain.com>
+   RESEND_FROM_EMAIL=Thompsons <onboarding@resend.dev>
    ```
-3. Your email is auto-synced to your family member when you log in. Recipients need `contact_email` set (synced on login or editable in Family Tree).
+   **Testing:** Use `onboarding@resend.dev` as the sender (no domain verification). You can only send to your Resend account email. For production, add your domain in Resend and use `noreply@yourdomain.com`.
+4. Restart the dev server (`npm run dev`).
+
+**What triggers emails:**
+- **Family messages** – when someone sends a message (recipients need `contact_email` set).
+- **Invite emails** – when you add a family member with an email address.
+
+See [RESEND_SETUP.md](RESEND_SETUP.md) for full step-by-step setup.
 
 ---
 
