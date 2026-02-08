@@ -93,17 +93,20 @@ export async function addFamilyMember(
 
   // Send invite email when adding a member with an email
   const trimmedEmail = email?.trim();
-  if (trimmedEmail && process.env.RESEND_API_KEY) {
-    try {
-      const familyName = await getActiveFamilyName(supabase);
-      const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL ||
-        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
-      const signupUrl = baseUrl ? `${baseUrl}/login` : null;
+  if (trimmedEmail) {
+    const hasKey = !!process.env.RESEND_API_KEY;
+    console.log("[Invite email]", { to: trimmedEmail, hasKey, env: process.env.NODE_ENV });
+    if (hasKey) {
+      try {
+        const familyName = await getActiveFamilyName(supabase);
+        const baseUrl =
+          process.env.NEXT_PUBLIC_APP_URL ||
+          (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
+        const signupUrl = baseUrl ? `${baseUrl}/login` : null;
 
-      const resend = new Resend(process.env.RESEND_API_KEY);
-      const from = process.env.RESEND_FROM_EMAIL || "Thompsons <onboarding@resend.dev>";
-      await resend.emails.send({
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        const from = process.env.RESEND_FROM_EMAIL || "Thompsons <onboarding@resend.dev>";
+        const result = await resend.emails.send({
         from,
         to: trimmedEmail,
         subject: `You've been added to ${familyName}!`,
@@ -116,9 +119,11 @@ export async function addFamilyMember(
             If you didn't expect this, you can ignore this email.
           </p>
         `,
-      });
-    } catch (err) {
-      console.error("[Invite email failed]", err);
+        });
+        console.log("[Invite email] sent", result);
+      } catch (err) {
+        console.error("[Invite email failed]", err);
+      }
     }
   }
 
