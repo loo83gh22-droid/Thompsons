@@ -3,7 +3,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId, getActiveFamilyName } from "@/src/lib/family";
-import { ensureBirthdayEventForMember } from "@/src/app/dashboard/events/actions";
+import { ensureBirthdayEventForMember } from "@/app/dashboard/events/actions";
 
 export async function addFamilyMember(
   name: string,

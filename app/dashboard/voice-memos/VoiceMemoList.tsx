@@ -76,7 +76,7 @@ export function VoiceMemoList({
         const by = one(memo.recorded_by);
         const forMember = one(memo.recorded_for);
         const byDisplayName = by ? (by.nickname?.trim() || by.name) : null;
-        const byLabel = byDisplayName
+        const byLabel = byDisplayName && by
           ? by.relationship
             ? `${byDisplayName} (${by.relationship})`
             : byDisplayName
