@@ -1,9 +1,9 @@
 ---
-description: Always commit changes after completing work
+description: Always commit and push after completing work so we can deploy and keep moving
 alwaysApply: true
 ---
 
-# Always commit after making changes
+# Always commit and push after making changes
 
 When you finish making code changes (fixes, features, or refactors):
 
@@ -11,5 +11,6 @@ When you finish making code changes (fixes, features, or refactors):
 2. **Commit message**: Use a short, descriptive message (e.g. "Add mobile nav and empty states", "Fix map error boundary").
 3. **Scope**: Stage only files you changed or that are part of the same logical change. Do not commit unrelated or generated files (e.g. `.temp/`, `node_modules`) unless the user asks.
 4. **Shell**: Use the shell appropriate for the OS (e.g. on Windows PowerShell use `;` instead of `&&` to chain commands).
+5. **Push** after committing: run `git push origin main` (or the project's default branch) so deployments run and we keep moving. If push fails (e.g. auth or network), tell the user and leave the commit local.
 
-After committing, tell the user the commit is done and that they can push when ready (e.g. `git push origin main`).
+After committing and pushing, briefly confirm (e.g. "Committed and pushed; deployment should run.").
