@@ -143,7 +143,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div>
+    <div className="min-w-0 w-full overflow-x-hidden">
       <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
         Welcome home
       </h1>
@@ -210,7 +210,7 @@ export default async function DashboardPage() {
         </>
       )}
 
-      <div className={`mt-12 grid grid-cols-1 gap-4 px-0 min-[600px]:grid-cols-2 min-[600px]:gap-6 min-[900px]:grid-cols-3 ${hasNoContent ? "ring-2 ring-[var(--accent)]/30 ring-offset-2 ring-offset-[var(--background)] rounded-xl" : ""}`}>
+      <div className={`mt-12 w-full max-w-full grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 ${hasNoContent ? "ring-2 ring-[var(--accent)]/30 ring-offset-2 ring-offset-[var(--background)] rounded-xl" : ""}`}>
         <DashboardCard href="/dashboard/timeline" title="Timeline" description="All family memories in one chronological view. Journal, photos, voice memos, time capsules." icon="📅" />
         <DashboardCard href="/dashboard/events" title="Events" description="Birthdays, anniversaries, reunions. Create events and send celebratory messages." icon="🎂" />
         <DashboardCard href="/dashboard/stories" title="Stories" description="Longer-form family history, advice, and memorable moments. Write and share stories." icon="📖" />
@@ -247,13 +247,13 @@ function DashboardCard({
   return (
     <Link
       href={href}
-      className="group block min-h-[44px] rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] md:transition-all md:duration-[250ms] md:ease-in-out md:hover:scale-[1.02] md:hover:border-[var(--accent)]/50 md:hover:bg-[var(--surface-hover)] md:hover:shadow-xl md:hover:shadow-black/25"
+      className="group block min-w-0 min-h-[44px] w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] md:transition-all md:duration-[250ms] md:ease-in-out md:hover:scale-[1.02] md:hover:border-[var(--accent)]/50 md:hover:bg-[var(--surface-hover)] md:hover:shadow-xl md:hover:shadow-black/25"
     >
       <span className="text-3xl" role="img" aria-hidden="true">{icon}</span>
-      <h2 className="mt-4 font-display text-xl font-semibold text-[var(--foreground)] md:group-hover:text-[var(--accent)]">
+      <h2 className="mt-4 font-display text-xl font-semibold text-[var(--foreground)] break-words md:group-hover:text-[var(--accent)]">
         {title}
       </h2>
-      <p className="mt-2 text-sm text-[var(--muted)]">{description}</p>
+      <p className="mt-2 text-sm text-[var(--muted)] break-words">{description}</p>
     </Link>
   );
 }
