@@ -80,7 +80,7 @@ export function SendMessageForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-8 max-w-xl space-y-5">
+    <form onSubmit={handleSubmit} className="mt-8 w-full max-w-xl space-y-5">
       <div>
         <label htmlFor="message-title" className="block text-sm font-medium text-[var(--muted)]">
           Title

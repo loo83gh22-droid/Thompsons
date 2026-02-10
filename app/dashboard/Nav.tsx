@@ -325,7 +325,19 @@ export function Nav({
         aria-label="Mobile navigation"
         aria-hidden={!mobileMenuOpen}
       >
-        <div className="flex flex-col gap-1 overflow-y-auto py-6 pl-4 pr-2">
+        <div className="flex flex-col h-full">
+          <div className="flex min-h-[44px] shrink-0 items-center justify-between border-b border-[var(--border)] px-4 py-3">
+            <span className="text-sm font-medium text-[var(--muted)]">Menu</span>
+            <button
+              type="button"
+              onClick={closeMobileMenu}
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              aria-label="Close menu"
+            >
+              <span className="text-xl leading-none" aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div className="flex flex-1 flex-col gap-1 overflow-y-auto py-4 pl-4 pr-2">
           {navItemsBeforeDropdowns.map((item) => (
             <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={navLinkClass(pathname === item.href)}>
               {item.label}
@@ -366,6 +378,7 @@ export function Nav({
             >
               Sign out
             </button>
+          </div>
           </div>
         </div>
       </aside>

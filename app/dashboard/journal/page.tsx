@@ -4,6 +4,7 @@ import Image from "next/image";
 import { formatDateOnly } from "@/src/lib/date";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { DeleteJournalEntryButton } from "./DeleteJournalEntryButton";
+import { EmptyState } from "@/app/dashboard/components/EmptyState";
 
 export default async function JournalPage() {
   const supabase = await createClient();
@@ -76,11 +77,13 @@ export default async function JournalPage() {
 
       <div className="mt-12 space-y-8">
         {!entries?.length ? (
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-8 text-center">
-            <p className="text-[var(--muted)]">
-              No journal entries yet. Create your first one to get started.
-            </p>
-          </div>
+          <EmptyState
+            icon="📔"
+            headline="No journal entries yet"
+            description="Stories and photos from trips, birthdays, celebrations. Create your first entry and others can add their perspective."
+            actionLabel="Create your first entry"
+            actionHref="/dashboard/journal/new"
+          />
         ) : (
           entries.map((entry) => {
             const photos = photosByEntryId.get(entry.id) ?? [];

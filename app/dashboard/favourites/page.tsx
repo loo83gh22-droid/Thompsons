@@ -19,12 +19,12 @@ export default function FavouritesPage() {
         Books, movies, shows, games — the stuff we love. Pick a category.
       </p>
 
-      <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-12 grid grid-cols-1 gap-6 min-[600px]:grid-cols-2 min-[900px]:grid-cols-3">
         {CATEGORIES.map((cat) => (
           <Link
             key={cat.id}
             href={`/dashboard/favourites/${cat.id}`}
-            className="group block min-h-[44px] rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 transition-all hover:border-[var(--accent)]/50 hover:bg-[var(--surface-hover)] hover:shadow-lg hover:shadow-black/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+            className="group block min-h-[44px] rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6 transition-all duration-200 hover:border-[var(--accent)]/50 hover:bg-[var(--surface-hover)] hover:shadow-xl hover:shadow-black/25 hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
           >
             <span className="text-3xl" role="img" aria-hidden="true">{cat.icon}</span>
             <h2 className="mt-4 font-display text-xl font-semibold text-[var(--foreground)] group-hover:text-[var(--accent)]">
@@ -34,7 +34,7 @@ export default function FavouritesPage() {
         ))}
         <Link
           href="/dashboard/recipes"
-          className="group block min-h-[44px] rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 transition-all hover:border-[var(--accent)]/50 hover:bg-[var(--surface-hover)] hover:shadow-lg hover:shadow-black/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+          className="group block min-h-[44px] rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6 transition-all duration-200 hover:border-[var(--accent)]/50 hover:bg-[var(--surface-hover)] hover:shadow-xl hover:shadow-black/25 hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
         >
           <span className="text-3xl" role="img" aria-hidden="true">🍳</span>
           <h2 className="mt-4 font-display text-xl font-semibold text-[var(--foreground)] group-hover:text-[var(--accent)]">

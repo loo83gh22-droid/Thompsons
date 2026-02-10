@@ -3,6 +3,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { AddRecipeForm } from "./AddRecipeForm";
 import { RecipeCard } from "./RecipeCard";
+import { RecipesEmptyState } from "./RecipesEmptyState";
 
 export default async function RecipesPage() {
   const supabase = await createClient();
@@ -64,13 +65,9 @@ export default async function RecipesPage() {
       </div>
 
       {!recipes?.length ? (
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-12 text-center">
-          <p className="text-[var(--muted)]">
-            No recipes yet. Add your first one — with the story behind it!
-          </p>
-        </div>
+        <RecipesEmptyState />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 min-[600px]:grid-cols-2 min-[900px]:grid-cols-3">
           {recipes.map((recipe) => (
             <RecipeCard
               key={recipe.id}
