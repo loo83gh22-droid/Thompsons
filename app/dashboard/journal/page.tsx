@@ -25,8 +25,8 @@ export default async function JournalPage() {
     .order("created_at", { ascending: false });
 
   // Batch fetch photos and perspective counts (avoids N+1 queries)
-  let photosByEntryId = new Map<string, { id: string; url: string; caption: string | null }[]>();
-  let perspectiveCountByEntryId = new Map<string, number>();
+  const photosByEntryId = new Map<string, { id: string; url: string; caption: string | null }[]>();
+  const perspectiveCountByEntryId = new Map<string, number>();
   if (entries && entries.length > 0) {
     const entryIds = entries.map((e) => e.id);
     const [photosRes, perspectivesRes] = await Promise.all([

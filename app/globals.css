@@ -154,3 +154,32 @@ body {
   color: var(--muted);
   opacity: 0.5;
 }
+
+/* Year and month dropdowns */
+.react-datepicker__year-dropdown,
+.react-datepicker__month-dropdown {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.react-datepicker__year-option,
+.react-datepicker__month-option {
+  color: var(--foreground);
+}
+
+.react-datepicker__year-option:hover,
+.react-datepicker__month-option:hover {
+  background: var(--surface-hover);
+}
+
+.react-datepicker__year-option--selected,
+.react-datepicker__month-option--selected {
+  background: var(--accent);
+  color: var(--background);
+}
+
+.react-datepicker__year-dropdown-container,
+.react-datepicker__month-dropdown-container {
+  margin: 0 0.5rem;
+}

@@ -59,6 +59,7 @@ function SortablePhoto({
       {...listeners}
       className="group relative aspect-square cursor-move overflow-hidden rounded-lg border-2 border-[var(--border)] bg-[var(--surface)] transition-all hover:border-[var(--muted)]"
     >
+      {/* eslint-disable-next-line @next/next/no-img-element -- blob URL preview, next/image not used */}
       <img
         src={photo.preview}
         alt="Upload preview"

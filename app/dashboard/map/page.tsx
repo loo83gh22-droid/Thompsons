@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import { AddLocationForm } from "./AddLocationForm";
+import { rebuildLocationClusters } from "./actions";
 
 // Google Maps loads client-side only
 const MapComponent = dynamic(() => import("./MapComponent"), {
@@ -22,6 +24,22 @@ const LEGEND = [
 ];
 
 export default function MapPage() {
+  const [rebuilding, setRebuilding] = useState(false);
+  const [rebuildMessage, setRebuildMessage] = useState<string | null>(null);
+
+  async function handleRebuildClusters() {
+    setRebuilding(true);
+    setRebuildMessage(null);
+    try {
+      const { updated, error } = await rebuildLocationClusters();
+      if (error) setRebuildMessage(`Error: ${error}`);
+      else setRebuildMessage(updated > 0 ? `Updated ${updated} pin(s).` : "No pins needed updating.");
+      window.dispatchEvent(new Event("map-refresh"));
+    } finally {
+      setRebuilding(false);
+    }
+  }
+
   return (
     <div>
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -33,7 +51,20 @@ export default function MapPage() {
             Where we&apos;ve been. Add a location in a journal entry or use the button below. Birth places and trips.
           </p>
         </div>
-        <AddLocationForm />
+        <div className="flex flex-wrap items-center gap-2">
+          <AddLocationForm />
+          <button
+            type="button"
+            onClick={handleRebuildClusters}
+            disabled={rebuilding}
+            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] disabled:opacity-50"
+          >
+            {rebuilding ? "Rebuilding…" : "Rebuild clusters"}
+          </button>
+          {rebuildMessage && (
+            <span className="text-sm text-[var(--muted)]">{rebuildMessage}</span>
+          )}
+        </div>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-4">

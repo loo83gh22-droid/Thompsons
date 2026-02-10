@@ -9,6 +9,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isSignUp = searchParams.get("mode") === "signup";
+  const next = searchParams.get("next") ?? "/dashboard";
 
   const [familyName, setFamilyName] = useState("");
   const [name, setName] = useState("");
@@ -43,7 +44,7 @@ function LoginForm() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        router.push("/dashboard");
+        router.push(next.startsWith("/") ? next : "/dashboard");
         router.refresh();
       }
     } catch (err: unknown) {

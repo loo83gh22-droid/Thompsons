@@ -6,12 +6,13 @@ import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
 import { createJournalEntry } from "../actions";
-import DatePicker from "@/app/components/DatePicker";
+import DatePicker, { type DateRange } from "@/app/components/DatePicker";
 import LocationInput from "@/app/components/LocationInput";
 import PhotoUpload from "@/app/components/PhotoUpload";
 import { extractMetadataFromMultiplePhotos } from "@/src/lib/exifExtractor";
 
 type FamilyMember = { id: string; name: string; color: string; symbol: string };
+type DateValue = Date | DateRange;
 
 export default function NewJournalPage() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function NewJournalPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [date, setDate] = useState<Date>(() => new Date());
+  const [date, setDate] = useState<DateValue>(() => new Date());
   const [location, setLocation] = useState<{ name: string; latitude: number; longitude: number }>({
     name: "",
     latitude: 0,
@@ -48,7 +49,7 @@ export default function NewJournalPage() {
     setCoverPhotoIndex(coverIndex);
     if (files.length > 0) {
       extractMetadataFromMultiplePhotos(files).then((metadata) => {
-        if (metadata.date) setDate(metadata.date);
+        if (metadata.date) setDate(metadata.date as Date);
       });
     }
   }, []);
@@ -64,7 +65,10 @@ export default function NewJournalPage() {
       formData.set("family_member_id", (form.elements.namedItem("family_member_id") as HTMLSelectElement).value);
       formData.set("title", (form.elements.namedItem("title") as HTMLInputElement).value);
       formData.set("content", (form.elements.namedItem("content") as HTMLTextAreaElement).value);
-      formData.set("trip_date", date.toISOString().split("T")[0]);
+      const startDate = date instanceof Date ? date : date.start;
+      const endDate = date instanceof Date ? null : date.end;
+      formData.set("trip_date", startDate.toISOString().split("T")[0]);
+      if (endDate) formData.set("trip_date_end", endDate.toISOString().split("T")[0]);
       formData.set("location", location.name || "");
       if (location.latitude && location.longitude) {
         formData.set("location_lat", String(location.latitude));
@@ -87,7 +91,13 @@ export default function NewJournalPage() {
       router.push("/dashboard/journal");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      const message =
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message: unknown }).message)
+          : err instanceof Error
+            ? err.message
+            : "Something went wrong.";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -158,6 +168,7 @@ export default function NewJournalPage() {
             onChange={setDate}
             label="Date"
             required={false}
+            allowRange
           />
         </div>
 

@@ -36,8 +36,8 @@ export async function findOrCreateLocationCluster(
   familyId: string,
   location: Location
 ): Promise<string | null> {
-  const DISTANCE_THRESHOLD_KM = 1.6; // 1 mile
-  const DATE_THRESHOLD_DAYS = 7;
+  const DISTANCE_THRESHOLD_KM = 2.5; // ~1.5 miles – same area (e.g. same town)
+  const DATE_THRESHOLD_DAYS = 14; // 2 weeks – same trip
 
   const { data: existingClusters, error } = await supabase
     .from("location_clusters")

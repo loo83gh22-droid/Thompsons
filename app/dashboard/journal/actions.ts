@@ -31,6 +31,7 @@ export async function createJournalEntry(formData: FormData) {
   const content = formData.get("content") as string;
   const location = formData.get("location") as string;
   const tripDate = formData.get("trip_date") as string;
+  const tripDateEnd = (formData.get("trip_date_end") as string) || null;
   const locationLat = formData.get("location_lat") as string | null;
   const locationLng = formData.get("location_lng") as string | null;
 
@@ -45,11 +46,12 @@ export async function createJournalEntry(formData: FormData) {
       content: content || null,
       location: location || null,
       trip_date: tripDate || null,
+      trip_date_end: tripDateEnd || null,
     })
     .select("id")
     .single();
 
-  if (entryError) throw entryError;
+  if (entryError) throw new Error(entryError.message || "Failed to save entry.");
 
   // If location provided, geocode (if needed) and create map pin with clustering
   if (location?.trim()) {
@@ -102,12 +104,23 @@ export async function createJournalEntry(formData: FormData) {
 
       if (lat && lng) {
         const date = tripDate ? new Date(tripDate) : new Date();
+        if (process.env.NODE_ENV === "development") {
+          console.log("[journal] Clustering:", {
+            location: location.trim(),
+            lat,
+            lng,
+            date: date.toISOString().split("T")[0],
+          });
+        }
         const locationClusterId = await findOrCreateLocationCluster(supabase, activeFamilyId, {
           latitude: lat,
           longitude: lng,
           location_name: location.trim(),
           date,
         });
+        if (process.env.NODE_ENV === "development") {
+          console.log("[journal] Cluster ID:", locationClusterId ?? "(null – pin will show alone)");
+        }
 
         const yearVisited = tripDate ? new Date(tripDate).getFullYear() : null;
         await supabase.from("travel_locations").insert({
@@ -137,31 +150,35 @@ export async function createJournalEntry(formData: FormData) {
     const file = photos[i];
     if (file.size === 0) continue;
 
-    const ext = file.name.split(".").pop() || "jpg";
-    const path = `${entry.id}/${crypto.randomUUID()}.${ext}`;
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${entry.id}/${crypto.randomUUID()}.${ext}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from("journal-photos")
-      .upload(path, file, { upsert: true });
+      const { error: uploadError } = await supabase.storage
+        .from("journal-photos")
+        .upload(path, file, { upsert: true });
 
-    if (!uploadError) {
+      if (uploadError) continue;
+
       const { data: urlData } = supabase.storage
         .from("journal-photos")
         .getPublicUrl(path);
 
-      await supabase.from("journal_photos").insert({
+      const { error: photoErr } = await supabase.from("journal_photos").insert({
         family_id: activeFamilyId,
         entry_id: entry.id,
         url: urlData.publicUrl,
         sort_order: i,
       });
+      if (photoErr) continue;
 
-      // Also add to Photos (background mosaic)
       await supabase.from("home_mosaic_photos").insert({
         family_id: activeFamilyId,
         url: urlData.publicUrl,
         sort_order: mosaicOrder++,
       });
+    } catch {
+      // Skip this photo and continue so one bad file doesn't fail the whole entry
     }
   }
 
@@ -185,6 +202,7 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
   const content = formData.get("content") as string;
   const location = formData.get("location") as string;
   const tripDate = formData.get("trip_date") as string;
+  const tripDateEnd = (formData.get("trip_date_end") as string) || null;
 
   if (!familyMemberId) throw new Error("Please select who this entry is about.");
 
@@ -196,6 +214,7 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
       content: content || null,
       location: location || null,
       trip_date: tripDate || null,
+      trip_date_end: tripDateEnd || null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", entryId);

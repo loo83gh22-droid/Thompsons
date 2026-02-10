@@ -167,6 +167,7 @@ export default function MapComponent() {
 
   useEffect(() => {
     fetchLocations(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchLocations intentionally omitted to avoid re-fetch loops
   }, [activeFamilyId]);
 
   useEffect(() => {
@@ -175,6 +176,7 @@ export default function MapComponent() {
     }
     window.addEventListener("map-refresh", onRefresh);
     return () => window.removeEventListener("map-refresh", onRefresh);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchLocations intentionally not in deps
   }, []);
 
   const visitedCountryCodes = useMemo(() => {

@@ -28,6 +28,7 @@ export default function EditJournalPage() {
     content: string;
     location: string;
     trip_date: string;
+    trip_date_end: string;
     author_id: string;
   } | null>(null);
   const [photos, setPhotos] = useState<JournalPhoto[]>([]);
@@ -47,7 +48,7 @@ export default function EditJournalPage() {
         supabase.from("family_members").select("id, name, color, symbol").eq("family_id", activeFamilyId).order("name"),
         supabase
           .from("journal_entries")
-          .select("title, content, location, trip_date, author_id")
+          .select("title, content, location, trip_date, trip_date_end, author_id")
           .eq("id", entryId)
           .single(),
         supabase
@@ -59,12 +60,20 @@ export default function EditJournalPage() {
 
       if (membersRes.data) setMembers(membersRes.data as FamilyMember[]);
       if (entryRes.data) {
-        const e = entryRes.data;
+        const e = entryRes.data as {
+          title?: string;
+          content?: string;
+          location?: string;
+          trip_date?: string;
+          trip_date_end?: string;
+          author_id?: string;
+        };
         setEntry({
           title: e.title || "",
           content: e.content || "",
           location: e.location || "",
           trip_date: e.trip_date ? e.trip_date.slice(0, 10) : "",
+          trip_date_end: e.trip_date_end ? e.trip_date_end.slice(0, 10) : "",
           author_id: e.author_id || "",
         });
       }
@@ -87,6 +96,7 @@ export default function EditJournalPage() {
       formData.set("content", entry.content);
       formData.set("location", entry.location);
       formData.set("trip_date", entry.trip_date);
+      if (entry.trip_date_end) formData.set("trip_date_end", entry.trip_date_end);
       await updateJournalEntry(entryId, formData);
       router.push("/dashboard/journal");
       router.refresh();
@@ -215,7 +225,7 @@ export default function EditJournalPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--muted)]">
-              Date
+              Start date
             </label>
             <input
               name="trip_date"
@@ -223,6 +233,20 @@ export default function EditJournalPage() {
               value={entry.trip_date}
               onChange={(e) =>
                 setEntry((prev) => prev && { ...prev, trip_date: e.target.value })
+              }
+              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[var(--muted)]">
+              End date (optional)
+            </label>
+            <input
+              name="trip_date_end"
+              type="date"
+              value={entry.trip_date_end}
+              onChange={(e) =>
+                setEntry((prev) => prev && { ...prev, trip_date_end: e.target.value })
               }
               className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
             />
