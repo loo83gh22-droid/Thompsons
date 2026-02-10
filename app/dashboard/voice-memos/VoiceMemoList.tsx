@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { removeVoiceMemo } from "./actions";
+import { EmptyState } from "../components/EmptyState";
 
 type VoiceMemo = {
   id: string;
@@ -21,11 +22,13 @@ export function VoiceMemoList({ memos }: { memos: VoiceMemo[] }) {
 
   if (!memos.length) {
     return (
-      <div className="rounded-xl border-2 border-dashed border-[var(--border)] py-16 text-center">
-        <p className="text-[var(--muted)]">
-          No voice memos yet. Add a recording—grandparents telling stories, parent singing a lullaby, or dad&apos;s terrible jokes.
-        </p>
-      </div>
+      <EmptyState
+        icon="🎙️"
+        headline="No voice memos yet"
+        description="Record voices for the future—stories, songs, jokes. Imagine kids hearing their great-grandmother's voice decades from now."
+        actionLabel="Record your first memory"
+        onAction={() => document.querySelector<HTMLButtonElement>('[data-voice-memo-add]')?.click()}
+      />
     );
   }
 

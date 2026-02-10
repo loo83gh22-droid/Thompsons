@@ -79,6 +79,7 @@ export function AddTimeCapsuleForm({ onAdded }: { onAdded?: () => void }) {
   if (!open) {
     return (
       <button
+        data-time-capsule-add
         onClick={() => setOpen(true)}
         className="rounded-lg bg-[var(--accent)] px-4 py-2 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-muted)]"
       >

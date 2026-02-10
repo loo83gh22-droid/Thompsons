@@ -10,7 +10,7 @@ export default function DashboardPage() {
         Your family hub. Pick a destination below.
       </p>
 
-      <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         <DashboardCard
           href="/dashboard/map"
           title="Family Map"
@@ -108,9 +108,9 @@ function DashboardCard({
   return (
     <Link
       href={href}
-      className="group block rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 transition-all hover:border-[var(--accent)]/50 hover:bg-[var(--surface-hover)]"
+      className="group block min-h-[44px] rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 transition-all hover:border-[var(--accent)]/50 hover:bg-[var(--surface-hover)] hover:shadow-lg hover:shadow-black/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
     >
-      <span className="text-3xl">{icon}</span>
+      <span className="text-3xl" role="img" aria-hidden="true">{icon}</span>
       <h2 className="mt-4 font-display text-xl font-semibold text-[var(--foreground)] group-hover:text-[var(--accent)]">
         {title}
       </h2>

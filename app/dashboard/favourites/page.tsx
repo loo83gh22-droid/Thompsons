@@ -19,14 +19,14 @@ export default function FavouritesPage() {
         Books, movies, shows, games — the stuff we love. Pick a category.
       </p>
 
-      <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {CATEGORIES.map((cat) => (
           <Link
             key={cat.id}
             href={`/dashboard/favourites/${cat.id}`}
-            className="group block rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 transition-all hover:border-[var(--accent)]/50 hover:bg-[var(--surface-hover)]"
+            className="group block min-h-[44px] rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 transition-all hover:border-[var(--accent)]/50 hover:bg-[var(--surface-hover)] hover:shadow-lg hover:shadow-black/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
           >
-            <span className="text-3xl">{cat.icon}</span>
+            <span className="text-3xl" role="img" aria-hidden="true">{cat.icon}</span>
             <h2 className="mt-4 font-display text-xl font-semibold text-[var(--foreground)] group-hover:text-[var(--accent)]">
               {cat.label}
             </h2>
@@ -34,9 +34,9 @@ export default function FavouritesPage() {
         ))}
         <Link
           href="/dashboard/recipes"
-          className="group block rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 transition-all hover:border-[var(--accent)]/50 hover:bg-[var(--surface-hover)]"
+          className="group block min-h-[44px] rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 transition-all hover:border-[var(--accent)]/50 hover:bg-[var(--surface-hover)] hover:shadow-lg hover:shadow-black/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
         >
-          <span className="text-3xl">🍳</span>
+          <span className="text-3xl" role="img" aria-hidden="true">🍳</span>
           <h2 className="mt-4 font-display text-xl font-semibold text-[var(--foreground)] group-hover:text-[var(--accent)]">
             Recipes
           </h2>

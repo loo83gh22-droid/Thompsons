@@ -100,8 +100,9 @@ export function AddFavouriteForm({
       ) : (
         <button
           type="button"
+          data-add-favourite
           onClick={() => setOpen(true)}
-          className="rounded-lg border border-[var(--accent)]/50 px-4 py-2 text-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/10"
+          className="min-h-[44px] rounded-lg border border-[var(--accent)]/50 px-4 py-2 text-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
         >
           + Add
         </button>

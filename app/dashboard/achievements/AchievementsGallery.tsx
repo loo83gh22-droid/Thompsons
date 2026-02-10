@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { removeAchievement } from "./actions";
+import { EmptyState } from "../components/EmptyState";
 
 type Achievement = {
   id: string;
@@ -35,11 +36,13 @@ export function AchievementsGallery({ achievements }: { achievements: Achievemen
 
   if (!achievements.length) {
     return (
-      <div className="sports-empty rounded-xl border-2 border-dashed border-[var(--sports-border)] py-16 text-center">
-        <p className="text-[var(--sports-muted)]">
-          No achievements yet. Add your first one!
-        </p>
-      </div>
+      <EmptyState
+        icon="🏆"
+        headline="No achievements yet"
+        description="Log cool achievements and team photos. Celebrate wins and milestones together."
+        actionLabel="Add your first achievement"
+        onAction={() => document.querySelector<HTMLButtonElement>("[data-add-achievement]")?.click()}
+      />
     );
   }
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { removeFavourite, updateFavourite } from "./actions";
+import { EmptyState } from "../components/EmptyState";
 
 type Item = {
   id: string;
@@ -68,9 +69,13 @@ export function FavouritesList({
 
   if (!items.length) {
     return (
-      <p className="rounded-lg bg-[var(--background)]/50 py-6 text-center text-sm text-[var(--muted)]">
-        Nothing yet — be the first to add one!
-      </p>
+      <EmptyState
+        icon="⭐"
+        headline="Nothing here yet"
+        description="Be the first to add a favourite. Share what you love with the family."
+        actionLabel="Add your first one"
+        onAction={() => document.querySelector<HTMLButtonElement>("[data-add-favourite]")?.click()}
+      />
     );
   }
 

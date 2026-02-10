@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { removeTradition } from "./actions";
+import { EmptyState } from "../components/EmptyState";
 
 type Tradition = {
   id: string;
@@ -30,9 +31,13 @@ export function TraditionList({ traditions }: { traditions: Tradition[] }) {
 
   if (!traditions.length) {
     return (
-      <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] py-12 text-center text-[var(--muted)]">
-        No traditions yet. Add your first one — the weird stuff that makes your family yours.
-      </p>
+      <EmptyState
+        icon="🏠"
+        headline="No traditions yet"
+        description="Taco Tuesday chants, holiday rituals, inside jokes—the cultural DNA that gets lost between generations. Add your first one!"
+        actionLabel="Add your first tradition"
+        onAction={() => document.querySelector<HTMLButtonElement>("[data-add-tradition]")?.click()}
+      />
     );
   }
 

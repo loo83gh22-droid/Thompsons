@@ -153,8 +153,10 @@ export function AddVoiceMemoForm({ onAdded }: { onAdded?: () => void }) {
   if (!open) {
     return (
       <button
+        type="button"
+        data-voice-memo-add
         onClick={() => setOpen(true)}
-        className="rounded-lg bg-[var(--accent)] px-4 py-2 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-muted)]"
+        className="min-h-[44px] rounded-lg bg-[var(--accent)] px-4 py-2 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
       >
         + Add voice memo
       </button>

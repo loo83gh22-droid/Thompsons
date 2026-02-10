@@ -2,6 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { AddTimeCapsuleForm } from "./AddTimeCapsuleForm";
+import { TimeCapsuleSentEmpty } from "./TimeCapsuleEmptyState";
+import { EmptyState } from "@/app/dashboard/components/EmptyState";
 import { formatDateOnly } from "@/src/lib/date";
 
 export default async function TimeCapsulesPage() {
@@ -61,9 +63,11 @@ export default async function TimeCapsulesPage() {
           </p>
           <div className="mt-4 space-y-3">
             {!received.length ? (
-              <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] py-8 text-center text-[var(--muted)]">
-                No letters for you yet.
-              </p>
+              <EmptyState
+                icon="💌"
+                headline="No letters for you yet"
+                description="When family members write you a letter for the future, it will appear here and unlock on the date they set."
+              />
             ) : (
               received.map((letter) => {
                 const raw = letter.from_family_member as { name: string } | { name: string }[] | null;
@@ -111,9 +115,7 @@ export default async function TimeCapsulesPage() {
           </p>
           <div className="mt-4 space-y-3">
             {!sent.length ? (
-              <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] py-8 text-center text-[var(--muted)]">
-                You haven&apos;t written any letters yet. Click &quot;Write a letter&quot; to get started.
-              </p>
+              <TimeCapsuleSentEmpty />
             ) : (
               sent.map((letter) => {
                 const raw = letter.to_family_member as { name: string } | { name: string }[] | null;

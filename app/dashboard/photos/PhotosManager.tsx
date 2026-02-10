@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { addPhoto, removePhoto } from "./actions";
+import { EmptyState } from "../components/EmptyState";
 
 type Photo = { id: string; url: string; sort_order: number };
 
@@ -10,6 +11,7 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
   const [photos, setPhotos] = useState(initialPhotos);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -39,15 +41,17 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
 
   return (
     <div className="mt-8 space-y-6">
-      <div className="flex items-center gap-4">
-        <label className="cursor-pointer rounded-lg bg-[var(--accent)] px-4 py-2 font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)]">
+      <div className="flex flex-wrap items-center gap-4">
+        <label className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-lg bg-[var(--accent)] px-4 py-3 font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">
           {uploading ? "Uploading..." : "Add photo"}
           <input
+            ref={fileInputRef}
             type="file"
             accept="image/*"
             className="sr-only"
             onChange={handleUpload}
             disabled={uploading}
+            aria-label="Choose photo to upload"
           />
         </label>
         <span className="text-sm text-[var(--muted)]">
@@ -56,11 +60,22 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
       </div>
 
       {error && (
-        <div className="rounded-lg bg-red-500/20 px-4 py-3 text-sm text-red-400">
+        <div className="rounded-lg border border-red-500/30 bg-red-500/20 px-4 py-3 text-sm text-red-400" role="alert">
           {error}
         </div>
       )}
 
+      {!photos.length ? (
+        <EmptyState
+          icon="🖼️"
+          headline="No photos yet"
+          description="Start sharing family moments! Upload photos to build your background mosaic and bring every page to life."
+          actionLabel="Upload first photo"
+          onAction={() => fileInputRef.current?.click()}
+        />
+      ) : null}
+
+      {photos.length > 0 && (
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-6">
         {photos.map((photo) => (
           <div
@@ -83,6 +98,7 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
           </div>
         ))}
       </div>
+      )}
 
       <p className="text-sm text-[var(--muted)]">
         These photos appear as the background mosaic on every page.

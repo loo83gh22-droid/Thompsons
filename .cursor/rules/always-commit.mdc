@@ -1,0 +1,15 @@
+---
+description: Always commit changes after completing work
+alwaysApply: true
+---
+
+# Always commit after making changes
+
+When you finish making code changes (fixes, features, or refactors):
+
+1. **Stage and commit** before ending the conversation. Use the project's git (e.g. from the repo root: `git add` for the relevant paths, then `git commit -m "Clear message"`).
+2. **Commit message**: Use a short, descriptive message (e.g. "Add mobile nav and empty states", "Fix map error boundary").
+3. **Scope**: Stage only files you changed or that are part of the same logical change. Do not commit unrelated or generated files (e.g. `.temp/`, `node_modules`) unless the user asks.
+4. **Shell**: Use the shell appropriate for the OS (e.g. on Windows PowerShell use `;` instead of `&&` to chain commands).
+
+After committing, tell the user the commit is done and that they can push when ready (e.g. `git push origin main`).

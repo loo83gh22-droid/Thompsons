@@ -80,54 +80,57 @@ export function SendMessageForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-8 max-w-xl space-y-4">
+    <form onSubmit={handleSubmit} className="mt-8 max-w-xl space-y-5">
       <div>
-        <label className="block text-sm font-medium text-[var(--muted)]">
+        <label htmlFor="message-title" className="block text-sm font-medium text-[var(--muted)]">
           Title
         </label>
         <input
+          id="message-title"
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
           placeholder="Happy Valentine's Day!"
-          className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+          className="input-base mt-1"
+          autoComplete="off"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-[var(--muted)]">
+        <label htmlFor="message-content" className="block text-sm font-medium text-[var(--muted)]">
           Message
         </label>
         <textarea
+          id="message-content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
           required
           rows={6}
           placeholder="Write your message..."
-          className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+          className="input-base mt-1 min-h-[120px] resize-y"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-[var(--muted)]">
+        <label htmlFor="message-show-on-date" className="block text-sm font-medium text-[var(--muted)]">
           Show on date <span className="text-[var(--muted)]/70">(optional)</span>
         </label>
         <input
+          id="message-show-on-date"
           type="date"
           value={showOnDate}
           onChange={(e) => setShowOnDate(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+          className="input-base mt-1"
+          aria-describedby="message-date-hint"
         />
-        <p className="mt-1 text-xs text-[var(--muted)]">
+        <p id="message-date-hint" className="mt-1 text-xs text-[var(--muted)]">
           Leave empty to show on next login. Set a date (e.g. Feb 14) for Valentine&apos;s Day.
         </p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-[var(--muted)]">
-          Send to
-        </label>
+      <fieldset>
+        <legend className="block text-sm font-medium text-[var(--muted)]">Send to</legend>
         <p className="mt-1 text-xs text-[var(--muted)]">
           Leave all unchecked to send to everyone. Or select specific people.
         </p>
@@ -135,25 +138,27 @@ export function SendMessageForm({
           {familyMembers.map((m) => (
             <label
               key={m.id}
-              className="flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] px-4 py-2 transition-colors has-[:checked]:border-[var(--accent)] has-[:checked]:bg-[var(--accent)]/10"
+              className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] px-4 py-3 transition-colors has-[:checked]:border-[var(--accent)] has-[:checked]:bg-[var(--accent)]/10 focus-within:ring-2 focus-within:ring-[var(--accent)] focus-within:ring-offset-2 focus-within:ring-offset-[var(--background)]"
             >
               <input
                 type="checkbox"
                 checked={recipientIds.includes(m.id)}
                 onChange={() => toggleRecipient(m.id)}
-                className="rounded border-[var(--border)]"
+                className="h-4 w-4 rounded border-[var(--border)]"
+                aria-label={`Send to ${m.name}`}
               />
               <span>{m.name}</span>
             </label>
           ))}
         </div>
-      </div>
+      </fieldset>
 
       <button
         type="submit"
         disabled={loading}
-        className="rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] disabled:opacity-50"
+        className="btn-submit rounded-lg bg-[var(--accent)] font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] inline-flex items-center justify-center gap-2"
       >
+        {loading && <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[var(--background)] border-t-transparent" aria-hidden="true" />}
         {loading ? "Sending..." : "Send message"}
       </button>
     </form>

@@ -144,6 +144,7 @@ export function AddAchievement({ members }: { members: Member[] }) {
       ) : (
         <button
           type="button"
+          data-add-achievement
           onClick={() => setOpen(true)}
           className="sports-pennant-btn rounded-lg border-2 border-[var(--sports-gold)] bg-[var(--sports-cream)] px-6 py-3 font-semibold text-[var(--sports-dark)] transition-colors hover:bg-[var(--sports-gold)] hover:text-[var(--sports-cream)]"
         >

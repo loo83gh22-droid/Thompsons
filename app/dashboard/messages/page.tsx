@@ -30,6 +30,11 @@ export default async function SendMessagePage() {
       <p className="mt-2 text-[var(--muted)]">
         Your message will pop up the next time recipients log in. Optionally set a date (e.g. Valentine&apos;s Day) for it to appear on that day.
       </p>
+      <div className="mt-6 rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)]/50 px-6 py-8 text-center">
+        <span className="text-4xl" role="img" aria-hidden="true">💌</span>
+        <h2 className="mt-3 font-display text-lg font-semibold text-[var(--foreground)]">No messages sent yet?</h2>
+        <p className="mt-1 max-w-sm mx-auto text-sm text-[var(--muted)]">Send your first message below. It&apos;ll pop up when family logs in—perfect for birthdays or just because.</p>
+      </div>
 
       <SendMessageForm
         senderFamilyMemberId={myMember?.id}

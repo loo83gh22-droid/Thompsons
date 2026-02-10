@@ -22,13 +22,17 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
   useEffect(() => {
     if (!activeFamilyId) return;
     async function fetchMembers() {
-      const supabase = createClient();
-      const { data } = await supabase
-        .from("family_members")
-        .select("id, name, color, symbol")
-        .eq("family_id", activeFamilyId)
-        .order("name");
-      if (data) setMembers(data as FamilyMember[]);
+      try {
+        const supabase = createClient();
+        const { data } = await supabase
+          .from("family_members")
+          .select("id, name, color, symbol")
+          .eq("family_id", activeFamilyId)
+          .order("name");
+        if (data) setMembers(data as FamilyMember[]);
+      } catch {
+        // Supabase not configured or network error; leave members empty
+      }
     }
     fetchMembers();
   }, [activeFamilyId]);

@@ -110,13 +110,25 @@ function createPinSvgUrl(
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
-export default function MapComponent() {
+/** Renders the "add API key" message without calling any Google Maps hooks. */
+function MapNoApiKeyMessage() {
+  return (
+    <div className="flex h-[500px] items-center justify-center rounded-xl bg-[var(--surface)]">
+      <p className="max-w-md text-center text-[var(--muted)]">
+        Add <code className="rounded bg-[var(--surface-hover)] px-1">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to your{" "}
+        <code className="rounded bg-[var(--surface-hover)] px-1">.env.local</code> to enable the map.
+      </p>
+    </div>
+  );
+}
+
+/** Inner component that uses useJsApiLoader — only mounted when we have a valid API key. */
+function MapComponentWithLoader({ apiKey }: { apiKey: string }) {
   const router = useRouter();
   const { activeFamilyId } = useFamily();
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: apiKey || "",
+    googleMapsApiKey: apiKey,
   });
 
   const [locations, setLocations] = useState<TravelLocation[]>([]);
@@ -138,46 +150,50 @@ export default function MapComponent() {
   function fetchLocations(showLoading = true) {
     if (!activeFamilyId) return;
     if (showLoading) setLoading(true);
-    const supabase = createClient();
-    supabase
-      .from("travel_locations")
-      .select(`
-        id,
-        lat,
-        lng,
-        location_name,
-        year_visited,
-        trip_date,
-        notes,
-        country_code,
-        is_birth_place,
-        journal_entry_id,
-        location_cluster_id,
-        family_members (name, color, symbol)
-      `)
-      .eq("family_id", activeFamilyId)
-      .order("created_at", { ascending: true })
-      .then(({ data, error }) => {
-        if (!error && data) {
-          const rows = data as unknown as TravelLocation[];
-          const byId = new Map<string, TravelLocation>();
-          rows.forEach((r) => byId.set(r.id, r));
-          const list = Array.from(byId.values());
-          setLocations(list);
-          if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
-            const withCluster = list.filter((l) => l.location_cluster_id);
-            const groups = groupLocations(list);
-            console.log("🗺️ Map: travel_locations fetched", {
-              total: list.length,
-              withClusterId: withCluster.length,
-              withoutClusterId: list.length - withCluster.length,
-              groupCount: groups.length,
-              perGroup: groups.map((g) => ({ locs: g.length, clusterId: g[0]?.location_cluster_id ?? "null", name: g[0]?.location_name })),
-            });
+    try {
+      const supabase = createClient();
+      supabase
+        .from("travel_locations")
+        .select(`
+          id,
+          lat,
+          lng,
+          location_name,
+          year_visited,
+          trip_date,
+          notes,
+          country_code,
+          is_birth_place,
+          journal_entry_id,
+          location_cluster_id,
+          family_members (name, color, symbol)
+        `)
+        .eq("family_id", activeFamilyId)
+        .order("created_at", { ascending: true })
+        .then(({ data, error }) => {
+          if (!error && data) {
+            const rows = data as unknown as TravelLocation[];
+            const byId = new Map<string, TravelLocation>();
+            rows.forEach((r) => byId.set(r.id, r));
+            const list = Array.from(byId.values());
+            setLocations(list);
+            if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+              const withCluster = list.filter((l) => l.location_cluster_id);
+              const groups = groupLocations(list);
+              console.log("🗺️ Map: travel_locations fetched", {
+                total: list.length,
+                withClusterId: withCluster.length,
+                withoutClusterId: list.length - withCluster.length,
+                groupCount: groups.length,
+                perGroup: groups.map((g) => ({ locs: g.length, clusterId: g[0]?.location_cluster_id ?? "null", name: g[0]?.location_name })),
+              });
+            }
           }
-        }
-        setLoading(false);
-      });
+          setLoading(false);
+        });
+    } catch {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -209,17 +225,6 @@ export default function MapComponent() {
       return { locs: group, pos: [first.lat, first.lng] as [number, number] };
     });
   }, [locations]);
-
-  if (!apiKey) {
-    return (
-      <div className="flex h-[500px] items-center justify-center rounded-xl bg-[var(--surface)]">
-        <p className="max-w-md text-center text-[var(--muted)]">
-          Add <code className="rounded bg-[var(--surface-hover)] px-1">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to your{" "}
-          <code className="rounded bg-[var(--surface-hover)] px-1">.env.local</code> to enable the map.
-        </p>
-      </div>
-    );
-  }
 
   if (loadError) {
     return (
@@ -404,4 +409,12 @@ export default function MapComponent() {
       </GoogleMap>
     </div>
   );
+}
+
+export default function MapComponent() {
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  if (!apiKey || apiKey.trim() === "") {
+    return <MapNoApiKeyMessage />;
+  }
+  return <MapComponentWithLoader apiKey={apiKey} />;
 }
