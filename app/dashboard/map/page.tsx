@@ -33,7 +33,7 @@ export default function MapPage() {
     try {
       const { updated, error } = await rebuildLocationClusters();
       if (error) setRebuildMessage(`Error: ${error}`);
-      else setRebuildMessage(updated > 0 ? `Updated ${updated} pin(s).` : "No pins needed updating.");
+      else setRebuildMessage(updated > 0 ? `Re-clustered ${updated} pin(s). Map refreshed.` : "No pins to cluster.");
       window.dispatchEvent(new Event("map-refresh"));
     } finally {
       setRebuilding(false);

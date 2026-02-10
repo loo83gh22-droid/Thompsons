@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { findOrCreateLocationCluster } from "@/src/lib/locationClustering";
 
-/** Backfill location_cluster_id for pins that don't have one (e.g. created before clustering). */
+/** Re-run clustering for all pins so same-place entries share one cluster (fixes split pins e.g. Uvita). */
 export async function rebuildLocationClusters(): Promise<{ updated: number; error?: string }> {
   const supabase = await createClient();
   const {
@@ -19,9 +19,9 @@ export async function rebuildLocationClusters(): Promise<{ updated: number; erro
     .from("travel_locations")
     .select("id, lat, lng, location_name, trip_date")
     .eq("family_id", activeFamilyId)
-    .is("location_cluster_id", null)
     .not("lat", "is", null)
-    .not("lng", "is", null);
+    .not("lng", "is", null)
+    .order("trip_date", { ascending: true, nullsFirst: false });
 
   if (fetchError) return { updated: 0, error: fetchError.message };
   if (!rows?.length) {
