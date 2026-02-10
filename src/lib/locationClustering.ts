@@ -26,18 +26,12 @@ function calculateDistance(
   return R * c;
 }
 
-function daysBetween(date1: Date, date2: Date): number {
-  const diffTime = Math.abs(date2.getTime() - date1.getTime());
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-}
-
 export async function findOrCreateLocationCluster(
   supabase: SupabaseClient,
   familyId: string,
   location: Location
 ): Promise<string | null> {
-  const DISTANCE_THRESHOLD_KM = 2.5; // ~1.5 miles – same area (e.g. same town)
-  const DATE_THRESHOLD_DAYS = 14; // 2 weeks – same trip
+  const DISTANCE_THRESHOLD_KM = 2.5; // same place (e.g. same town) – cluster by location only, any year
 
   const { data: existingClusters, error } = await supabase
     .from("location_clusters")
@@ -66,29 +60,22 @@ export async function findOrCreateLocationCluster(
       const clusterEndDate = cluster.date_range_end
         ? new Date(cluster.date_range_end)
         : new Date(location.date);
-      const daysDiff = Math.min(
-        daysBetween(location.date, clusterStartDate),
-        daysBetween(location.date, clusterEndDate)
-      );
+      const newStartDate =
+        location.date < clusterStartDate ? location.date : clusterStartDate;
+      const newEndDate =
+        location.date > clusterEndDate ? location.date : clusterEndDate;
 
-      if (daysDiff <= DATE_THRESHOLD_DAYS) {
-        const newStartDate =
-          location.date < clusterStartDate ? location.date : clusterStartDate;
-        const newEndDate =
-          location.date > clusterEndDate ? location.date : clusterEndDate;
+      await supabase
+        .from("location_clusters")
+        .update({
+          entry_count: (cluster.entry_count ?? 1) + 1,
+          date_range_start: newStartDate.toISOString().split("T")[0],
+          date_range_end: newEndDate.toISOString().split("T")[0],
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", cluster.id);
 
-        await supabase
-          .from("location_clusters")
-          .update({
-            entry_count: (cluster.entry_count ?? 1) + 1,
-            date_range_start: newStartDate.toISOString().split("T")[0],
-            date_range_end: newEndDate.toISOString().split("T")[0],
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", cluster.id);
-
-        return cluster.id;
-      }
+      return cluster.id;
     }
   }
 
