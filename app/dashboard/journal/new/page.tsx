@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
@@ -15,7 +14,6 @@ type FamilyMember = { id: string; name: string; color: string; symbol: string };
 type DateValue = Date | DateRange;
 
 export default function NewJournalPage() {
-  const router = useRouter();
   const { activeFamilyId } = useFamily();
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(false);
@@ -87,9 +85,12 @@ export default function NewJournalPage() {
               ];
       orderedPhotos.forEach((file) => formData.append("photos", file));
 
-      await createJournalEntry(formData);
-      router.push("/dashboard/journal");
-      router.refresh();
+      const result = await createJournalEntry(formData);
+      if (result?.success) {
+        window.location.href = "/dashboard/journal";
+        return;
+      }
+      setError(result?.error ?? "Something went wrong.");
     } catch (err) {
       const message =
         err && typeof err === "object" && "message" in err

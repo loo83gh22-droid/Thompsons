@@ -16,42 +16,46 @@ async function getNextMosaicSortOrder(supabase: SupabaseClient, familyId: string
   return (data?.[0]?.sort_order ?? -1) + 1;
 }
 
-export async function createJournalEntry(formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export type CreateJournalResult = { success: true; id: string } | { success: false; error: string };
 
-  if (!user) throw new Error("Not authenticated");
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) throw new Error("No active family");
+export async function createJournalEntry(formData: FormData): Promise<CreateJournalResult> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  const familyMemberId = formData.get("family_member_id") as string;
-  const title = formData.get("title") as string;
-  const content = formData.get("content") as string;
-  const location = formData.get("location") as string;
-  const tripDate = formData.get("trip_date") as string;
-  const tripDateEnd = (formData.get("trip_date_end") as string) || null;
-  const locationLat = formData.get("location_lat") as string | null;
-  const locationLng = formData.get("location_lng") as string | null;
+    if (!user) return { success: false, error: "Not authenticated" };
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { success: false, error: "No active family" };
 
-  if (!familyMemberId) throw new Error("Please select who this entry is about.");
+    const familyMemberId = formData.get("family_member_id") as string;
+    const title = formData.get("title") as string;
+    const content = formData.get("content") as string;
+    const location = formData.get("location") as string;
+    const tripDate = formData.get("trip_date") as string;
+    const tripDateEnd = (formData.get("trip_date_end") as string) || null;
+    const locationLat = formData.get("location_lat") as string | null;
+    const locationLng = formData.get("location_lng") as string | null;
 
-  const { data: entry, error: entryError } = await supabase
-    .from("journal_entries")
-    .insert({
-      family_id: activeFamilyId,
-      author_id: familyMemberId,
-      title,
-      content: content || null,
-      location: location || null,
-      trip_date: tripDate || null,
-      trip_date_end: tripDateEnd || null,
-    })
-    .select("id")
-    .single();
+    if (!familyMemberId) return { success: false, error: "Please select who this entry is about." };
 
-  if (entryError) throw new Error(entryError.message || "Failed to save entry.");
+    const { data: entry, error: entryError } = await supabase
+      .from("journal_entries")
+      .insert({
+        family_id: activeFamilyId,
+        author_id: familyMemberId,
+        title,
+        content: content || null,
+        location: location || null,
+        trip_date: tripDate || null,
+        trip_date_end: tripDateEnd || null,
+      })
+      .select("id")
+      .single();
+
+    if (entryError) return { success: false, error: entryError.message || "Failed to save entry." };
+    if (!entry?.id) return { success: false, error: "Failed to save entry." };
 
   // If location provided, geocode (if needed) and create map pin with clustering
   if (location?.trim()) {
@@ -182,11 +186,15 @@ export async function createJournalEntry(formData: FormData) {
     }
   }
 
-  revalidatePath("/dashboard/journal");
-  revalidatePath("/dashboard/map");
-  revalidatePath("/");
-  revalidatePath("/dashboard/photos");
-  return { success: true, id: entry.id };
+    revalidatePath("/dashboard/journal");
+    revalidatePath("/dashboard/map");
+    revalidatePath("/");
+    revalidatePath("/dashboard/photos");
+    return { success: true, id: entry.id };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Something went wrong.";
+    return { success: false, error: message };
+  }
 }
 
 export async function updateJournalEntry(entryId: string, formData: FormData) {
