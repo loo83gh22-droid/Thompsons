@@ -31,7 +31,7 @@ export async function findOrCreateLocationCluster(
   familyId: string,
   location: Location
 ): Promise<string | null> {
-  const DISTANCE_THRESHOLD_KM = 2.5; // same place (e.g. same town) – cluster by location only, any year
+  const DISTANCE_THRESHOLD_KM = 8; // same town – covers "Uvita, CR" vs "Puntarenas Province, Uvita, Costa Rica" geocode variance
 
   const { data: existingClusters, error } = await supabase
     .from("location_clusters")
