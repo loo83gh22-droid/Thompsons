@@ -111,3 +111,46 @@ body {
 .sports-empty {
   background: rgba(245, 240, 230, 0.5);
 }
+
+/* Date picker dark theme */
+.react-datepicker {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.react-datepicker__header {
+  background: var(--surface-hover);
+  border-color: var(--border);
+}
+
+.react-datepicker__current-month,
+.react-datepicker__day-name {
+  color: var(--foreground);
+}
+
+.react-datepicker__day {
+  color: var(--foreground);
+}
+
+.react-datepicker__day:hover {
+  background: var(--surface-hover);
+}
+
+.react-datepicker__day--selected {
+  background: var(--accent);
+  color: var(--background);
+}
+
+.react-datepicker__day--keyboard-selected {
+  background: var(--accent-muted);
+}
+
+.react-datepicker__day--disabled {
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.react-datepicker__day--outside-month {
+  color: var(--muted);
+  opacity: 0.5;
+}

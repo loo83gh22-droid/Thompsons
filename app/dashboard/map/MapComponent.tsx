@@ -17,14 +17,12 @@ type TravelLocation = {
   country_code?: string;
   is_birth_place?: boolean;
   journal_entry_id?: string | null;
+  location_cluster_id?: string | null;
   family_members:
     | { name: string; color: string; symbol: string }
     | { name: string; color: string; symbol: string }[]
     | null;
 };
-
-const CLUSTER_RADIUS = 0.04;
-const LOCATION_TOLERANCE = 0.02;
 
 const mapContainerStyle = {
   width: "100%",
@@ -34,49 +32,49 @@ const mapContainerStyle = {
 
 const defaultCenter = { lat: 56, lng: -100 };
 
-function offsetPosition(
-  lat: number,
-  lng: number,
-  index: number,
-  total: number
-): [number, number] {
-  if (total <= 1) return [lat, lng];
-  const angle = (360 / total) * index * (Math.PI / 180);
-  const latOffset = CLUSTER_RADIUS * Math.cos(angle);
-  const lngOffset =
-    (CLUSTER_RADIUS * Math.sin(angle)) / Math.cos((lat * Math.PI) / 180);
-  return [lat + latOffset, lng + lngOffset];
-}
-
+/** Group locations by cluster_id, or by proximity for legacy pins without cluster */
 function groupLocations(locations: TravelLocation[]) {
-  const groups: TravelLocation[][] = [];
-  const used = new Set<string>();
+  const LOCATION_TOLERANCE = 0.02;
+  const byCluster = new Map<string | null, TravelLocation[]>();
 
   for (const loc of locations) {
-    if (used.has(loc.id)) continue;
+    const key = loc.location_cluster_id ?? null;
+    if (!byCluster.has(key)) byCluster.set(key, []);
+    byCluster.get(key)!.push(loc);
+  }
 
-    const group = [loc];
-    used.add(loc.id);
-
-    for (const other of locations) {
-      if (used.has(other.id)) continue;
-      const dLat = Math.abs(loc.lat - other.lat);
-      const dLng = Math.abs(loc.lng - other.lng);
-      if (dLat < LOCATION_TOLERANCE && dLng < LOCATION_TOLERANCE) {
-        group.push(other);
-        used.add(other.id);
+  const result: TravelLocation[][] = [];
+  for (const [clusterId, group] of byCluster) {
+    if (clusterId) {
+      result.push(group);
+    } else {
+      const used = new Set<string>();
+      for (const loc of group) {
+        if (used.has(loc.id)) continue;
+        const sub = [loc];
+        used.add(loc.id);
+        for (const other of group) {
+          if (used.has(other.id)) continue;
+          const dLat = Math.abs(loc.lat - other.lat);
+          const dLng = Math.abs(loc.lng - other.lng);
+          if (dLat < LOCATION_TOLERANCE && dLng < LOCATION_TOLERANCE) {
+            sub.push(other);
+            used.add(other.id);
+          }
+        }
+        result.push(sub);
       }
     }
-    groups.push(group);
   }
-  return groups;
+  return result;
 }
 
 function createPinSvgUrl(
   color: string,
   symbol: string,
   dateLabel: string,
-  isFamily: boolean
+  isFamily: boolean,
+  clusterCount?: number
 ): string {
   const size = isFamily ? 20 : 14;
 
@@ -94,11 +92,16 @@ function createPinSvgUrl(
   const labelSvg = dateLabel
     ? `<text x="12" y="28" font-size="9" fill="white" text-anchor="middle" style="text-shadow: 0 0 2px black;">${dateLabel}</text>`
     : "";
+  const countBadge =
+    clusterCount && clusterCount > 1
+      ? `<circle cx="20" cy="4" r="8" fill="#ef4444"/><text x="20" y="6" font-size="10" font-weight="bold" fill="white" text-anchor="middle">${clusterCount}</text>`
+      : "";
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="40" viewBox="0 0 24 40">
     <g transform="translate(0,0)">
       ${shapeSvg}
       ${labelSvg}
+      ${countBadge}
     </g>
   </svg>`;
 
@@ -115,11 +118,9 @@ export default function MapComponent() {
 
   const [locations, setLocations] = useState<TravelLocation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedLoc, setSelectedLoc] = useState<{
-    loc: TravelLocation;
+  const [selectedCluster, setSelectedCluster] = useState<{
+    locs: TravelLocation[];
     pos: [number, number];
-    index: number;
-    total: number;
   } | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
 
@@ -148,6 +149,7 @@ export default function MapComponent() {
         country_code,
         is_birth_place,
         journal_entry_id,
+        location_cluster_id,
         family_members (name, color, symbol)
       `)
       .eq("family_id", activeFamilyId)
@@ -183,18 +185,12 @@ export default function MapComponent() {
     return codes;
   }, [locations]);
 
-  const positionedPins = useMemo(() => {
+  const clusterPins = useMemo(() => {
     const groups = groupLocations(locations);
-    const result: { loc: TravelLocation; pos: [number, number]; index: number; total: number }[] = [];
-    for (const group of groups) {
-      const baseLat = group[0].lat;
-      const baseLng = group[0].lng;
-      group.forEach((loc, i) => {
-        const [lat, lng] = offsetPosition(baseLat, baseLng, i, group.length);
-        result.push({ loc, pos: [lat, lng], index: i, total: group.length });
-      });
-    }
-    return result;
+    return groups.map((group) => {
+      const first = group[0];
+      return { locs: group, pos: [first.lat, first.lng] as [number, number] };
+    });
   }, [locations]);
 
   if (!apiKey) {
@@ -258,7 +254,8 @@ export default function MapComponent() {
         }}
       >
         <GoogleMapsCountryLayer map={map} visitedCodes={visitedCountryCodes} />
-        {positionedPins.map(({ loc, pos, index, total }) => {
+        {clusterPins.map(({ locs, pos }) => {
+          const loc = locs[0];
           const member = Array.isArray(loc.family_members)
             ? loc.family_members[0]
             : loc.family_members;
@@ -275,60 +272,60 @@ export default function MapComponent() {
 
           return (
             <Marker
-              key={`${loc.id}-${index}`}
+              key={loc.location_cluster_id || loc.id}
               position={{ lat: pos[0], lng: pos[1] }}
               icon={{
-                url: createPinSvgUrl(color, symbol, dateLabel, isFamily),
+                url: createPinSvgUrl(color, symbol, dateLabel, isFamily, locs.length),
                 scaledSize: new google.maps.Size(48, 40),
                 anchor: new google.maps.Point(24, 38),
               }}
-              onClick={() => setSelectedLoc({ loc, pos, index, total })}
+              onClick={() => setSelectedCluster({ locs, pos })}
             />
           );
         })}
-        {selectedLoc && (
+        {selectedCluster && (
           <InfoWindow
-            position={{ lat: selectedLoc.pos[0], lng: selectedLoc.pos[1] }}
-            onCloseClick={() => setSelectedLoc(null)}
+            position={{ lat: selectedCluster.pos[0], lng: selectedCluster.pos[1] }}
+            onCloseClick={() => setSelectedCluster(null)}
           >
-            <div className="min-w-[180px] p-1 text-[var(--foreground)]">
-              <strong>{selectedLoc.loc.location_name}</strong>
-              <br />
-              {(() => {
-                const m = Array.isArray(selectedLoc.loc.family_members)
-                  ? selectedLoc.loc.family_members[0]
-                  : selectedLoc.loc.family_members;
-                return m?.name || "Family";
-              })()}
-              {selectedLoc.loc.year_visited || selectedLoc.loc.trip_date ? (
-                <>
-                  {" · "}
-                  {selectedLoc.loc.trip_date
-                    ? new Date(selectedLoc.loc.trip_date + "T12:00:00").toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })
-                    : selectedLoc.loc.year_visited}
-                </>
-              ) : null}
-              {selectedLoc.loc.notes && (
-                <>
-                  <br />
-                  <span className="text-sm text-gray-500">{selectedLoc.loc.notes}</span>
-                </>
+            <div className="min-w-[200px] max-w-[280px] p-1 text-[var(--foreground)]">
+              <strong>{selectedCluster.locs[0].location_name}</strong>
+              {selectedCluster.locs.length > 1 && (
+                <span className="ml-2 rounded bg-red-500/20 px-1.5 py-0.5 text-xs font-medium text-red-400">
+                  {selectedCluster.locs.length} entries
+                </span>
               )}
-              {selectedLoc.loc.journal_entry_id && (
-                <>
-                  <br />
-                  <a
-                    href={`/dashboard/journal/${selectedLoc.loc.journal_entry_id}/edit`}
-                    className="mt-2 inline-block text-sm font-medium text-[var(--accent)] hover:underline"
-                  >
-                    View journal entry →
-                  </a>
-                </>
-              )}
+              <div className="mt-2 space-y-2 max-h-[200px] overflow-y-auto">
+                {selectedCluster.locs.map((l) => (
+                  <div key={l.id} className="border-b border-[var(--border)] pb-2 last:border-0 last:pb-0">
+                    {(() => {
+                      const m = Array.isArray(l.family_members) ? l.family_members[0] : l.family_members;
+                      return <span className="text-sm">{m?.name || "Family"}</span>;
+                    })()}
+                    {l.year_visited || l.trip_date ? (
+                      <span className="text-sm text-[var(--muted)]">
+                        {" · "}
+                        {l.trip_date
+                          ? new Date(l.trip_date + "T12:00:00").toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })
+                          : l.year_visited}
+                      </span>
+                    ) : null}
+                    {l.notes && <div className="text-xs text-gray-500 mt-0.5">{l.notes}</div>}
+                    {l.journal_entry_id && (
+                      <a
+                        href={`/dashboard/journal/${l.journal_entry_id}/edit`}
+                        className="mt-1 inline-block text-xs font-medium text-[var(--accent)] hover:underline"
+                      >
+                        View entry →
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </InfoWindow>
         )}

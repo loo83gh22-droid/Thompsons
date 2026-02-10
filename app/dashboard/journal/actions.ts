@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
+import { findOrCreateLocationCluster } from "@/src/lib/locationClustering";
 
 async function getNextMosaicSortOrder(supabase: SupabaseClient, familyId: string) {
   const { data } = await supabase
@@ -30,6 +31,8 @@ export async function createJournalEntry(formData: FormData) {
   const content = formData.get("content") as string;
   const location = formData.get("location") as string;
   const tripDate = formData.get("trip_date") as string;
+  const locationLat = formData.get("location_lat") as string | null;
+  const locationLng = formData.get("location_lng") as string | null;
 
   if (!familyMemberId) throw new Error("Please select who this entry is about.");
 
@@ -48,7 +51,7 @@ export async function createJournalEntry(formData: FormData) {
 
   if (entryError) throw entryError;
 
-  // If location provided, geocode and create map pin (linked to this journal entry)
+  // If location provided, geocode (if needed) and create map pin with clustering
   if (location?.trim()) {
     try {
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -56,7 +59,22 @@ export async function createJournalEntry(formData: FormData) {
       let lng = 0;
       let countryCode: string | null = null;
 
-      if (apiKey) {
+      if (locationLat && locationLng) {
+        lat = parseFloat(locationLat);
+        lng = parseFloat(locationLng);
+        if (apiKey) {
+          const geocodeRes = await fetch(
+            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
+          );
+          const geocode = await geocodeRes.json();
+          if (geocode.status === "OK" && geocode.results?.[0]) {
+            const countryComp = geocode.results[0].address_components?.find(
+              (c: { types: string[] }) => c.types.includes("country")
+            );
+            countryCode = countryComp?.short_name?.toUpperCase() ?? null;
+          }
+        }
+      } else if (apiKey) {
         const geocodeRes = await fetch(
           `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location.trim())}&key=${apiKey}`
         );
@@ -83,6 +101,14 @@ export async function createJournalEntry(formData: FormData) {
       }
 
       if (lat && lng) {
+        const date = tripDate ? new Date(tripDate) : new Date();
+        const locationClusterId = await findOrCreateLocationCluster(supabase, activeFamilyId, {
+          latitude: lat,
+          longitude: lng,
+          location_name: location.trim(),
+          date,
+        });
+
         const yearVisited = tripDate ? new Date(tripDate).getFullYear() : null;
         await supabase.from("travel_locations").insert({
           family_id: activeFamilyId,
@@ -95,6 +121,7 @@ export async function createJournalEntry(formData: FormData) {
           notes: title,
           country_code: countryCode,
           journal_entry_id: entry.id,
+          location_cluster_id: locationClusterId,
         });
       }
     } catch {

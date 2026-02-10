@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
 import { createJournalEntry } from "../actions";
+import DatePicker from "@/app/components/DatePicker";
+import LocationInput from "@/app/components/LocationInput";
+import PhotoUpload from "@/app/components/PhotoUpload";
+import { extractMetadataFromMultiplePhotos } from "@/src/lib/exifExtractor";
 
 type FamilyMember = { id: string; name: string; color: string; symbol: string };
 
@@ -15,6 +19,15 @@ export default function NewJournalPage() {
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [date, setDate] = useState<Date>(() => new Date());
+  const [location, setLocation] = useState<{ name: string; latitude: number; longitude: number }>({
+    name: "",
+    latitude: 0,
+    longitude: 0,
+  });
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [coverPhotoIndex, setCoverPhotoIndex] = useState(0);
 
   useEffect(() => {
     if (!activeFamilyId) return;
@@ -30,6 +43,16 @@ export default function NewJournalPage() {
     fetchMembers();
   }, [activeFamilyId]);
 
+  const handlePhotoChange = useCallback((files: File[], coverIndex: number) => {
+    setPhotoFiles(files);
+    setCoverPhotoIndex(coverIndex);
+    if (files.length > 0) {
+      extractMetadataFromMultiplePhotos(files).then((metadata) => {
+        if (metadata.date) setDate(metadata.date);
+      });
+    }
+  }, []);
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
@@ -37,7 +60,29 @@ export default function NewJournalPage() {
 
     try {
       const form = e.currentTarget;
-      const formData = new FormData(form);
+      const formData = new FormData();
+      formData.set("family_member_id", (form.elements.namedItem("family_member_id") as HTMLSelectElement).value);
+      formData.set("title", (form.elements.namedItem("title") as HTMLInputElement).value);
+      formData.set("content", (form.elements.namedItem("content") as HTMLTextAreaElement).value);
+      formData.set("trip_date", date.toISOString().split("T")[0]);
+      formData.set("location", location.name || "");
+      if (location.latitude && location.longitude) {
+        formData.set("location_lat", String(location.latitude));
+        formData.set("location_lng", String(location.longitude));
+      }
+
+      const orderedPhotos =
+        photoFiles.length === 0
+          ? []
+          : coverPhotoIndex === 0
+            ? photoFiles
+            : [
+                photoFiles[coverPhotoIndex],
+                ...photoFiles.slice(0, coverPhotoIndex),
+                ...photoFiles.slice(coverPhotoIndex + 1),
+              ];
+      orderedPhotos.forEach((file) => formData.append("photos", file));
+
       await createJournalEntry(formData);
       router.push("/dashboard/journal");
       router.refresh();
@@ -102,30 +147,18 @@ export default function NewJournalPage() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium text-[var(--muted)]">
-              Location
-            </label>
-            <input
-              name="location"
-              type="text"
-              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
-              placeholder="e.g. Colorado, USA or Paris, France"
-            />
-            <p className="mt-1 text-xs text-[var(--muted)]">
-              Adds a pin to the Travel Map for the person/family you selected.
-            </p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-[var(--muted)]">
-              Date
-            </label>
-            <input
-              name="trip_date"
-              type="date"
-              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
-            />
-          </div>
+          <LocationInput
+            value={location.name}
+            onChange={setLocation}
+            label="Location"
+            required={false}
+          />
+          <DatePicker
+            value={date}
+            onChange={setDate}
+            label="Date"
+            required={false}
+          />
         </div>
 
         <div>
@@ -140,21 +173,7 @@ export default function NewJournalPage() {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-[var(--muted)]">
-            Photos
-          </label>
-          <input
-            name="photos"
-            type="file"
-            accept="image/*"
-            multiple
-            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] file:mr-4 file:rounded-lg file:border-0 file:bg-[var(--accent)] file:px-4 file:py-2 file:font-semibold file:text-[var(--background)]"
-          />
-          <p className="mt-1 text-xs text-[var(--muted)]">
-            You can select multiple images at once.
-          </p>
-        </div>
+        <PhotoUpload onChange={handlePhotoChange} maxFiles={20} />
 
         {error && (
           <div className="rounded-lg bg-red-500/20 px-4 py-3 text-sm text-red-400">
