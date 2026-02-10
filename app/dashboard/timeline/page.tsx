@@ -5,6 +5,19 @@ import type { TimelineItem } from "./types";
 
 export type { TimelineItem } from "./types";
 
+function one<T>(x: T | T[] | null): T | null {
+  return x == null ? null : Array.isArray(x) ? x[0] ?? null : x;
+}
+
+function authorDisplay(raw: { name: string; nickname?: string | null; relationship?: string | null } | unknown): { name: string | null; relationship: string | null } {
+  const r = raw as { name: string; nickname?: string | null; relationship?: string | null } | { name: string; nickname?: string | null; relationship?: string | null }[] | null;
+  if (!r) return { name: null, relationship: null };
+  const single = one(r);
+  if (!single) return { name: null, relationship: null };
+  const name = single.nickname?.trim() || single.name || null;
+  return { name, relationship: single.relationship?.trim() ?? null };
+}
+
 export default async function TimelinePage({
   searchParams,
 }: {
@@ -16,68 +29,51 @@ export default async function TimelinePage({
 
   const items: TimelineItem[] = [];
 
-  const [journalRes, voiceRes, timeCapsulesRes, photosRes] = await Promise.all([
+  const [journalRes, voiceRes, timeCapsulesRes, photosRes, messagesRes] = await Promise.all([
     supabase
       .from("journal_entries")
-      .select(`
-        id,
-        title,
-        content,
-        trip_date,
-        created_at,
-        author_id,
-        family_members!author_id(name)
-      `)
+      .select("id, title, content, trip_date, created_at, author_id, family_members!author_id(name, nickname, relationship)")
       .eq("family_id", activeFamilyId)
       .order("trip_date", { ascending: false, nullsFirst: false })
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(100),
     supabase
       .from("voice_memos")
-      .select(`
-        id,
-        title,
-        description,
-        created_at,
-        family_member_id,
-        family_members(name)
-      `)
+      .select("id, title, description, created_at, family_member_id, audio_url, duration_seconds, family_members!family_member_id(name, nickname, relationship)")
       .eq("family_id", activeFamilyId)
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(100),
     supabase
       .from("time_capsules")
-      .select(`
-        id,
-        title,
-        created_at,
-        from_family_member_id,
-        family_members!from_family_member_id(name)
-      `)
+      .select("id, title, created_at, from_family_member_id, family_members!from_family_member_id(name, nickname, relationship)")
       .eq("family_id", activeFamilyId)
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(100),
     supabase
       .from("home_mosaic_photos")
       .select("id, url, created_at")
       .eq("family_id", activeFamilyId)
       .order("created_at", { ascending: false })
-      .limit(50),
+      .limit(100),
+    supabase
+      .from("family_messages")
+      .select("id, title, content, created_at, sender_id, family_members!sender_id(name, nickname, relationship)")
+      .eq("family_id", activeFamilyId)
+      .order("created_at", { ascending: false })
+      .limit(100),
   ]);
-
-  const authorName = (raw: unknown) => {
-    const r = raw as { name: string } | { name: string }[] | null;
-    if (!r) return null;
-    const one = Array.isArray(r) ? r[0] : r;
-    return one?.name ?? null;
-  };
 
   for (const row of journalRes.data ?? []) {
     const date = row.trip_date ?? row.created_at?.slice(0, 10) ?? "";
+    const { name, relationship } = authorDisplay(row.family_members);
     items.push({
       id: row.id,
       date,
       type: "journal",
       title: row.title ?? "Journal entry",
       description: row.content?.slice(0, 120) ?? null,
-      authorName: authorName(row.family_members),
+      authorName: name,
+      authorRelationship: relationship,
       authorMemberId: row.author_id ?? null,
       thumbnailUrl: null,
       href: `/dashboard/journal/${row.id}/edit`,
@@ -85,27 +81,33 @@ export default async function TimelinePage({
   }
 
   for (const row of voiceRes.data ?? []) {
+    const { name, relationship } = authorDisplay(row.family_members);
     items.push({
       id: row.id,
       date: row.created_at?.slice(0, 10) ?? "",
       type: "voice_memo",
       title: row.title ?? "Voice memo",
       description: row.description ?? null,
-      authorName: authorName(row.family_members),
+      authorName: name,
+      authorRelationship: relationship,
       authorMemberId: row.family_member_id ?? null,
       thumbnailUrl: null,
       href: "/dashboard/voice-memos",
+      durationSeconds: row.duration_seconds ?? null,
+      audioUrl: row.audio_url ?? null,
     });
   }
 
   for (const row of timeCapsulesRes.data ?? []) {
+    const { name, relationship } = authorDisplay(row.family_members);
     items.push({
       id: row.id,
       date: row.created_at?.slice(0, 10) ?? "",
       type: "time_capsule",
       title: row.title ?? "Time capsule",
       description: "Letter for the future",
-      authorName: authorName(row.family_members),
+      authorName: name,
+      authorRelationship: relationship,
       authorMemberId: row.from_family_member_id ?? null,
       thumbnailUrl: null,
       href: `/dashboard/time-capsules/${row.id}`,
@@ -120,9 +122,26 @@ export default async function TimelinePage({
       title: "Photo",
       description: null,
       authorName: null,
+      authorRelationship: null,
       authorMemberId: null,
       thumbnailUrl: row.url ?? null,
       href: "/dashboard/photos",
+    });
+  }
+
+  for (const row of messagesRes.data ?? []) {
+    const { name, relationship } = authorDisplay(row.family_members);
+    items.push({
+      id: row.id,
+      date: row.created_at?.slice(0, 10) ?? "",
+      type: "message",
+      title: row.title ?? "Message",
+      description: row.content?.slice(0, 120) ?? null,
+      authorName: name,
+      authorRelationship: relationship,
+      authorMemberId: row.sender_id ?? null,
+      thumbnailUrl: null,
+      href: "/dashboard/messages",
     });
   }
 
@@ -148,10 +167,10 @@ export default async function TimelinePage({
   return (
     <div>
       <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-        Family Timeline
+        Timeline
       </h1>
       <p className="mt-2 text-[var(--muted)]">
-        All family memories in one place—journal entries, photos, voice memos, and time capsules. Filter by date, member, or type.
+        All family memories in one chronological view
       </p>
 
       <TimelineClient
