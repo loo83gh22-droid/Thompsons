@@ -48,6 +48,37 @@ export async function createEvent(
   return { id: event.id };
 }
 
+export async function updateEvent(
+  eventId: string,
+  data: { title: string; eventDate: string; description: string | null; recurring: string; category: string; inviteeIds: string[] }
+) {
+  const supabase = await createClient();
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return { error: "No family" };
+
+  const { error: eventError } = await supabase
+    .from("family_events")
+    .update({
+      title: data.title.trim().slice(0, 100),
+      event_date: data.eventDate,
+      description: data.description?.trim().slice(0, 500) || null,
+      recurring: data.recurring || "none",
+      category: data.category || "other",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", eventId)
+    .eq("family_id", activeFamilyId);
+  if (eventError) return { error: eventError.message };
+
+  await supabase.from("family_event_invitees").delete().eq("event_id", eventId);
+  if (data.inviteeIds.length > 0) {
+    await supabase.from("family_event_invitees").insert(
+      data.inviteeIds.map((memberId) => ({ event_id: eventId, family_member_id: memberId }))
+    );
+  }
+  return {};
+}
+
 export async function deleteEvent(eventId: string) {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
@@ -58,4 +89,47 @@ export async function deleteEvent(eventId: string) {
     .eq("id", eventId)
     .eq("family_id", activeFamilyId);
   return { error: error?.message };
+}
+
+/** Create birthday events for members with birth_date if not already present. Returns count added. */
+export async function ensureBirthdayEvents(): Promise<{ added: number }> {
+  const supabase = await createClient();
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return { added: 0 };
+
+  const { data: members } = await supabase
+    .from("family_members")
+    .select("id, name, birth_date")
+    .eq("family_id", activeFamilyId)
+    .not("birth_date", "is", null);
+  if (!members?.length) return { added: 0 };
+
+  const { data: existing } = await supabase
+    .from("family_events")
+    .select("id, title")
+    .eq("family_id", activeFamilyId)
+    .eq("category", "birthday");
+  const existingTitles = new Set((existing ?? []).map((e) => e.title.trim().toLowerCase()));
+
+  const thisYear = new Date().getFullYear();
+  let added = 0;
+  for (const m of members) {
+    const title = `${m.name}'s Birthday`;
+    if (existingTitles.has(title.toLowerCase())) continue;
+    const d = String(m.birth_date);
+    const eventDate = `${thisYear}-${d.slice(5, 7)}-${d.slice(8, 10)}`;
+    const { error } = await supabase.from("family_events").insert({
+      family_id: activeFamilyId,
+      created_by: m.id,
+      title,
+      event_date: eventDate,
+      category: "birthday",
+      recurring: "annual",
+    });
+    if (!error) {
+      added++;
+      existingTitles.add(title.toLowerCase());
+    }
+  }
+  return { added };
 }
