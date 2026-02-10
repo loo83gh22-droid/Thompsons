@@ -331,3 +331,34 @@ export async function removeJournalPerspective(id: string, entryId: string) {
   revalidatePath("/dashboard/journal");
   revalidatePath(`/dashboard/journal/${entryId}/edit`);
 }
+
+export async function deleteJournalEntry(entryId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
+  const { data: entry, error: fetchError } = await supabase
+    .from("journal_entries")
+    .select("id, family_id")
+    .eq("id", entryId)
+    .single();
+
+  if (fetchError || !entry || entry.family_id !== activeFamilyId) {
+    throw new Error("Entry not found or you don't have access.");
+  }
+
+  const { error: deleteError } = await supabase
+    .from("journal_entries")
+    .delete()
+    .eq("id", entryId);
+
+  if (deleteError) throw new Error(deleteError.message);
+
+  revalidatePath("/dashboard/journal");
+  revalidatePath("/dashboard/map");
+  revalidatePath("/");
+}

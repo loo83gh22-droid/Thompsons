@@ -3,6 +3,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import Image from "next/image";
 import { formatDateOnly } from "@/src/lib/date";
 import { getActiveFamilyId } from "@/src/lib/family";
+import { DeleteJournalEntryButton } from "./DeleteJournalEntryButton";
 
 export default async function JournalPage() {
   const supabase = await createClient();
@@ -144,6 +145,11 @@ export default async function JournalPage() {
                       >
                         Edit
                       </Link>
+                      <DeleteJournalEntryButton
+                        entryId={entry.id}
+                        title={entry.title ?? "this entry"}
+                        variant="list"
+                      />
                     </div>
                   </div>
                 </div>

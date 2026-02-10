@@ -11,6 +11,7 @@ import {
   addJournalPhotos,
   deleteJournalPhoto,
 } from "../../actions";
+import { DeleteJournalEntryButton } from "../../DeleteJournalEntryButton";
 import { JournalPerspectives } from "../../JournalPerspectives";
 
 type FamilyMember = { id: string; name: string; color: string; symbol: string };
@@ -274,7 +275,7 @@ export default function EditJournalPage() {
           </div>
         )}
 
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4">
           <button
             type="submit"
             disabled={saving}
@@ -288,6 +289,13 @@ export default function EditJournalPage() {
           >
             Cancel
           </Link>
+          <div className="ml-auto">
+            <DeleteJournalEntryButton
+              entryId={entryId}
+              title={entry.title || "this entry"}
+              variant="edit"
+            />
+          </div>
         </div>
       </form>
 
