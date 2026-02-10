@@ -7,8 +7,8 @@ export function RecipesEmptyState() {
     <EmptyState
       icon="🍳"
       headline="No recipes yet"
-      description="The story behind the food—who taught it, what occasions, photos from dinners. Add your first recipe with its story."
-      actionLabel="Add your first recipe"
+      description="Share family recipes with stories behind them. Who taught you? What occasions? Keep culinary traditions alive."
+      actionLabel="+ Add your first recipe"
       onAction={() => document.querySelector<HTMLButtonElement>("[data-add-recipe]")?.click()}
     />
   );

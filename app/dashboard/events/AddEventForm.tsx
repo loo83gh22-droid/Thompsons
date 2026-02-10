@@ -136,11 +136,11 @@ export function AddEventForm({ members }: { members: Member[] }) {
           </div>
         </div>
         {error && <p className="text-sm text-red-400">{error}</p>}
-        <div className="flex flex-wrap gap-2">
-          <button type="submit" disabled={loading} className="btn-submit rounded-lg bg-[var(--accent)] font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] disabled:opacity-50">
+        <div className="form-actions-mobile flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <button type="submit" disabled={loading} className="btn-submit rounded-lg bg-[var(--accent)] font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">
             {loading ? "Creating..." : "Create event"}
           </button>
-          <button type="button" onClick={() => setOpen(false)} className="min-h-[44px] rounded-lg border border-[var(--border)] px-4 py-2 text-sm hover:bg-[var(--surface-hover)]">
+          <button type="button" onClick={() => setOpen(false)} className="btn-secondary rounded-lg border border-[var(--border)] hover:bg-[var(--surface-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">
             Cancel
           </button>
         </div>

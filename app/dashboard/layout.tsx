@@ -115,7 +115,7 @@ export default async function DashboardLayout({
             families={families}
             activeFamilyId={activeFamilyId}
           />
-          <main id="main-content" className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8" tabIndex={-1}>{children}</main>
+          <main id="main-content" className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8" tabIndex={-1}>{children}</main>
           <MusicPlayer playlistId={playlistId} />
           <UnreadMessagesFetcher />
         </div>

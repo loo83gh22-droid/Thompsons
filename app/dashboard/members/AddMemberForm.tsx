@@ -105,11 +105,11 @@ export function AddMemberForm() {
                 {message.text}
               </div>
             )}
-            <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="form-actions-mobile flex flex-col gap-2 sm:flex-row">
               <button type="submit" disabled={loading} className="btn-submit order-1 rounded-lg bg-[var(--accent)] font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:order-none">
                 {loading ? "Adding..." : "Add"}
               </button>
-              <button type="button" onClick={() => setOpen(false)} className="min-h-[44px] rounded-lg border border-[var(--border)] px-4 py-3 text-sm hover:bg-[var(--surface-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">
+              <button type="button" onClick={() => setOpen(false)} className="btn-secondary order-2 rounded-lg border border-[var(--border)] hover:bg-[var(--surface-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:order-none">
                 Cancel
               </button>
             </div>

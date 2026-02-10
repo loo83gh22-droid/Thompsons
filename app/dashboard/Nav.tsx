@@ -67,6 +67,8 @@ export function Nav({
   const [menuOpen, setMenuOpen] = useState(false);
   const [familyMenuOpen, setFamilyMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileMemoriesOpen, setMobileMemoriesOpen] = useState(false);
+  const [mobileFavouritesOpen, setMobileFavouritesOpen] = useState(false);
   const memoriesRef = useRef<HTMLDivElement>(null);
   const favouritesRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -104,6 +106,14 @@ export function Nav({
     return () => { document.body.style.overflow = ""; };
   }, [mobileMenuOpen]);
 
+  useEffect(() => {
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") closeMobileMenu();
+    }
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, []);
+
   async function handleSignOut() {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -117,6 +127,8 @@ export function Nav({
     setMobileMenuOpen(false);
     setMemoriesOpen(false);
     setFavouritesOpen(false);
+    setMobileMemoriesOpen(false);
+    setMobileFavouritesOpen(false);
   }
 
   const navLinkClass = (isActive: boolean) =>
@@ -316,73 +328,99 @@ export function Nav({
         </div>
       </header>
 
-      {/* Mobile overlay menu - slides in from left */}
+      {/* Mobile overlay - click outside or ESC to close */}
       <div
         className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 md:hidden ${mobileMenuOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
         aria-hidden={!mobileMenuOpen}
         onClick={closeMobileMenu}
       />
+      {/* Mobile drawer - slides in from right */}
       <aside
-        className={`fixed left-0 top-0 z-40 h-full w-[min(320px,85vw)] transform border-r border-[var(--border)] bg-[var(--background)] shadow-xl transition-transform duration-300 ease-out md:hidden ${
-          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed right-0 top-0 z-40 h-full w-[min(320px,85vw)] transform border-l border-[var(--border)] bg-[var(--background)] shadow-xl transition-transform duration-300 ease-out md:hidden ${
+          mobileMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
         aria-label="Mobile navigation"
         aria-hidden={!mobileMenuOpen}
       >
         <div className="flex flex-col h-full">
           <div className="flex min-h-[44px] shrink-0 items-center justify-between border-b border-[var(--border)] px-4 py-3">
-            <span className="text-sm font-medium text-[var(--muted)]">Menu</span>
+            <p className="min-w-0 truncate text-sm text-[var(--muted)]" title={user.email ?? undefined}>
+              {user.email}
+            </p>
             <button
               type="button"
               onClick={closeMobileMenu}
-              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
               aria-label="Close menu"
             >
               <span className="text-xl leading-none" aria-hidden="true">×</span>
             </button>
           </div>
           <div className="flex flex-1 flex-col gap-1 overflow-y-auto py-4 pl-4 pr-2">
-          {navItemsBeforeDropdowns.map((item) => (
-            <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={navLinkClass(pathname === item.href)}>
-              {item.label}
-            </Link>
-          ))}
-          <div className="border-t border-[var(--border)] pt-2 mt-2">
-            <p className="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Memories</p>
-            {memoriesItems.map((item) => (
-              <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={navLinkClass(pathname === item.href || pathname.startsWith(item.href + "/"))}>
+            {navItemsBeforeDropdowns.map((item) => (
+              <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={navLinkClass(pathname === item.href)}>
                 {item.label}
               </Link>
             ))}
-          </div>
-          <div className="border-t border-[var(--border)] pt-2 mt-2">
-            <p className="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Favourites</p>
-            {favouritesItems.map((item) => (
-              <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={navLinkClass(pathname === item.href || pathname.startsWith(item.href + "/"))}>
+            <div className="border-t border-[var(--border)] pt-2 mt-2">
+              <button
+                type="button"
+                onClick={() => setMobileMemoriesOpen((o) => !o)}
+                className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors min-h-[44px] ${mobileMemoriesOpen || isMemoriesActive ? "bg-[var(--surface)] text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}
+                aria-expanded={mobileMemoriesOpen}
+              >
+                Memories
+                <span className={`block transition-transform ${mobileMemoriesOpen ? "rotate-180" : ""}`}>▼</span>
+              </button>
+              {mobileMemoriesOpen && (
+                <div className="pl-2 pt-1 space-y-0.5">
+                  {memoriesItems.map((item) => (
+                    <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={`block rounded-lg px-4 py-2.5 text-sm min-h-[44px] flex items-center ${pathname === item.href || pathname.startsWith(item.href + "/") ? "text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}>
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="border-t border-[var(--border)] pt-2 mt-2">
+              <button
+                type="button"
+                onClick={() => setMobileFavouritesOpen((o) => !o)}
+                className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors min-h-[44px] ${mobileFavouritesOpen || isFavouritesActive ? "bg-[var(--surface)] text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}
+                aria-expanded={mobileFavouritesOpen}
+              >
+                Favourites
+                <span className={`block transition-transform ${mobileFavouritesOpen ? "rotate-180" : ""}`}>▼</span>
+              </button>
+              {mobileFavouritesOpen && (
+                <div className="pl-2 pt-1 space-y-0.5">
+                  {favouritesItems.map((item) => (
+                    <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={`block rounded-lg px-4 py-2.5 text-sm min-h-[44px] flex items-center ${pathname === item.href || pathname.startsWith(item.href + "/") ? "text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}>
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+            {navItemsBetweenDropdowns.map((item) => (
+              <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={navLinkClass(pathname === item.href)}>
                 {item.label}
               </Link>
             ))}
-          </div>
-          {navItemsBetweenDropdowns.map((item) => (
-            <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={navLinkClass(pathname === item.href)}>
-              {item.label}
-            </Link>
-          ))}
-          {navItemsAfterDropdowns.map((item) => (
-            <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={navLinkClass(pathname === item.href)}>
-              {item.label}
-            </Link>
-          ))}
-          <div className="mt-auto border-t border-[var(--border)] pt-4">
-            <p className="px-4 py-2 text-xs text-[var(--muted)] truncate">{user.email}</p>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="w-full rounded-lg px-4 py-3 text-left text-sm font-medium text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] focus:bg-[var(--surface)]"
-            >
-              Sign out
-            </button>
-          </div>
+            {navItemsAfterDropdowns.map((item) => (
+              <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={navLinkClass(pathname === item.href)}>
+                {item.label}
+              </Link>
+            ))}
+            <div className="mt-auto border-t border-[var(--border)] pt-4">
+              <button
+                type="button"
+                onClick={() => { closeMobileMenu(); handleSignOut(); }}
+                className="w-full rounded-lg px-4 py-3 text-left text-sm font-medium text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] min-h-[44px]"
+              >
+                Sign out
+              </button>
+            </div>
           </div>
         </div>
       </aside>

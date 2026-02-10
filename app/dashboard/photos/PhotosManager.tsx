@@ -67,10 +67,10 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
 
       {!photos.length ? (
         <EmptyState
-          icon="🖼️"
+          icon="📷"
           headline="No photos yet"
-          description="Start sharing family moments! Upload photos to build your background mosaic and bring every page to life."
-          actionLabel="Upload first photo"
+          description="Upload photos to build your family's visual story. They'll appear here and in the background mosaic."
+          actionLabel="+ Upload your first photo"
           onAction={() => fileInputRef.current?.click()}
         />
       ) : null}

@@ -58,8 +58,8 @@ export default async function JournalPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
             Journal
           </h1>
@@ -69,7 +69,7 @@ export default async function JournalPage() {
         </div>
         <Link
           href="/dashboard/journal/new"
-          className="rounded-lg bg-[var(--accent)] px-4 py-2 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-muted)]"
+          className="inline-flex min-h-[44px] w-full shrink-0 items-center justify-center rounded-lg bg-[var(--accent)] px-4 py-3 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:w-auto sm:py-2"
         >
           New entry
         </Link>
@@ -80,8 +80,8 @@ export default async function JournalPage() {
           <EmptyState
             icon="📔"
             headline="No journal entries yet"
-            description="Stories and photos from trips, birthdays, celebrations. Create your first entry and others can add their perspective."
-            actionLabel="Create your first entry"
+            description="Start documenting your family story. Write about trips, celebrations, everyday moments—memories you'll treasure forever."
+            actionLabel="+ Write your first entry"
             actionHref="/dashboard/journal/new"
           />
         ) : (

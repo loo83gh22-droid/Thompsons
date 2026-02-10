@@ -32,10 +32,10 @@ export function TraditionList({ traditions }: { traditions: Tradition[] }) {
   if (!traditions.length) {
     return (
       <EmptyState
-        icon="🏠"
+        icon="🎉"
         headline="No traditions yet"
-        description="Taco Tuesday chants, holiday rituals, inside jokes—the cultural DNA that gets lost between generations. Add your first one!"
-        actionLabel="Add your first tradition"
+        description="Document your family's unique rituals—holiday chants, inside jokes, special routines. The cultural DNA that makes you, you."
+        actionLabel="+ Add your first tradition"
         onAction={() => document.querySelector<HTMLButtonElement>("[data-add-tradition]")?.click()}
       />
     );

@@ -39,8 +39,8 @@ export function AchievementsGallery({ achievements }: { achievements: Achievemen
       <EmptyState
         icon="🏆"
         headline="No achievements yet"
-        description="Log cool achievements and team photos. Celebrate wins and milestones together."
-        actionLabel="Add your first achievement"
+        description="Log family milestones, accomplishments, and proud moments. First steps, graduations, promotions—celebrate it all."
+        actionLabel="+ Log your first achievement"
         onAction={() => document.querySelector<HTMLButtonElement>("[data-add-achievement]")?.click()}
       />
     );

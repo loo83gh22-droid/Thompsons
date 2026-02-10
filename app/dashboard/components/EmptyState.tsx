@@ -20,14 +20,14 @@ export function EmptyState({
   onAction,
 }: EmptyStateProps) {
   const content = (
-    <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)]/50 px-6 py-12 text-center">
+    <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)]/50 px-4 py-10 text-center sm:px-6 sm:py-12">
       <span className="text-5xl" role="img" aria-hidden="true">
         {icon}
       </span>
       <h2 className="mt-4 font-display text-xl font-semibold text-[var(--foreground)]">
         {headline}
       </h2>
-      <p className="mt-2 max-w-sm text-[var(--muted)]">
+      <p className="mt-2 max-w-sm text-[var(--muted)] text-sm sm:text-base">
         {description}
       </p>
       {(actionLabel && (actionHref || onAction)) && (
@@ -35,7 +35,7 @@ export function EmptyState({
           {actionHref ? (
             <Link
               href={actionHref}
-              className="inline-flex touch-target min-h-[44px] min-w-[44px] items-center justify-center rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              className="inline-flex touch-target min-h-[44px] w-full min-w-[44px] items-center justify-center rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:w-auto"
             >
               {actionLabel}
             </Link>
@@ -43,7 +43,7 @@ export function EmptyState({
             <button
               type="button"
               onClick={onAction}
-              className="inline-flex touch-target min-h-[44px] min-w-[44px] items-center justify-center rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              className="inline-flex touch-target min-h-[44px] w-full min-w-[44px] items-center justify-center rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:w-auto"
             >
               {actionLabel}
             </button>
@@ -52,5 +52,9 @@ export function EmptyState({
       )}
     </div>
   );
-  return content;
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center py-8">
+      {content}
+    </div>
+  );
 }
