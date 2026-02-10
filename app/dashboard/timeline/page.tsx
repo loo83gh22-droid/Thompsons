@@ -1,18 +1,9 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { TimelineClient } from "./TimelineClient";
+import type { TimelineItem } from "./types";
 
-export type TimelineItem = {
-  id: string;
-  date: string;
-  type: "journal" | "voice_memo" | "time_capsule" | "photo";
-  title: string;
-  description: string | null;
-  authorName: string | null;
-  authorMemberId: string | null;
-  thumbnailUrl: string | null;
-  href: string;
-};
+export type { TimelineItem } from "./types";
 
 export default async function TimelinePage({
   searchParams,

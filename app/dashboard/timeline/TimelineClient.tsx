@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import type { TimelineItem } from "./page";
+import type { TimelineItem } from "./types";
 
 const TYPE_LABELS: Record<TimelineItem["type"], string> = {
   journal: "Journal",

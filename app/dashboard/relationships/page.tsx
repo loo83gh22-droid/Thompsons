@@ -1,18 +1,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { FamilyWebClient } from "./FamilyWebClient";
-
-export type FamilyMemberRow = {
-  id: string;
-  name: string;
-  color: string;
-};
-
-export type RelationshipRow = {
-  member_id: string;
-  related_id: string;
-  relationship_type: string;
-};
+import type { FamilyMemberRow, RelationshipRow } from "./types";
 
 export default async function RelationshipsPage() {
   const supabase = await createClient();

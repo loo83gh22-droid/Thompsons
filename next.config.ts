@@ -7,6 +7,8 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(
 
 const nextConfig: NextConfig = {
   reactStrictMode: false, // Prevents duplicate map in dev (Strict Mode double-mount)
+  // Explicit root so build doesn't infer wrong workspace (e.g. on Vercel)
+  turbopack: { root: "." },
   images: supabaseHost
     ? {
         remotePatterns: [

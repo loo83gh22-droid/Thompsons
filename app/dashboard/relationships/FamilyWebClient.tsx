@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { FamilyMemberRow, RelationshipRow } from "./page";
+import type { FamilyMemberRow, RelationshipRow } from "./types";
 
 type Props = {
   members: FamilyMemberRow[];
