@@ -13,7 +13,7 @@ type Member = { id: string; name: string; relationship: string | null };
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
+  return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
 
 export function AddVoiceMemoForm({
@@ -138,7 +138,7 @@ export function AddVoiceMemoForm({
     } catch (err) {
       if (err instanceof Error && err.name === "NotAllowedError") {
         setError(
-          "Microphone access was denied. Please enable it in your browser settings to record."
+          "Microphone access was denied. Enable it in your browser: click the lock or info icon in the address bar, allow microphone, then reload the page."
         );
       } else {
         setError("Recording failed. Please try again.");
@@ -272,26 +272,27 @@ export function AddVoiceMemoForm({
           <div className="max-h-[calc(100vh-8rem)] overflow-y-auto p-4 sm:p-6 space-y-6">
             {step === "record" && (
               <>
-                <div className="flex flex-col items-center justify-center py-4">
-                  <div className="text-2xl font-mono font-semibold tabular-nums text-[var(--foreground)]">
+                <div className="flex flex-col items-center justify-center py-6">
+                  <div className="text-3xl font-mono font-semibold tabular-nums text-[var(--foreground)]" aria-live="polite">
                     {formatTime(recordSeconds)}
                   </div>
-                  <p className="mt-1 text-sm text-[var(--muted)]">
-                    {recording ? "Recording..." : "Tap to record"}
+                  <p className="mt-2 text-sm text-[var(--muted)]">
+                    {recording ? "Recording…" : "Tap to Record"}
                   </p>
+                  <p className="mt-1 text-xs text-[var(--muted)]">Max 10 minutes</p>
 
                   <button
                     type="button"
                     onClick={recording ? stopRecording : startRecording}
                     disabled={recording && recordSeconds >= MAX_RECORD_SECONDS}
-                    className={`mt-6 flex min-h-[120px] min-w-[120px] items-center justify-center rounded-full transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] ${
+                    className={`mt-8 flex min-h-[140px] min-w-[140px] items-center justify-center rounded-full transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:min-h-[160px] sm:min-w-[160px] ${
                       recording
-                        ? "bg-red-600 shadow-lg shadow-red-500/40 animate-pulse"
-                        : "bg-red-500 hover:bg-red-600"
+                        ? "bg-red-600 shadow-lg shadow-red-500/50 animate-pulse ring-4 ring-red-400/30"
+                        : "bg-red-500 hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/30"
                     }`}
                     aria-label={recording ? "Stop recording" : "Start recording"}
                   >
-                    <span className="text-4xl" aria-hidden="true">
+                    <span className="text-5xl sm:text-6xl" aria-hidden="true">
                       🎙️
                     </span>
                   </button>
@@ -300,15 +301,15 @@ export function AddVoiceMemoForm({
                     <button
                       type="button"
                       onClick={stopRecording}
-                      className="mt-6 min-h-[44px] rounded-lg bg-[var(--accent)] px-6 py-2 font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)]"
+                      className="mt-8 min-h-[48px] min-w-[160px] rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)]"
                     >
                       Stop Recording
                     </button>
                   )}
 
                   {showOneMinuteWarning && (
-                    <p className="mt-4 text-sm font-medium text-amber-400" role="alert">
-                      You have 1 minute remaining
+                    <p className="mt-6 text-sm font-medium text-amber-400" role="alert">
+                      You have 1 minute remaining (max 10 minutes)
                     </p>
                   )}
                 </div>
@@ -416,7 +417,16 @@ export function AddVoiceMemoForm({
 
             {error && (
               <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400" role="alert">
-                {error}
+                <p>{error}</p>
+                {step === "form" && (
+                  <button
+                    type="button"
+                    onClick={() => setError(null)}
+                    className="mt-2 text-sm font-medium text-red-300 hover:text-red-200 underline"
+                  >
+                    Dismiss
+                  </button>
+                )}
               </div>
             )}
 
