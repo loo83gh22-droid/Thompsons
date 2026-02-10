@@ -149,10 +149,10 @@ export function Nav({
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
           {/* Logo / family name - always visible, left */}
-          <div className="relative flex min-h-[44px] items-center gap-2" ref={familyRef}>
+          <div className="relative flex min-h-[44px] min-w-0 flex-1 items-center gap-2 md:flex-initial" ref={familyRef}>
             <Link
               href="/dashboard"
-              className="font-display text-xl font-semibold transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:text-2xl md:text-3xl"
+              className="font-display text-xl font-semibold transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:text-2xl min-[768px]:text-3xl truncate"
               aria-label={`${familyName} Nest - Go to home`}
             >
               {familyName} Nest
@@ -162,7 +162,7 @@ export function Nav({
                 <button
                   type="button"
                   onClick={() => setFamilyMenuOpen((o) => !o)}
-                  className="touch-target flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                  className="touch-target hidden min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] min-[768px]:flex"
                   aria-label="Switch family"
                   aria-expanded={familyMenuOpen}
                 >
@@ -189,8 +189,8 @@ export function Nav({
             )}
           </div>
 
-          {/* Desktop nav - hidden below 768px */}
-          <nav className="hidden items-center gap-1 md:flex" aria-label="Main navigation">
+          {/* Desktop nav - hidden below 768px, only logo + hamburger show on mobile */}
+          <nav className="hidden min-[768px]:flex items-center gap-1" aria-label="Main navigation">
             {navItemsBeforeDropdowns.map((item) => (
               <Link key={item.href} href={item.href} className={navLinkClass(pathname === item.href)}>
                 {item.label}
@@ -282,31 +282,32 @@ export function Nav({
             ))}
           </nav>
 
-          {/* Account menu (desktop) + Hamburger (mobile) - right side */}
-          <div className="flex min-h-[44px] items-center gap-1" ref={menuRef}>
+          {/* Right side: Hamburger (mobile only, opens drawer) + Account menu (desktop only) */}
+          <div className="flex min-h-[44px] shrink-0 items-center gap-1" ref={menuRef}>
+            {/* Hamburger - mobile only: opens navigation drawer */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen((o) => !o)}
-              className="touch-target flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-1.5 rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] md:hidden"
-              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              className="touch-target flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-1.5 rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] min-[768px]:hidden"
+              aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
               aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav-drawer"
             >
               <span className={`block h-0.5 w-5 bg-current transition-transform ${mobileMenuOpen ? "translate-y-2 rotate-45" : ""}`} />
               <span className={`block h-0.5 w-5 bg-current transition-opacity ${mobileMenuOpen ? "opacity-0" : ""}`} />
               <span className={`block h-0.5 w-5 bg-current transition-transform ${mobileMenuOpen ? "-translate-y-2 -rotate-45" : ""}`} />
             </button>
-            <div className="relative hidden md:block">
+            {/* Account menu - desktop only (768px+) */}
+            <div className="relative hidden min-[768px]:block">
               <button
                 type="button"
                 onClick={() => setMenuOpen((o) => !o)}
-                className="touch-target flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-1 rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-                aria-label="Account menu"
+                className="touch-target flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                aria-label={menuOpen ? "Close account menu" : "Account menu"}
                 aria-expanded={menuOpen}
                 aria-haspopup="true"
               >
-                <span className="block h-0.5 w-5 bg-current" />
-                <span className="block h-0.5 w-5 bg-current" />
-                <span className="block h-0.5 w-5 bg-current" />
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
               </button>
               {menuOpen && (
                 <div className="absolute right-0 top-full z-50 mt-1 min-w-[200px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2 shadow-lg" role="menu">
@@ -328,15 +329,16 @@ export function Nav({
         </div>
       </header>
 
-      {/* Mobile overlay - click outside or ESC to close */}
+      {/* Mobile overlay - click outside to close drawer (only below 768px) */}
       <div
-        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 md:hidden ${mobileMenuOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        className={`fixed inset-0 z-[45] bg-black/50 transition-opacity duration-300 min-[768px]:hidden ${mobileMenuOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
         aria-hidden={!mobileMenuOpen}
         onClick={closeMobileMenu}
       />
-      {/* Mobile drawer - slides in from right */}
+      {/* Mobile drawer - slides in from right (only below 768px) */}
       <aside
-        className={`fixed right-0 top-0 z-40 h-full w-[min(320px,85vw)] transform border-l border-[var(--border)] bg-[var(--background)] shadow-xl transition-transform duration-300 ease-out md:hidden ${
+        id="mobile-nav-drawer"
+        className={`fixed right-0 top-0 z-50 h-full w-[min(320px,85vw)] transform border-l border-[var(--border)] bg-[var(--background)] shadow-xl transition-transform duration-300 ease-out min-[768px]:hidden ${
           mobileMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
         aria-label="Mobile navigation"
