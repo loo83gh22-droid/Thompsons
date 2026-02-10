@@ -5,6 +5,7 @@ import { DashboardStats } from "./DashboardStats";
 import { DashboardAchievements } from "./DashboardAchievements";
 import { UpcomingEvents } from "./UpcomingEvents";
 import { ActivityFeed, type ActivityItem } from "./ActivityFeed";
+import { FamilySummaryStrip } from "./FamilySummaryStrip";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -23,9 +24,12 @@ export default async function DashboardPage() {
   let upcomingEvents: { id: string; title: string; event_date: string; category: string }[] = [];
   let activityItems: ActivityItem[] = [];
   let activityHasMore = false;
+  let summaryMembers: { id: string; name: string; avatar_url: string | null }[] = [];
+  let hasNoContent = false;
 
   if (activeFamilyId) {
     const [
+      membersListRes,
       membersRes,
       photosRes,
       journalRes,
@@ -38,6 +42,7 @@ export default async function DashboardPage() {
       voiceActivity,
       messagesActivity,
     ] = await Promise.all([
+      supabase.from("family_members").select("id, name, avatar_url").eq("family_id", activeFamilyId).order("name").limit(12),
       supabase.from("family_members").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("home_mosaic_photos").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("journal_entries").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
@@ -127,6 +132,14 @@ export default async function DashboardPage() {
     );
     activityHasMore = combined.length > 10;
     activityItems = combined.slice(0, 10);
+    summaryMembers = membersListRes.data ?? [];
+
+    const first = activityItems[0];
+    if (first) {
+      stats.lastActivityAt = first.createdAt;
+      stats.lastActivityBy = first.memberName ?? null;
+    }
+    hasNoContent = stats.photoCount === 0 && stats.journalCount === 0 && stats.voiceMemoCount === 0;
   }
 
   return (
@@ -140,6 +153,27 @@ export default async function DashboardPage() {
 
       {activeFamilyId && (
         <>
+          {hasNoContent && (
+            <div className="mt-6 rounded-xl border-2 border-dashed border-[var(--accent)]/40 bg-[var(--accent)]/5 px-4 py-6 text-center sm:px-6">
+              <p className="font-display text-xl font-semibold text-[var(--foreground)]">
+                Your family story starts here!
+              </p>
+              <p className="mt-2 text-[var(--muted)]">
+                Choose a section below to add your first memory.
+              </p>
+            </div>
+          )}
+
+          <div className="mt-6">
+            <FamilySummaryStrip
+              members={summaryMembers}
+              photoCount={stats.photoCount}
+              journalCount={stats.journalCount}
+              voiceMemoCount={stats.voiceMemoCount}
+              lastActivityAt={stats.lastActivityAt}
+            />
+          </div>
+
           <section className="mt-8" aria-labelledby="activity-heading">
             <div className="flex flex-col gap-2 min-[768px]:flex-row min-[768px]:items-center min-[768px]:justify-between">
               <div>
@@ -176,7 +210,7 @@ export default async function DashboardPage() {
         </>
       )}
 
-      <div className="mt-12 grid grid-cols-1 gap-4 px-0 min-[600px]:grid-cols-2 min-[600px]:gap-6 min-[900px]:grid-cols-3">
+      <div className={`mt-12 grid grid-cols-1 gap-4 px-0 min-[600px]:grid-cols-2 min-[600px]:gap-6 min-[900px]:grid-cols-3 ${hasNoContent ? "ring-2 ring-[var(--accent)]/30 ring-offset-2 ring-offset-[var(--background)] rounded-xl" : ""}`}>
         <DashboardCard href="/dashboard/timeline" title="Timeline" description="All family memories in one chronological view. Journal, photos, voice memos, time capsules." icon="📅" />
         <DashboardCard href="/dashboard/events" title="Events" description="Birthdays, anniversaries, reunions. Create events and send celebratory messages." icon="🎂" />
         <DashboardCard href="/dashboard/stories" title="Stories" description="Longer-form family history, advice, and memorable moments. Write and share stories." icon="📖" />

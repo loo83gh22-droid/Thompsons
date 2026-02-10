@@ -113,14 +113,14 @@ export function ActivityFeed({
   if (items.length === 0) {
     return (
       <section className="rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)]/50 px-6 py-12 text-center">
-        <span className="text-5xl" role="img" aria-hidden="true">
+        <span className="text-5xl inline-block animate-pulse" role="img" aria-hidden="true">
           👨‍👩‍👧‍👦
         </span>
         <h2 className="mt-4 font-display text-xl font-semibold text-[var(--foreground)]">
-          Your family story starts here
+          Nothing yet
         </h2>
         <p className="mt-2 max-w-sm mx-auto text-[var(--muted)]">
-          Upload a photo, write a journal entry, or record a voice memo to get started!
+          Your family story starts here. Upload a photo, write a journal entry, or record a voice memo to get started!
         </p>
       </section>
     );

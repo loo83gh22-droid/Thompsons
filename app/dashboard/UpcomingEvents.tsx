@@ -49,22 +49,32 @@ export function UpcomingEvents({ events }: { events: EventRow[] }) {
         </Link>
       </div>
       <ul className="mt-3 space-y-3">
-        {next3.map((e) => (
-          <li key={e.id}>
-            <Link
-              href="/dashboard/events"
-              className="block rounded-lg border border-[var(--border)] bg-[var(--background)]/50 p-2 transition-colors hover:border-[var(--accent)]/40 hover:bg-[var(--surface-hover)]"
-            >
-              <span className="font-medium text-[var(--foreground)]">{e.title}</span>
-              <div className="mt-0.5 flex flex-wrap items-center gap-2">
-                <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${getCategoryColor(e.category)}`}>
-                  {getCategoryLabel(e.category)}
-                </span>
-                <span className="text-xs text-[var(--muted)]">{formatCompact(e.event_date)}</span>
-              </div>
-            </Link>
-          </li>
-        ))}
+        {next3.map((e) => {
+          const label = formatCompact(e.event_date);
+          const isImminent = label === "Today" || label === "Tomorrow";
+          return (
+            <li key={e.id}>
+              <Link
+                href="/dashboard/events"
+                className={`block rounded-lg border p-2 transition-colors hover:bg-[var(--surface-hover)] ${
+                  isImminent
+                    ? "border-[var(--accent)] bg-[var(--accent)]/10 hover:border-[var(--accent)]/60"
+                    : "border-[var(--border)] bg-[var(--background)]/50 hover:border-[var(--accent)]/40"
+                }`}
+              >
+                <span className="font-medium text-[var(--foreground)]">{e.title}</span>
+                <div className="mt-0.5 flex flex-wrap items-center gap-2">
+                  <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${getCategoryColor(e.category)}`}>
+                    {getCategoryLabel(e.category)}
+                  </span>
+                  <span className={`text-xs ${isImminent ? "font-semibold text-[var(--accent)]" : "text-[var(--muted)]"}`}>
+                    {label}
+                  </span>
+                </div>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

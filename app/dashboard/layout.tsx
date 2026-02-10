@@ -5,6 +5,7 @@ import { Nav } from "@/app/dashboard/Nav";
 import { MusicPlayer } from "@/app/dashboard/MusicPlayer";
 import { UnreadMessagesFetcher } from "@/app/dashboard/UnreadMessagesFetcher";
 import { FamilyProvider } from "@/app/dashboard/FamilyContext";
+import { WelcomeModal } from "@/app/dashboard/WelcomeModal";
 
 export default async function DashboardLayout({
   children,
@@ -108,6 +109,7 @@ export default async function DashboardLayout({
 
     return (
       <FamilyProvider activeFamilyId={activeFamilyId} families={families}>
+        <WelcomeModal familyName={familyName} />
         <div className="min-h-screen">
           <Nav
             user={user}
