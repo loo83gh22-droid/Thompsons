@@ -20,7 +20,7 @@ export default async function JournalPage() {
       location,
       trip_date,
       created_at,
-      family_members (name)
+      family_members (name, nickname, relationship)
     `)
     .eq("family_id", activeFamilyId)
     .order("trip_date", { ascending: false, nullsFirst: false })
@@ -118,11 +118,13 @@ export default async function JournalPage() {
                     {(() => {
                       const raw = entry.family_members as unknown;
                       const author = Array.isArray(raw) ? raw[0] : raw;
-                      const name = author?.name;
-                      return name ? (
+                      const displayName = author?.nickname?.trim() || author?.name;
+                      const rel = author?.relationship?.trim();
+                      const label = displayName ? (rel ? `${displayName} (${rel})` : displayName) : null;
+                      return label ? (
                         <>
                           <span>·</span>
-                          <span>{name}</span>
+                          <span>Written by {label}</span>
                         </>
                       ) : null;
                     })()}

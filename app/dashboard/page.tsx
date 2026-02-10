@@ -46,9 +46,9 @@ export default async function DashboardPage() {
       supabase.from("family_stories").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId).eq("published", true),
       supabase.from("family_events").select("id, title, event_date, category").eq("family_id", activeFamilyId).gte("event_date", new Date().toISOString().slice(0, 10)).lte("event_date", new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)).order("event_date", { ascending: true }).limit(10),
       supabase.from("home_mosaic_photos").select("id, url, created_at").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(10),
-      supabase.from("journal_entries").select("id, title, created_at, family_members!author_id(name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(10),
-      supabase.from("voice_memos").select("id, title, created_at, duration_seconds, family_members!family_member_id(name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(10),
-      supabase.from("family_messages").select("id, title, created_at, family_members!sender_id(name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(10),
+      supabase.from("journal_entries").select("id, title, created_at, family_members!author_id(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(10),
+      supabase.from("voice_memos").select("id, title, created_at, duration_seconds, family_members!family_member_id(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(10),
+      supabase.from("family_messages").select("id, title, created_at, family_members!sender_id(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(10),
     ]);
 
     stats = {
@@ -77,7 +77,7 @@ export default async function DashboardPage() {
       href: "/dashboard/photos",
     }));
 
-    const journalRows = (journalActivity.data ?? []).map((j: { id: string; title: string; created_at: string; family_members: { name: string; relationship: string | null } | { name: string; relationship: string | null }[] | null }) => {
+    const journalRows = (journalActivity.data ?? []).map((j: { id: string; title: string; created_at: string; family_members: { name: string; nickname: string | null; relationship: string | null } | { name: string; nickname: string | null; relationship: string | null }[] | null }) => {
       const author = one(j.family_members);
       return {
         type: "journal" as const,
@@ -85,14 +85,14 @@ export default async function DashboardPage() {
         createdAt: j.created_at,
         title: j.title,
         thumbnailUrl: null,
-        memberName: author?.name ?? null,
+        memberName: author ? (author.nickname?.trim() || author.name) : null,
         memberRelationship: author?.relationship ?? null,
         durationSeconds: null,
         href: `/dashboard/journal/${j.id}/edit`,
       };
     });
 
-    const voiceRows = (voiceActivity.data ?? []).map((v: { id: string; title: string; created_at: string; duration_seconds: number | null; family_members: { name: string; relationship: string | null } | { name: string; relationship: string | null }[] | null }) => {
+    const voiceRows = (voiceActivity.data ?? []).map((v: { id: string; title: string; created_at: string; duration_seconds: number | null; family_members: { name: string; nickname: string | null; relationship: string | null } | { name: string; nickname: string | null; relationship: string | null }[] | null }) => {
       const by = one(v.family_members);
       return {
         type: "voice_memo" as const,
@@ -100,14 +100,14 @@ export default async function DashboardPage() {
         createdAt: v.created_at,
         title: v.title,
         thumbnailUrl: null,
-        memberName: by?.name ?? null,
+        memberName: by ? (by.nickname?.trim() || by.name) : null,
         memberRelationship: by?.relationship ?? null,
         durationSeconds: v.duration_seconds ?? null,
         href: "/dashboard/voice-memos",
       };
     });
 
-    const messageRows = (messagesActivity.data ?? []).map((m: { id: string; title: string; created_at: string; family_members: { name: string; relationship: string | null } | { name: string; relationship: string | null }[] | null }) => {
+    const messageRows = (messagesActivity.data ?? []).map((m: { id: string; title: string; created_at: string; family_members: { name: string; nickname: string | null; relationship: string | null } | { name: string; nickname: string | null; relationship: string | null }[] | null }) => {
       const sender = one(m.family_members);
       return {
         type: "message" as const,
@@ -115,7 +115,7 @@ export default async function DashboardPage() {
         createdAt: m.created_at,
         title: m.title,
         thumbnailUrl: null,
-        memberName: sender?.name ?? null,
+        memberName: sender ? (sender.nickname?.trim() || sender.name) : null,
         memberRelationship: sender?.relationship ?? null,
         durationSeconds: null,
         href: "/dashboard/messages",

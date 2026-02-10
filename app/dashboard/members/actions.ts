@@ -3,14 +3,17 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId, getActiveFamilyName } from "@/src/lib/family";
+import { ensureBirthdayEventForMember } from "@/src/app/dashboard/events/actions";
 
 export async function addFamilyMember(
   name: string,
   relationship: string,
   email: string,
   birthDate: string,
-  birthPlace: string
-) {
+  birthPlace: string,
+  nickname: string | null = null,
+  avatarUrl: string | null = null
+): Promise<{ birthdayEventAdded?: boolean }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
@@ -26,14 +29,16 @@ export async function addFamilyMember(
       contact_email: email.trim() || null,
       birth_date: birthDate?.trim() || null,
       birth_place: birthPlace?.trim() || null,
+      nickname: nickname?.trim() || null,
+      avatar_url: avatarUrl?.trim() || null,
     })
     .select("id")
     .single();
 
   if (error) {
     const msg = error.message || "";
-    if (msg.includes("birth_date") || msg.includes("birth_place") || msg.includes("column") || msg.includes("does not exist"))
-      throw new Error("Run migration 022 in Supabase SQL Editor to add birth date and birth place support.");
+    if (msg.includes("birth_date") || msg.includes("birth_place") || msg.includes("nickname") || msg.includes("column") || msg.includes("does not exist"))
+      throw new Error("Run migrations 022 and 039 in Supabase SQL Editor (birth date/place and nickname support).");
     throw error;
   }
 
@@ -110,9 +115,20 @@ export async function addFamilyMember(
     }
   }
 
+  let birthdayEventAdded = false;
+  if (member && birthDate?.trim()) {
+    const { added } = await ensureBirthdayEventForMember(
+      member.id,
+      name.trim(),
+      birthDate.trim()
+    );
+    birthdayEventAdded = added;
+  }
+
   revalidatePath("/dashboard/members");
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/map");
+  return { birthdayEventAdded };
 }
 
 export async function updateFamilyMember(
@@ -121,8 +137,10 @@ export async function updateFamilyMember(
   relationship: string,
   email: string,
   birthDate: string,
-  birthPlace: string
-) {
+  birthPlace: string,
+  nickname: string | null = null,
+  avatarUrl: string | null = null
+): Promise<{ birthdayEventAdded?: boolean }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
@@ -135,13 +153,15 @@ export async function updateFamilyMember(
       contact_email: email.trim() || null,
       birth_date: birthDate?.trim() || null,
       birth_place: birthPlace?.trim() || null,
+      nickname: nickname?.trim() || null,
+      avatar_url: avatarUrl?.trim() || null,
     })
     .eq("id", id);
 
   if (error) {
     const msg = error.message || "";
-    if (msg.includes("birth_date") || msg.includes("birth_place") || msg.includes("column") || msg.includes("does not exist"))
-      throw new Error("Run migration 022 in Supabase SQL Editor to add birth date and birth place support.");
+    if (msg.includes("birth_date") || msg.includes("birth_place") || msg.includes("nickname") || msg.includes("column") || msg.includes("does not exist"))
+      throw new Error("Run migrations 022 and 039 in Supabase SQL Editor (birth date/place and nickname support).");
     throw error;
   }
 
@@ -233,9 +253,20 @@ export async function updateFamilyMember(
     }
   }
 
+  let birthdayEventAdded = false;
+  if (!error && birthDate?.trim()) {
+    const { added } = await ensureBirthdayEventForMember(
+      id,
+      name.trim(),
+      birthDate.trim()
+    );
+    birthdayEventAdded = added;
+  }
+
   revalidatePath("/dashboard/members");
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/map");
+  return { birthdayEventAdded };
 }
 
 export async function deleteFamilyMember(id: string) {

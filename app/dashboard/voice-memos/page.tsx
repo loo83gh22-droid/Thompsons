@@ -25,14 +25,14 @@ export default async function VoiceMemosPage() {
         created_at,
         family_member_id,
         recorded_for_id,
-        recorded_by:family_members!family_member_id(name, relationship),
-        recorded_for:family_members!recorded_for_id(name, relationship)
+        recorded_by:family_members!family_member_id(name, nickname, relationship),
+        recorded_for:family_members!recorded_for_id(name, nickname, relationship)
       `)
       .eq("family_id", activeFamilyId)
       .order("created_at", { ascending: false }),
     supabase
       .from("family_members")
-      .select("id, name, relationship")
+      .select("id, name, nickname, relationship")
       .eq("family_id", activeFamilyId)
       .order("name"),
     user
@@ -46,7 +46,7 @@ export default async function VoiceMemosPage() {
   ]);
 
   const memos = memosRes.data ?? [];
-  const members = (membersRes.data ?? []) as { id: string; name: string; relationship: string | null }[];
+  const members = (membersRes.data ?? []) as { id: string; name: string; nickname: string | null; relationship: string | null }[];
   const myMemberId = myMemberRes.data?.id ?? null;
 
   return (

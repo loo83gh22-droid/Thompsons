@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { removeVoiceMemo, updateVoiceMemo } from "./actions";
 import { EmptyState } from "../components/EmptyState";
 
-type MemberRow = { name: string; relationship: string | null };
+type MemberRow = { name: string; nickname: string | null; relationship: string | null };
 
 type VoiceMemo = {
   id: string;
@@ -46,7 +46,7 @@ export function VoiceMemoList({
 }: {
   memos: VoiceMemo[];
   currentUserMemberId: string | null;
-  members: { id: string; name: string; relationship: string | null }[];
+  members: { id: string; name: string; nickname: string | null; relationship: string | null }[];
 }) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -75,11 +75,17 @@ export function VoiceMemoList({
       {memos.map((memo) => {
         const by = one(memo.recorded_by);
         const forMember = one(memo.recorded_for);
-        const byLabel = by
+        const byDisplayName = by ? (by.nickname?.trim() || by.name) : null;
+        const byLabel = byDisplayName
           ? by.relationship
-            ? `${by.name} (${by.relationship})`
-            : by.name
+            ? `${byDisplayName} (${by.relationship})`
+            : byDisplayName
           : "Unknown";
+        const forLabel = forMember
+          ? forMember.relationship
+            ? `${forMember.nickname?.trim() || forMember.name} (${forMember.relationship})`
+            : forMember.nickname?.trim() || forMember.name
+          : null;
         const dateStr = formatDate(memo.recorded_date ?? memo.created_at);
         const isCreator = currentUserMemberId != null && memo.family_member_id === currentUserMemberId;
 
@@ -145,9 +151,9 @@ export function VoiceMemoList({
                     Duration: {formatDuration(memo.duration_seconds)}
                   </p>
                 )}
-                {forMember && (
+                {forMember && forLabel && (
                   <p className="text-sm text-[var(--muted)]">
-                    For {forMember.relationship ? `${forMember.name} (${forMember.relationship})` : forMember.name}
+                    For {forLabel}
                   </p>
                 )}
                 {memo.description && (
@@ -191,7 +197,7 @@ function EditVoiceMemoModal({
   onSaved,
 }: {
   memo: VoiceMemo;
-  members: { id: string; name: string; relationship: string | null }[];
+  members: { id: string; name: string; nickname: string | null; relationship: string | null }[];
   onClose: () => void;
   onSaved: () => void;
 }) {

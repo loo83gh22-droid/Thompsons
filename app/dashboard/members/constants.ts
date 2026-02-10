@@ -1,0 +1,28 @@
+export const RELATIONSHIP_OPTIONS = [
+  "Mother",
+  "Father",
+  "Spouse/Partner",
+  "Son",
+  "Daughter",
+  "Sister",
+  "Brother",
+  "Grandmother",
+  "Grandfather",
+  "Grandson",
+  "Granddaughter",
+  "Aunt",
+  "Uncle",
+  "Cousin",
+  "Niece",
+  "Nephew",
+  "Stepmother",
+  "Stepfather",
+  "Stepsister",
+  "Stepbrother",
+  "Mother-in-law",
+  "Father-in-law",
+  "Friend",
+  "Other",
+] as const;
+
+export type RelationshipOption = (typeof RELATIONSHIP_OPTIONS)[number];

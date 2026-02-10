@@ -133,3 +133,43 @@ export async function ensureBirthdayEvents(): Promise<{ added: number }> {
   }
   return { added };
 }
+
+/** Create a single birthday event for a member if one does not exist. Used when member birth_date is set/updated. */
+export async function ensureBirthdayEventForMember(
+  memberId: string,
+  memberName: string,
+  birthDate: string
+): Promise<{ added: boolean }> {
+  const supabase = await createClient();
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return { added: false };
+
+  const title = `${memberName}'s Birthday`;
+  const { data: existing } = await supabase
+    .from("family_events")
+    .select("id")
+    .eq("family_id", activeFamilyId)
+    .eq("category", "birthday")
+    .eq("created_by", memberId)
+    .limit(1)
+    .maybeSingle();
+  if (existing) return { added: false };
+
+  const d = String(birthDate);
+  const year = d.slice(0, 4);
+  const month = d.slice(5, 7);
+  const day = d.slice(8, 10);
+  const thisYear = new Date().getFullYear();
+  const eventDate = `${thisYear}-${month}-${day}`;
+
+  const { error } = await supabase.from("family_events").insert({
+    family_id: activeFamilyId,
+    created_by: memberId,
+    title,
+    event_date: eventDate,
+    category: "birthday",
+    recurring: "annual",
+  });
+  if (error) return { added: false };
+  return { added: true };
+}
