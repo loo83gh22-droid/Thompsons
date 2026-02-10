@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { EmptyState } from "@/app/dashboard/components/EmptyState";
-import { StoryCard } from "./StoryCard";
+import { StoriesList } from "./StoriesList";
 
 export default async function StoriesPage() {
   const supabase = await createClient();
@@ -20,7 +20,7 @@ export default async function StoriesPage() {
       published,
       created_at,
       author_family_member_id,
-      family_members!author_family_member_id(name)
+      family_members!author_family_member_id(name, nickname, relationship)
     `)
     .eq("family_id", activeFamilyId)
     .eq("published", true)
@@ -34,12 +34,12 @@ export default async function StoriesPage() {
             Family Stories
           </h1>
           <p className="mt-2 text-[var(--muted)]">
-            Longer-form stories and family history. Share memories, advice, and traditions.
+            Longer-form family history, advice, and memorable moments
           </p>
         </div>
         <Link
           href="/dashboard/stories/new"
-          className="min-h-[44px] rounded-lg bg-[var(--accent)] px-4 py-2 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+          className="min-h-[44px] shrink-0 rounded-lg bg-orange-500 px-4 py-2 font-semibold text-white transition-colors hover:bg-orange-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500"
         >
           + Write a story
         </Link>
@@ -47,18 +47,14 @@ export default async function StoriesPage() {
 
       {!stories?.length ? (
         <EmptyState
-          icon="📖"
+          icon="📄"
           headline="No stories yet"
-          description="Be the first to share a family memory, lesson learned, or piece of history. Stories can include formatting and a cover image."
+          description="Be the first to share a family memory, historical account, or lesson learned"
           actionLabel="Write your first story"
           actionHref="/dashboard/stories/new"
         />
       ) : (
-        <div className="grid grid-cols-1 gap-4 min-[600px]:grid-cols-2 min-[900px]:grid-cols-3">
-          {stories.map((s) => (
-            <StoryCard key={s.id} story={s} />
-          ))}
-        </div>
+        <StoriesList stories={stories} />
       )}
     </div>
   );
