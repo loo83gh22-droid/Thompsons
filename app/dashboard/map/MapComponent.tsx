@@ -162,7 +162,19 @@ export default function MapComponent() {
           const rows = data as unknown as TravelLocation[];
           const byId = new Map<string, TravelLocation>();
           rows.forEach((r) => byId.set(r.id, r));
-          setLocations(Array.from(byId.values()));
+          const list = Array.from(byId.values());
+          setLocations(list);
+          if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+            const withCluster = list.filter((l) => l.location_cluster_id);
+            const groups = groupLocations(list);
+            console.log("🗺️ Map: travel_locations fetched", {
+              total: list.length,
+              withClusterId: withCluster.length,
+              withoutClusterId: list.length - withCluster.length,
+              groupCount: groups.length,
+              perGroup: groups.map((g) => ({ locs: g.length, clusterId: g[0]?.location_cluster_id ?? "null", name: g[0]?.location_name })),
+            });
+          }
         }
         setLoading(false);
       });
@@ -284,7 +296,12 @@ export default function MapComponent() {
                 scaledSize: new google.maps.Size(48, 40),
                 anchor: new google.maps.Point(24, 38),
               }}
-              onClick={() => setSelectedCluster({ locs, pos })}
+              onClick={() => {
+                if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+                  console.log("📍 Pin clicked:", { location: loc.location_name, entriesInCluster: locs.length, locs: locs.map((l) => ({ id: l.id, notes: l.notes, journal_entry_id: l.journal_entry_id })) });
+                }
+                setSelectedCluster({ locs, pos });
+              }}
             />
           );
         })}
