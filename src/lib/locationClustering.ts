@@ -26,12 +26,35 @@ function calculateDistance(
   return R * c;
 }
 
+/** Words from location name (lowercase, min 2 chars) for name-based matching. */
+function locationWords(name: string): Set<string> {
+  const words = new Set<string>();
+  const normalized = name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s,]/g, " ")
+    .split(/[\s,]+/);
+  for (const w of normalized) {
+    if (w.length >= 2) words.add(w);
+  }
+  return words;
+}
+
+function sharesPlaceName(a: string, b: string): boolean {
+  const wordsA = locationWords(a);
+  const wordsB = locationWords(b);
+  for (const w of wordsA) {
+    if (w.length >= 3 && wordsB.has(w)) return true; // e.g. "uvita"
+  }
+  return false;
+}
+
 export async function findOrCreateLocationCluster(
   supabase: SupabaseClient,
   familyId: string,
   location: Location
 ): Promise<string | null> {
-  const DISTANCE_THRESHOLD_KM = 8; // same town – covers "Uvita, CR" vs "Puntarenas Province, Uvita, Costa Rica" geocode variance
+  const DISTANCE_KM = 8; // same town by distance
+  const DISTANCE_KM_NAMED = 35; // same place by name + distance (e.g. "Uvita, CR" vs full address)
 
   const { data: existingClusters, error } = await supabase
     .from("location_clusters")
@@ -45,6 +68,29 @@ export async function findOrCreateLocationCluster(
     return null;
   }
 
+  type ClusterRow = { id: string; date_range_start: string | null; date_range_end: string | null; entry_count: number | null };
+  const updateCluster = async (cluster: ClusterRow) => {
+    const clusterStartDate = cluster.date_range_start
+      ? new Date(cluster.date_range_start)
+      : new Date(location.date);
+    const clusterEndDate = cluster.date_range_end
+      ? new Date(cluster.date_range_end)
+      : new Date(location.date);
+    const newStartDate =
+      location.date < clusterStartDate ? location.date : clusterStartDate;
+    const newEndDate =
+      location.date > clusterEndDate ? location.date : clusterEndDate;
+    await supabase
+      .from("location_clusters")
+      .update({
+        entry_count: (cluster.entry_count ?? 1) + 1,
+        date_range_start: newStartDate.toISOString().split("T")[0],
+        date_range_end: newEndDate.toISOString().split("T")[0],
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", cluster.id);
+  };
+
   for (const cluster of existingClusters || []) {
     const distance = calculateDistance(
       location.latitude,
@@ -52,29 +98,13 @@ export async function findOrCreateLocationCluster(
       Number(cluster.latitude),
       Number(cluster.longitude)
     );
+    const withinDistance = distance <= DISTANCE_KM;
+    const withinNamed =
+      distance <= DISTANCE_KM_NAMED &&
+      sharesPlaceName(location.location_name, cluster.location_name ?? "");
 
-    if (distance <= DISTANCE_THRESHOLD_KM) {
-      const clusterStartDate = cluster.date_range_start
-        ? new Date(cluster.date_range_start)
-        : new Date(location.date);
-      const clusterEndDate = cluster.date_range_end
-        ? new Date(cluster.date_range_end)
-        : new Date(location.date);
-      const newStartDate =
-        location.date < clusterStartDate ? location.date : clusterStartDate;
-      const newEndDate =
-        location.date > clusterEndDate ? location.date : clusterEndDate;
-
-      await supabase
-        .from("location_clusters")
-        .update({
-          entry_count: (cluster.entry_count ?? 1) + 1,
-          date_range_start: newStartDate.toISOString().split("T")[0],
-          date_range_end: newEndDate.toISOString().split("T")[0],
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", cluster.id);
-
+    if (withinDistance || withinNamed) {
+      await updateCluster(cluster);
       return cluster.id;
     }
   }
