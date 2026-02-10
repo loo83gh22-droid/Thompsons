@@ -8,27 +8,63 @@ export default async function VoiceMemosPage() {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return null;
 
-  const { data: memos } = await supabase
-    .from("voice_memos")
-    .select("id, title, description, audio_url, family_members(name)")
-    .eq("family_id", activeFamilyId)
-    .order("sort_order");
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const [memosRes, membersRes, myMemberRes] = await Promise.all([
+    supabase
+      .from("voice_memos")
+      .select(`
+        id,
+        title,
+        description,
+        audio_url,
+        duration_seconds,
+        recorded_date,
+        created_at,
+        family_member_id,
+        recorded_for_id,
+        recorded_by:family_members!family_member_id(name, relationship),
+        recorded_for:family_members!recorded_for_id(name, relationship)
+      `)
+      .eq("family_id", activeFamilyId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("family_members")
+      .select("id, name, relationship")
+      .eq("family_id", activeFamilyId)
+      .order("name"),
+    user
+      ? supabase
+          .from("family_members")
+          .select("id")
+          .eq("family_id", activeFamilyId)
+          .eq("user_id", user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const memos = memosRes.data ?? [];
+  const members = (membersRes.data ?? []) as { id: string; name: string; relationship: string | null }[];
+  const myMemberId = myMemberRes.data?.id ?? null;
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between">
-        <div>
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
             Voice Memos
           </h1>
           <p className="mt-2 text-[var(--muted)]">
-            Record voices for the future—stories, songs, jokes. Imagine kids hearing their great-grandmother&apos;s voice decades from now.
+            Record voices for the future—stories, songs, jokes. Imagine kids hearing their
+            great-grandmother&apos;s voice decades from now.
           </p>
         </div>
-        <AddVoiceMemoForm />
+        <AddVoiceMemoForm members={members} />
       </div>
 
-      <VoiceMemoList memos={memos ?? []} />
+      <VoiceMemoList memos={memos} currentUserMemberId={myMemberId} members={members} />
     </div>
   );
 }

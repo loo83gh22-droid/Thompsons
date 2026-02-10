@@ -4,32 +4,24 @@ import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
 
-export async function addVoiceMemo(
-  file: File,
-  data: { familyMemberId?: string; title: string; description?: string }
-) {
+export type VoiceMemoInsert = {
+  title: string;
+  recordedById: string;
+  recordedForId?: string | null;
+  recordedDate: string;
+  description?: string | null;
+  audioUrl: string;
+  durationSeconds: number;
+};
+
+export async function insertVoiceMemo(data: VoiceMemoInsert) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
-
-  const ext = file.name.split(".").pop()?.toLowerCase() || "mp3";
-  const allowed = ["mp3", "m4a", "wav", "ogg", "webm"];
-  if (!allowed.includes(ext)) {
-    throw new Error("Use MP3, M4A, WAV, OGG, or WebM.");
-  }
-  const path = `${crypto.randomUUID()}.${ext}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from("voice-memos")
-    .upload(path, file, { upsert: true });
-
-  if (uploadError) throw uploadError;
-
-  const { data: urlData } = supabase.storage
-    .from("voice-memos")
-    .getPublicUrl(path);
 
   const { data: last } = await supabase
     .from("voice_memos")
@@ -37,26 +29,85 @@ export async function addVoiceMemo(
     .eq("family_id", activeFamilyId)
     .order("sort_order", { ascending: false })
     .limit(1);
-
   const nextOrder = (last?.[0]?.sort_order ?? -1) + 1;
 
-  const { error: insertError } = await supabase.from("voice_memos").insert({
+  const { error } = await supabase.from("voice_memos").insert({
     family_id: activeFamilyId,
-    family_member_id: data.familyMemberId || null,
-    title: data.title.trim(),
-    description: data.description?.trim() || null,
-    audio_url: urlData.publicUrl,
+    family_member_id: data.recordedById,
+    recorded_for_id: data.recordedForId ?? null,
+    title: data.title.trim().slice(0, 100),
+    description: data.description?.trim().slice(0, 500) || null,
+    audio_url: data.audioUrl,
+    duration_seconds: data.durationSeconds,
+    recorded_date: data.recordedDate,
     sort_order: nextOrder,
+    updated_at: new Date().toISOString(),
   });
 
-  if (insertError) throw insertError;
+  if (error) throw error;
   revalidatePath("/dashboard/voice-memos");
+}
+
+export type VoiceMemoUpdate = {
+  title: string;
+  recordedById: string;
+  recordedForId?: string | null;
+  recordedDate: string;
+  description?: string | null;
+};
+
+export async function updateVoiceMemo(id: string, data: VoiceMemoUpdate) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("voice_memos")
+    .update({
+      family_member_id: data.recordedById,
+      recorded_for_id: data.recordedForId ?? null,
+      title: data.title.trim().slice(0, 100),
+      description: data.description?.trim().slice(0, 500) || null,
+      recorded_date: data.recordedDate,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+
+  if (error) throw error;
+  revalidatePath("/dashboard/voice-memos");
+}
+
+function pathFromAudioUrl(audioUrl: string): string | null {
+  try {
+    const u = new URL(audioUrl);
+    const match = u.pathname.match(/\/storage\/v1\/object\/public\/voice-memos\/(.+)$/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function removeVoiceMemo(id: string) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+
+  const { data: row } = await supabase
+    .from("voice_memos")
+    .select("audio_url")
+    .eq("id", id)
+    .single();
+
+  if (row?.audio_url) {
+    const path = pathFromAudioUrl(row.audio_url);
+    if (path) {
+      await supabase.storage.from("voice-memos").remove([path]);
+    }
+  }
 
   const { error } = await supabase.from("voice_memos").delete().eq("id", id);
   if (error) throw error;
