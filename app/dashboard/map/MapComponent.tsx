@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
 import { useJsApiLoader, GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
@@ -109,6 +111,7 @@ function createPinSvgUrl(
 }
 
 export default function MapComponent() {
+  const router = useRouter();
   const { activeFamilyId } = useFamily();
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   const { isLoaded, loadError } = useJsApiLoader({
@@ -285,52 +288,102 @@ export default function MapComponent() {
             />
           );
         })}
-        {selectedCluster && (
-          <InfoWindow
-            position={{ lat: selectedCluster.pos[0], lng: selectedCluster.pos[1] }}
-            onCloseClick={() => setSelectedCluster(null)}
-          >
-            <div className="min-w-[200px] max-w-[280px] p-1 text-[var(--foreground)]">
-              <strong>{selectedCluster.locs[0].location_name}</strong>
-              {selectedCluster.locs.length > 1 && (
-                <span className="ml-2 rounded bg-red-500/20 px-1.5 py-0.5 text-xs font-medium text-red-400">
-                  {selectedCluster.locs.length} entries
-                </span>
-              )}
-              <div className="mt-2 space-y-2 max-h-[200px] overflow-y-auto">
-                {selectedCluster.locs.map((l) => (
-                  <div key={l.id} className="border-b border-[var(--border)] pb-2 last:border-0 last:pb-0">
-                    {(() => {
-                      const m = Array.isArray(l.family_members) ? l.family_members[0] : l.family_members;
-                      return <span className="text-sm">{m?.name || "Family"}</span>;
-                    })()}
-                    {l.year_visited || l.trip_date ? (
-                      <span className="text-sm text-[var(--muted)]">
-                        {" · "}
-                        {l.trip_date
-                          ? new Date(l.trip_date + "T12:00:00").toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })
-                          : l.year_visited}
-                      </span>
-                    ) : null}
-                    {l.notes && <div className="text-xs text-gray-500 mt-0.5">{l.notes}</div>}
-                    {l.journal_entry_id && (
-                      <a
-                        href={`/dashboard/journal/${l.journal_entry_id}/edit`}
-                        className="mt-1 inline-block text-xs font-medium text-[var(--accent)] hover:underline"
+        {selectedCluster && (() => {
+          const locs = [...selectedCluster.locs].sort((a, b) => {
+            const da = a.trip_date ? new Date(a.trip_date + "T12:00:00").getTime() : 0;
+            const db = b.trip_date ? new Date(b.trip_date + "T12:00:00").getTime() : 0;
+            return db - da; // most recent first
+          });
+          const first = locs[0];
+          const locationName = first?.location_name ?? "Location";
+          const dateRangeStart = locs.reduce<string | null>((min, l) => {
+            const d = l.trip_date ?? (l.year_visited ? `${l.year_visited}-01-01` : null);
+            if (!d) return min;
+            return !min || d < min ? d : min;
+          }, null);
+          const dateRangeEnd = locs.reduce<string | null>((max, l) => {
+            const d = l.trip_date ?? (l.year_visited ? `${l.year_visited}-12-31` : null);
+            if (!d) return max;
+            return !max || d > max ? d : max;
+          }, null);
+          const dateLabel =
+            dateRangeStart && dateRangeEnd
+              ? dateRangeStart === dateRangeEnd
+                ? format(new Date(dateRangeStart + "T12:00:00"), "MMMM d, yyyy")
+                : `${format(new Date(dateRangeStart + "T12:00:00"), "MMM d, yyyy")} – ${format(new Date(dateRangeEnd + "T12:00:00"), "MMM d, yyyy")}`
+              : null;
+          return (
+            <InfoWindow
+              position={{ lat: selectedCluster.pos[0], lng: selectedCluster.pos[1] }}
+              onCloseClick={() => setSelectedCluster(null)}
+            >
+              <div className="min-w-[220px] max-w-[320px] p-3 text-[var(--foreground)]">
+                <div className="mb-3 border-b border-[var(--border)] pb-2">
+                  <h3 className="font-bold text-lg text-[var(--foreground)]">
+                    {locationName}
+                  </h3>
+                  {dateLabel && (
+                    <p className="text-sm text-[var(--muted)] mt-1">{dateLabel}</p>
+                  )}
+                  {locs.length > 1 && (
+                    <div className="mt-2 inline-block rounded bg-[var(--accent)]/20 px-2 py-1 text-xs font-semibold text-[var(--accent)]">
+                      {locs.length} memories here
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2 max-h-[280px] overflow-y-auto">
+                  {locs.map((l) => {
+                    const member = Array.isArray(l.family_members) ? l.family_members[0] : l.family_members;
+                    const title = l.notes || "Journal entry";
+                    const dateStr = l.trip_date
+                      ? format(new Date(l.trip_date + "T12:00:00"), "MMMM d, yyyy")
+                      : l.year_visited
+                        ? String(l.year_visited)
+                        : "";
+                    return (
+                      <div
+                        key={l.id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => {
+                          setSelectedCluster(null);
+                          if (l.journal_entry_id) {
+                            router.push(`/dashboard/journal/${l.journal_entry_id}/edit`);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setSelectedCluster(null);
+                            if (l.journal_entry_id) {
+                              router.push(`/dashboard/journal/${l.journal_entry_id}/edit`);
+                            }
+                          }
+                        }}
+                        className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 hover:bg-[var(--surface-hover)] hover:border-[var(--accent)]/50 cursor-pointer transition-all group"
                       >
-                        View entry →
-                      </a>
-                    )}
-                  </div>
-                ))}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors truncate">
+                              {title}
+                            </h4>
+                            {dateStr && (
+                              <p className="text-xs text-[var(--muted)] mt-1">{dateStr}</p>
+                            )}
+                            {member?.name && member.name !== "Family" && (
+                              <p className="text-xs text-[var(--muted)] mt-0.5">{member.name}</p>
+                            )}
+                          </div>
+                          <span className="text-[var(--muted)] group-hover:text-[var(--accent)] transition-colors shrink-0">→</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          </InfoWindow>
-        )}
+            </InfoWindow>
+          );
+        })()}
       </GoogleMap>
     </div>
   );
