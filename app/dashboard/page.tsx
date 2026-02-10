@@ -4,6 +4,7 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import { DashboardStats } from "./DashboardStats";
 import { DashboardAchievements } from "./DashboardAchievements";
 import { UpcomingEvents } from "./UpcomingEvents";
+import { ActivityFeed, type ActivityItem } from "./ActivityFeed";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -20,6 +21,8 @@ export default async function DashboardPage() {
     lastActivityAt: null as string | null,
   };
   let upcomingEvents: { id: string; title: string; event_date: string; category: string }[] = [];
+  let activityItems: ActivityItem[] = [];
+  let activityHasMore = false;
 
   if (activeFamilyId) {
     const [
@@ -30,6 +33,10 @@ export default async function DashboardPage() {
       capsulesRes,
       storiesRes,
       eventsRes,
+      photosActivity,
+      journalActivity,
+      voiceActivity,
+      messagesActivity,
     ] = await Promise.all([
       supabase.from("family_members").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("home_mosaic_photos").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
@@ -38,6 +45,10 @@ export default async function DashboardPage() {
       supabase.from("time_capsules").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("family_stories").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId).eq("published", true),
       supabase.from("family_events").select("id, title, event_date, category").eq("family_id", activeFamilyId).gte("event_date", new Date().toISOString().slice(0, 10)).lte("event_date", new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)).order("event_date", { ascending: true }).limit(10),
+      supabase.from("home_mosaic_photos").select("id, url, created_at").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(10),
+      supabase.from("journal_entries").select("id, title, created_at, family_members!author_id(name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(10),
+      supabase.from("voice_memos").select("id, title, created_at, duration_seconds, family_members!family_member_id(name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(10),
+      supabase.from("family_messages").select("id, title, created_at, family_members!sender_id(name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(10),
     ]);
 
     stats = {
@@ -51,6 +62,71 @@ export default async function DashboardPage() {
       lastActivityAt: null,
     };
     upcomingEvents = eventsRes.data ?? [];
+
+    const one = <T,>(x: T | T[] | null): T | null => (x == null ? null : Array.isArray(x) ? x[0] ?? null : x);
+
+    const photoRows = (photosActivity.data ?? []).map((p: { id: string; url: string; created_at: string }) => ({
+      type: "photo" as const,
+      id: p.id,
+      createdAt: p.created_at,
+      title: null,
+      thumbnailUrl: p.url,
+      memberName: null,
+      memberRelationship: null,
+      durationSeconds: null,
+      href: "/dashboard/photos",
+    }));
+
+    const journalRows = (journalActivity.data ?? []).map((j: { id: string; title: string; created_at: string; family_members: { name: string; relationship: string | null } | { name: string; relationship: string | null }[] | null }) => {
+      const author = one(j.family_members);
+      return {
+        type: "journal" as const,
+        id: j.id,
+        createdAt: j.created_at,
+        title: j.title,
+        thumbnailUrl: null,
+        memberName: author?.name ?? null,
+        memberRelationship: author?.relationship ?? null,
+        durationSeconds: null,
+        href: `/dashboard/journal/${j.id}/edit`,
+      };
+    });
+
+    const voiceRows = (voiceActivity.data ?? []).map((v: { id: string; title: string; created_at: string; duration_seconds: number | null; family_members: { name: string; relationship: string | null } | { name: string; relationship: string | null }[] | null }) => {
+      const by = one(v.family_members);
+      return {
+        type: "voice_memo" as const,
+        id: v.id,
+        createdAt: v.created_at,
+        title: v.title,
+        thumbnailUrl: null,
+        memberName: by?.name ?? null,
+        memberRelationship: by?.relationship ?? null,
+        durationSeconds: v.duration_seconds ?? null,
+        href: "/dashboard/voice-memos",
+      };
+    });
+
+    const messageRows = (messagesActivity.data ?? []).map((m: { id: string; title: string; created_at: string; family_members: { name: string; relationship: string | null } | { name: string; relationship: string | null }[] | null }) => {
+      const sender = one(m.family_members);
+      return {
+        type: "message" as const,
+        id: m.id,
+        createdAt: m.created_at,
+        title: m.title,
+        thumbnailUrl: null,
+        memberName: sender?.name ?? null,
+        memberRelationship: sender?.relationship ?? null,
+        durationSeconds: null,
+        href: "/dashboard/messages",
+      };
+    });
+
+    const combined = [...photoRows, ...journalRows, ...voiceRows, ...messageRows].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    activityHasMore = combined.length > 10;
+    activityItems = combined.slice(0, 10);
   }
 
   return (
@@ -64,7 +140,29 @@ export default async function DashboardPage() {
 
       {activeFamilyId && (
         <>
-          <div className="mt-8 grid grid-cols-1 gap-6 min-[900px]:grid-cols-3">
+          <section className="mt-8" aria-labelledby="activity-heading">
+            <div className="flex flex-col gap-2 min-[768px]:flex-row min-[768px]:items-center min-[768px]:justify-between">
+              <div>
+                <h2 id="activity-heading" className="font-display text-xl font-semibold text-[var(--foreground)]">
+                  Recent Activity
+                </h2>
+                <p className="mt-0.5 text-sm text-[var(--muted)]">
+                  See what your family has been up to
+                </p>
+              </div>
+              <Link
+                href="/dashboard/timeline"
+                className="shrink-0 text-sm font-medium text-[var(--accent)] hover:underline"
+              >
+                View all
+              </Link>
+            </div>
+            <div className="mt-4">
+              <ActivityFeed items={activityItems} hasMore={activityHasMore} />
+            </div>
+          </section>
+
+          <div className="mt-10 grid grid-cols-1 gap-6 min-[900px]:grid-cols-3">
             <div className="min-[900px]:col-span-2">
               <DashboardStats stats={stats} />
             </div>
