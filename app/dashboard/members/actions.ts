@@ -126,6 +126,7 @@ export async function addFamilyMember(
   }
 
   revalidatePath("/dashboard/members");
+  revalidatePath("/dashboard/our-family");
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/map");
   return { birthdayEventAdded };
@@ -264,6 +265,7 @@ export async function updateFamilyMember(
   }
 
   revalidatePath("/dashboard/members");
+  revalidatePath("/dashboard/our-family");
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/map");
   return { birthdayEventAdded };
@@ -278,5 +280,6 @@ export async function deleteFamilyMember(id: string) {
 
   if (error) throw error;
   revalidatePath("/dashboard/members");
+  revalidatePath("/dashboard/our-family");
   revalidatePath("/dashboard");
 }

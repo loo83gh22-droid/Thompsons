@@ -24,8 +24,6 @@ const memoriesItems: { href: string; label: string }[] = [
   { href: "/dashboard/time-capsules", label: "Time Capsules" },
   { href: "/dashboard/recipes", label: "Recipes" },
   { href: "/dashboard/traditions", label: "Traditions" },
-  { href: "/dashboard/family-tree", label: "Family Tree" },
-  { href: "/dashboard/relationships", label: "Family Web" },
   { href: "/dashboard/events", label: "Events" },
   { href: "/dashboard/stories", label: "Stories" },
 ];
@@ -42,7 +40,7 @@ const favouritesItems: { href: string; label: string }[] = [
 
 const navItemsBetweenDropdowns: { href: string; label: string }[] = [
   { href: "/dashboard/messages", label: "Messages" },
-  { href: "/dashboard/members", label: "Members" },
+  { href: "/dashboard/our-family", label: "Our Family" },
 ];
 
 const navItemsAfterDropdowns: { href: string; label: string; muted?: boolean }[] = [

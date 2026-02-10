@@ -7,7 +7,7 @@ import { RELATIONSHIP_OPTIONS } from "./constants";
 
 const ACCEPT_IMAGES = "image/jpeg,image/png,image/webp,image/gif";
 
-export function AddMemberForm() {
+export function AddMemberForm({ triggerClassName }: { triggerClassName?: string } = {}) {
   const [name, setName] = useState("");
   const [relationship, setRelationship] = useState("");
   const [nickname, setNickname] = useState("");
@@ -260,7 +260,7 @@ export function AddMemberForm() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="min-h-[44px] rounded-lg border border-[var(--accent)]/50 px-4 py-2 text-sm font-medium text-[var(--accent)] hover:bg-[var(--accent)]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+          className={triggerClassName ?? "min-h-[44px] rounded-lg border border-[var(--accent)]/50 px-4 py-2 text-sm font-medium text-[var(--accent)] hover:bg-[var(--accent)]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"}
         >
           + Add member
         </button>

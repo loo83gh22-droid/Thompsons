@@ -49,7 +49,7 @@ export function FamilySummaryStrip({
     >
       <div className="flex flex-wrap items-center gap-4 sm:gap-6">
         <Link
-          href="/dashboard/members"
+          href="/dashboard/our-family"
           className="flex items-center gap-2 text-[var(--foreground)] hover:text-[var(--accent)]"
         >
           <div className="flex -space-x-2">

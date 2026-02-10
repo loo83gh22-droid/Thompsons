@@ -222,10 +222,8 @@ export default async function DashboardPage() {
         <DashboardCard href="/dashboard/time-capsules" title="Time Capsules" description="Write letters for the future. Seal them until a date like &quot;Read when you turn 18.&quot;" icon="📮" />
         <DashboardCard href="/dashboard/recipes" title="Recipes" description="The story behind the food — who taught it, what occasions, photos from dinners." icon="🍳" />
         <DashboardCard href="/dashboard/traditions" title="Traditions" description="Taco Tuesday chants, holiday rituals, inside jokes — the cultural DNA that gets lost." icon="🏠" />
-        <DashboardCard href="/dashboard/family-tree" title="Family Tree" description="See how the family connects. Parents, children, and relationships." icon="🌳" />
-        <DashboardCard href="/dashboard/relationships" title="Family Web" description="Visualize how everyone is connected. Relationships and links between members." icon="🕸️" />
         <DashboardCard href="/dashboard/favourites" title="Favourites" description="Books, movies, shows, games — the stuff we love." icon="⭐" />
-        <DashboardCard href="/dashboard/members" title="Members" description="See everyone in your family. Add new members with name, relationship, and email." icon="👋" />
+        <DashboardCard href="/dashboard/our-family" title="Our Family" description="See your family connections and manage members. Tree view and list." icon="👨‍👩‍👧‍👦" />
         <DashboardCard href="/dashboard/messages" title="Messages" description="Send a message that pops up when family logs in. Perfect for Valentine's Day!" icon="💌" />
         <DashboardCard href="/dashboard/death-box" title="Da Box" description="Sensitive documents and wishes. Password protected." icon="📦" />
       </div>

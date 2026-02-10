@@ -25,6 +25,7 @@
     "react-dom": "19.2.3",
     "react-dropzone": "^14.4.0",
     "react-markdown": "^10.1.0",
+    "react-organizational-chart": "^2.2.1",
     "resend": "^6.9.1",
     "topojson-client": "^3.1.0"
   },
