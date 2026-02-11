@@ -89,7 +89,8 @@ export default function NewJournalPage() {
 
       const result = await createJournalEntry(formData);
       if (result?.success) {
-        window.location.href = "/dashboard/journal";
+        const hadLocation = !!(location.name?.trim() || (location.latitude && location.longitude));
+        window.location.href = hadLocation ? "/dashboard/journal?addedToMap=1" : "/dashboard/journal";
         return;
       }
       setError(result?.error ?? "Something went wrong.");
@@ -160,12 +161,17 @@ export default function NewJournalPage() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <LocationInput
-            value={location.name}
-            onChange={setLocation}
-            label="Location"
-            required={false}
-          />
+          <div>
+            <LocationInput
+              value={location.name}
+              onChange={setLocation}
+              label="Location"
+              required={false}
+            />
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              Add a location to create a pin on the Family Map.
+            </p>
+          </div>
           <DatePicker
             value={date}
             onChange={setDate}
@@ -204,7 +210,12 @@ export default function NewJournalPage() {
           />
         </div>
 
-        <PhotoUpload onChange={handlePhotoChange} maxFiles={20} />
+        <div>
+          <PhotoUpload onChange={handlePhotoChange} maxFiles={5} />
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Up to 5 photos per entry.
+          </p>
+        </div>
 
         {error && (
           <div className="rounded-lg bg-red-500/20 px-4 py-3 text-sm text-red-400">

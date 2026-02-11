@@ -18,6 +18,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [signUpSuccess, setSignUpSuccess] = useState(false);
 
   const supabase = createClient();
 
@@ -37,10 +38,7 @@ function LoginForm() {
           },
         });
         if (error) throw error;
-        setMessage({
-          type: "success",
-          text: "Check your email for the confirmation link.",
-        });
+        setSignUpSuccess(true);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -77,6 +75,25 @@ function LoginForm() {
             : "Sign in to access your family site."}
         </p>
 
+        {isSignUp && signUpSuccess ? (
+          <div className="mt-8 rounded-xl border-2 border-[var(--accent)]/40 bg-[var(--accent)]/10 px-6 py-8 text-center">
+            <p className="font-display text-xl font-semibold text-[var(--foreground)]">
+              Check your email
+            </p>
+            <p className="mt-3 text-sm text-[var(--muted)]">
+              We sent a confirmation link to your email. Click it to activate your account, then sign in.
+            </p>
+            <p className="mt-4 text-xs text-[var(--muted)]">
+              Didn&apos;t get it? Check spam, or try signing up again with the same email.
+            </p>
+            <Link
+              href="/login"
+              className="mt-6 inline-block rounded-lg bg-[var(--accent)] px-6 py-2 font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)]"
+            >
+              Back to sign in
+            </Link>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           {isSignUp && (
             <>
@@ -138,9 +155,17 @@ function LoginForm() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-[var(--muted)]">
-              Password
-            </label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="password" className="block text-sm font-medium text-[var(--muted)]">
+                Password
+              </label>
+              <Link
+                href="/forgot-password"
+                className="text-xs text-[var(--accent)] hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <input
               id="password"
               type="password"
@@ -172,6 +197,7 @@ function LoginForm() {
             {loading ? "..." : isSignUp ? "Sign up our Family" : "Sign in"}
           </button>
         </form>
+        )}
 
         <p className="mt-6 text-center text-sm text-[var(--muted)]">
           {isSignUp ? (
@@ -189,6 +215,12 @@ function LoginForm() {
               </Link>
             </>
           )}
+        </p>
+
+        <p className="mt-8 text-center text-xs text-[var(--muted)]">
+          <Link href="/terms" className="hover:text-[var(--foreground)]">Terms</Link>
+          {" · "}
+          <Link href="/privacy" className="hover:text-[var(--foreground)]">Privacy</Link>
         </p>
       </div>
     </div>

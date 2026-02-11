@@ -5,6 +5,20 @@ import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { findOrCreateLocationCluster } from "@/src/lib/locationClustering";
 
+/** Get number of map pins for the active family (for first-time banner). */
+export async function getMapPinCount(): Promise<number> {
+  const supabase = await createClient();
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return 0;
+  const { count } = await supabase
+    .from("travel_locations")
+    .select("id", { count: "exact", head: true })
+    .eq("family_id", activeFamilyId)
+    .not("lat", "is", null)
+    .not("lng", "is", null);
+  return count ?? 0;
+}
+
 /** Re-run clustering for all pins so same-place entries share one cluster (fixes split pins e.g. Uvita). */
 export async function rebuildLocationClusters(): Promise<{ updated: number; error?: string }> {
   const supabase = await createClient();

@@ -96,8 +96,15 @@ export default function HomePage() {
           </div>
         </div>
 
-        <footer className="absolute bottom-8 text-sm text-[var(--muted)]">
-          Private · Family only · No ads
+        <footer className="absolute bottom-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-[var(--muted)]">
+          <span>Private · Family only · No ads</span>
+          <span className="hidden sm:inline">·</span>
+          <Link href="/terms" className="hover:text-[var(--foreground)]">
+            Terms
+          </Link>
+          <Link href="/privacy" className="hover:text-[var(--foreground)]">
+            Privacy
+          </Link>
         </footer>
       </main>
     </div>

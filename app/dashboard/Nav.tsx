@@ -14,18 +14,23 @@ const navItemsBeforeDropdowns: { href: string; label: string }[] = [
   { href: "/dashboard", label: "Home" },
 ];
 
+const familyItems: { href: string; label: string; muted?: boolean }[] = [
+  { href: "/dashboard/our-family", label: "Our Family" },
+  { href: "/dashboard/map", label: "Family Map" },
+  { href: "/dashboard/messages", label: "Messages" },
+  { href: "/dashboard/events", label: "Events" },
+  { href: "/dashboard/death-box", label: "Da Box", muted: true },
+];
+
 const memoriesItems: { href: string; label: string }[] = [
   { href: "/dashboard/timeline", label: "Timeline" },
-  { href: "/dashboard/map", label: "Family Map" },
   { href: "/dashboard/journal", label: "Journal" },
   { href: "/dashboard/photos", label: "Photos" },
-  { href: "/dashboard/achievements", label: "Achievements" },
+  { href: "/dashboard/stories", label: "Stories" },
+  { href: "/dashboard/recipes", label: "Recipes" },
   { href: "/dashboard/voice-memos", label: "Voice Memos" },
   { href: "/dashboard/time-capsules", label: "Time Capsules" },
-  { href: "/dashboard/recipes", label: "Recipes" },
   { href: "/dashboard/traditions", label: "Traditions" },
-  { href: "/dashboard/events", label: "Events" },
-  { href: "/dashboard/stories", label: "Stories" },
 ];
 
 const favouritesItems: { href: string; label: string }[] = [
@@ -36,15 +41,6 @@ const favouritesItems: { href: string; label: string }[] = [
   { href: "/dashboard/favourites/music", label: "Music" },
   { href: "/dashboard/favourites/podcasts", label: "Podcasts" },
   { href: "/dashboard/favourites/games", label: "Games" },
-];
-
-const navItemsBetweenDropdowns: { href: string; label: string }[] = [
-  { href: "/dashboard/messages", label: "Messages" },
-  { href: "/dashboard/our-family", label: "Our Family" },
-];
-
-const navItemsAfterDropdowns: { href: string; label: string; muted?: boolean }[] = [
-  { href: "/dashboard/death-box", label: "Da Box", muted: true },
 ];
 
 export function Nav({
@@ -60,17 +56,20 @@ export function Nav({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [familyOpen, setFamilyOpen] = useState(false);
   const [memoriesOpen, setMemoriesOpen] = useState(false);
   const [favouritesOpen, setFavouritesOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [familyMenuOpen, setFamilyMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileFamilyOpen, setMobileFamilyOpen] = useState(false);
   const [mobileMemoriesOpen, setMobileMemoriesOpen] = useState(false);
   const [mobileFavouritesOpen, setMobileFavouritesOpen] = useState(false);
+  const familyRef = useRef<HTMLDivElement>(null);
   const memoriesRef = useRef<HTMLDivElement>(null);
   const favouritesRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const familyRef = useRef<HTMLDivElement>(null);
+  const familySwitcherRef = useRef<HTMLDivElement>(null);
 
   async function handleSwitchFamily(familyId: string) {
     await setActiveFamily(familyId);
@@ -79,6 +78,9 @@ export function Nav({
     router.refresh();
   }
 
+  const isFamilyActive = familyItems.some(
+    (item) => pathname === item.href || pathname.startsWith(item.href + "/")
+  );
   const isMemoriesActive = memoriesItems.some(
     (item) => pathname === item.href || pathname.startsWith(item.href + "/")
   );
@@ -89,10 +91,11 @@ export function Nav({
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       const target = e.target as Node;
+      if (familyRef.current && !familyRef.current.contains(target)) setFamilyOpen(false);
       if (memoriesRef.current && !memoriesRef.current.contains(target)) setMemoriesOpen(false);
       if (favouritesRef.current && !favouritesRef.current.contains(target)) setFavouritesOpen(false);
       if (menuRef.current && !menuRef.current.contains(target)) setMenuOpen(false);
-      if (familyRef.current && !familyRef.current.contains(target)) setFamilyMenuOpen(false);
+      if (familySwitcherRef.current && !familySwitcherRef.current.contains(target)) setFamilyMenuOpen(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -123,8 +126,10 @@ export function Nav({
 
   function closeMobileMenu() {
     setMobileMenuOpen(false);
+    setFamilyOpen(false);
     setMemoriesOpen(false);
     setFavouritesOpen(false);
+    setMobileFamilyOpen(false);
     setMobileMemoriesOpen(false);
     setMobileFavouritesOpen(false);
   }
@@ -147,7 +152,7 @@ export function Nav({
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
           {/* Logo / family name - always visible, left */}
-          <div className="relative flex min-h-[44px] min-w-0 flex-1 items-center gap-2 md:flex-initial" ref={familyRef}>
+          <div className="relative flex min-h-[44px] min-w-0 flex-1 items-center gap-2 md:flex-initial" ref={familySwitcherRef}>
             <Link
               href="/dashboard"
               className="font-display text-xl font-semibold transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:text-2xl min-[768px]:text-3xl truncate"
@@ -194,6 +199,43 @@ export function Nav({
                 {item.label}
               </Link>
             ))}
+            <div className="relative" ref={familyRef}>
+              <button
+                type="button"
+                onClick={() => setFamilyOpen((o) => !o)}
+                className={dropdownButtonClass(familyOpen, isFamilyActive)}
+                aria-haspopup="true"
+                aria-expanded={familyOpen}
+                aria-label={familyOpen ? "Close Family menu" : "Open Family menu"}
+              >
+                Family
+                <span className={`transition-transform ${familyOpen ? "rotate-180" : ""}`}>▼</span>
+              </button>
+              {familyOpen && (
+                <div
+                  className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-lg"
+                  role="menu"
+                >
+                  {familyItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setFamilyOpen(false)}
+                      role="menuitem"
+                      className={`block px-4 py-3 text-sm transition-colors hover:bg-[var(--surface-hover)] focus:bg-[var(--surface-hover)] ${
+                        pathname === item.href || pathname.startsWith(item.href + "/")
+                          ? "text-[var(--accent)]"
+                          : item.muted
+                            ? "text-[var(--muted)]"
+                            : "text-[var(--foreground)]"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
             <div className="relative" ref={memoriesRef}>
               <button
                 type="button"
@@ -264,20 +306,6 @@ export function Nav({
                 </div>
               )}
             </div>
-            {navItemsBetweenDropdowns.map((item) => (
-              <Link key={item.href} href={item.href} className={navLinkClass(pathname === item.href)}>
-                {item.label}
-              </Link>
-            ))}
-            {navItemsAfterDropdowns.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={navLinkClass(pathname === item.href)}
-              >
-                {item.label}
-              </Link>
-            ))}
           </nav>
 
           {/* Right side: Hamburger (mobile only, opens drawer) + Account menu (desktop only) */}
@@ -312,6 +340,14 @@ export function Nav({
                   <div className="border-b border-[var(--border)] px-4 py-2">
                     <span className="text-sm text-[var(--muted)]">{user.email}</span>
                   </div>
+                  <a
+                    href={`mailto:${typeof process.env.NEXT_PUBLIC_FEEDBACK_EMAIL === "string" ? process.env.NEXT_PUBLIC_FEEDBACK_EMAIL : "feedback@example.com"}?subject=Family%20Nest%20Feedback`}
+                    role="menuitem"
+                    className="block px-4 py-3 text-left text-sm text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] focus:bg-[var(--surface-hover)]"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Send feedback
+                  </a>
                   <button
                     type="button"
                     role="menuitem"
@@ -365,6 +401,26 @@ export function Nav({
             <div className="border-t border-[var(--border)] pt-2 mt-2">
               <button
                 type="button"
+                onClick={() => setMobileFamilyOpen((o) => !o)}
+                className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors min-h-[44px] ${mobileFamilyOpen || isFamilyActive ? "bg-[var(--surface)] text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}
+                aria-expanded={mobileFamilyOpen}
+              >
+                Family
+                <span className={`block transition-transform ${mobileFamilyOpen ? "rotate-180" : ""}`}>▼</span>
+              </button>
+              {mobileFamilyOpen && (
+                <div className="pl-2 pt-1 space-y-0.5">
+                  {familyItems.map((item) => (
+                    <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={`block rounded-lg px-4 py-2.5 text-sm min-h-[44px] flex items-center ${pathname === item.href || pathname.startsWith(item.href + "/") ? "text-[var(--accent)]" : item.muted ? "text-[var(--muted)]" : "text-[var(--foreground)]"} hover:bg-[var(--surface)] hover:text-[var(--foreground)]`}>
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="border-t border-[var(--border)] pt-2 mt-2">
+              <button
+                type="button"
                 onClick={() => setMobileMemoriesOpen((o) => !o)}
                 className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors min-h-[44px] ${mobileMemoriesOpen || isMemoriesActive ? "bg-[var(--surface)] text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}
                 aria-expanded={mobileMemoriesOpen}
@@ -402,17 +458,14 @@ export function Nav({
                 </div>
               )}
             </div>
-            {navItemsBetweenDropdowns.map((item) => (
-              <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={navLinkClass(pathname === item.href)}>
-                {item.label}
-              </Link>
-            ))}
-            {navItemsAfterDropdowns.map((item) => (
-              <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={navLinkClass(pathname === item.href)}>
-                {item.label}
-              </Link>
-            ))}
-            <div className="mt-auto border-t border-[var(--border)] pt-4">
+            <div className="mt-auto border-t border-[var(--border)] pt-4 space-y-1">
+              <a
+                href={`mailto:${typeof process.env.NEXT_PUBLIC_FEEDBACK_EMAIL === "string" ? process.env.NEXT_PUBLIC_FEEDBACK_EMAIL : "feedback@example.com"}?subject=Family%20Nest%20Feedback`}
+                className="block w-full rounded-lg px-4 py-3 text-left text-sm font-medium text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] min-h-[44px] flex items-center"
+                onClick={closeMobileMenu}
+              >
+                Send feedback
+              </a>
               <button
                 type="button"
                 onClick={() => { closeMobileMenu(); handleSignOut(); }}

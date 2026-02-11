@@ -20,19 +20,25 @@ export default function Error({
             ? "Configuration error. Check env vars in Vercel project settings."
             : "Try again or go back home."}
         </p>
-        <div className="mt-6 flex gap-4 justify-center">
+        <div className="mt-6 flex flex-wrap gap-4 justify-center">
           <button
             onClick={reset}
-            className="rounded-lg bg-[var(--accent)] px-6 py-2 font-medium text-[var(--background)] hover:bg-[var(--accent-muted)]"
+            className="rounded-lg bg-[var(--accent)] px-6 py-2 font-medium text-[var(--background)] hover:bg-[var(--accent-muted)] min-h-[44px]"
           >
             Try again
           </button>
           <Link
             href="/"
-            className="rounded-lg border border-[var(--border)] px-6 py-2 font-medium hover:bg-[var(--surface)]"
+            className="rounded-lg border border-[var(--border)] px-6 py-2 font-medium hover:bg-[var(--surface)] min-h-[44px] flex items-center"
           >
             Home
           </Link>
+          <a
+            href={`mailto:${process.env.NEXT_PUBLIC_FEEDBACK_EMAIL || "feedback@example.com"}?subject=Family%20Nest%20Error%20Report`}
+            className="rounded-lg border border-[var(--border)] px-6 py-2 font-medium hover:bg-[var(--surface)] min-h-[44px] flex items-center"
+          >
+            Report issue
+          </a>
         </div>
       </div>
     </div>

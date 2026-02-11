@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { createClient } from "@/src/lib/supabase/server";
 import Image from "next/image";
 import { formatDateOnly } from "@/src/lib/date";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { DeleteJournalEntryButton } from "./DeleteJournalEntryButton";
 import { EmptyState } from "@/app/dashboard/components/EmptyState";
+import { AddedToMapBanner } from "./AddedToMapBanner";
 
 export default async function JournalPage() {
   const supabase = await createClient();
@@ -58,6 +60,9 @@ export default async function JournalPage() {
 
   return (
     <div>
+      <Suspense fallback={null}>
+        <AddedToMapBanner />
+      </Suspense>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">

@@ -149,8 +149,9 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
     }
   }
 
-  // Upload photos (handle both single and multiple file inputs)
-  const photos = formData.getAll("photos") as File[];
+  // Upload photos (max 5 per journal entry)
+  const allPhotos = formData.getAll("photos") as File[];
+  const photos = allPhotos.filter((f) => f.size > 0).slice(0, 5);
   let mosaicOrder = await getNextMosaicSortOrder(supabase, activeFamilyId);
 
   for (let i = 0; i < photos.length; i++) {
@@ -342,8 +343,19 @@ export async function addJournalPhotos(entryId: string, formData: FormData) {
     .select("id", { count: "exact", head: true })
     .eq("entry_id", entryId);
 
-  const startOrder = count ?? 0;
-  const photos = formData.getAll("photos") as File[];
+  const existingCount = count ?? 0;
+  const JOURNAL_PHOTO_LIMIT = 5;
+  if (existingCount >= JOURNAL_PHOTO_LIMIT) {
+    throw new Error(`Each journal entry can have up to ${JOURNAL_PHOTO_LIMIT} photos.`);
+  }
+
+  const allPhotos = formData.getAll("photos") as File[];
+  const validPhotos = allPhotos.filter((f) => f.size > 0);
+  const toAdd = Math.min(validPhotos.length, JOURNAL_PHOTO_LIMIT - existingCount);
+  if (toAdd === 0) return;
+
+  const photos = validPhotos.slice(0, toAdd);
+  const startOrder = existingCount;
   let mosaicOrder = await getNextMosaicSortOrder(supabase, activeFamilyId);
 
   for (let i = 0; i < photos.length; i++) {

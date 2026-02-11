@@ -111,7 +111,8 @@ export default function EditJournalPage() {
       formData.set("location_type", locationType);
       if (entry.trip_date_end) formData.set("trip_date_end", entry.trip_date_end);
       await updateJournalEntry(entryId, formData);
-      router.push("/dashboard/journal");
+      const hadLocation = !!(entry.location?.trim());
+      router.push(hadLocation ? "/dashboard/journal?addedToMap=1" : "/dashboard/journal");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -120,6 +121,8 @@ export default function EditJournalPage() {
     }
   }
 
+  const JOURNAL_PHOTO_LIMIT = 5;
+
   async function handleAddPhotos(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
@@ -127,6 +130,12 @@ export default function EditJournalPage() {
     const files = formData.getAll("photos") as File[];
     if (files.every((f) => f.size === 0)) {
       setAddingPhotos(false);
+      return;
+    }
+    const validFiles = files.filter((f) => f.size > 0);
+    const totalAfter = photos.length + validFiles.length;
+    if (totalAfter > JOURNAL_PHOTO_LIMIT) {
+      setError(`Each journal entry can have up to ${JOURNAL_PHOTO_LIMIT} photos. You have ${photos.length} and tried to add ${validFiles.length}. Remove some or add fewer.`);
       return;
     }
     setError(null);
@@ -235,6 +244,9 @@ export default function EditJournalPage() {
               }
               className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
             />
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              Add a location to create a pin on the Family Map.
+            </p>
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--muted)]">
@@ -360,7 +372,7 @@ export default function EditJournalPage() {
           </div>
         )}
 
-        {addingPhotos ? (
+        {photos.length < JOURNAL_PHOTO_LIMIT && addingPhotos ? (
           <form onSubmit={handleAddPhotos} className="mt-4 space-y-4">
             <input
               name="photos"
@@ -386,14 +398,18 @@ export default function EditJournalPage() {
               </button>
             </div>
           </form>
-        ) : (
+        ) : photos.length < JOURNAL_PHOTO_LIMIT ? (
           <button
             type="button"
             onClick={() => setAddingPhotos(true)}
             className="mt-4 rounded-lg border border-[var(--border)] px-4 py-2 text-sm hover:bg-[var(--surface-hover)]"
           >
-            + Add more photos
+            + Add more photos ({photos.length}/{JOURNAL_PHOTO_LIMIT})
           </button>
+        ) : (
+          <p className="mt-4 text-sm text-[var(--muted)]">
+            Maximum {JOURNAL_PHOTO_LIMIT} photos per entry. Remove one to add another.
+          </p>
         )}
       </div>
 

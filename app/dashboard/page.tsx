@@ -2,7 +2,6 @@ import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { DashboardStats } from "./DashboardStats";
-import { DashboardAchievements } from "./DashboardAchievements";
 import { UpcomingEvents } from "./UpcomingEvents";
 import { ActivityFeed, type ActivityItem } from "./ActivityFeed";
 import { FamilySummaryStrip } from "./FamilySummaryStrip";
@@ -204,9 +203,6 @@ export default async function DashboardPage() {
               <UpcomingEvents events={upcomingEvents} />
             </div>
           </div>
-          <div className="mt-6">
-            <DashboardAchievements stats={stats} />
-          </div>
         </>
       )}
 
@@ -217,7 +213,6 @@ export default async function DashboardPage() {
         <DashboardCard href="/dashboard/map" title="Family Map" description="See where the family has been. Add your own pins." icon="🗺️" />
         <DashboardCard href="/dashboard/journal" title="Journal" description="Trips, birthdays, celebrations. Add photos. Others can add their perspective to any entry." icon="📔" />
         <DashboardCard href="/dashboard/photos" title="Photos" description="All uploaded photos can be found here and these are used to complete your background mosaics." icon="🖼️" />
-        <DashboardCard href="/dashboard/achievements" title="Achievements" description="Log achievements and team photos." icon="🏆" />
         <DashboardCard href="/dashboard/voice-memos" title="Voice Memos" description="Record voices for the future—stories, songs, jokes. Preserve personality." icon="🎙️" />
         <DashboardCard href="/dashboard/time-capsules" title="Time Capsules" description="Write letters for the future. Seal them until a date like &quot;Read when you turn 18.&quot;" icon="📮" />
         <DashboardCard href="/dashboard/recipes" title="Recipes" description="The story behind the food — who taught it, what occasions, photos from dinners." icon="🍳" />

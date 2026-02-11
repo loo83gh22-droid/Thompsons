@@ -105,7 +105,7 @@ export default async function DashboardLayout({
     const familyName = await getActiveFamilyName(supabase);
 
     const playlistId =
-      process.env.NEXT_PUBLIC_SPOTIFY_PLAYLIST_ID || "3mytLIeQgN9nJdRhS5Hu5w";
+      process.env.NEXT_PUBLIC_SPOTIFY_PLAYLIST_ID?.trim() || null;
 
     return (
       <FamilyProvider activeFamilyId={activeFamilyId} families={families}>
@@ -118,7 +118,7 @@ export default async function DashboardLayout({
             activeFamilyId={activeFamilyId}
           />
           <main id="main-content" className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8" tabIndex={-1}>{children}</main>
-          <MusicPlayer playlistId={playlistId} />
+          {playlistId && <MusicPlayer playlistId={playlistId} />}
           <UnreadMessagesFetcher />
         </div>
       </FamilyProvider>

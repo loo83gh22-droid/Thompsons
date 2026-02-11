@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { Music2, ChevronLeft } from "lucide-react";
 
-export function MusicPlayer({ playlistId }: { playlistId: string }) {
+export function MusicPlayer({ playlistId }: { playlistId?: string | null }) {
   const [expanded, setExpanded] = useState(false);
+
+  if (!playlistId?.trim()) return null;
 
   return (
     <>
