@@ -48,7 +48,7 @@ export default function MapPage() {
             Family Map
           </h1>
           <p className="mt-2 text-[var(--muted)]">
-            Where we&apos;ve been. Add a location in a journal entry or use the button below. Birth places and trips.
+            Where we&apos;ve been and where we&apos;ve lived. Add a location in a journal entry or use the button below. Birth places, trips, and places lived.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -124,7 +124,7 @@ export default function MapPage() {
         ))}
       </div>
       <p className="mt-2 text-xs text-[var(--muted)]">
-        Balloons = birth places · Pin = solo trips · Star = family trips
+        Balloons = birth places · House = places lived · Pin = travel/visits · Star = family trips
       </p>
 
       <div className="mt-6">

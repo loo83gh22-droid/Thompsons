@@ -18,6 +18,7 @@ type TravelLocation = {
   notes: string | null;
   country_code?: string;
   is_birth_place?: boolean;
+  is_place_lived?: boolean;
   journal_entry_id?: string | null;
   location_cluster_id?: string | null;
   family_members:
@@ -88,6 +89,7 @@ function createPinSvgUrl(
     star: `<polygon points="12,2 14,9 22,9 16,14 18,22 12,17 6,22 8,14 2,9" fill="${color}" stroke="white" stroke-width="2"/>`,
     pin: `<circle cx="12" cy="10" r="6" fill="${color}" stroke="white" stroke-width="2"/><polygon points="12,16 8,24 16,24" fill="${color}" stroke="white" stroke-width="1"/>`,
     balloons: `<circle cx="9" cy="10" r="5" fill="${color}" stroke="white" stroke-width="2"/><circle cx="15" cy="10" r="5" fill="${color}" stroke="white" stroke-width="2"/><line x1="12" y1="15" x2="12" y2="22" stroke="${color}" stroke-width="1" opacity="0.6"/>`,
+    house: `<path d="M12 4L4 12v10h6v-6h4v6h6V12L12 4z" fill="${color}" stroke="white" stroke-width="2" stroke-linejoin="round"/>`,
   };
 
   const shapeSvg = shapes[symbol] || shapes.circle;
@@ -164,6 +166,7 @@ function MapComponentWithLoader({ apiKey }: { apiKey: string }) {
           notes,
           country_code,
           is_birth_place,
+          is_place_lived,
           journal_entry_id,
           location_cluster_id,
           family_members (name, color, symbol)
@@ -284,7 +287,8 @@ function MapComponentWithLoader({ apiKey }: { apiKey: string }) {
           const color = member?.color || "#3b82f6";
           const isFamily = member?.name === "Family";
           const isBirthPlace = loc.is_birth_place === true;
-          const symbol = isBirthPlace ? "balloons" : isFamily ? "star" : "pin";
+          const isPlaceLived = loc.is_place_lived === true;
+          const symbol = isPlaceLived ? "house" : isBirthPlace ? "balloons" : isFamily ? "star" : "pin";
           const dateLabel =
             loc.trip_date
               ? new Date(loc.trip_date + "T12:00:00").getFullYear().toString()
@@ -344,6 +348,9 @@ function MapComponentWithLoader({ apiKey }: { apiKey: string }) {
                   <h3 className="font-bold text-lg text-[var(--foreground)]">
                     {locationName}
                   </h3>
+                  {locs.some((l) => l.is_place_lived) && (
+                    <p className="text-xs font-medium text-[var(--accent)] mt-1">Lived here</p>
+                  )}
                   {dateLabel && (
                     <p className="text-sm text-[var(--muted)] mt-1">{dateLabel}</p>
                   )}

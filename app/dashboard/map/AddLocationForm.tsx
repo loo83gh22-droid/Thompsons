@@ -14,6 +14,7 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
   const [error, setError] = useState<string | null>(null);
 
   const [familyMemberId, setFamilyMemberId] = useState("");
+  const [locationType, setLocationType] = useState<"travel" | "lived">("travel");
   const [locationName, setLocationName] = useState("");
   const [yearVisited, setYearVisited] = useState("");
   const [tripDate, setTripDate] = useState("");
@@ -84,11 +85,13 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
         trip_date: tripDate || null,
         notes: notes || null,
         country_code: countryCode,
+        is_place_lived: locationType === "lived",
       });
 
       if (insertError) throw insertError;
 
       setFamilyMemberId("");
+      setLocationType("travel");
       setLocationName("");
       setYearVisited("");
       setTripDate("");
@@ -120,13 +123,41 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
       className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6"
     >
       <h3 className="font-display text-lg font-semibold text-[var(--foreground)]">
-        Add travel location
+        Add location
       </h3>
 
       <div className="mt-4 space-y-4">
         <div>
           <label className="block text-sm font-medium text-[var(--muted)]">
-            Who traveled here?
+            Type
+          </label>
+          <div className="mt-2 flex gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="locationType"
+                checked={locationType === "travel"}
+                onChange={() => setLocationType("travel")}
+                className="rounded-full border-[var(--border)] text-[var(--accent)]"
+              />
+              <span className="text-sm text-[var(--foreground)]">Travel / visit</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="locationType"
+                checked={locationType === "lived"}
+                onChange={() => setLocationType("lived")}
+                className="rounded-full border-[var(--border)] text-[var(--accent)]"
+              />
+              <span className="text-sm text-[var(--foreground)]">Place I/we lived</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-[var(--muted)]">
+            {locationType === "lived" ? "Who lived here?" : "Who traveled here?"}
           </label>
           <select
             value={familyMemberId}
@@ -142,7 +173,9 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
             ))}
           </select>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Choose &quot;Family&quot; for trips you took together.
+            {locationType === "lived"
+              ? "Pick the person (or Family if you lived there together)."
+              : 'Choose "Family" for trips you took together.'}
           </p>
         </div>
 
@@ -163,13 +196,13 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="block text-sm font-medium text-[var(--muted)]">
-              Year visited
+              {locationType === "lived" ? "Year (optional)" : "Year visited"}
             </label>
             <input
               type="number"
               value={yearVisited}
               onChange={(e) => setYearVisited(e.target.value)}
-              placeholder="2024"
+              placeholder={locationType === "lived" ? "e.g. 2015" : "2024"}
               min="1900"
               max="2100"
               className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)]"
@@ -177,7 +210,7 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--muted)]">
-              Trip date (optional)
+              {locationType === "lived" ? "Date lived (optional)" : "Trip date (optional)"}
             </label>
             <input
               type="date"
