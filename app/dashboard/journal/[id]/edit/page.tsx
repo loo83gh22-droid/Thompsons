@@ -33,6 +33,7 @@ export default function EditJournalPage() {
     author_id: string;
   } | null>(null);
   const [photos, setPhotos] = useState<JournalPhoto[]>([]);
+  const [locationType, setLocationType] = useState<"visit" | "vacation" | "memorable_event">("visit");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [addingPhotos, setAddingPhotos] = useState(false);
@@ -45,7 +46,7 @@ export default function EditJournalPage() {
     }
     async function load() {
       const supabase = createClient();
-      const [membersRes, entryRes, photosRes] = await Promise.all([
+      const [membersRes, entryRes, photosRes, pinRes] = await Promise.all([
         supabase.from("family_members").select("id, name, color, symbol").eq("family_id", activeFamilyId).order("name"),
         supabase
           .from("journal_entries")
@@ -57,6 +58,12 @@ export default function EditJournalPage() {
           .select("id, url, caption")
           .eq("entry_id", entryId)
           .order("sort_order"),
+        supabase
+          .from("travel_locations")
+          .select("location_type")
+          .eq("journal_entry_id", entryId)
+          .limit(1)
+          .maybeSingle(),
       ]);
 
       if (membersRes.data) setMembers(membersRes.data as FamilyMember[]);
@@ -79,6 +86,10 @@ export default function EditJournalPage() {
         });
       }
       if (photosRes.data) setPhotos(photosRes.data as JournalPhoto[]);
+      const pin = pinRes.data as { location_type?: string } | null;
+      if (pin?.location_type === "vacation" || pin?.location_type === "memorable_event") {
+        setLocationType(pin.location_type);
+      }
       setLoading(false);
     }
     load();
@@ -97,6 +108,7 @@ export default function EditJournalPage() {
       formData.set("content", entry.content);
       formData.set("location", entry.location);
       formData.set("trip_date", entry.trip_date);
+      formData.set("location_type", locationType);
       if (entry.trip_date_end) formData.set("trip_date_end", entry.trip_date_end);
       await updateJournalEntry(entryId, formData);
       router.push("/dashboard/journal");
@@ -252,6 +264,23 @@ export default function EditJournalPage() {
               className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-[var(--muted)]">
+            Map pin type
+          </label>
+          <select
+            value={locationType}
+            onChange={(e) => setLocationType(e.target.value as "visit" | "vacation" | "memorable_event")}
+            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+          >
+            <option value="visit">Just a visit</option>
+            <option value="vacation">Vacation</option>
+            <option value="memorable_event">Memorable event (wedding, sports, etc.)</option>
+          </select>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Changes the symbol on the family map when this entry has a location.
+          </p>
         </div>
 
         <div>

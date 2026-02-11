@@ -3,7 +3,8 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import { AddLocationForm } from "./AddLocationForm";
-import { rebuildLocationClusters } from "./actions";
+import { rebuildLocationClusters, syncBirthPlacesToMap } from "./actions";
+import type { MapFilter } from "./MapComponent";
 
 // Google Maps loads client-side only
 const MapComponent = dynamic(() => import("./MapComponent"), {
@@ -15,17 +16,33 @@ const MapComponent = dynamic(() => import("./MapComponent"), {
   ),
 });
 
+const DEFAULT_FILTER: MapFilter = {
+  birth: true,
+  homes: true,
+  vacation: true,
+  memorableEvent: true,
+  other: true,
+  visits: true,
+};
+
 const LEGEND = [
-  { color: "#22c55e", label: "Huck", symbols: ["balloons", "pin"] },
-  { color: "#ef4444", label: "Maui", symbols: ["balloons", "pin"] },
-  { color: "#f97316", label: "Dad", symbols: ["balloons", "pin"] },
-  { color: "#d4a853", label: "Mom", symbols: ["balloons", "pin"] },
-  { color: "#3b82f6", label: "Family", symbols: ["star"] },
+  { color: "#22c55e", label: "Huck", symbols: ["balloons", "house", "pin", "vacation", "memorable_event"] },
+  { color: "#ef4444", label: "Maui", symbols: ["balloons", "house", "pin", "vacation", "memorable_event"] },
+  { color: "#f97316", label: "Dad", symbols: ["balloons", "house", "pin", "vacation", "memorable_event"] },
+  { color: "#d4a853", label: "Mom", symbols: ["balloons", "house", "pin", "vacation", "memorable_event"] },
+  { color: "#3b82f6", label: "Family", symbols: ["star", "vacation", "memorable_event"] },
 ];
 
 export default function MapPage() {
   const [rebuilding, setRebuilding] = useState(false);
   const [rebuildMessage, setRebuildMessage] = useState<string | null>(null);
+  const [syncingBirth, setSyncingBirth] = useState(false);
+  const [syncBirthMessage, setSyncBirthMessage] = useState<string | null>(null);
+  const [filter, setFilter] = useState<MapFilter>(DEFAULT_FILTER);
+
+  function toggleFilter(key: keyof MapFilter) {
+    setFilter((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
 
   async function handleRebuildClusters() {
     setRebuilding(true);
@@ -40,6 +57,19 @@ export default function MapPage() {
     }
   }
 
+  async function handleSyncBirthPlaces() {
+    setSyncingBirth(true);
+    setSyncBirthMessage(null);
+    try {
+      const { added, error } = await syncBirthPlacesToMap();
+      if (error) setSyncBirthMessage(`Error: ${error}`);
+      else setSyncBirthMessage(added > 0 ? `Added ${added} birth place(s) to the map.` : "All birth places already on map.");
+      window.dispatchEvent(new Event("map-refresh"));
+    } finally {
+      setSyncingBirth(false);
+    }
+  }
+
   return (
     <div>
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -48,11 +78,19 @@ export default function MapPage() {
             Family Map
           </h1>
           <p className="mt-2 text-[var(--muted)]">
-            Where we&apos;ve been and where we&apos;ve lived. Add a location in a journal entry or use the button below. Birth places, trips, and places lived.
+            Birth places, homes, vacations, and memorable events. Add locations in journal entries or below. Use &quot;Sync birth places to map&quot; if member birth places don&apos;t appear.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <AddLocationForm />
+          <button
+            type="button"
+            onClick={handleSyncBirthPlaces}
+            disabled={syncingBirth}
+            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] disabled:opacity-50"
+          >
+            {syncingBirth ? "Syncing…" : "Sync birth places to map"}
+          </button>
           <button
             type="button"
             onClick={handleRebuildClusters}
@@ -61,8 +99,8 @@ export default function MapPage() {
           >
             {rebuilding ? "Rebuilding…" : "Rebuild clusters"}
           </button>
-          {rebuildMessage && (
-            <span className="text-sm text-[var(--muted)]">{rebuildMessage}</span>
+          {(rebuildMessage || syncBirthMessage) && (
+            <span className="text-sm text-[var(--muted)]">{syncBirthMessage ?? rebuildMessage}</span>
           )}
         </div>
       </div>
@@ -116,6 +154,25 @@ export default function MapPage() {
                         "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)",
                     }}
                   />
+                ) : sym === "house" ? (
+                  <div
+                    key={sym}
+                    className="h-4 w-4 border border-white/30"
+                    style={{
+                      backgroundColor: item.color,
+                      clipPath: "polygon(50% 0%, 100% 50%, 80% 100%, 20% 100%, 0% 50%)",
+                    }}
+                  />
+                ) : sym === "vacation" ? (
+                  <div
+                    key={sym}
+                    className="flex h-4 w-4 items-center justify-center rounded-full border border-white/30"
+                    style={{ backgroundColor: item.color }}
+                  >
+                    <span className="text-[8px] leading-none">☀</span>
+                  </div>
+                ) : sym === "memorable_event" ? (
+                  <span key={sym} className="text-sm leading-none" style={{ color: item.color }} aria-hidden>♥</span>
                 ) : null
               )}
             </div>
@@ -124,11 +181,35 @@ export default function MapPage() {
         ))}
       </div>
       <p className="mt-2 text-xs text-[var(--muted)]">
-        Balloons = birth places · House = places lived · Pin = travel/visits · Star = family trips
+        Balloons = birth place · House = homes (lived) · Pin = visit · Star = family trip · Sun = vacation · Heart = memorable event · Circle = other
       </p>
 
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <span className="text-sm font-medium text-[var(--muted)]">Show on map:</span>
+        {(
+          [
+            { key: "birth" as const, label: "Birth places" },
+            { key: "homes" as const, label: "Homes" },
+            { key: "vacation" as const, label: "Vacations" },
+            { key: "memorableEvent" as const, label: "Memorable events" },
+            { key: "other" as const, label: "Other" },
+            { key: "visits" as const, label: "Visits / trips" },
+          ] as const
+        ).map(({ key, label }) => (
+          <label key={key} className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filter[key] !== false}
+              onChange={() => toggleFilter(key)}
+              className="rounded border-[var(--border)] text-[var(--accent)]"
+            />
+            <span className="text-sm text-[var(--foreground)]">{label}</span>
+          </label>
+        ))}
+      </div>
+
       <div className="mt-6">
-        <MapComponent />
+        <MapComponent filter={filter} />
       </div>
     </div>
   );

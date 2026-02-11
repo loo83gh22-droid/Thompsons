@@ -25,6 +25,7 @@ export default function NewJournalPage() {
     latitude: 0,
     longitude: 0,
   });
+  const [locationType, setLocationType] = useState<"visit" | "vacation" | "memorable_event">("visit");
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [coverPhotoIndex, setCoverPhotoIndex] = useState(0);
 
@@ -68,6 +69,7 @@ export default function NewJournalPage() {
       formData.set("trip_date", startDate.toISOString().split("T")[0]);
       if (endDate) formData.set("trip_date_end", endDate.toISOString().split("T")[0]);
       formData.set("location", location.name || "");
+      formData.set("location_type", locationType);
       if (location.latitude && location.longitude) {
         formData.set("location_lat", String(location.latitude));
         formData.set("location_lng", String(location.longitude));
@@ -171,6 +173,23 @@ export default function NewJournalPage() {
             required={false}
             allowRange
           />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-[var(--muted)]">
+            Map pin type
+          </label>
+          <select
+            value={locationType}
+            onChange={(e) => setLocationType(e.target.value as "visit" | "vacation" | "memorable_event")}
+            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+          >
+            <option value="visit">Just a visit</option>
+            <option value="vacation">Vacation</option>
+            <option value="memorable_event">Memorable event (wedding, sports, etc.)</option>
+          </select>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Only used when you add a location. Changes the symbol on the family map.
+          </p>
         </div>
 
         <div>

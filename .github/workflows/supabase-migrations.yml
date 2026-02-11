@@ -1,3 +1,4 @@
+# Use this when your GitHub repo root is family-site. If repo root is Thompsons (parent), use ../.github/workflows/supabase-migrations.yml instead.
 name: Supabase Migrations
 
 on:

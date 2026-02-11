@@ -37,6 +37,7 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
     const tripDateEnd = (formData.get("trip_date_end") as string) || null;
     const locationLat = formData.get("location_lat") as string | null;
     const locationLng = formData.get("location_lng") as string | null;
+    const locationType = formData.get("location_type") as string | null;
 
     if (!familyMemberId) return { success: false, error: "Please select who this entry is about." };
 
@@ -139,6 +140,8 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
           country_code: countryCode,
           journal_entry_id: entry.id,
           location_cluster_id: locationClusterId,
+          location_type:
+            locationType === "vacation" || locationType === "memorable_event" ? locationType : null,
         });
       }
     } catch {
@@ -205,12 +208,18 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
 
   if (!user) throw new Error("Not authenticated");
 
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
   const familyMemberId = formData.get("family_member_id") as string;
   const title = formData.get("title") as string;
   const content = formData.get("content") as string;
   const location = formData.get("location") as string;
   const tripDate = formData.get("trip_date") as string;
   const tripDateEnd = (formData.get("trip_date_end") as string) || null;
+  const locationLat = formData.get("location_lat") as string | null;
+  const locationLng = formData.get("location_lng") as string | null;
+  const locationType = formData.get("location_type") as string | null;
 
   if (!familyMemberId) throw new Error("Please select who this entry is about.");
 
@@ -228,6 +237,90 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
     .eq("id", entryId);
 
   if (updateError) throw updateError;
+
+  // Sync map pin: remove existing pin for this entry, then add new one if location provided
+  await supabase
+    .from("travel_locations")
+    .delete()
+    .eq("journal_entry_id", entryId);
+
+  if (location?.trim()) {
+    try {
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+      let lat = 0;
+      let lng = 0;
+      let countryCode: string | null = null;
+
+      if (locationLat && locationLng) {
+        lat = parseFloat(locationLat);
+        lng = parseFloat(locationLng);
+        if (apiKey) {
+          const geocodeRes = await fetch(
+            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
+          );
+          const geocode = await geocodeRes.json();
+          if (geocode.status === "OK" && geocode.results?.[0]) {
+            const countryComp = geocode.results[0].address_components?.find(
+              (c: { types: string[] }) => c.types.includes("country")
+            );
+            countryCode = countryComp?.short_name?.toUpperCase() ?? null;
+          }
+        }
+      } else if (apiKey) {
+        const geocodeRes = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location.trim())}&key=${apiKey}`
+        );
+        const geocode = await geocodeRes.json();
+        if (geocode.status === "OK" && geocode.results?.[0]) {
+          const result = geocode.results[0];
+          lat = result.geometry.location.lat;
+          lng = result.geometry.location.lng;
+          const countryComp = result.address_components?.find((c: { types: string[] }) =>
+            c.types.includes("country")
+          );
+          countryCode = countryComp?.short_name?.toUpperCase() ?? null;
+        }
+      } else {
+        const geocodeRes = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(location.trim())}&limit=1`,
+          { headers: { "User-Agent": "Thompsons-Family-Site/1.0" } }
+        );
+        const geocode = await geocodeRes.json();
+        const result = geocode[0];
+        lat = result?.lat ? parseFloat(result.lat) : 0;
+        lng = result?.lon ? parseFloat(result.lon) : 0;
+        countryCode = result?.address?.country_code?.toUpperCase() ?? null;
+      }
+
+      if (lat && lng) {
+        const date = tripDate ? new Date(tripDate) : new Date();
+        const locationClusterId = await findOrCreateLocationCluster(supabase, activeFamilyId, {
+          latitude: lat,
+          longitude: lng,
+          location_name: location.trim(),
+          date,
+        });
+        const yearVisited = tripDate ? new Date(tripDate).getFullYear() : null;
+        await supabase.from("travel_locations").insert({
+          family_id: activeFamilyId,
+          family_member_id: familyMemberId,
+          lat,
+          lng,
+          location_name: location.trim(),
+          year_visited: yearVisited,
+          trip_date: tripDate || null,
+          notes: title,
+          country_code: countryCode,
+          journal_entry_id: entryId,
+          location_cluster_id: locationClusterId,
+          location_type:
+            locationType === "vacation" || locationType === "memorable_event" ? locationType : null,
+        });
+      }
+    } catch {
+      // Geocoding failed – entry updated, map pin may be missing
+    }
+  }
 
   revalidatePath("/dashboard/journal");
   revalidatePath(`/dashboard/journal/${entryId}`);
@@ -358,6 +451,11 @@ export async function deleteJournalEntry(entryId: string) {
   if (fetchError || !entry || entry.family_id !== activeFamilyId) {
     throw new Error("Entry not found or you don't have access.");
   }
+
+  await supabase
+    .from("travel_locations")
+    .delete()
+    .eq("journal_entry_id", entryId);
 
   const { error: deleteError } = await supabase
     .from("journal_entries")

@@ -15,10 +15,13 @@ type TravelLocation = {
   location_name: string;
   year_visited: number | null;
   trip_date: string | null;
+  trip_date_end?: string | null;
   notes: string | null;
   country_code?: string;
   is_birth_place?: boolean;
   is_place_lived?: boolean;
+  location_type?: "vacation" | "memorable_event" | "other" | null;
+  location_label?: string | null;
   journal_entry_id?: string | null;
   location_cluster_id?: string | null;
   family_members:
@@ -34,6 +37,27 @@ const mapContainerStyle = {
 };
 
 const defaultCenter = { lat: 56, lng: -100 };
+
+export type MapFilter = {
+  birth?: boolean;
+  homes?: boolean;
+  vacation?: boolean;
+  memorableEvent?: boolean;
+  other?: boolean;
+  visits?: boolean;
+};
+
+function applyFilter(locations: TravelLocation[], filter: MapFilter | undefined): TravelLocation[] {
+  if (!filter) return locations;
+  return locations.filter((loc) => {
+    if (loc.is_birth_place === true) return filter.birth !== false;
+    if (loc.is_place_lived === true) return filter.homes !== false;
+    if (loc.location_type === "vacation") return filter.vacation !== false;
+    if (loc.location_type === "memorable_event") return filter.memorableEvent !== false;
+    if (loc.location_type === "other") return filter.other !== false;
+    return filter.visits !== false;
+  });
+}
 
 /** Group locations by cluster_id, or by proximity for legacy pins without cluster */
 function groupLocations(locations: TravelLocation[]) {
@@ -90,6 +114,8 @@ function createPinSvgUrl(
     pin: `<circle cx="12" cy="10" r="6" fill="${color}" stroke="white" stroke-width="2"/><polygon points="12,16 8,24 16,24" fill="${color}" stroke="white" stroke-width="1"/>`,
     balloons: `<circle cx="9" cy="10" r="5" fill="${color}" stroke="white" stroke-width="2"/><circle cx="15" cy="10" r="5" fill="${color}" stroke="white" stroke-width="2"/><line x1="12" y1="15" x2="12" y2="22" stroke="${color}" stroke-width="1" opacity="0.6"/>`,
     house: `<path d="M12 4L4 12v10h6v-6h4v6h6V12L12 4z" fill="${color}" stroke="white" stroke-width="2" stroke-linejoin="round"/>`,
+    vacation: `<circle cx="12" cy="12" r="5" fill="${color}" stroke="white" stroke-width="2"/><path d="M12 2v2M12 20v2M4 12h2M18 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M5.2 18.8l1.4-1.4M17.4 6.6l1.4-1.4" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>`,
+    memorable_event: `<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="${color}" stroke="white" stroke-width="2" stroke-linejoin="round"/>`,
   };
 
   const shapeSvg = shapes[symbol] || shapes.circle;
@@ -125,7 +151,7 @@ function MapNoApiKeyMessage() {
 }
 
 /** Inner component that uses useJsApiLoader — only mounted when we have a valid API key. */
-function MapComponentWithLoader({ apiKey }: { apiKey: string }) {
+function MapComponentWithLoader({ apiKey, filter }: { apiKey: string; filter?: MapFilter }) {
   const router = useRouter();
   const { activeFamilyId } = useFamily();
   const { isLoaded, loadError } = useJsApiLoader({
@@ -167,6 +193,9 @@ function MapComponentWithLoader({ apiKey }: { apiKey: string }) {
           country_code,
           is_birth_place,
           is_place_lived,
+          trip_date_end,
+          location_type,
+          location_label,
           journal_entry_id,
           location_cluster_id,
           family_members (name, color, symbol)
@@ -213,21 +242,26 @@ function MapComponentWithLoader({ apiKey }: { apiKey: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchLocations intentionally not in deps
   }, []);
 
+  const filteredLocations = useMemo(
+    () => applyFilter(locations, filter),
+    [locations, filter]
+  );
+
   const visitedCountryCodes = useMemo(() => {
     const codes = new Set<string>();
-    locations.forEach((loc) => {
+    filteredLocations.forEach((loc) => {
       if (loc.country_code) codes.add(loc.country_code);
     });
     return codes;
-  }, [locations]);
+  }, [filteredLocations]);
 
   const clusterPins = useMemo(() => {
-    const groups = groupLocations(locations);
+    const groups = groupLocations(filteredLocations);
     return groups.map((group) => {
       const first = group[0];
       return { locs: group, pos: [first.lat, first.lng] as [number, number] };
     });
-  }, [locations]);
+  }, [filteredLocations]);
 
   if (loadError) {
     return (
@@ -288,7 +322,21 @@ function MapComponentWithLoader({ apiKey }: { apiKey: string }) {
           const isFamily = member?.name === "Family";
           const isBirthPlace = loc.is_birth_place === true;
           const isPlaceLived = loc.is_place_lived === true;
-          const symbol = isPlaceLived ? "house" : isBirthPlace ? "balloons" : isFamily ? "star" : "pin";
+          const locationType = loc.location_type ?? null;
+          const symbol =
+            isBirthPlace
+              ? "balloons"
+              : isPlaceLived
+                ? "house"
+                : locationType === "memorable_event"
+                  ? "memorable_event"
+                  : locationType === "vacation"
+                    ? "vacation"
+                    : locationType === "other"
+                      ? "circle"
+                      : isFamily
+                        ? "star"
+                        : "pin";
           const dateLabel =
             loc.trip_date
               ? new Date(loc.trip_date + "T12:00:00").getFullYear().toString()
@@ -328,7 +376,7 @@ function MapComponentWithLoader({ apiKey }: { apiKey: string }) {
             return !min || d < min ? d : min;
           }, null);
           const dateRangeEnd = locs.reduce<string | null>((max, l) => {
-            const d = l.trip_date ?? (l.year_visited ? `${l.year_visited}-12-31` : null);
+            const d = l.trip_date_end ?? l.trip_date ?? (l.year_visited ? `${l.year_visited}-12-31` : null);
             if (!d) return max;
             return !max || d > max ? d : max;
           }, null);
@@ -337,7 +385,17 @@ function MapComponentWithLoader({ apiKey }: { apiKey: string }) {
               ? dateRangeStart === dateRangeEnd
                 ? format(new Date(dateRangeStart + "T12:00:00"), "MMMM d, yyyy")
                 : `${format(new Date(dateRangeStart + "T12:00:00"), "MMM d, yyyy")} – ${format(new Date(dateRangeEnd + "T12:00:00"), "MMM d, yyyy")}`
+              : dateRangeStart
+                ? format(new Date(dateRangeStart + "T12:00:00"), "MMMM d, yyyy")
+                : null;
+          const livedHere = locs.some((l) => l.is_place_lived);
+          const livedLabel =
+            livedHere && dateRangeStart
+              ? dateRangeEnd && dateRangeEnd !== dateRangeStart
+                ? `Lived ${format(new Date(dateRangeStart + "T12:00:00"), "MMM d, yyyy")} – ${format(new Date(dateRangeEnd + "T12:00:00"), "MMM d, yyyy")}`
+                : `Lived from ${format(new Date(dateRangeStart + "T12:00:00"), "MMM d, yyyy")}`
               : null;
+          const firstLabel = first?.location_label?.trim();
           return (
             <InfoWindow
               position={{ lat: selectedCluster.pos[0], lng: selectedCluster.pos[1] }}
@@ -348,10 +406,25 @@ function MapComponentWithLoader({ apiKey }: { apiKey: string }) {
                   <h3 className="font-bold text-lg text-[var(--foreground)]">
                     {locationName}
                   </h3>
-                  {locs.some((l) => l.is_place_lived) && (
+                  {firstLabel && (
+                    <p className="text-xs font-medium text-[var(--accent)] mt-1">{firstLabel}</p>
+                  )}
+                  {livedHere && !livedLabel && (
                     <p className="text-xs font-medium text-[var(--accent)] mt-1">Lived here</p>
                   )}
-                  {dateLabel && (
+                  {livedLabel && (
+                    <p className="text-xs font-medium text-[var(--accent)] mt-1">{livedLabel}</p>
+                  )}
+                  {locs.some((l) => l.location_type === "vacation") && !livedHere && (
+                    <p className="text-xs font-medium text-[var(--muted)] mt-1">Vacation</p>
+                  )}
+                  {locs.some((l) => l.location_type === "memorable_event") && !livedHere && (
+                    <p className="text-xs font-medium text-[var(--muted)] mt-1">Memorable event</p>
+                  )}
+                  {locs.some((l) => l.location_type === "other") && !livedHere && !firstLabel && (
+                    <p className="text-xs font-medium text-[var(--muted)] mt-1">Other</p>
+                  )}
+                  {dateLabel && !livedLabel && (
                     <p className="text-sm text-[var(--muted)] mt-1">{dateLabel}</p>
                   )}
                   {locs.length > 1 && (
@@ -418,10 +491,10 @@ function MapComponentWithLoader({ apiKey }: { apiKey: string }) {
   );
 }
 
-export default function MapComponent() {
+export default function MapComponent({ filter }: { filter?: MapFilter } = {}) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   if (!apiKey || apiKey.trim() === "") {
     return <MapNoApiKeyMessage />;
   }
-  return <MapComponentWithLoader apiKey={apiKey} />;
+  return <MapComponentWithLoader apiKey={apiKey} filter={filter} />;
 }

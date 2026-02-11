@@ -14,10 +14,12 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
   const [error, setError] = useState<string | null>(null);
 
   const [familyMemberId, setFamilyMemberId] = useState("");
-  const [locationType, setLocationType] = useState<"travel" | "lived">("travel");
+  const [locationKind, setLocationKind] = useState<"travel" | "lived" | "vacation" | "memorable_event" | "other">("travel");
   const [locationName, setLocationName] = useState("");
+  const [locationLabel, setLocationLabel] = useState("");
   const [yearVisited, setYearVisited] = useState("");
   const [tripDate, setTripDate] = useState("");
+  const [tripDateEnd, setTripDateEnd] = useState("");
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
@@ -83,18 +85,30 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
         location_name: locationName,
         year_visited: yearVisited ? parseInt(yearVisited, 10) : null,
         trip_date: tripDate || null,
+        trip_date_end: tripDateEnd || null,
         notes: notes || null,
         country_code: countryCode,
-        is_place_lived: locationType === "lived",
+        is_place_lived: locationKind === "lived",
+        location_type:
+          locationKind === "vacation"
+            ? "vacation"
+            : locationKind === "memorable_event"
+              ? "memorable_event"
+              : locationKind === "other"
+                ? "other"
+                : null,
+        location_label: locationLabel.trim() || null,
       });
 
       if (insertError) throw insertError;
 
       setFamilyMemberId("");
-      setLocationType("travel");
+      setLocationKind("travel");
       setLocationName("");
+      setLocationLabel("");
       setYearVisited("");
       setTripDate("");
+      setTripDateEnd("");
       setNotes("");
       setOpen(false);
       onAdded?.();
@@ -131,13 +145,13 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
           <label className="block text-sm font-medium text-[var(--muted)]">
             Type
           </label>
-          <div className="mt-2 flex gap-4">
+          <div className="mt-2 flex flex-wrap gap-3">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="radio"
-                name="locationType"
-                checked={locationType === "travel"}
-                onChange={() => setLocationType("travel")}
+                name="locationKind"
+                checked={locationKind === "travel"}
+                onChange={() => setLocationKind("travel")}
                 className="rounded-full border-[var(--border)] text-[var(--accent)]"
               />
               <span className="text-sm text-[var(--foreground)]">Travel / visit</span>
@@ -145,19 +159,75 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="radio"
-                name="locationType"
-                checked={locationType === "lived"}
-                onChange={() => setLocationType("lived")}
+                name="locationKind"
+                checked={locationKind === "lived"}
+                onChange={() => setLocationKind("lived")}
                 className="rounded-full border-[var(--border)] text-[var(--accent)]"
               />
-              <span className="text-sm text-[var(--foreground)]">Place I/we lived</span>
+              <span className="text-sm text-[var(--foreground)]">Homes (lived here)</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="locationKind"
+                checked={locationKind === "vacation"}
+                onChange={() => setLocationKind("vacation")}
+                className="rounded-full border-[var(--border)] text-[var(--accent)]"
+              />
+              <span className="text-sm text-[var(--foreground)]">Vacation</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="locationKind"
+                checked={locationKind === "memorable_event"}
+                onChange={() => setLocationKind("memorable_event")}
+                className="rounded-full border-[var(--border)] text-[var(--accent)]"
+              />
+              <span className="text-sm text-[var(--foreground)]">Memorable event</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="locationKind"
+                checked={locationKind === "other"}
+                onChange={() => setLocationKind("other")}
+                className="rounded-full border-[var(--border)] text-[var(--accent)]"
+              />
+              <span className="text-sm text-[var(--foreground)]">Other</span>
             </label>
           </div>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            e.g. wedding, sports event, reunion. Use Other + label for school, first job, etc.
+          </p>
         </div>
+
+        {locationKind === "other" && (
+          <div>
+            <label className="block text-sm font-medium text-[var(--muted)]">
+              Label (optional)
+            </label>
+            <input
+              type="text"
+              value={locationLabel}
+              onChange={(e) => setLocationLabel(e.target.value)}
+              placeholder="e.g. School, First job"
+              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)]"
+            />
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-[var(--muted)]">
-            {locationType === "lived" ? "Who lived here?" : "Who traveled here?"}
+            {locationKind === "lived"
+              ? "Who lived here?"
+              : locationKind === "vacation"
+                ? "Who was on this vacation?"
+                : locationKind === "memorable_event"
+                  ? "Who was at this event?"
+                  : locationKind === "other"
+                    ? "Who is this for?"
+                    : "Who traveled here?"}
           </label>
           <select
             value={familyMemberId}
@@ -173,9 +243,9 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
             ))}
           </select>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            {locationType === "lived"
+            {locationKind === "lived"
               ? "Pick the person (or Family if you lived there together)."
-              : 'Choose "Family" for trips you took together.'}
+              : 'Choose "Family" for trips or events you did together.'}
           </p>
         </div>
 
@@ -196,28 +266,46 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="block text-sm font-medium text-[var(--muted)]">
-              {locationType === "lived" ? "Year (optional)" : "Year visited"}
+              {locationKind === "lived" ? "Lived from (optional)" : "Year visited"}
             </label>
-            <input
-              type="number"
-              value={yearVisited}
-              onChange={(e) => setYearVisited(e.target.value)}
-              placeholder={locationType === "lived" ? "e.g. 2015" : "2024"}
-              min="1900"
-              max="2100"
-              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)]"
-            />
+            {locationKind === "lived" ? (
+              <input
+                type="date"
+                value={tripDate}
+                onChange={(e) => setTripDate(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)]"
+              />
+            ) : (
+              <input
+                type="number"
+                value={yearVisited}
+                onChange={(e) => setYearVisited(e.target.value)}
+                placeholder="2024"
+                min="1900"
+                max="2100"
+                className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)]"
+              />
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--muted)]">
-              {locationType === "lived" ? "Date lived (optional)" : "Trip date (optional)"}
+              {locationKind === "lived" ? "Lived until (optional)" : "Trip date (optional)"}
             </label>
-            <input
-              type="date"
-              value={tripDate}
-              onChange={(e) => setTripDate(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)]"
-            />
+            {locationKind === "lived" ? (
+              <input
+                type="date"
+                value={tripDateEnd}
+                onChange={(e) => setTripDateEnd(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)]"
+              />
+            ) : (
+              <input
+                type="date"
+                value={tripDate}
+                onChange={(e) => setTripDate(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)]"
+              />
+            )}
           </div>
         </div>
 

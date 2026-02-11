@@ -79,6 +79,8 @@ Migrations will run automatically when you push to `main`. No GitHub secrets nee
 
 ### Option B: GitHub Actions workflow (needs SUPABASE_DB_URL)
 
+**Repo layout:** If your repo root is **Thompsons** (with `family-site/` inside), use the workflow at **repo root**: `.github/workflows/supabase-migrations.yml`. It triggers on `family-site/supabase/migrations/**` and runs from the `family-site` directory. If your repo root is **family-site** only, use `family-site/.github/workflows/supabase-migrations.yml` (triggers on `supabase/migrations/**`). GitHub only runs workflows from the repo root `.github/`, so when the app lives in a subfolder the root workflow is required.
+
 If you prefer the workflow, add `SUPABASE_DB_URL` to avoid pooler EOF/timeout errors.
 
 #### One-time setup: Add GitHub secrets
