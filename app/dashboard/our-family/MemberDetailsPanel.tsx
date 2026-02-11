@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { deleteFamilyMember } from "../members/actions";
+import { setMemberRelationships } from "./actions";
 import type { OurFamilyMember } from "./page";
+import type { OurFamilyRelationship } from "./page";
 import type { MemberActivity } from "./page";
 
 function initials(name: string): string {
@@ -29,18 +31,51 @@ const STATUS_LABELS: Record<ReturnType<typeof memberStatus>, string> = {
   no_account: "Not Invited",
 };
 
+function useMemberTreeRels(memberId: string, relationships: OurFamilyRelationship[]) {
+  return useMemo(() => {
+    let spouseId: string | null = null;
+    const parentIds: string[] = [];
+    const childIds: string[] = [];
+    for (const r of relationships) {
+      if (r.relationship_type === "spouse") {
+        if (r.member_id === memberId) spouseId = r.related_id;
+        else if (r.related_id === memberId) spouseId = r.member_id;
+      } else if (r.relationship_type === "child") {
+        if (r.member_id === memberId) parentIds.push(r.related_id);
+        else if (r.related_id === memberId) childIds.push(r.member_id);
+      }
+    }
+    return { spouseId, parentIds, childIds };
+  }, [memberId, relationships]);
+}
+
 export function MemberDetailsPanel({
   member,
+  members,
+  relationships,
   activity,
   onClose,
 }: {
   member: OurFamilyMember;
+  members: OurFamilyMember[];
+  relationships: OurFamilyRelationship[];
   activity?: MemberActivity;
   onClose: () => void;
 }) {
   const router = useRouter();
   const [removing, setRemoving] = useState(false);
+  const [savingRels, setSavingRels] = useState(false);
+  const current = useMemberTreeRels(member.id, relationships);
+  const [spouseId, setSpouseId] = useState<string>(current.spouseId ?? "");
+  const [parentIds, setParentIds] = useState<string[]>(current.parentIds);
+  const [childIds, setChildIds] = useState<string[]>(current.childIds);
+  useEffect(() => {
+    setSpouseId(current.spouseId ?? "");
+    setParentIds(current.parentIds);
+    setChildIds(current.childIds);
+  }, [member.id, current.spouseId, current.parentIds, current.childIds]);
   const status = memberStatus(member);
+  const others = members.filter((m) => m.id !== member.id);
   const birthdayStr = member.birth_date
     ? new Date(member.birth_date + "T12:00:00").toLocaleDateString("en-US", {
         month: "long",
@@ -51,6 +86,28 @@ export function MemberDetailsPanel({
   const memberSince = member.created_at
     ? new Date(member.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })
     : null;
+
+  async function handleSaveRelationships() {
+    setSavingRels(true);
+    const err = await setMemberRelationships(member.id, {
+      spouseId: spouseId || null,
+      parentIds,
+      childIds,
+    });
+    setSavingRels(false);
+    if (err.error) {
+      alert(err.error);
+      return;
+    }
+    router.refresh();
+  }
+
+  function toggleParent(id: string) {
+    setParentIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
+  function toggleChild(id: string) {
+    setChildIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
 
   async function handleRemove() {
     if (!confirm(`Remove ${member.name} from the family? This cannot be undone.`)) return;
@@ -141,6 +198,66 @@ export function MemberDetailsPanel({
             </ul>
           </div>
         )}
+
+        <div className="border-t border-[var(--border)] pt-4">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+            Tree relationships
+          </h4>
+          <p className="mt-1 text-xs text-[var(--muted)]">Who is this person&apos;s spouse, parents, or children?</p>
+          <div className="mt-3 space-y-2">
+            <label className="block text-sm text-[var(--foreground)]">
+              Spouse
+              <select
+                value={spouseId}
+                onChange={(e) => setSpouseId(e.target.value)}
+                className="input-base mt-1 w-full py-1.5 text-sm"
+              >
+                <option value="">None</option>
+                {others.map((m) => (
+                  <option key={m.id} value={m.id}>{m.nickname?.trim() || m.name}</option>
+                ))}
+              </select>
+            </label>
+            <div className="text-sm text-[var(--foreground)]">
+              Parents (this person is child of)
+              <div className="mt-1 flex flex-wrap gap-1">
+                {others.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => toggleParent(m.id)}
+                    className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${parentIds.includes(m.id) ? "bg-[var(--accent)]/30 text-[var(--accent)]" : "bg-[var(--surface-hover)] text-[var(--muted)]"}`}
+                  >
+                    {m.nickname?.trim() || m.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="text-sm text-[var(--foreground)]">
+              Children (this person is parent of)
+              <div className="mt-1 flex flex-wrap gap-1">
+                {others.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => toggleChild(m.id)}
+                    className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${childIds.includes(m.id) ? "bg-[var(--accent)]/30 text-[var(--accent)]" : "bg-[var(--surface-hover)] text-[var(--muted)]"}`}
+                  >
+                    {m.nickname?.trim() || m.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleSaveRelationships}
+              disabled={savingRels}
+              className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-hover)] py-2 text-sm font-medium disabled:opacity-50"
+            >
+              {savingRels ? "Saving…" : "Save relationships"}
+            </button>
+          </div>
+        </div>
 
         <div className="flex flex-col gap-2 border-t border-[var(--border)] pt-4">
           <Link

@@ -2,8 +2,35 @@
 
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { Resend } from "resend";
 import { getActiveFamilyId, getActiveFamilyName } from "@/src/lib/family";
 import { ensureBirthdayEventForMember } from "@/app/dashboard/events/actions";
+
+/** Send invite email (server-only; no public API). */
+async function sendInviteEmail(to: string, name: string, familyName: string): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return;
+  const resend = new Resend(apiKey);
+  const from = process.env.RESEND_FROM_EMAIL || "Thompsons <onboarding@resend.dev>";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (typeof process.env.VERCEL_URL === "string" ? `https://${process.env.VERCEL_URL}` : null);
+  const signupUrl = baseUrl ? `${baseUrl}/login` : null;
+  const safeName = (name || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const safeFamily = (familyName || "Our Family").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  await resend.emails.send({
+    from,
+    to: to.trim(),
+    subject: `You've been added to ${safeFamily}!`,
+    html: `
+      <h2>You've been added to ${safeFamily}</h2>
+      <p>Hi${safeName ? ` ${safeName}` : ""},</p>
+      <p>Someone has added you to their family on Our Family Nest. Sign up to join and see photos, memories, and more.</p>
+      ${signupUrl ? `<p><a href="${signupUrl}" style="display: inline-block; background: #333; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Sign up to join</a></p>` : ""}
+      <p style="margin-top: 24px; color: #888; font-size: 12px;">If you didn't expect this, you can ignore this email.</p>
+    `,
+  });
+}
 
 export async function addFamilyMember(
   name: string,
@@ -13,7 +40,7 @@ export async function addFamilyMember(
   birthPlace: string,
   nickname: string | null = null,
   avatarUrl: string | null = null
-): Promise<{ birthdayEventAdded?: boolean }> {
+): Promise<{ id?: string; birthdayEventAdded?: boolean }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
@@ -95,21 +122,12 @@ export async function addFamilyMember(
     }
   }
 
-  // Send invite email when adding a member with an email (via API route for reliable Resend)
+  // Send invite email when adding a member with an email (server-only, no public API)
   const trimmedEmail = email?.trim();
-  if (trimmedEmail && process.env.RESEND_API_KEY) {
+  if (trimmedEmail) {
     try {
       const familyName = await getActiveFamilyName(supabase);
-      const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL ||
-        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
-      if (baseUrl) {
-        await fetch(`${baseUrl}/api/send-invite`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ to: trimmedEmail, name: name.trim(), familyName }),
-        });
-      }
+      await sendInviteEmail(trimmedEmail, name.trim(), familyName);
     } catch {
       // Non-blocking
     }
@@ -129,7 +147,7 @@ export async function addFamilyMember(
   revalidatePath("/dashboard/our-family");
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/map");
-  return { birthdayEventAdded };
+  return { id: member?.id, birthdayEventAdded };
 }
 
 export async function updateFamilyMember(
@@ -229,7 +247,7 @@ export async function updateFamilyMember(
 
   // Send invite email when adding/updating email on a member who hasn't signed up yet
   const trimmedEmail = email?.trim();
-  if (trimmedEmail && process.env.RESEND_API_KEY) {
+  if (trimmedEmail) {
     const { data: memberRow } = await supabase
       .from("family_members")
       .select("user_id")
@@ -238,16 +256,7 @@ export async function updateFamilyMember(
     if (memberRow && !memberRow.user_id) {
       try {
         const familyName = await getActiveFamilyName(supabase);
-        const baseUrl =
-          process.env.NEXT_PUBLIC_APP_URL ||
-          (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
-        if (baseUrl) {
-          await fetch(`${baseUrl}/api/send-invite`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ to: trimmedEmail, name: name.trim(), familyName }),
-          });
-        }
+        await sendInviteEmail(trimmedEmail, name.trim(), familyName);
       } catch {
         // Non-blocking
       }

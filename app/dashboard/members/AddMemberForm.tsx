@@ -3,11 +3,17 @@
 import { useState, useRef } from "react";
 import { createClient } from "@/src/lib/supabase/client";
 import { addFamilyMember } from "./actions";
+import { addRelationship } from "../our-family/actions";
 import { RELATIONSHIP_OPTIONS } from "./constants";
 
 const ACCEPT_IMAGES = "image/jpeg,image/png,image/webp,image/gif";
 
-export function AddMemberForm({ triggerClassName }: { triggerClassName?: string } = {}) {
+type LinkMember = { id: string; name: string; nickname?: string | null };
+
+export function AddMemberForm({
+  triggerClassName,
+  linkMembers = [],
+}: { triggerClassName?: string; linkMembers?: LinkMember[] } = {}) {
   const [name, setName] = useState("");
   const [relationship, setRelationship] = useState("");
   const [nickname, setNickname] = useState("");
@@ -19,6 +25,8 @@ export function AddMemberForm({ triggerClassName }: { triggerClassName?: string 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [open, setOpen] = useState(false);
+  const [linkType, setLinkType] = useState<"" | "spouse" | "child" | "parent">("");
+  const [linkMemberId, setLinkMemberId] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -72,16 +80,27 @@ export function AddMemberForm({ triggerClassName }: { triggerClassName?: string 
         avatarUrl
       );
 
+      if (result?.id && linkType && linkMemberId) {
+        if (linkType === "parent") {
+          await addRelationship(linkMemberId, result.id, "child");
+        } else {
+          await addRelationship(result.id, linkMemberId, linkType as "spouse" | "child");
+        }
+      }
+
       setName("");
       setRelationship("");
       setNickname("");
       setEmail("");
       setBirthDate("");
       setBirthPlace("");
+      setLinkType("");
+      setLinkMemberId("");
       clearPhoto();
 
       let text = "Member added. Add another or close.";
       if (result?.birthdayEventAdded) text += " Birthday added to Family Events!";
+      if (result?.id && linkType && linkMemberId) text += " Linked in tree.";
       setMessage({ type: "success", text });
     } catch (err) {
       setMessage({
@@ -198,6 +217,35 @@ export function AddMemberForm({ triggerClassName }: { triggerClassName?: string 
               />
               <p className="mt-1 text-xs text-[var(--muted)]">Creates a balloon pin on the map.</p>
             </div>
+            {linkMembers.length > 0 && (
+              <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-hover)]/50 p-3">
+                <h4 className="text-sm font-medium text-[var(--foreground)]">Link in family tree (optional)</h4>
+                <p className="mt-0.5 text-xs text-[var(--muted)]">Connect this person to someone already in the family.</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <select
+                    value={linkType}
+                    onChange={(e) => setLinkType(e.target.value as "" | "spouse" | "child" | "parent")}
+                    className="input-base min-h-0 flex-1 py-1.5 text-sm"
+                  >
+                    <option value="">No link</option>
+                    <option value="spouse">Spouse of</option>
+                    <option value="child">Child of</option>
+                    <option value="parent">Parent of</option>
+                  </select>
+                  <select
+                    value={linkMemberId}
+                    onChange={(e) => setLinkMemberId(e.target.value)}
+                    disabled={!linkType}
+                    className="input-base min-h-0 flex-1 py-1.5 text-sm disabled:opacity-50"
+                  >
+                    <option value="">Select member</option>
+                    {linkMembers.map((m) => (
+                      <option key={m.id} value={m.id}>{m.nickname?.trim() || m.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-[var(--muted)]">
                 Profile photo <span className="text-[var(--muted)]">(optional)</span>

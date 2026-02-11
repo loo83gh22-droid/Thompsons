@@ -109,6 +109,8 @@ export function OurFamilyClient({
         {selectedMember && (
           <MemberDetailsPanel
             member={selectedMember}
+            members={members}
+            relationships={relationships}
             activity={activityByMember[selectedMember.id]}
             onClose={() => setSelectedMemberId(null)}
           />

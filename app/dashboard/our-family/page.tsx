@@ -80,7 +80,10 @@ export default async function OurFamilyPage() {
             See your family connections and manage members
           </p>
         </div>
-        <AddMemberForm triggerClassName="min-h-[44px] shrink-0 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500" />
+        <AddMemberForm
+          triggerClassName="min-h-[44px] shrink-0 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500"
+          linkMembers={members ?? []}
+        />
       </div>
 
       <OurFamilyClient
