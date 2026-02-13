@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { removeVoiceMemo, updateVoiceMemo } from "./actions";
-import { EmptyState } from "../components/EmptyState";
+import { EmptyStateGuide } from "@/app/components/EmptyStateGuide";
 
 type MemberRow = { name: string; nickname: string | null; relationship: string | null };
 
@@ -60,11 +60,17 @@ export function VoiceMemoList({
 
   if (!memos.length) {
     return (
-      <EmptyState
+      <EmptyStateGuide
         icon="🎙️"
-        headline="No voice memos yet"
-        description="Record voices for the future—stories, songs, jokes. Imagine kids hearing their great-grandmother's voice decades from now."
-        actionLabel="Record your first memory"
+        title="No voice memos yet"
+        description="Record voices for the future — imagine kids hearing their great-grandparent's voice decades from now"
+        inspiration={[
+          "Record yourself telling your favorite childhood story",
+          "Sing the lullaby you sing to your kids",
+          "Tell a joke only your family would understand",
+          "Record a message to your future grandchildren",
+        ]}
+        ctaLabel="Record your first memory"
         onAction={() => document.querySelector<HTMLButtonElement>("[data-voice-memo-add]")?.click()}
       />
     );

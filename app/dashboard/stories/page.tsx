@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
-import { EmptyState } from "@/app/dashboard/components/EmptyState";
+import { EmptyStateGuide } from "@/app/components/EmptyStateGuide";
 import { StoriesList } from "./StoriesList";
 
 export default async function StoriesPage() {
@@ -46,12 +46,18 @@ export default async function StoriesPage() {
       </div>
 
       {!stories?.length ? (
-        <EmptyState
-          icon="📄"
-          headline="No stories yet"
+        <EmptyStateGuide
+          icon="📖"
+          title="No stories yet"
           description="Be the first to share a family memory, historical account, or lesson learned"
-          actionLabel="Write your first story"
-          actionHref="/dashboard/stories/new"
+          inspiration={[
+            "How your parents met",
+            "The story of your family's immigration or big move",
+            "A lesson a grandparent taught you",
+            "The funniest thing that happened on a family vacation",
+          ]}
+          ctaLabel="Write your first story"
+          ctaHref="/dashboard/stories/new"
         />
       ) : (
         <StoriesList stories={stories} />
