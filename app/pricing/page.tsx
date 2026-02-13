@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Pricing — Our Family Nest",
+  description:
+    "Choose the right plan for your family. Free, Annual, or Lifetime Legacy access.",
+};
 
 const tiers = [
   {
@@ -208,3 +215,4 @@ export default function PricingPage() {
     </div>
   );
 }
+

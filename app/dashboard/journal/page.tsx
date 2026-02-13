@@ -1,5 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+
+export const metadata: Metadata = {
+  title: "Family Journal — Our Family Nest",
+};
 import { createClient } from "@/src/lib/supabase/server";
 import Image from "next/image";
 import { formatDateOnly } from "@/src/lib/date";

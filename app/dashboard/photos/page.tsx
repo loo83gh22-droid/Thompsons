@@ -1,5 +1,10 @@
+import type { Metadata } from "next";
 import { createClient } from "@/src/lib/supabase/server";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "Family Photos — Our Family Nest",
+};
 import { getActiveFamilyId } from "@/src/lib/family";
 import { PhotosManager } from "./PhotosManager";
 

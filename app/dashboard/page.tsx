@@ -1,5 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "My Family Nest — Dashboard",
+};
 import { getActiveFamilyId } from "@/src/lib/family";
 import { DashboardStats } from "./DashboardStats";
 import { UpcomingEvents } from "./UpcomingEvents";
