@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import Link from "next/link";
+import { ExportNest } from "./ExportNest";
 
 type PlanType = "free" | "annual" | "legacy";
 
@@ -269,6 +270,9 @@ export default async function SettingsPage() {
           )}
         </div>
       </section>
+
+      {/* Export — Legacy plan only */}
+      {planType === "legacy" && <ExportNest />}
 
       {/* Quick links */}
       <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
