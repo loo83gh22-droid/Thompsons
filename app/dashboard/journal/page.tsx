@@ -27,7 +27,7 @@ export default async function JournalPage() {
       location,
       trip_date,
       created_at,
-      family_members (name, nickname, relationship)
+      family_members!author_id (name, nickname, relationship)
     `)
     .eq("family_id", activeFamilyId)
     .order("trip_date", { ascending: false, nullsFirst: false })
