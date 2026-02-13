@@ -113,7 +113,7 @@ export default async function PublicStoryPage({ params }: Props) {
 
         {/* Story content */}
         <article className="prose prose-invert max-w-none text-[var(--foreground)] leading-relaxed">
-          {story.content.split("\n").map((paragraph, i) => (
+          {story.content.split("\n").map((paragraph: string, i: number) => (
             <p key={i} className="mb-4 text-[var(--muted)] leading-relaxed">
               {paragraph}
             </p>

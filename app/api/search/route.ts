@@ -14,9 +14,9 @@ export type SearchResult = {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const q = searchParams.get("q")?.trim();
+  const q = searchParams.get("q")?.trim() ?? "";
 
-  if (!q || q.length < 2) {
+  if (q.length < 2) {
     return NextResponse.json({ results: [] });
   }
 
