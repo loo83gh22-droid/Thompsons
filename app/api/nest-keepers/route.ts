@@ -1,6 +1,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { NextResponse } from "next/server";
+import { getFamilyPlan, canManageNestKeepers } from "@/src/lib/plans";
 
 // GET: Fetch nest keepers for the current family
 export async function GET() {
@@ -15,6 +16,11 @@ export async function GET() {
     const { activeFamilyId } = await getActiveFamilyId(supabase);
     if (!activeFamilyId)
       return NextResponse.json({ error: "No active family" }, { status: 400 });
+
+    // Nest Keepers is Legacy-only
+    const plan = await getFamilyPlan(supabase, activeFamilyId);
+    if (!canManageNestKeepers(plan.planType))
+      return NextResponse.json({ error: "Nest Keepers requires the Legacy plan." }, { status: 403 });
 
     const { data, error } = await supabase
       .from("nest_keepers")
@@ -47,6 +53,10 @@ export async function POST(request: Request) {
     const { activeFamilyId } = await getActiveFamilyId(supabase);
     if (!activeFamilyId)
       return NextResponse.json({ error: "No active family" }, { status: 400 });
+
+    const plan = await getFamilyPlan(supabase, activeFamilyId);
+    if (!canManageNestKeepers(plan.planType))
+      return NextResponse.json({ error: "Nest Keepers requires the Legacy plan." }, { status: 403 });
 
     // Check current count
     const { count } = await supabase

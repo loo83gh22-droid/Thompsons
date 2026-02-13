@@ -5,6 +5,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { findOrCreateLocationCluster } from "@/src/lib/locationClustering";
+import { getFamilyPlan, journalEntryLimit, canUploadVideos, enforceStorageLimit, addStorageUsage } from "@/src/lib/plans";
 
 async function getNextMosaicSortOrder(supabase: SupabaseClient, familyId: string) {
   const { data } = await supabase
@@ -28,6 +29,22 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
     if (!user) return { success: false, error: "Not authenticated" };
     const { activeFamilyId } = await getActiveFamilyId(supabase);
     if (!activeFamilyId) return { success: false, error: "No active family" };
+
+    // Enforce journal entry limit for free tier
+    const plan = await getFamilyPlan(supabase, activeFamilyId);
+    const limit = journalEntryLimit(plan.planType);
+    if (limit !== null) {
+      const { count } = await supabase
+        .from("journal_entries")
+        .select("id", { count: "exact", head: true })
+        .eq("family_id", activeFamilyId);
+      if ((count ?? 0) >= limit) {
+        return {
+          success: false,
+          error: `Free plan allows up to ${limit} journal entries. Upgrade to unlock unlimited entries.`,
+        };
+      }
+    }
 
     const familyMemberId = formData.get("family_member_id") as string;
     const title = formData.get("title") as string;
@@ -163,6 +180,10 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
   const photos = allPhotos.filter((f) => f.size > 0).slice(0, 5);
   let mosaicOrder = await getNextMosaicSortOrder(supabase, activeFamilyId);
 
+  // Check total upload size against storage limit
+  const totalUploadBytes = photos.reduce((s, f) => s + f.size, 0);
+  try { await enforceStorageLimit(supabase, activeFamilyId, totalUploadBytes); } catch { /* continue — don't block entry creation, just skip photos */ }
+
   for (let i = 0; i < photos.length; i++) {
     const file = photos[i];
     if (file.size === 0) continue;
@@ -176,6 +197,9 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
         .upload(path, file, { upsert: true });
 
       if (uploadError) continue;
+
+      // Track storage
+      await addStorageUsage(supabase, activeFamilyId, file.size);
 
       const { data: urlData } = supabase.storage
         .from("journal-photos")
@@ -199,11 +223,11 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
     }
   }
 
-  // Upload videos (max 2 per journal entry, 300 MB each)
-  const JOURNAL_VIDEO_LIMIT = 2;
-  const MAX_VIDEO_BYTES = 300 * 1024 * 1024;
+  // Upload videos (max 2 per journal entry, 300 MB each) — paid plans only
   const allVideos = formData.getAll("videos") as File[];
-  const validVideos = allVideos.filter((f) => f.size > 0 && f.size <= MAX_VIDEO_BYTES).slice(0, JOURNAL_VIDEO_LIMIT);
+  const validVideos = canUploadVideos(plan.planType)
+    ? allVideos.filter((f) => f.size > 0 && f.size <= MAX_VIDEO_BYTES).slice(0, JOURNAL_VIDEO_LIMIT)
+    : []; // Free plan: skip videos silently
 
   for (let i = 0; i < validVideos.length; i++) {
     const file = validVideos[i];
@@ -216,6 +240,9 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
         .upload(path, file, { upsert: true });
 
       if (uploadError) continue;
+
+      // Track storage
+      await addStorageUsage(supabase, activeFamilyId, file.size);
 
       const { data: urlData } = supabase.storage
         .from("journal-videos")
@@ -414,6 +441,8 @@ export async function addJournalPhotos(entryId: string, formData: FormData) {
       .upload(path, file, { upsert: true });
 
     if (!uploadError) {
+      await addStorageUsage(supabase, activeFamilyId, file.size);
+
       const { data: urlData } = supabase.storage
         .from("journal-photos")
         .getPublicUrl(path);
@@ -539,6 +568,12 @@ export async function addJournalVideos(entryId: string, formData: FormData) {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
+  // Plan check: videos are paid-only
+  const plan = await getFamilyPlan(supabase, activeFamilyId);
+  if (!canUploadVideos(plan.planType)) {
+    throw new Error("Video uploads require the Full Nest or Legacy plan. Upgrade to add videos.");
+  }
+
   // Get logged-in user's member record
   const { data: myMember } = await supabase
     .from("family_members")
@@ -575,6 +610,8 @@ export async function addJournalVideos(entryId: string, formData: FormData) {
       .upload(path, file, { upsert: true });
 
     if (!uploadError) {
+      await addStorageUsage(supabase, activeFamilyId, file.size);
+
       const { data: urlData } = supabase.storage
         .from("journal-videos")
         .getPublicUrl(path);

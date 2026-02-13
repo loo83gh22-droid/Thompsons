@@ -3,6 +3,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
+import { enforceStorageLimit, addStorageUsage } from "@/src/lib/plans";
 
 export async function addPhoto(file: File) {
   const supabase = await createClient();
@@ -13,6 +14,9 @@ export async function addPhoto(file: File) {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
+  // Enforce storage limit
+  await enforceStorageLimit(supabase, activeFamilyId, file.size);
+
   const ext = file.name.split(".").pop() || "jpg";
   const path = `${crypto.randomUUID()}.${ext}`;
 
@@ -21,6 +25,9 @@ export async function addPhoto(file: File) {
     .upload(path, file, { upsert: true });
 
   if (uploadError) throw uploadError;
+
+  // Track storage usage
+  await addStorageUsage(supabase, activeFamilyId, file.size);
 
   const { data: urlData } = supabase.storage
     .from("home-mosaic")

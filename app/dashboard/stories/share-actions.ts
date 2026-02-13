@@ -3,11 +3,22 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import crypto from "crypto";
+import { getActiveFamilyId } from "@/src/lib/family";
+import { getFamilyPlan, canSharePublicly } from "@/src/lib/plans";
 
 export async function toggleStoryShare(storyId: string): Promise<{ shareToken: string | null; isPublic: boolean }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+
+  // Plan check
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (activeFamilyId) {
+    const plan = await getFamilyPlan(supabase, activeFamilyId);
+    if (!canSharePublicly(plan.planType)) {
+      throw new Error("Public sharing requires the Full Nest or Legacy plan.");
+    }
+  }
 
   const { data: story } = await supabase
     .from("family_stories")
@@ -43,6 +54,15 @@ export async function toggleRecipeShare(recipeId: string): Promise<{ shareToken:
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+
+  // Plan check
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (activeFamilyId) {
+    const plan = await getFamilyPlan(supabase, activeFamilyId);
+    if (!canSharePublicly(plan.planType)) {
+      throw new Error("Public sharing requires the Full Nest or Legacy plan.");
+    }
+  }
 
   const { data: recipe } = await supabase
     .from("recipes")

@@ -9,12 +9,14 @@ import DatePicker, { type DateRange } from "@/app/components/DatePicker";
 import LocationInput from "@/app/components/LocationInput";
 import PhotoUpload from "@/app/components/PhotoUpload";
 import { extractMetadataFromMultiplePhotos } from "@/src/lib/exifExtractor";
+import { canUploadVideos } from "@/src/lib/plans";
 
 type FamilyMember = { id: string; name: string; color: string; symbol: string };
 type DateValue = Date | DateRange;
 
 export default function NewJournalPage() {
-  const { activeFamilyId } = useFamily();
+  const { activeFamilyId, planType } = useFamily();
+  const videosAllowed = canUploadVideos(planType);
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -222,8 +224,13 @@ export default function NewJournalPage() {
             onVideoChange={handleVideoChange}
             maxFiles={5}
             maxVideos={2}
-            allowVideos
+            allowVideos={videosAllowed}
           />
+          {!videosAllowed && (
+            <p className="mt-2 text-xs text-[var(--muted)]">
+              <Link href="/pricing" className="text-[var(--accent)] hover:underline">Upgrade to Full Nest</Link> to add videos to your journal entries.
+            </p>
+          )}
         </div>
 
         {error && (
