@@ -199,6 +199,41 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
     }
   }
 
+  // Upload videos (max 2 per journal entry, 300 MB each)
+  const JOURNAL_VIDEO_LIMIT = 2;
+  const MAX_VIDEO_BYTES = 300 * 1024 * 1024;
+  const allVideos = formData.getAll("videos") as File[];
+  const validVideos = allVideos.filter((f) => f.size > 0 && f.size <= MAX_VIDEO_BYTES).slice(0, JOURNAL_VIDEO_LIMIT);
+
+  for (let i = 0; i < validVideos.length; i++) {
+    const file = validVideos[i];
+    try {
+      const ext = file.name.split(".").pop() || "mp4";
+      const path = `${entry.id}/${crypto.randomUUID()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("journal-videos")
+        .upload(path, file, { upsert: true });
+
+      if (uploadError) continue;
+
+      const { data: urlData } = supabase.storage
+        .from("journal-videos")
+        .getPublicUrl(path);
+
+      await supabase.from("journal_videos").insert({
+        family_id: activeFamilyId,
+        entry_id: entry.id,
+        url: urlData.publicUrl,
+        file_size_bytes: file.size,
+        sort_order: i,
+        uploaded_by: myMember?.id || null,
+      });
+    } catch {
+      // Skip failed video — entry is still saved
+    }
+  }
+
     revalidatePath("/dashboard/journal");
     revalidatePath("/dashboard/map");
     revalidatePath("/");
@@ -488,4 +523,90 @@ export async function deleteJournalEntry(entryId: string) {
   revalidatePath("/dashboard/journal");
   revalidatePath("/dashboard/map");
   revalidatePath("/");
+}
+
+/* ── Video actions ───────────────────────────────────────── */
+
+const JOURNAL_VIDEO_LIMIT = 2;
+const MAX_VIDEO_BYTES = 300 * 1024 * 1024;
+
+export async function addJournalVideos(entryId: string, formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
+  // Get logged-in user's member record
+  const { data: myMember } = await supabase
+    .from("family_members")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+
+  const { count } = await supabase
+    .from("journal_videos")
+    .select("id", { count: "exact", head: true })
+    .eq("entry_id", entryId);
+
+  const existingCount = count ?? 0;
+  if (existingCount >= JOURNAL_VIDEO_LIMIT) {
+    throw new Error(`Each journal entry can have up to ${JOURNAL_VIDEO_LIMIT} videos.`);
+  }
+
+  const allVideos = formData.getAll("videos") as File[];
+  const validVideos = allVideos.filter((f) => f.size > 0 && f.size <= MAX_VIDEO_BYTES);
+  const toAdd = Math.min(validVideos.length, JOURNAL_VIDEO_LIMIT - existingCount);
+  if (toAdd === 0) return;
+
+  const vids = validVideos.slice(0, toAdd);
+  const startOrder = existingCount;
+
+  for (let i = 0; i < vids.length; i++) {
+    const file = vids[i];
+    const ext = file.name.split(".").pop() || "mp4";
+    const path = `${entryId}/${crypto.randomUUID()}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("journal-videos")
+      .upload(path, file, { upsert: true });
+
+    if (!uploadError) {
+      const { data: urlData } = supabase.storage
+        .from("journal-videos")
+        .getPublicUrl(path);
+
+      await supabase.from("journal_videos").insert({
+        family_id: activeFamilyId,
+        entry_id: entryId,
+        url: urlData.publicUrl,
+        file_size_bytes: file.size,
+        sort_order: startOrder + i,
+        uploaded_by: myMember?.id || null,
+      });
+    }
+  }
+
+  revalidatePath("/dashboard/journal");
+  revalidatePath(`/dashboard/journal/${entryId}`);
+}
+
+export async function deleteJournalVideo(videoId: string, entryId?: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("journal_videos")
+    .delete()
+    .eq("id", videoId);
+
+  if (error) throw error;
+  revalidatePath("/dashboard/journal");
+  if (entryId) revalidatePath(`/dashboard/journal/${entryId}/edit`);
 }

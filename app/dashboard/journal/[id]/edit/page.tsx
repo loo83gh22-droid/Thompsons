@@ -10,12 +10,15 @@ import {
   updateJournalEntry,
   addJournalPhotos,
   deleteJournalPhoto,
+  addJournalVideos,
+  deleteJournalVideo,
 } from "../../actions";
 import { DeleteJournalEntryButton } from "../../DeleteJournalEntryButton";
 import { JournalPerspectives } from "../../JournalPerspectives";
 
 type FamilyMember = { id: string; name: string; color: string; symbol: string };
 type JournalPhoto = { id: string; url: string; caption: string | null };
+type JournalVideo = { id: string; url: string; duration_seconds: number | null; file_size_bytes: number };
 
 export default function EditJournalPage() {
   const router = useRouter();
@@ -33,10 +36,12 @@ export default function EditJournalPage() {
     author_id: string;
   } | null>(null);
   const [photos, setPhotos] = useState<JournalPhoto[]>([]);
+  const [videos, setVideos] = useState<JournalVideo[]>([]);
   const [locationType, setLocationType] = useState<"visit" | "vacation" | "memorable_event">("visit");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [addingPhotos, setAddingPhotos] = useState(false);
+  const [addingVideos, setAddingVideos] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -46,7 +51,7 @@ export default function EditJournalPage() {
     }
     async function load() {
       const supabase = createClient();
-      const [membersRes, entryRes, photosRes, pinRes] = await Promise.all([
+      const [membersRes, entryRes, photosRes, videosRes, pinRes] = await Promise.all([
         supabase.from("family_members").select("id, name, color, symbol").eq("family_id", activeFamilyId).order("name"),
         supabase
           .from("journal_entries")
@@ -56,6 +61,11 @@ export default function EditJournalPage() {
         supabase
           .from("journal_photos")
           .select("id, url, caption")
+          .eq("entry_id", entryId)
+          .order("sort_order"),
+        supabase
+          .from("journal_videos")
+          .select("id, url, duration_seconds, file_size_bytes")
           .eq("entry_id", entryId)
           .order("sort_order"),
         supabase
@@ -86,6 +96,7 @@ export default function EditJournalPage() {
         });
       }
       if (photosRes.data) setPhotos(photosRes.data as JournalPhoto[]);
+      if (videosRes.data) setVideos(videosRes.data as JournalVideo[]);
       const pin = pinRes.data as { location_type?: string } | null;
       if (pin?.location_type === "vacation" || pin?.location_type === "memorable_event") {
         setLocationType(pin.location_type);
@@ -168,6 +179,53 @@ export default function EditJournalPage() {
     }
   }
 
+  const JOURNAL_VIDEO_LIMIT = 2;
+
+  async function handleAddVideos(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const files = formData.getAll("videos") as File[];
+    if (files.every((f) => f.size === 0)) {
+      setAddingVideos(false);
+      return;
+    }
+    const validFiles = files.filter((f) => f.size > 0);
+    const totalAfter = videos.length + validFiles.length;
+    if (totalAfter > JOURNAL_VIDEO_LIMIT) {
+      setError(`Each journal entry can have up to ${JOURNAL_VIDEO_LIMIT} videos. You have ${videos.length} and tried to add ${validFiles.length}.`);
+      return;
+    }
+    setError(null);
+    try {
+      await addJournalVideos(entryId, formData);
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("journal_videos")
+        .select("id, url, duration_seconds, file_size_bytes")
+        .eq("entry_id", entryId)
+        .order("sort_order");
+      if (data) setVideos(data as JournalVideo[]);
+      (form.querySelector('input[name="videos"]') as HTMLInputElement).value = "";
+      setAddingVideos(false);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to add videos.");
+    }
+  }
+
+  async function handleDeleteVideo(videoId: string) {
+    if (!confirm("Remove this video?")) return;
+    setError(null);
+    try {
+      await deleteJournalVideo(videoId, entryId);
+      setVideos((v) => v.filter((x) => x.id !== videoId));
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to remove video.");
+    }
+  }
+
   if (loading || !entry) {
     return (
       <div className="flex min-h-[300px] items-center justify-center">
@@ -189,7 +247,7 @@ export default function EditJournalPage() {
         Edit journal entry
       </h1>
       <p className="mt-2 text-[var(--muted)]">
-        Update the story or add more photos.
+        Update the story, add photos or videos.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-6">
@@ -409,6 +467,92 @@ export default function EditJournalPage() {
         ) : (
           <p className="mt-4 text-sm text-[var(--muted)]">
             Maximum {JOURNAL_PHOTO_LIMIT} photos per entry. Remove one to add another.
+          </p>
+        )}
+      </div>
+
+      {/* Videos section */}
+      <div className="mt-8 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6">
+        <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
+          Videos
+        </h2>
+
+        {videos.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-4">
+            {videos.map((video) => (
+              <div
+                key={video.id}
+                className="group relative w-72 overflow-hidden rounded-lg bg-black"
+              >
+                {/* eslint-disable-next-line jsx-a11y/media-has-caption -- family home video */}
+                <video
+                  src={video.url}
+                  controls
+                  preload="metadata"
+                  playsInline
+                  className="h-48 w-full object-contain"
+                />
+                <div className="flex items-center justify-between bg-[var(--surface)] px-3 py-2 text-xs text-[var(--muted)]">
+                  <span>
+                    {video.duration_seconds
+                      ? `${Math.floor(video.duration_seconds / 60)}:${String(video.duration_seconds % 60).padStart(2, "0")}`
+                      : "Video"}
+                    {" · "}
+                    {(video.file_size_bytes / (1024 * 1024)).toFixed(1)} MB
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteVideo(video.id)}
+                    className="text-red-400 hover:text-red-300 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {videos.length < JOURNAL_VIDEO_LIMIT && addingVideos ? (
+          <form onSubmit={handleAddVideos} className="mt-4 space-y-4">
+            <input
+              name="videos"
+              type="file"
+              accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm"
+              multiple
+              required
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-[var(--foreground)] file:mr-4 file:rounded-lg file:border-0 file:bg-[var(--accent)] file:px-4 file:py-2 file:font-semibold file:text-[var(--background)]"
+            />
+            <p className="text-xs text-[var(--muted)]">
+              Max 5 minutes, 300 MB per video. Keep the gems, not everything.
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                className="rounded-lg bg-[var(--accent)] px-4 py-2 font-semibold text-[var(--background)]"
+              >
+                Upload video
+              </button>
+              <button
+                type="button"
+                onClick={() => setAddingVideos(false)}
+                className="rounded-lg border border-[var(--border)] px-4 py-2"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        ) : videos.length < JOURNAL_VIDEO_LIMIT ? (
+          <button
+            type="button"
+            onClick={() => setAddingVideos(true)}
+            className="mt-4 rounded-lg border border-[var(--border)] px-4 py-2 text-sm hover:bg-[var(--surface-hover)]"
+          >
+            + Add a video ({videos.length}/{JOURNAL_VIDEO_LIMIT})
+          </button>
+        ) : (
+          <p className="mt-4 text-sm text-[var(--muted)]">
+            Maximum {JOURNAL_VIDEO_LIMIT} videos per entry. Remove one to add another.
           </p>
         )}
       </div>

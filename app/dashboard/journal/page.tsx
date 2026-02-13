@@ -33,27 +33,42 @@ export default async function JournalPage() {
     .order("trip_date", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
 
-  // Batch fetch photos and perspective counts (avoids N+1 queries)
+  // Batch fetch photos, videos, and perspective counts (avoids N+1 queries)
   const photosByEntryId = new Map<string, { id: string; url: string; caption: string | null }[]>();
+  const videosByEntryId = new Map<string, { id: string; url: string; duration_seconds: number | null }[]>();
   const perspectiveCountByEntryId = new Map<string, number>();
   if (entries && entries.length > 0) {
     const entryIds = entries.map((e) => e.id);
-    const [photosRes, perspectivesRes] = await Promise.all([
+    const [photosRes, videosRes, perspectivesRes] = await Promise.all([
       supabase
         .from("journal_photos")
         .select("id, url, caption, entry_id")
         .in("entry_id", entryIds)
         .order("entry_id")
         .order("sort_order"),
+      supabase
+        .from("journal_videos")
+        .select("id, url, duration_seconds, entry_id")
+        .in("entry_id", entryIds)
+        .order("entry_id")
+        .order("sort_order"),
       supabase.from("journal_perspectives").select("id, journal_entry_id").in("journal_entry_id", entryIds),
     ]);
     const photos = photosRes.data ?? [];
+    const videos = videosRes.data ?? [];
     const perspectives = perspectivesRes.data ?? [];
     for (const p of photos) {
       if (p.entry_id) {
         const list = photosByEntryId.get(p.entry_id) ?? [];
         list.push({ id: p.id, url: p.url, caption: p.caption });
         photosByEntryId.set(p.entry_id, list);
+      }
+    }
+    for (const v of videos) {
+      if (v.entry_id) {
+        const list = videosByEntryId.get(v.entry_id) ?? [];
+        list.push({ id: v.id, url: v.url, duration_seconds: v.duration_seconds });
+        videosByEntryId.set(v.entry_id, list);
       }
     }
     for (const p of perspectives) {
@@ -97,6 +112,7 @@ export default async function JournalPage() {
         ) : (
           entries.map((entry) => {
             const photos = photosByEntryId.get(entry.id) ?? [];
+            const videos = videosByEntryId.get(entry.id) ?? [];
             const perspectiveCount = perspectiveCountByEntryId.get(entry.id) ?? 0;
 
             const date = entry.trip_date
@@ -168,7 +184,7 @@ export default async function JournalPage() {
                     </div>
                   </div>
                 </div>
-                {photos && photos.length > 0 && (
+                {(photos.length > 0 || videos.length > 0) && (
                   <div className="flex gap-2 overflow-x-auto p-4 pt-0">
                     {photos.map((photo, i) => (
                       <div
@@ -181,6 +197,21 @@ export default async function JournalPage() {
                           fill
                           className="object-cover"
                           sizes="192px"
+                        />
+                      </div>
+                    ))}
+                    {videos.map((video) => (
+                      <div
+                        key={video.id}
+                        className="relative h-48 w-72 flex-shrink-0 overflow-hidden rounded-lg bg-black"
+                      >
+                        {/* eslint-disable-next-line jsx-a11y/media-has-caption -- family home video, no captions */}
+                        <video
+                          src={video.url}
+                          controls
+                          preload="metadata"
+                          playsInline
+                          className="h-full w-full object-contain"
                         />
                       </div>
                     ))}

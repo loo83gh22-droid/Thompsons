@@ -27,6 +27,7 @@ export default function NewJournalPage() {
   });
   const [locationType, setLocationType] = useState<"visit" | "vacation" | "memorable_event">("visit");
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [coverPhotoIndex, setCoverPhotoIndex] = useState(0);
 
   useEffect(() => {
@@ -51,6 +52,10 @@ export default function NewJournalPage() {
         if (metadata.date) setDate(metadata.date as Date);
       });
     }
+  }, []);
+
+  const handleVideoChange = useCallback((files: File[]) => {
+    setVideoFiles(files);
   }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -86,6 +91,7 @@ export default function NewJournalPage() {
                 ...photoFiles.slice(coverPhotoIndex + 1),
               ];
       orderedPhotos.forEach((file) => formData.append("photos", file));
+      videoFiles.forEach((file) => formData.append("videos", file));
 
       const result = await createJournalEntry(formData);
       if (result?.success) {
@@ -211,10 +217,13 @@ export default function NewJournalPage() {
         </div>
 
         <div>
-          <PhotoUpload onChange={handlePhotoChange} maxFiles={5} />
-          <p className="mt-1 text-xs text-[var(--muted)]">
-            Up to 5 photos per entry.
-          </p>
+          <PhotoUpload
+            onChange={handlePhotoChange}
+            onVideoChange={handleVideoChange}
+            maxFiles={5}
+            maxVideos={2}
+            allowVideos
+          />
         </div>
 
         {error && (

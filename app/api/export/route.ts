@@ -187,6 +187,7 @@ export async function POST() {
         membersRes,
         journalsRes,
         photosRes,
+        jVideosRes,
         voiceRes,
         storiesRes,
         recipesRes,
@@ -206,6 +207,11 @@ export async function POST() {
         supabase
           .from("journal_photos")
           .select("id, entry_id, url, caption, sort_order")
+          .eq("family_id", fid)
+          .order("sort_order", { ascending: true }),
+        supabase
+          .from("journal_videos")
+          .select("id, entry_id, url, duration_seconds, file_size_bytes, sort_order")
           .eq("family_id", fid)
           .order("sort_order", { ascending: true }),
         supabase
@@ -243,6 +249,7 @@ export async function POST() {
       const members = membersRes.data ?? [];
       const journals = journalsRes.data ?? [];
       const photos = photosRes.data ?? [];
+      const jVideos = jVideosRes.data ?? [];
       const voiceMemos = voiceRes.data ?? [];
       const stories = storiesRes.data ?? [];
       const recipes = recipesRes.data ?? [];
@@ -262,6 +269,14 @@ export async function POST() {
         photosByEntry.set(p.entry_id, list);
       }
 
+      // Video lookup by journal entry
+      const videosByEntry = new Map<string, typeof jVideos>();
+      for (const v of jVideos) {
+        const list = videosByEntry.get(v.entry_id) ?? [];
+        list.push(v);
+        videosByEntry.set(v.entry_id, list);
+      }
+
       // ------ README.txt ------
       zip.file(
         "README.txt",
@@ -274,6 +289,7 @@ Archive Structure
 -----------------
 /journals/          — Journal entries as markdown files
 /photos/            — Photos from journal entries (originals)
+/videos/            — Videos from journal entries
 /voice-memos/       — Voice memo audio files
 /stories/           — Family stories as markdown
 /recipes/           — Family recipes as markdown
@@ -347,7 +363,9 @@ Notes
       // ------ Journal entries as markdown + photos ------
       const journalsFolder = zip.folder("journals")!;
       const photosFolder = zip.folder("photos")!;
+      const videosFolder = zip.folder("videos")!;
       let photoIndex = 0;
+      let videoIndex = 0;
 
       for (const entry of journals) {
         const author = memberName(memberMap, entry.author_id);
@@ -386,6 +404,27 @@ Notes
             } else {
               // Fallback: include URL reference
               md += `  (Original URL: ${photo.url})\n`;
+            }
+          }
+        }
+
+        // Videos for this entry
+        const entryVideos = videosByEntry.get(entry.id) ?? [];
+        if (entryVideos.length > 0) {
+          md += `\n## Videos\n\n`;
+          for (const video of entryVideos) {
+            videoIndex++;
+            const ext = fileExtFromUrl(video.url) || ".mp4";
+            const videoFilename = `video_${String(videoIndex).padStart(4, "0")}${ext}`;
+            md += `- ${videoFilename}`;
+            if (video.duration_seconds) md += ` (${Math.floor(video.duration_seconds / 60)}:${String(video.duration_seconds % 60).padStart(2, "0")})`;
+            md += "\n";
+
+            const fileData = await fetchFile(video.url);
+            if (fileData) {
+              videosFolder.file(videoFilename, fileData);
+            } else {
+              md += `  (Original URL: ${video.url})\n`;
             }
           }
         }
