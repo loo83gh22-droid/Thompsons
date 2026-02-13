@@ -1,5 +1,6 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 export async function PUT(request: Request) {
   try {
@@ -38,14 +39,23 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Update family name
-    const { error } = await supabase
+    // Update family name — use .select() to verify the update actually took effect
+    const { data: updated, error } = await supabase
       .from("families")
       .update({ name: trimmed })
-      .eq("id", familyId);
+      .eq("id", familyId)
+      .select("id, name")
+      .maybeSingle();
 
     if (error)
       return NextResponse.json({ error: error.message }, { status: 500 });
+
+    if (!updated) {
+      return NextResponse.json(
+        { error: "Could not update family name. Please try again." },
+        { status: 500 }
+      );
+    }
 
     // Also update family_settings if it exists
     await supabase
@@ -53,7 +63,10 @@ export async function PUT(request: Request) {
       .update({ family_name: trimmed })
       .eq("family_id", familyId);
 
-    return NextResponse.json({ name: trimmed });
+    // Revalidate all dashboard pages so the layout re-fetches the family name
+    revalidatePath("/dashboard", "layout");
+
+    return NextResponse.json({ name: updated.name });
   } catch {
     return NextResponse.json(
       { error: "Internal server error" },
