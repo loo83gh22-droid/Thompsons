@@ -44,6 +44,12 @@ export default function HomePage() {
               Sign up our Family
             </Link>
             <Link
+              href="/pricing"
+              className="inline-flex items-center justify-center rounded-lg border border-[var(--accent)] px-8 py-4 font-medium text-[var(--accent)] transition-all hover:bg-[var(--accent)]/10"
+            >
+              See Pricing
+            </Link>
+            <Link
               href="/login"
               className="inline-flex items-center justify-center rounded-lg border border-[var(--border)] px-8 py-4 font-medium text-[var(--foreground)] hover:bg-[var(--surface)]"
             >
@@ -99,6 +105,9 @@ export default function HomePage() {
         <footer className="absolute bottom-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-[var(--muted)]">
           <span>Private · Family only · No ads</span>
           <span className="hidden sm:inline">·</span>
+          <Link href="/pricing" className="hover:text-[var(--foreground)]">
+            Pricing
+          </Link>
           <Link href="/terms" className="hover:text-[var(--foreground)]">
             Terms
           </Link>

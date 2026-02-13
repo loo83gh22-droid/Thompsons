@@ -340,6 +340,14 @@ export function Nav({
                   <div className="border-b border-[var(--border)] px-4 py-2">
                     <span className="text-sm text-[var(--muted)]">{user.email}</span>
                   </div>
+                  <Link
+                    href="/pricing"
+                    role="menuitem"
+                    className="block px-4 py-3 text-left text-sm text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] focus:bg-[var(--surface-hover)]"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Pricing
+                  </Link>
                   <a
                     href={`mailto:${typeof process.env.NEXT_PUBLIC_FEEDBACK_EMAIL === "string" ? process.env.NEXT_PUBLIC_FEEDBACK_EMAIL : "feedback@example.com"}?subject=Family%20Nest%20Feedback`}
                     role="menuitem"
@@ -459,6 +467,13 @@ export function Nav({
               )}
             </div>
             <div className="mt-auto border-t border-[var(--border)] pt-4 space-y-1">
+              <Link
+                href="/pricing"
+                className="block w-full rounded-lg px-4 py-3 text-left text-sm font-medium text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] min-h-[44px] flex items-center"
+                onClick={closeMobileMenu}
+              >
+                Pricing
+              </Link>
               <a
                 href={`mailto:${typeof process.env.NEXT_PUBLIC_FEEDBACK_EMAIL === "string" ? process.env.NEXT_PUBLIC_FEEDBACK_EMAIL : "feedback@example.com"}?subject=Family%20Nest%20Feedback`}
                 className="block w-full rounded-lg px-4 py-3 text-left text-sm font-medium text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] min-h-[44px] flex items-center"
