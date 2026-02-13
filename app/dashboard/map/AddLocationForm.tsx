@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
 
@@ -22,6 +22,73 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
   const [tripDateEnd, setTripDateEnd] = useState("");
   const [notes, setNotes] = useState("");
 
+  // Geocoded coordinates from autocomplete (or fallback geocode)
+  const [resolvedLat, setResolvedLat] = useState<number | null>(null);
+  const [resolvedLng, setResolvedLng] = useState<number | null>(null);
+  const [resolvedCountry, setResolvedCountry] = useState<string | null>(null);
+
+  // Google Places Autocomplete refs
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [mapsReady, setMapsReady] = useState(false);
+
+  // Check if Google Maps JS API is loaded (shared loader from MapComponent via id "google-map-script")
+  useEffect(() => {
+    if (typeof google !== "undefined" && google.maps?.places) {
+      setMapsReady(true);
+      return;
+    }
+    // Poll briefly for the shared loader to finish
+    const timer = setInterval(() => {
+      if (typeof google !== "undefined" && google.maps?.places) {
+        setMapsReady(true);
+        clearInterval(timer);
+      }
+    }, 200);
+    return () => clearInterval(timer);
+  }, [open]);
+
+  // Attach autocomplete once Maps is ready and form is open
+  const attachAutocomplete = useCallback(() => {
+    if (!mapsReady || !locationInputRef.current || autocompleteRef.current) return;
+
+    autocompleteRef.current = new google.maps.places.Autocomplete(
+      locationInputRef.current,
+      {
+        // Allow all place types: addresses, cities, regions, establishments, etc.
+        fields: ["formatted_address", "geometry", "name", "address_components"],
+      }
+    );
+
+    autocompleteRef.current.addListener("place_changed", () => {
+      const place = autocompleteRef.current?.getPlace();
+      if (place?.geometry?.location) {
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        const display = place.formatted_address || place.name || "";
+        setLocationName(display);
+        setResolvedLat(lat);
+        setResolvedLng(lng);
+
+        // Extract country code
+        const countryComp = place.address_components?.find((c) =>
+          c.types.includes("country")
+        );
+        setResolvedCountry(countryComp?.short_name?.toUpperCase() || null);
+        setError(null);
+      }
+    });
+  }, [mapsReady]);
+
+  useEffect(() => {
+    if (open) attachAutocomplete();
+    // Clean up when form closes
+    if (!open && autocompleteRef.current) {
+      google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      autocompleteRef.current = null;
+    }
+  }, [open, attachAutocomplete]);
+
   useEffect(() => {
     if (!activeFamilyId) return;
     async function fetchMembers() {
@@ -40,6 +107,36 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
     fetchMembers();
   }, [activeFamilyId]);
 
+  /** Fallback: geocode typed text via API if user didn't pick from autocomplete dropdown */
+  async function geocodeFallback(query: string): Promise<{
+    lat: number;
+    lng: number;
+    country: string | null;
+  } | null> {
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) return null;
+    try {
+      const res = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${apiKey}`
+      );
+      const json = await res.json();
+      if (json.status === "OK" && json.results?.[0]) {
+        const loc = json.results[0].geometry.location;
+        const countryComp = json.results[0].address_components?.find(
+          (c: { types: string[] }) => c.types.includes("country")
+        );
+        return {
+          lat: loc.lat,
+          lng: loc.lng,
+          country: countryComp?.short_name?.toUpperCase() || null,
+        };
+      }
+    } catch {
+      // fall through
+    }
+    return null;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -48,29 +145,22 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
     try {
       const supabase = createClient();
 
-      // Geocode location name using Google Geocoding API
-      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-      if (!apiKey) {
-        throw new Error("Google Maps API key is not configured. Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to .env.local");
-      }
-      const geocodeRes = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(locationName)}&key=${apiKey}`
-      );
-      const geocode = await geocodeRes.json();
-      if (geocode.status !== "OK" || !geocode.results?.[0]) {
-        throw new Error("Could not find that location. Try a more specific place name.");
-      }
-      const result = geocode.results[0];
-      const loc = result.geometry.location;
-      const lat = loc.lat;
-      const lng = loc.lng;
-      const countryComp = result.address_components?.find((c: { types: string[] }) =>
-        c.types.includes("country")
-      );
-      const countryCode = countryComp?.short_name?.toUpperCase() || null;
+      let lat = resolvedLat;
+      let lng = resolvedLng;
+      let countryCode = resolvedCountry;
 
-      if (!lat || !lng) {
-        throw new Error("Could not find coordinates for that location. Try a more specific place name.");
+      // If user typed without selecting from autocomplete, try fallback geocode
+      if (lat === null || lng === null) {
+        const fallback = await geocodeFallback(locationName);
+        if (fallback) {
+          lat = fallback.lat;
+          lng = fallback.lng;
+          countryCode = fallback.country;
+        } else {
+          throw new Error(
+            "Could not find that location. Try selecting from the dropdown suggestions, or enter a more specific address."
+          );
+        }
       }
 
       if (!activeFamilyId) {
@@ -110,6 +200,9 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
       setTripDate("");
       setTripDateEnd("");
       setNotes("");
+      setResolvedLat(null);
+      setResolvedLng(null);
+      setResolvedCountry(null);
       setOpen(false);
       onAdded?.();
       window.dispatchEvent(new Event("map-refresh"));
@@ -251,16 +344,29 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
 
         <div>
           <label className="block text-sm font-medium text-[var(--muted)]">
-            Location name
+            Location
           </label>
           <input
+            ref={locationInputRef}
             type="text"
             value={locationName}
-            onChange={(e) => setLocationName(e.target.value)}
+            onChange={(e) => {
+              setLocationName(e.target.value);
+              // Clear resolved coords when user types (they need to re-select or we'll fallback-geocode)
+              setResolvedLat(null);
+              setResolvedLng(null);
+              setResolvedCountry(null);
+              setError(null);
+            }}
             required
-            placeholder="e.g. Paris, France"
+            placeholder="Start typing an address, city, or place..."
             className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)]"
           />
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            {resolvedLat !== null
+              ? "✓ Location found"
+              : "Type and pick from the dropdown, or enter any address — we'll find it."}
+          </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
