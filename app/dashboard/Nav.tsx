@@ -7,6 +7,7 @@ import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/src/lib/supabase/client";
 import { setActiveFamily } from "./actions/family";
 import { SkipLink } from "./components/SkipLink";
+import { GlobalSearch } from "./GlobalSearch";
 
 type Family = { id: string; name: string };
 
@@ -190,6 +191,11 @@ export function Nav({
                 )}
               </>
             )}
+          </div>
+
+          {/* Search */}
+          <div className="hidden min-[768px]:block">
+            <GlobalSearch />
           </div>
 
           {/* Desktop nav - hidden below 768px, only logo + hamburger show on mobile */}
@@ -417,6 +423,10 @@ export function Nav({
             </button>
           </div>
           <div className="flex flex-1 flex-col gap-1 overflow-y-auto py-4 pl-4 pr-2">
+            {/* Mobile search */}
+            <div className="mb-3">
+              <GlobalSearch />
+            </div>
             {navItemsBeforeDropdowns.map((item) => (
               <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={navLinkClass(pathname === item.href)}>
                 {item.label}

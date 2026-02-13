@@ -10,6 +10,7 @@ import { DashboardStats } from "./DashboardStats";
 import { UpcomingEvents } from "./UpcomingEvents";
 import { ActivityFeed, type ActivityItem } from "./ActivityFeed";
 import { FamilySummaryStrip } from "./FamilySummaryStrip";
+import { OnboardingChecklist } from "./OnboardingChecklist";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -157,16 +158,15 @@ export default async function DashboardPage() {
 
       {activeFamilyId && (
         <>
-          {hasNoContent && (
-            <div className="mt-6 rounded-xl border-2 border-dashed border-[var(--accent)]/40 bg-[var(--accent)]/5 px-4 py-6 text-center sm:px-6">
-              <p className="font-display text-xl font-semibold text-[var(--foreground)]">
-                Your family story starts here!
-              </p>
-              <p className="mt-2 text-[var(--muted)]">
-                Choose a section below to add your first memory.
-              </p>
-            </div>
-          )}
+          <div className="mt-6">
+            <OnboardingChecklist
+              memberCount={stats.memberCount}
+              photoCount={stats.photoCount}
+              journalCount={stats.journalCount}
+              storyCount={stats.storyCount}
+              voiceMemoCount={stats.voiceMemoCount}
+            />
+          </div>
 
           <div className="mt-6">
             <FamilySummaryStrip

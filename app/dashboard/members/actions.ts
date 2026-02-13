@@ -13,24 +13,100 @@ async function sendInviteEmail(to: string, name: string, familyName: string): Pr
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return;
   const resend = new Resend(apiKey);
-  const from = process.env.RESEND_FROM_EMAIL || "Thompsons <onboarding@resend.dev>";
+  const from = process.env.RESEND_FROM_EMAIL || "Our Family Nest <onboarding@resend.dev>";
   const baseUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
     (typeof process.env.VERCEL_URL === "string" ? `https://${process.env.VERCEL_URL}` : null);
   const signupUrl = baseUrl ? `${baseUrl}/login` : null;
-  const safeName = (name || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const safeFamily = (familyName || "Our Family").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const eName = (s: string) => s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const safeName = eName(name || "");
+  const safeFamily = eName(familyName || "Our Family");
+
   await resend.emails.send({
     from,
     to: to.trim(),
-    subject: `You've been added to ${safeFamily}!`,
+    subject: `${safeFamily} wants you in their Family Nest`,
     html: `
-      <h2>You've been added to ${safeFamily}</h2>
-      <p>Hi${safeName ? ` ${safeName}` : ""},</p>
-      <p>Someone has added you to their family on Our Family Nest. Sign up to join and see photos, memories, and more.</p>
-      ${signupUrl ? `<p><a href="${signupUrl}" style="display: inline-block; background: #333; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Sign up to join</a></p>` : ""}
-      <p style="margin-top: 24px; color: #888; font-size: 12px;">If you didn't expect this, you can ignore this email.</p>
-    `,
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;padding:32px 20px;">
+
+<!-- Logo -->
+<tr><td style="text-align:center;padding-bottom:24px;">
+  <span style="font-size:28px;color:#D4A843;font-weight:700;">${safeFamily} Nest</span>
+</td></tr>
+
+<!-- Main card -->
+<tr><td style="background:#1e293b;border-radius:12px;padding:32px 24px;border:1px solid #334155;">
+  <h1 style="margin:0 0 12px;font-size:24px;color:#f8fafc;font-weight:700;">
+    You&apos;ve been invited!
+  </h1>
+  <p style="margin:0 0 20px;color:#94a3b8;font-size:15px;line-height:1.6;">
+    Hi${safeName ? ` ${safeName}` : ""},<br><br>
+    The <strong style="color:#f8fafc;">${safeFamily}</strong> family has added you to their private Family Nest &mdash; 
+    a space to share memories, photos, recipes, and stories that only your family can see.
+  </p>
+
+  <!-- What's waiting -->
+  <div style="background:#0f172a;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+    <p style="margin:0 0 12px;font-size:13px;font-weight:600;color:#D4A843;text-transform:uppercase;letter-spacing:0.5px;">
+      What&apos;s waiting for you
+    </p>
+    <table cellpadding="0" cellspacing="0" style="width:100%;">
+      <tr>
+        <td style="padding:6px 0;color:#f8fafc;font-size:14px;">
+          <span style="margin-right:8px;">📔</span> Family journal &amp; timeline
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:6px 0;color:#f8fafc;font-size:14px;">
+          <span style="margin-right:8px;">📷</span> Shared photo mosaic
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:6px 0;color:#f8fafc;font-size:14px;">
+          <span style="margin-right:8px;">🎙️</span> Voice memos &amp; stories
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:6px 0;color:#f8fafc;font-size:14px;">
+          <span style="margin-right:8px;">🗺️</span> Family map of places you&apos;ve been
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:6px 0;color:#f8fafc;font-size:14px;">
+          <span style="margin-right:8px;">💌</span> Time capsules &amp; messages
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  ${signupUrl ? `
+  <div style="text-align:center;">
+    <a href="${signupUrl}" style="display:inline-block;background:#D4A843;color:#0f172a;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">
+      Join ${safeFamily}&apos;s Nest
+    </a>
+    <p style="margin:12px 0 0;color:#64748b;font-size:13px;">
+      Free to join. Takes 30 seconds.
+    </p>
+  </div>
+  ` : ""}
+</td></tr>
+
+<!-- Footer -->
+<tr><td style="text-align:center;padding-top:24px;">
+  <p style="color:#64748b;font-size:12px;margin:0;">
+    Our Family Nest &mdash; Private family memories, preserved forever.
+  </p>
+  <p style="color:#475569;font-size:11px;margin:8px 0 0;">
+    If you didn&apos;t expect this, you can safely ignore this email.
+  </p>
+</td></tr>
+
+</table>
+</body>
+</html>`,
   });
 }
 

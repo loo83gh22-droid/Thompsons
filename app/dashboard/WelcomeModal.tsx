@@ -50,34 +50,47 @@ export function WelcomeModal({ familyName }: { familyName: string }) {
         <p className="mt-2 text-[var(--muted)]">
           A private space to preserve and share your family&apos;s story.
         </p>
-        <ul className="mt-6 space-y-4" aria-label="Quick start tips">
+        <p className="mt-4 text-sm text-[var(--muted)]">
+          Here&apos;s how to make it yours in under 5 minutes:
+        </p>
+        <ol className="mt-4 space-y-3" aria-label="Quick start steps">
           <li className="flex items-start gap-3">
-            <span className="text-2xl shrink-0" role="img" aria-hidden>📷</span>
-            <span className="text-[var(--foreground)]">Upload your first photo or memory</span>
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/20 text-sm font-bold text-[var(--accent)]">1</span>
+            <div>
+              <span className="font-medium text-[var(--foreground)]">Add your family members</span>
+              <p className="text-sm text-[var(--muted)]">Start with the people closest to you.</p>
+            </div>
           </li>
           <li className="flex items-start gap-3">
-            <span className="text-2xl shrink-0" role="img" aria-hidden>🎙️</span>
-            <span className="text-[var(--foreground)]">Record a voice memo to preserve voices</span>
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/20 text-sm font-bold text-[var(--accent)]">2</span>
+            <div>
+              <span className="font-medium text-[var(--foreground)]">Upload a photo</span>
+              <p className="text-sm text-[var(--muted)]">It becomes part of your family mosaic background.</p>
+            </div>
           </li>
           <li className="flex items-start gap-3">
-            <span className="text-2xl shrink-0" role="img" aria-hidden>👥</span>
-            <span className="text-[var(--foreground)]">Invite family members to collaborate</span>
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/20 text-sm font-bold text-[var(--accent)]">3</span>
+            <div>
+              <span className="font-medium text-[var(--foreground)]">Write your first memory</span>
+              <p className="text-sm text-[var(--muted)]">A journal entry, story, or recipe to get started.</p>
+            </div>
           </li>
-        </ul>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-between">
+        </ol>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <Link
+            href="/dashboard/our-family"
+            onClick={handleDismiss}
+            className="min-h-[44px] w-full rounded-lg bg-[var(--accent)] px-6 py-3 text-center font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:w-auto"
+          >
+            Add Family Members
+          </Link>
           <button
             type="button"
             onClick={handleDismiss}
-            className="min-h-[44px] w-full rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:w-auto"
+            className="min-h-[44px] w-full rounded-lg border border-[var(--border)] px-6 py-3 text-sm font-medium text-[var(--muted)] hover:bg-[var(--surface-hover)] sm:w-auto"
           >
-            Get Started
+            I&apos;ll explore on my own
           </button>
-          <span className="flex items-center justify-center text-sm text-[var(--muted)] sm:justify-end">
-            <span className="sr-only">Optional: </span>
-            <Link href="/dashboard/timeline" onClick={handleDismiss} className="text-[var(--accent)] hover:underline">
-              Take a quick tour
-            </Link>
-          </span>
         </div>
       </div>
     </div>
