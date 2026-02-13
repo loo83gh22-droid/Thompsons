@@ -148,6 +148,7 @@ function MemberCard({ member }: { member: Member }) {
     <img
       src={displayPhoto}
       alt={member.name}
+      loading="lazy"
       className="h-20 w-20 rounded-full object-cover ring-2 ring-[var(--border)]"
     />
   ) : (
@@ -170,13 +171,15 @@ function MemberCard({ member }: { member: Member }) {
               {photoPreview ? (
                 <img
                   src={photoPreview}
-                  alt="New"
+                  alt={`New profile photo for ${member.name}`}
+                  loading="lazy"
                   className="h-20 w-20 rounded-full object-cover ring-2 ring-[var(--border)]"
                 />
               ) : avatarUrl ? (
                 <img
                   src={avatarUrl}
-                  alt="Current"
+                  alt={`Current profile photo of ${member.name}`}
+                  loading="lazy"
                   className="h-20 w-20 rounded-full object-cover ring-2 ring-[var(--border)]"
                 />
               ) : (
@@ -298,6 +301,7 @@ function MemberCard({ member }: { member: Member }) {
             <img
               src={member.avatar_url}
               alt={member.name}
+              loading="lazy"
               className="h-20 w-20 rounded-full object-cover"
             />
           ) : (

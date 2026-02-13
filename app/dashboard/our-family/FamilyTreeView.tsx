@@ -128,7 +128,7 @@ function MemberNode({
     >
       <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-full">
         {member.avatar_url ? (
-          <img src={member.avatar_url} alt="" className="h-full w-full object-cover" />
+          <img src={member.avatar_url} alt={member.name} loading="lazy" className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-[var(--accent)]/30 text-xl font-semibold text-[var(--accent)]">
             {initials(member.name)}

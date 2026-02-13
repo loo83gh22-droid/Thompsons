@@ -65,7 +65,7 @@ export function FamilySummaryStrip({
                   title={m.name}
                 >
                   {m.avatar_url ? (
-                    <img src={m.avatar_url} alt="" className="h-full w-full object-cover" />
+                    <img src={m.avatar_url} alt={m.name} loading="lazy" className="h-full w-full object-cover" />
                   ) : (
                     <span className="flex h-full w-full items-center justify-center text-xs font-semibold text-[var(--accent)]">
                       {initials(m.name)}

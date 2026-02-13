@@ -118,7 +118,7 @@ export default async function RecipePage({
                     >
                       <Image
                         src={photo.url}
-                        alt={photo.caption || entry?.title || "Dinner photo"}
+                        alt={photo.caption || entry?.title || "Recipe photo"}
                         fill
                         className="object-cover"
                         sizes="160px"

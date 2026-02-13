@@ -261,7 +261,8 @@ export function AddMemberForm({
                 <div className="mt-2 flex items-center gap-3">
                   <img
                     src={photoPreview}
-                    alt="Preview"
+                    alt="Profile photo preview"
+                    loading="lazy"
                     className="h-20 w-20 rounded-full object-cover ring-2 ring-[var(--border)]"
                   />
                   <button

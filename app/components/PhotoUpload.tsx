@@ -63,6 +63,7 @@ function SortablePhoto({
       <img
         src={photo.preview}
         alt="Upload preview"
+        loading="lazy"
         className="h-full w-full object-cover"
       />
       {photo.isCover && (

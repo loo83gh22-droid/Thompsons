@@ -146,7 +146,8 @@ export function MemberDetailsPanel({
           {member.avatar_url ? (
             <img
               src={member.avatar_url}
-              alt=""
+              alt={member.name}
+              loading="lazy"
               className="h-[120px] w-[120px] rounded-full object-cover shadow-md"
             />
           ) : (

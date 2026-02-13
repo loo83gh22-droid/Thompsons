@@ -64,7 +64,7 @@ function ActivityCard({ item }: { item: ActivityItem }) {
         <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg bg-[var(--border)]">
           <Image
             src={item.thumbnailUrl}
-            alt=""
+            alt={item.title || `Photo shared by ${item.memberName || "a family member"}`}
             fill
             className="object-cover"
             sizes="56px"

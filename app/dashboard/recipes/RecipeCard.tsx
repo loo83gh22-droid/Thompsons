@@ -32,7 +32,7 @@ export function RecipeCard({ recipe }: { recipe: Recipe }) {
           <div className="relative h-32 w-32 flex-shrink-0">
             <Image
               src={photoUrl}
-              alt=""
+              alt={`Photo for ${recipe.title}`}
               fill
               className="object-cover"
               sizes="128px"

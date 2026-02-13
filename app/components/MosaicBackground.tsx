@@ -50,6 +50,7 @@ export async function MosaicBackground() {
                 <Image
                   src={url}
                   alt=""
+                  role="presentation"
                   fill
                   className="object-cover"
                   sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 16vw"

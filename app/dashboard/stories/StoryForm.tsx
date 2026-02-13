@@ -146,7 +146,7 @@ export function StoryForm({
           {coverUploading && <span className="text-sm text-[var(--muted)]">Uploading…</span>}
           {coverUrl && (
             <div className="relative h-24 w-40 overflow-hidden rounded-lg border border-[var(--border)]">
-              <Image src={coverUrl} alt="Cover" fill className="object-cover" sizes="160px" />
+              <Image src={coverUrl} alt="Story cover preview" fill className="object-cover" sizes="160px" />
               <button
                 type="button"
                 onClick={() => setCoverUrl(null)}

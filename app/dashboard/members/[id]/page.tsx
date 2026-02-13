@@ -99,6 +99,7 @@ export default async function MemberProfilePage({
             <img
               src={member.avatar_url}
               alt={member.name}
+              loading="lazy"
               className="h-[150px] w-[150px] rounded-full object-cover ring-4 ring-[var(--border)]"
             />
           ) : (
@@ -162,7 +163,8 @@ export default async function MemberProfilePage({
               >
                 <img
                   src={p.url}
-                  alt={p.caption ?? "Photo"}
+                  alt={p.caption || `Photo by ${member.name}`}
+                  loading="lazy"
                   className="h-full w-full object-cover"
                 />
               </Link>
