@@ -35,9 +35,22 @@ export async function addPhoto(file: File) {
 
   const nextOrder = photos?.[0]?.sort_order != null ? photos[0].sort_order + 1 : 0;
 
+  // Get uploader's family_member id
+  const { data: myMember } = await supabase
+    .from("family_members")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+
   const { data: inserted, error: insertError } = await supabase
     .from("home_mosaic_photos")
-    .insert({ family_id: activeFamilyId, url: urlData.publicUrl, sort_order: nextOrder })
+    .insert({
+      family_id: activeFamilyId,
+      url: urlData.publicUrl,
+      sort_order: nextOrder,
+      uploaded_by: myMember?.id || null,
+    })
     .select("id, url, sort_order")
     .single();
 

@@ -41,11 +41,20 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
 
     if (!familyMemberId) return { success: false, error: "Please select who this entry is about." };
 
+    // Get the logged-in user's family_member record for created_by
+    const { data: myMember } = await supabase
+      .from("family_members")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("family_id", activeFamilyId)
+      .single();
+
     const { data: entry, error: entryError } = await supabase
       .from("journal_entries")
       .insert({
         family_id: activeFamilyId,
         author_id: familyMemberId,
+        created_by: myMember?.id || null,
         title,
         content: content || null,
         location: location || null,

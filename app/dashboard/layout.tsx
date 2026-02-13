@@ -6,6 +6,7 @@ import { MusicPlayer } from "@/app/dashboard/MusicPlayer";
 import { UnreadMessagesFetcher } from "@/app/dashboard/UnreadMessagesFetcher";
 import { FamilyProvider } from "@/app/dashboard/FamilyContext";
 import { WelcomeModal } from "@/app/dashboard/WelcomeModal";
+import { AgeTransitionBanner } from "@/app/dashboard/AgeTransitionBanner";
 
 export default async function DashboardLayout({
   children,
@@ -75,6 +76,7 @@ export default async function DashboardLayout({
             name: meta?.full_name || user.email?.split("@")[0] || "Family Member",
             relationship: meta?.relationship || null,
             contact_email: user.email || null,
+            role: "owner",
           })
           .select("id, family_id, contact_email, relationship")
           .single();
@@ -104,11 +106,27 @@ export default async function DashboardLayout({
     const { activeFamilyId, families } = await getActiveFamilyId(supabase);
     const familyName = await getActiveFamilyName(supabase);
 
+    // Get current user's role in the active family
+    let currentUserRole: "owner" | "adult" | "teen" | "child" = "adult";
+    let currentMemberId: string | null = null;
+    if (activeFamilyId) {
+      const { data: myMember } = await supabase
+        .from("family_members")
+        .select("id, role")
+        .eq("user_id", user.id)
+        .eq("family_id", activeFamilyId)
+        .single();
+      if (myMember) {
+        currentUserRole = (myMember.role as typeof currentUserRole) || "adult";
+        currentMemberId = myMember.id;
+      }
+    }
+
     const playlistId =
       process.env.NEXT_PUBLIC_SPOTIFY_PLAYLIST_ID?.trim() || null;
 
     return (
-      <FamilyProvider activeFamilyId={activeFamilyId} families={families}>
+      <FamilyProvider activeFamilyId={activeFamilyId} families={families} currentUserRole={currentUserRole} currentMemberId={currentMemberId}>
         <WelcomeModal familyName={familyName} />
         <div className="min-h-screen">
           <Nav
@@ -117,6 +135,9 @@ export default async function DashboardLayout({
             families={families}
             activeFamilyId={activeFamilyId}
           />
+          <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6">
+            <AgeTransitionBanner />
+          </div>
           <main id="main-content" className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8" tabIndex={-1}>{children}</main>
           {playlistId && <MusicPlayer playlistId={playlistId} />}
           <UnreadMessagesFetcher />

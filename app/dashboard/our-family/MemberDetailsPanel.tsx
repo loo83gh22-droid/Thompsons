@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
-import { deleteFamilyMember } from "../members/actions";
+import { deleteFamilyMember, changeMemberRole, generateKidLink, revokeKidLink } from "../members/actions";
 import { setMemberRelationships } from "./actions";
 import type { OurFamilyMember } from "./page";
 import type { OurFamilyRelationship } from "./page";
 import type { MemberActivity } from "./page";
+import { ROLE_LABELS, ROLE_BADGES, type MemberRole } from "@/src/lib/roles";
 
 function initials(name: string): string {
   return name
@@ -65,6 +66,9 @@ export function MemberDetailsPanel({
   const router = useRouter();
   const [removing, setRemoving] = useState(false);
   const [savingRels, setSavingRels] = useState(false);
+  const [changingRole, setChangingRole] = useState(false);
+  const [kidLinkLoading, setKidLinkLoading] = useState(false);
+  const [kidLinkUrl, setKidLinkUrl] = useState<string | null>(null);
   const current = useMemberTreeRels(member.id, relationships);
   const [spouseId, setSpouseId] = useState<string>(current.spouseId ?? "");
   const [parentIds, setParentIds] = useState<string[]>(current.parentIds);
@@ -164,6 +168,11 @@ export function MemberDetailsPanel({
               {member.relationship}
             </span>
           )}
+          {member.role && (
+            <span className={`mt-1 inline-block rounded-full px-3 py-1 text-xs font-semibold ${ROLE_BADGES[member.role as MemberRole]?.bg || "bg-[var(--surface-hover)]"} ${ROLE_BADGES[member.role as MemberRole]?.text || "text-[var(--muted)]"}`}>
+              {ROLE_LABELS[member.role as MemberRole] || member.role}
+            </span>
+          )}
         </div>
 
         <div className="space-y-2 text-sm">
@@ -259,6 +268,108 @@ export function MemberDetailsPanel({
             </button>
           </div>
         </div>
+
+        {/* Role management (owner only, non-owner targets) */}
+        {member.role !== "owner" && (
+          <div className="border-t border-[var(--border)] pt-4">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+              Access Level
+            </h4>
+            <select
+              value={member.role}
+              onChange={async (e) => {
+                const newRole = e.target.value as MemberRole;
+                if (newRole === member.role) return;
+                setChangingRole(true);
+                try {
+                  await changeMemberRole(member.id, newRole);
+                  router.refresh();
+                } catch (err) {
+                  alert(err instanceof Error ? err.message : "Failed to change role");
+                } finally {
+                  setChangingRole(false);
+                }
+              }}
+              disabled={changingRole}
+              className="input-base mt-2 w-full py-1.5 text-sm disabled:opacity-50"
+            >
+              <option value="adult">Adult — Full access</option>
+              <option value="teen">Teen — Own content only</option>
+              <option value="child">Child — No login, adults post for them</option>
+            </select>
+            {changingRole && (
+              <p className="mt-1 text-xs text-[var(--muted)]">Updating...</p>
+            )}
+          </div>
+        )}
+
+        {/* Kid link (for child/teen members) */}
+        {(member.role === "child" || member.role === "teen") && (
+          <div className="border-t border-[var(--border)] pt-4">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+              Kid Link
+            </h4>
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              Generate a shareable link so {member.nickname?.trim() || member.name} can view their content without logging in.
+            </p>
+            {member.kid_access_token ? (
+              <div className="mt-2 space-y-2">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const url = `${window.location.origin}/kid/${member.kid_access_token}`;
+                      navigator.clipboard.writeText(url);
+                      setKidLinkUrl(url);
+                      setTimeout(() => setKidLinkUrl(null), 3000);
+                    }}
+                    className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface-hover)] px-3 py-2 text-xs font-medium hover:bg-[var(--border)]"
+                  >
+                    {kidLinkUrl ? "Copied!" : "Copy Link"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setKidLinkLoading(true);
+                      try {
+                        await revokeKidLink(member.id);
+                        router.refresh();
+                      } catch (err) {
+                        alert(err instanceof Error ? err.message : "Failed to revoke link");
+                      } finally {
+                        setKidLinkLoading(false);
+                      }
+                    }}
+                    disabled={kidLinkLoading}
+                    className="rounded-lg border border-red-500/50 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/20 disabled:opacity-50"
+                  >
+                    Revoke
+                  </button>
+                </div>
+                <p className="text-xs text-emerald-400">Active link — expires in 30 days</p>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={async () => {
+                  setKidLinkLoading(true);
+                  try {
+                    await generateKidLink(member.id);
+                    router.refresh();
+                  } catch (err) {
+                    alert(err instanceof Error ? err.message : "Failed to generate link");
+                  } finally {
+                    setKidLinkLoading(false);
+                  }
+                }}
+                disabled={kidLinkLoading}
+                className="mt-2 w-full rounded-lg border border-purple-500/50 bg-purple-500/10 px-4 py-2 text-sm font-medium text-purple-400 hover:bg-purple-500/20 disabled:opacity-50"
+              >
+                {kidLinkLoading ? "Generating..." : "Generate Kid Link"}
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-col gap-2 border-t border-[var(--border)] pt-4">
           <Link

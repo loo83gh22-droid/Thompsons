@@ -29,6 +29,7 @@ export async function createStory(
     .insert({
       family_id: activeFamilyId,
       author_family_member_id: authorFamilyMemberId || myMember?.id || null,
+      created_by: myMember?.id || null,
       title,
       content,
       cover_url: coverUrl || null,

@@ -2,6 +2,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { OurFamilyClient } from "./OurFamilyClient";
 import { AddMemberForm } from "../members/AddMemberForm";
+import type { MemberRole } from "@/src/lib/roles";
 
 export type OurFamilyMember = {
   id: string;
@@ -13,6 +14,8 @@ export type OurFamilyMember = {
   birth_date: string | null;
   birth_place: string | null;
   avatar_url: string | null;
+  role: MemberRole;
+  kid_access_token: string | null;
   created_at: string;
 };
 
@@ -41,7 +44,7 @@ export default async function OurFamilyPage() {
   ] = await Promise.all([
     supabase
       .from("family_members")
-      .select("id, name, nickname, relationship, contact_email, user_id, birth_date, birth_place, avatar_url, created_at")
+      .select("id, name, nickname, relationship, contact_email, user_id, birth_date, birth_place, avatar_url, role, kid_access_token, created_at")
       .eq("family_id", activeFamilyId)
       .order("name"),
     supabase

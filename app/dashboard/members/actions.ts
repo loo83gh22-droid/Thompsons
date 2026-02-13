@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
 import { getActiveFamilyId, getActiveFamilyName } from "@/src/lib/family";
 import { ensureBirthdayEventForMember } from "@/app/dashboard/events/actions";
+import { detectRoleFromBirthDate, type MemberRole } from "@/src/lib/roles";
+import crypto from "crypto";
 
 /** Send invite email (server-only; no public API). */
 async function sendInviteEmail(to: string, name: string, familyName: string): Promise<void> {
@@ -47,6 +49,10 @@ export async function addFamilyMember(
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
+  // Auto-detect role from birth date
+  const detectedRole = detectRoleFromBirthDate(birthDate?.trim() || null);
+  const role = detectedRole ?? "adult";
+
   const { data: member, error } = await supabase
     .from("family_members")
     .insert({
@@ -58,6 +64,7 @@ export async function addFamilyMember(
       birth_place: birthPlace?.trim() || null,
       nickname: nickname?.trim() || null,
       avatar_url: avatarUrl?.trim() || null,
+      role,
     })
     .select("id")
     .single();
@@ -285,10 +292,198 @@ export async function deleteFamilyMember(id: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
+  // Prevent deleting the family owner
+  const { data: target } = await supabase
+    .from("family_members")
+    .select("role")
+    .eq("id", id)
+    .single();
+  if (target?.role === "owner") throw new Error("Cannot remove the account owner.");
+
+  // Only owner can delete members
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  const { data: currentMember } = await supabase
+    .from("family_members")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+  if (currentMember?.role !== "owner") throw new Error("Only the account owner can remove members.");
+
   const { error } = await supabase.from("family_members").delete().eq("id", id);
 
   if (error) throw error;
   revalidatePath("/dashboard/members");
   revalidatePath("/dashboard/our-family");
   revalidatePath("/dashboard");
+}
+
+/** Change a family member's role. Only the owner can do this. */
+export async function changeMemberRole(
+  memberId: string,
+  newRole: MemberRole
+): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
+  // Verify current user is owner
+  const { data: currentMember } = await supabase
+    .from("family_members")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+  if (currentMember?.role !== "owner") throw new Error("Only the account owner can change roles.");
+
+  // Can't change the owner's role (except transferring ownership, which is separate)
+  const { data: target } = await supabase
+    .from("family_members")
+    .select("role")
+    .eq("id", memberId)
+    .single();
+  if (target?.role === "owner") throw new Error("Cannot change the owner's role. Use ownership transfer instead.");
+
+  const { error } = await supabase
+    .from("family_members")
+    .update({ role: newRole })
+    .eq("id", memberId);
+
+  if (error) throw error;
+  revalidatePath("/dashboard/our-family");
+  revalidatePath("/dashboard/members");
+}
+
+/** Generate a kid access link for a child member. Only owner/adults can do this. */
+export async function generateKidLink(
+  memberId: string
+): Promise<{ token: string; expiresAt: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
+  // Verify current user is owner or adult
+  const { data: currentMember } = await supabase
+    .from("family_members")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+  if (!currentMember || !["owner", "adult"].includes(currentMember.role)) {
+    throw new Error("Only adults can generate kid links.");
+  }
+
+  // Verify target is a child or teen
+  const { data: target } = await supabase
+    .from("family_members")
+    .select("role")
+    .eq("id", memberId)
+    .single();
+  if (!target || !["child", "teen"].includes(target.role)) {
+    throw new Error("Kid links can only be generated for children and teens.");
+  }
+
+  // Generate a secure token, expires in 30 days
+  const token = crypto.randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { error } = await supabase
+    .from("family_members")
+    .update({
+      kid_access_token: token,
+      kid_token_expires_at: expiresAt,
+    })
+    .eq("id", memberId);
+
+  if (error) throw error;
+  revalidatePath("/dashboard/our-family");
+  return { token, expiresAt };
+}
+
+/** Revoke a kid access link. */
+export async function revokeKidLink(memberId: string): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("family_members")
+    .update({
+      kid_access_token: null,
+      kid_token_expires_at: null,
+    })
+    .eq("id", memberId);
+
+  if (error) throw error;
+  revalidatePath("/dashboard/our-family");
+}
+
+/**
+ * Check for members who have aged into a new role bracket.
+ * Returns members whose birth_date puts them in a different role than their current one.
+ */
+export async function checkAgeTransitions(): Promise<
+  Array<{
+    id: string;
+    name: string;
+    currentRole: MemberRole;
+    suggestedRole: MemberRole;
+    age: number;
+  }>
+> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return [];
+
+  const { data: members } = await supabase
+    .from("family_members")
+    .select("id, name, role, birth_date")
+    .eq("family_id", activeFamilyId)
+    .not("birth_date", "is", null)
+    .neq("role", "owner");
+
+  if (!members) return [];
+
+  const transitions: Array<{
+    id: string;
+    name: string;
+    currentRole: MemberRole;
+    suggestedRole: MemberRole;
+    age: number;
+  }> = [];
+
+  for (const m of members) {
+    const suggested = detectRoleFromBirthDate(m.birth_date);
+    if (!suggested) continue;
+
+    const currentRole = m.role as MemberRole;
+    // Only flag upgrades (child→teen, teen→adult), not downgrades
+    const roleOrder: Record<MemberRole, number> = { child: 0, teen: 1, adult: 2, owner: 3 };
+    if (roleOrder[suggested] > roleOrder[currentRole]) {
+      const birth = new Date(m.birth_date + "T12:00:00");
+      const today = new Date();
+      let age = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) age--;
+
+      transitions.push({
+        id: m.id,
+        name: m.name,
+        currentRole,
+        suggestedRole: suggested,
+        age,
+      });
+    }
+  }
+
+  return transitions;
 }
