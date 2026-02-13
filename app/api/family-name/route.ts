@@ -1,0 +1,63 @@
+import { createClient } from "@/src/lib/supabase/server";
+import { NextResponse } from "next/server";
+
+export async function PUT(request: Request) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user)
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+    const body = await request.json();
+    const { familyId, name } = body as { familyId?: string; name?: string };
+
+    if (!familyId || !name?.trim()) {
+      return NextResponse.json(
+        { error: "Family ID and name are required" },
+        { status: 400 }
+      );
+    }
+
+    const trimmed = name.trim().slice(0, 50);
+
+    // Verify user belongs to this family
+    const { data: membership } = await supabase
+      .from("family_members")
+      .select("id")
+      .eq("family_id", familyId)
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (!membership) {
+      return NextResponse.json(
+        { error: "You don't have access to this family" },
+        { status: 403 }
+      );
+    }
+
+    // Update family name
+    const { error } = await supabase
+      .from("families")
+      .update({ name: trimmed })
+      .eq("id", familyId);
+
+    if (error)
+      return NextResponse.json({ error: error.message }, { status: 500 });
+
+    // Also update family_settings if it exists
+    await supabase
+      .from("family_settings")
+      .update({ family_name: trimmed })
+      .eq("family_id", familyId);
+
+    return NextResponse.json({ name: trimmed });
+  } catch {
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

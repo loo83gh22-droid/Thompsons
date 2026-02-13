@@ -3,6 +3,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import Link from "next/link";
 import { ExportNest } from "./ExportNest";
+import { FamilyNameEditor } from "./FamilyNameEditor";
 
 type PlanType = "free" | "annual" | "legacy";
 
@@ -119,6 +120,19 @@ export default async function SettingsPage() {
         </Link>
         <h1 className="font-display text-3xl font-bold">Account Settings</h1>
       </div>
+
+      {/* Family Name */}
+      <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+        <div className="border-b border-[var(--border)] px-6 py-4">
+          <h2 className="text-lg font-semibold">Family Name</h2>
+        </div>
+        <div className="px-6 py-5">
+          <FamilyNameEditor
+            familyId={activeFamilyId}
+            currentName={family?.name ?? "Our Family"}
+          />
+        </div>
+      </section>
 
       {/* Your Plan card */}
       <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
