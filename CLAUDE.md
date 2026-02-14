@@ -48,5 +48,58 @@ No test framework is configured.
 - **Path alias:** `@/*` maps to the project root (tsconfig).
 - **Shell commands on Windows:** Use `;` to chain commands, not `&&`.
 - **React Strict Mode** is disabled in `next.config.ts` to prevent duplicate Google Maps mounting in dev.
-- **Commit and push** after completing changes so Vercel deployments run.
 - **Images:** Supabase storage remote patterns are configured in `next.config.ts` for `next/image`.
+
+## Deployment Workflow
+
+**This site is deployed on Vercel with auto-deployment from GitHub.**
+
+### When completing tasks:
+
+1. **Always commit changes** when a task is done:
+   ```bash
+   git add .
+   git commit -m "Description of changes
+
+   Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+   ```
+
+2. **Push to trigger deployment:**
+   ```bash
+   git push
+   ```
+
+3. **Vercel auto-deploys** from the `main` branch (2-3 minutes)
+
+### Environment Variables (configured in Vercel):
+
+**Required:**
+- `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anon/public key
+- `CRON_SECRET` - Authenticates daily notification cron job (14:00 UTC)
+
+**Recommended:**
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` - For family map feature
+- `NEXT_PUBLIC_SPOTIFY_PLAYLIST_ID` - For music player
+
+**Optional:**
+- `RESEND_API_KEY` - For sending invite emails
+- `RESEND_FROM_EMAIL` - Email sender format
+
+### Database Migrations:
+
+After creating new migration files in `supabase/migrations/`, apply them:
+
+```bash
+npm run db:push
+```
+
+Or manually via Supabase SQL Editor.
+
+### Post-Deployment Checklist:
+
+After first deployment or major changes:
+- ✅ Verify Vercel build logs show success
+- ✅ Test production URL functionality
+- ✅ Confirm Supabase redirect URLs include production domain
+- ✅ Check cron job executes (view Vercel Functions logs)
