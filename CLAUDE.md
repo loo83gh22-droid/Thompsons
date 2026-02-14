@@ -84,12 +84,17 @@ Repository: https://github.com/loo83gh22-droid/Thompsons
    Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
    ```
 
-2. **Push to trigger deployment:**
+2. **Apply any new Supabase migrations** before pushing:
+   - Use the Supabase MCP `apply_migration` tool for any new/changed SQL migrations
+   - Project ID: `tstbngohenxrbqroejth`
+   - This ensures the database schema is up to date before the new code goes live
+
+3. **Push to trigger deployment:**
    ```bash
    git push
    ```
 
-3. **Vercel auto-deploys** from the `main` branch (2-3 minutes)
+4. **Vercel auto-deploys** from the `main` branch (2-3 minutes)
 
 ### Environment Variables (configured in Vercel):
 
@@ -108,16 +113,15 @@ Repository: https://github.com/loo83gh22-droid/Thompsons
 
 ### Database Migrations:
 
-**Option 1: Supabase CLI (requires login):**
+**Always apply migrations automatically via the Supabase MCP `apply_migration` tool** when pushing changes that include schema updates. This is the standard workflow — no manual SQL editor steps needed.
+
+- Project ID: `tstbngohenxrbqroejth`
+- Migrations are applied before `git push` so the DB is ready when Vercel deploys the new code.
+
+**Fallback (if MCP is unavailable):**
 ```bash
 npm run db:push
 ```
-
-**Option 2: Manual via SQL Editor (recommended):**
-1. Go to Supabase Dashboard → SQL Editor
-2. Open migration file from `supabase/migrations/`
-3. Copy SQL content and run in editor
-4. Verify success message
 
 ### Post-Deployment Checklist:
 

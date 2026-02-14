@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useRef } from "react";
+import { useIntersectionObserver } from "./hooks/useIntersectionObserver";
 
 const features = [
   {
@@ -60,11 +64,28 @@ const steps = [
 ];
 
 export default function HomePage() {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const featuresRef = useRef<HTMLDivElement>(null);
+  const pricingRef = useRef<HTMLDivElement>(null);
+
+  const isFeaturesVisible = useIntersectionObserver(featuresRef);
+  const isPricingVisible = useIntersectionObserver(pricingRef);
+
   return (
     <div className="relative">
       {/* ─── Hero ─────────────────────────────────────────── */}
       <section className="relative flex min-h-[90vh] flex-col items-center justify-center px-6 py-24">
-        <div className="mx-auto max-w-4xl text-center">
+        <div
+          ref={heroRef}
+          className="mx-auto max-w-4xl text-center animate-[fade-in_0.6s_ease-out]"
+        >
+          {/* Trust badge - minimalist pill */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--surface)]/50 backdrop-blur-sm border border-[var(--border)] mb-6">
+            <span className="text-sm text-[var(--muted)]">
+              Trusted by families worldwide
+            </span>
+          </div>
+
           <p className="font-display text-sm font-medium uppercase tracking-[0.2em] text-[var(--accent)]">
             Our Family Nest
           </p>
@@ -84,13 +105,13 @@ export default function HomePage() {
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
               href="/login?mode=signup"
-              className="inline-flex items-center justify-center rounded-lg bg-[var(--accent)] px-8 py-4 text-lg font-semibold text-[var(--background)] transition-all hover:bg-[var(--accent-muted)] hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(212,168,83,0.3)]"
+              className="inline-flex items-center justify-center rounded-lg bg-[var(--accent)] px-8 py-4 text-lg font-semibold text-[var(--background)] transition-all hover:bg-[var(--accent-muted)] hover:scale-[1.02] hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(212,168,83,0.4)]"
             >
               Get Started Free
             </Link>
             <Link
               href="/pricing"
-              className="inline-flex items-center justify-center rounded-lg border border-[var(--border)] px-8 py-4 text-lg font-medium text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--foreground)]"
+              className="inline-flex items-center justify-center rounded-lg border border-[var(--border)] px-8 py-4 text-lg font-medium text-[var(--muted)] transition-all hover:border-[var(--accent)] hover:text-[var(--foreground)] hover:-translate-y-0.5"
             >
               See Plans
             </Link>
@@ -156,8 +177,8 @@ export default function HomePage() {
 
           <div className="mt-16 grid gap-8 sm:grid-cols-3">
             {steps.map((step) => (
-              <div key={step.number} className="text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent)]/15 text-xl font-bold text-[var(--accent)]">
+              <div key={step.number} className="text-center group">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent)]/15 text-xl font-bold text-[var(--accent)] transition-all duration-300 group-hover:bg-[var(--accent)]/25 group-hover:scale-110">
                   {step.number}
                 </div>
                 <h3 className="mt-5 font-display text-xl font-semibold text-[var(--foreground)]">
@@ -172,7 +193,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── Feature showcase ─────────────────────────────── */}
+      {/* ─── Feature showcase (Bento Grid) ─────────────────────────────── */}
       <section className="border-t border-[var(--border)] bg-[var(--surface)]/20 px-6 py-24">
         <div className="mx-auto max-w-6xl">
           <div className="text-center">
@@ -185,21 +206,38 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => (
-              <div
-                key={feature.title}
-                className="group rounded-xl border border-[var(--border)] bg-[var(--surface)]/50 p-6 transition-all hover:border-[var(--accent)]/40 hover:shadow-[0_0_30px_rgba(212,168,83,0.06)]"
-              >
-                <span className="text-3xl">{feature.icon}</span>
-                <h3 className="mt-4 font-display text-lg font-semibold text-[var(--foreground)]">
-                  {feature.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
+          {/* Bento Grid - Asymmetric Layout */}
+          <div ref={featuresRef} className="mt-16 grid gap-4 lg:gap-6 grid-cols-1 lg:grid-cols-3">
+            {features.map((feature, index) => {
+              // Journal gets featured (2 cols on desktop)
+              const isJournal = index === 0;
+              const colSpan = isJournal ? "lg:col-span-2" : "lg:col-span-1";
+
+              return (
+                <div
+                  key={feature.title}
+                  className={`group rounded-xl border border-[var(--border)] bg-[var(--surface)]/50 backdrop-blur-sm p-6 lg:p-8 transition-all duration-300 hover:border-[var(--accent)]/30 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] ${colSpan} ${
+                    isFeaturesVisible
+                      ? "animate-[fade-in-up_0.6s_ease-out]"
+                      : "opacity-0"
+                  }`}
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  {/* Icon with hover effect */}
+                  <span className="text-3xl block mb-4 group-hover:scale-110 transition-transform duration-200">
+                    {feature.icon}
+                  </span>
+
+                  {/* Content */}
+                  <h3 className="font-display text-lg font-semibold text-[var(--foreground)] mb-2">
+                    {feature.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-[var(--muted)]">
+                    {feature.description}
+                  </p>
+                </div>
+              );
+            })}
           </div>
 
           {/* Extra features row */}
@@ -216,7 +254,7 @@ export default function HomePage() {
             ].map((f) => (
               <span
                 key={f}
-                className="rounded-full border border-[var(--border)] bg-[var(--surface)]/40 px-4 py-1.5 text-xs text-[var(--muted)]"
+                className="rounded-full border border-[var(--border)] bg-[var(--surface)]/40 px-4 py-1.5 text-xs text-[var(--muted)] transition-colors hover:border-[var(--accent)]/50 hover:text-[var(--foreground)]"
               >
                 {f}
               </span>
@@ -261,8 +299,19 @@ export default function HomePage() {
             Start free. Upgrade when your family outgrows it.
           </p>
 
-          <div className="mt-12 grid gap-6 sm:grid-cols-3">
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)]/50 p-6">
+          <div
+            ref={pricingRef}
+            className="mt-12 grid gap-6 sm:grid-cols-3"
+          >
+            {/* The Nest - Free */}
+            <div
+              className={`rounded-xl border border-[var(--border)] bg-[var(--surface)]/50 p-6 transition-all duration-300 hover:border-[var(--accent)]/30 hover:-translate-y-1 hover:shadow-[0_4px_16px_rgba(0,0,0,0.2)] ${
+                isPricingVisible
+                  ? "animate-[fade-in-up_0.6s_ease-out]"
+                  : "opacity-0"
+              }`}
+              style={{ animationDelay: "0ms" }}
+            >
               <p className="font-display text-lg font-semibold text-[var(--foreground)]">
                 The Nest
               </p>
@@ -273,7 +322,16 @@ export default function HomePage() {
                 10 journal entries, 500 MB storage, family tree, map view
               </p>
             </div>
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)]/50 p-6">
+
+            {/* The Full Nest */}
+            <div
+              className={`rounded-xl border border-[var(--border)] bg-[var(--surface)]/50 p-6 transition-all duration-300 hover:border-[var(--accent)]/30 hover:-translate-y-1 hover:shadow-[0_4px_16px_rgba(0,0,0,0.2)] ${
+                isPricingVisible
+                  ? "animate-[fade-in-up_0.6s_ease-out]"
+                  : "opacity-0"
+              }`}
+              style={{ animationDelay: "100ms" }}
+            >
               <p className="font-display text-lg font-semibold text-[var(--foreground)]">
                 The Full Nest
               </p>
@@ -284,7 +342,16 @@ export default function HomePage() {
                 Unlimited everything, videos, voice memos, 10 GB
               </p>
             </div>
-            <div className="relative rounded-xl border border-[var(--accent)]/50 bg-[var(--surface)]/50 p-6 shadow-[0_0_30px_rgba(212,168,83,0.08)]">
+
+            {/* The Legacy - Featured */}
+            <div
+              className={`relative rounded-xl border-2 border-[var(--accent)]/60 bg-[var(--surface)]/50 p-6 transition-all duration-300 hover:border-[var(--accent)] hover:-translate-y-2 hover:shadow-[0_12px_32px_rgba(212,168,83,0.2)] ${
+                isPricingVisible
+                  ? "animate-[fade-in-up_0.6s_ease-out]"
+                  : "opacity-0"
+              }`}
+              style={{ animationDelay: "200ms" }}
+            >
               <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[var(--accent)] px-3 py-0.5 text-xs font-semibold text-[var(--background)]">
                 Recommended
               </span>
@@ -302,10 +369,10 @@ export default function HomePage() {
 
           <Link
             href="/pricing"
-            className="mt-8 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] hover:underline"
+            className="mt-8 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] transition-all hover:gap-2 hover:underline"
           >
             Compare all features
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-4 w-4 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </Link>

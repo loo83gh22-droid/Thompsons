@@ -2,6 +2,8 @@
 
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
+import { validateSchema } from "@/src/lib/validation/errors";
+import { createStorySchema, updateStorySchema } from "./schemas";
 
 export async function createStory(
   title: string,
@@ -11,6 +13,22 @@ export async function createStory(
   coverUrl?: string | null,
   authorFamilyMemberId?: string | null
 ) {
+  // Validate input
+  const validation = validateSchema(createStorySchema, {
+    title,
+    content,
+    category,
+    published,
+    cover_url: coverUrl,
+    author_family_member_id: authorFamilyMemberId,
+  });
+
+  if (!validation.success) {
+    return { error: validation.error };
+  }
+
+  const input = validation.data;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
@@ -28,13 +46,13 @@ export async function createStory(
     .from("family_stories")
     .insert({
       family_id: activeFamilyId,
-      author_family_member_id: authorFamilyMemberId || myMember?.id || null,
+      author_family_member_id: input.author_family_member_id || myMember?.id || null,
       created_by: myMember?.id || null,
-      title,
-      content,
-      cover_url: coverUrl || null,
-      category: category || "memorable_moments",
-      published: !!published,
+      title: input.title,
+      content: input.content,
+      cover_url: input.cover_url,
+      category: input.category,
+      published: input.published,
     })
     .select("id")
     .single();
@@ -46,12 +64,21 @@ export async function updateStory(
   id: string,
   updates: { title?: string; content?: string; category?: string; published?: boolean; cover_url?: string | null; author_family_member_id?: string | null }
 ) {
+  // Validate updates
+  const validation = validateSchema(updateStorySchema, updates);
+
+  if (!validation.success) {
+    return { error: validation.error };
+  }
+
+  const validatedUpdates = validation.data;
+
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return { error: "No family" };
   const { error } = await supabase
     .from("family_stories")
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update({ ...validatedUpdates, updated_at: new Date().toISOString() })
     .eq("id", id)
     .eq("family_id", activeFamilyId);
   return { error: error?.message };

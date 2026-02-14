@@ -88,15 +88,24 @@ describe("roles.ts", () => {
 
   describe("calculateAge", () => {
     it("should calculate correct age for adult", () => {
-      const birthDate = new Date();
-      birthDate.setFullYear(birthDate.getFullYear() - 30);
+      const today = new Date();
+      // Create birth date from 30 years ago using same month and day to avoid birthday edge cases
+      const birthDate = new Date(
+        today.getFullYear() - 30,
+        today.getMonth(),
+        today.getDate()
+      );
       const age = calculateAge(birthDate.toISOString().split("T")[0]);
       expect(age).toBe(30);
     });
 
     it("should calculate correct age for child", () => {
-      const birthDate = new Date();
-      birthDate.setFullYear(birthDate.getFullYear() - 8);
+      const today = new Date();
+      const birthDate = new Date(
+        today.getFullYear() - 8,
+        today.getMonth(),
+        today.getDate()
+      );
       const age = calculateAge(birthDate.toISOString().split("T")[0]);
       expect(age).toBe(8);
     });
