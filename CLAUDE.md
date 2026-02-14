@@ -54,6 +54,26 @@ No test framework is configured.
 
 **This site is deployed on Vercel with auto-deployment from GitHub.**
 
+Repository: https://github.com/loo83gh22-droid/Thompsons
+
+### Initial Deployment Setup (Completed)
+
+1. **Git Repository:**
+   - ✅ Initial commit created with all features
+   - ✅ Pushed to GitHub `main` branch
+   - ✅ Auto-deployment configured
+
+2. **Vercel Project:**
+   - ✅ Connected to GitHub repository
+   - ✅ Framework: Next.js (auto-detected)
+   - ✅ All environment variables configured
+   - ✅ Production URL: (set in Vercel dashboard)
+
+3. **Supabase Configuration:**
+   - ✅ Authentication redirect URLs updated with production domain
+   - ✅ Database migrations applied
+   - ✅ RLS policies active on all tables
+
 ### When completing tasks:
 
 1. **Always commit changes** when a task is done:
@@ -74,32 +94,63 @@ No test framework is configured.
 ### Environment Variables (configured in Vercel):
 
 **Required:**
-- `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anon/public key
-- `CRON_SECRET` - Authenticates daily notification cron job (14:00 UTC)
+- `NEXT_PUBLIC_SUPABASE_URL` - `https://tstbngohenxrbqroejth.supabase.co`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anon/public key (from dashboard)
+- `CRON_SECRET` - Secure random string (authenticates notification cron at 14:00 UTC)
 
 **Recommended:**
-- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` - For family map feature
-- `NEXT_PUBLIC_SPOTIFY_PLAYLIST_ID` - For music player
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` - For family map and geocoding
+- `NEXT_PUBLIC_SPOTIFY_PLAYLIST_ID` - For background music player
 
 **Optional:**
-- `RESEND_API_KEY` - For sending invite emails
-- `RESEND_FROM_EMAIL` - Email sender format
+- `RESEND_API_KEY` - For sending invite and notification emails
+- `RESEND_FROM_EMAIL` - Format: `Family Name <onboarding@resend.dev>`
 
 ### Database Migrations:
 
-After creating new migration files in `supabase/migrations/`, apply them:
-
+**Option 1: Supabase CLI (requires login):**
 ```bash
 npm run db:push
 ```
 
-Or manually via Supabase SQL Editor.
+**Option 2: Manual via SQL Editor (recommended):**
+1. Go to Supabase Dashboard → SQL Editor
+2. Open migration file from `supabase/migrations/`
+3. Copy SQL content and run in editor
+4. Verify success message
 
 ### Post-Deployment Checklist:
 
-After first deployment or major changes:
-- ✅ Verify Vercel build logs show success
-- ✅ Test production URL functionality
-- ✅ Confirm Supabase redirect URLs include production domain
-- ✅ Check cron job executes (view Vercel Functions logs)
+After deployment or major changes:
+- ✅ Verify Vercel build logs show success (no errors)
+- ✅ Test production URL loads correctly
+- ✅ Login/signup flow works in production
+- ✅ Supabase redirect URLs include: `https://[your-domain].vercel.app/auth/callback`
+- ✅ Create test family member and verify data persistence
+- ✅ Check cron job executes daily (Vercel Functions logs after 14:00 UTC)
+- ✅ Verify environment variables are set correctly in Vercel dashboard
+
+### Vercel Deployment Logs:
+
+To check deployment status:
+1. Go to Vercel dashboard → Your project
+2. Click "Deployments" tab
+3. View build logs for latest deployment
+4. Check "Functions" tab for cron job execution logs
+
+### Troubleshooting:
+
+**Build fails:**
+- Check Vercel build logs for specific error
+- Verify all environment variables are set
+- Test build locally: `npm run build`
+
+**Database connection issues:**
+- Verify Supabase URL and anon key are correct
+- Check RLS policies allow authenticated access
+- Confirm Supabase project is not paused
+
+**Cron job not running:**
+- Verify `CRON_SECRET` is set in Vercel
+- Check `vercel.json` has correct cron schedule
+- View Functions logs in Vercel dashboard
