@@ -42,7 +42,7 @@ const tiers = [
       "Shareable links for stories & recipes",
       "Weekly digest & birthday reminders",
       "Multi-user roles & kid accounts",
-      "Sports section & Da Box",
+      "Sports section",
     ],
     cta: "Start Annual Plan",
     ctaHref: "/login?mode=signup&plan=annual",

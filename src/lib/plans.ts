@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { PLAN_LIMITS, DEFAULT_STORAGE_LIMIT_BYTES, type PlanType } from "./constants";
 
-export type PlanType = "free" | "annual" | "legacy";
+export type { PlanType };
 
 export interface FamilyPlan {
   planType: PlanType;
@@ -12,27 +13,27 @@ export interface FamilyPlan {
 
 /** Whether the plan allows video uploads */
 export function canUploadVideos(plan: PlanType): boolean {
-  return plan === "annual" || plan === "legacy";
+  return PLAN_LIMITS[plan].videoUploads;
 }
 
 /** Whether the plan allows adding map locations (not just viewing) */
 export function canEditMap(plan: PlanType): boolean {
-  return plan === "annual" || plan === "legacy";
+  return PLAN_LIMITS[plan].mapEditing;
 }
 
 /** Whether the plan allows shareable public links */
 export function canSharePublicly(plan: PlanType): boolean {
-  return plan === "annual" || plan === "legacy";
+  return PLAN_LIMITS[plan].publicSharing;
 }
 
 /** Whether the plan allows Nest Keeper management */
 export function canManageNestKeepers(plan: PlanType): boolean {
-  return plan === "legacy";
+  return plan === "legacy" && PLAN_LIMITS.legacy.nestKeeperManagement === true;
 }
 
 /** Max journal entries for a given plan (null = unlimited) */
 export function journalEntryLimit(plan: PlanType): number | null {
-  return plan === "free" ? 10 : null;
+  return PLAN_LIMITS[plan].journalEntries;
 }
 
 /* ── Fetch plan info ────────────────────────────────────────── */
@@ -50,7 +51,7 @@ export async function getFamilyPlan(
   return {
     planType: (data?.plan_type as PlanType) ?? "free",
     storageUsedBytes: data?.storage_used_bytes ?? 0,
-    storageLimitBytes: data?.storage_limit_bytes ?? 524288000,
+    storageLimitBytes: data?.storage_limit_bytes ?? DEFAULT_STORAGE_LIMIT_BYTES,
   };
 }
 

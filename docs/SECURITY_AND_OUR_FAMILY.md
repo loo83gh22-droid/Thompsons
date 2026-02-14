@@ -14,14 +14,13 @@
 | Priority | Item | Action |
 |----------|------|--------|
 | **High** | **Invite API unauthenticated** | `/api/send-invite` can be called by anyone who knows the URL. **Fix:** Call Resend from the server action (e.g. in `members/actions.ts`) instead of `fetch('/api/send-invite')`, and remove the public API route. Or keep the route but require a one-time token or server-side secret header. |
-| **High** | **Death Box password** | `NEXT_PUBLIC_DEATH_BOX_PASSWORD` is visible in client bundle. Default “family” is weak. **Fix:** Use a strong password in production; consider moving to a server-check (e.g. server action that verifies password and sets an encrypted cookie) so the password isn’t in the client. |
-| **Medium** | **Storage “Anyone can view”** | Some buckets (e.g. journal-photos, story-covers) allow read by anyone with the URL. **Fix:** If content is private, change policy to `auth.role() = 'authenticated'` and optionally restrict by family (e.g. object metadata or a mapping table). |
+| **Medium** | **Storage "Anyone can view"** | Some buckets (e.g. journal-photos, story-covers) allow read by anyone with the URL. **Fix:** If content is private, change policy to `auth.role() = 'authenticated'` and optionally restrict by family (e.g. object metadata or a mapping table). |
 | **Low** | **Rate limiting** | No rate limit on login or invite. **Fix:** Add rate limiting (e.g. Upstash, or Vercel middleware) on `/login` and any public invite/claim endpoints. |
 | **Low** | **CORS / API hardening** | If you add more public API routes, restrict origin and method. Middleware already protects `/dashboard`. |
 
 ### Env and deployment
 
-- **Production:** Use strong `NEXT_PUBLIC_DEATH_BOX_PASSWORD`; never commit `.env.local` or real keys.
+- **Production:** Never commit `.env.local` or real keys.
 - **Supabase:** Prefer RLS and service role only on the server; avoid exposing service role key to the client.
 - **Google Maps / Resend:** Restrict API keys by domain / IP where the platform allows.
 

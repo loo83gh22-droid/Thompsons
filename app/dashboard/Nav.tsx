@@ -20,7 +20,6 @@ const familyItems: { href: string; label: string; muted?: boolean }[] = [
   { href: "/dashboard/map", label: "Family Map" },
   { href: "/dashboard/messages", label: "Messages" },
   { href: "/dashboard/events", label: "Events" },
-  { href: "/dashboard/death-box", label: "Da Box", muted: true },
 ];
 
 const memoriesItems: { href: string; label: string }[] = [

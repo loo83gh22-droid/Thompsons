@@ -123,10 +123,6 @@ set family_id = (select family_id from public.family_members where id = fr.membe
 where family_id is null;
 alter table public.family_relationships alter column family_id set not null;
 
-alter table public.death_box_items add column if not exists family_id uuid references public.families(id) on delete cascade;
-update public.death_box_items set family_id = (select id from public.families limit 1) where family_id is null;
-alter table public.death_box_items alter column family_id set not null;
-
 alter table public.home_mosaic_photos add column if not exists family_id uuid references public.families(id) on delete cascade;
 update public.home_mosaic_photos set family_id = (select id from public.families limit 1) where family_id is null;
 alter table public.home_mosaic_photos alter column family_id set not null;
@@ -182,11 +178,6 @@ create policy "Users can manage favourites in own families"
 drop policy if exists "Authenticated users can manage family_relationships" on public.family_relationships;
 create policy "Users can manage family_relationships in own families"
   on public.family_relationships for all
-  using (family_id in (select public.user_family_ids()));
-
-drop policy if exists "Authenticated users can manage death_box_items" on public.death_box_items;
-create policy "Users can manage death_box_items in own families"
-  on public.death_box_items for all
   using (family_id in (select public.user_family_ids()));
 
 drop policy if exists "Anyone can view home mosaic photos" on public.home_mosaic_photos;

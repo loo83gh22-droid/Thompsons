@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { findOrCreateLocationCluster } from "@/src/lib/locationClustering";
 import { getFamilyPlan, journalEntryLimit, canUploadVideos, enforceStorageLimit, addStorageUsage } from "@/src/lib/plans";
+import { VIDEO_LIMITS } from "@/src/lib/constants";
 
 async function getNextMosaicSortOrder(supabase: SupabaseClient, familyId: string) {
   const { data } = await supabase
@@ -226,7 +227,7 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
   // Upload videos (max 2 per journal entry, 300 MB each) — paid plans only
   const allVideos = formData.getAll("videos") as File[];
   const validVideos = canUploadVideos(plan.planType)
-    ? allVideos.filter((f) => f.size > 0 && f.size <= MAX_VIDEO_BYTES).slice(0, JOURNAL_VIDEO_LIMIT)
+    ? allVideos.filter((f) => f.size > 0 && f.size <= VIDEO_LIMITS.maxSizeBytes).slice(0, VIDEO_LIMITS.maxVideosPerJournalEntry)
     : []; // Free plan: skip videos silently
 
   for (let i = 0; i < validVideos.length; i++) {
@@ -556,9 +557,6 @@ export async function deleteJournalEntry(entryId: string) {
 
 /* ── Video actions ───────────────────────────────────────── */
 
-const JOURNAL_VIDEO_LIMIT = 2;
-const MAX_VIDEO_BYTES = 300 * 1024 * 1024;
-
 export async function addJournalVideos(entryId: string, formData: FormData) {
   const supabase = await createClient();
   const {
@@ -588,13 +586,13 @@ export async function addJournalVideos(entryId: string, formData: FormData) {
     .eq("entry_id", entryId);
 
   const existingCount = count ?? 0;
-  if (existingCount >= JOURNAL_VIDEO_LIMIT) {
-    throw new Error(`Each journal entry can have up to ${JOURNAL_VIDEO_LIMIT} videos.`);
+  if (existingCount >= VIDEO_LIMITS.maxVideosPerJournalEntry) {
+    throw new Error(`Each journal entry can have up to ${VIDEO_LIMITS.maxVideosPerJournalEntry} videos.`);
   }
 
   const allVideos = formData.getAll("videos") as File[];
-  const validVideos = allVideos.filter((f) => f.size > 0 && f.size <= MAX_VIDEO_BYTES);
-  const toAdd = Math.min(validVideos.length, JOURNAL_VIDEO_LIMIT - existingCount);
+  const validVideos = allVideos.filter((f) => f.size > 0 && f.size <= VIDEO_LIMITS.maxSizeBytes);
+  const toAdd = Math.min(validVideos.length, VIDEO_LIMITS.maxVideosPerJournalEntry - existingCount);
   if (toAdd === 0) return;
 
   const vids = validVideos.slice(0, toAdd);

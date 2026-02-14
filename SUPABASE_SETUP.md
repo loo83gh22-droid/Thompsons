@@ -36,8 +36,6 @@ NEXT_PUBLIC_SUPABASE_URL=https://abcdefgh.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-4. (Optional) Change `NEXT_PUBLIC_DEATH_BOX_PASSWORD` from `family` to something only your family knows.
-
 ---
 
 ## Step 4: Run the database migration

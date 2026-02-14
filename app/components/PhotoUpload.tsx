@@ -20,6 +20,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { X, Star, Upload, Film, AlertCircle } from "lucide-react";
+import { VIDEO_LIMITS, PHOTO_LIMITS } from "@/src/lib/constants";
 
 /* ── Types ─────────────────────────────────────────────────── */
 
@@ -39,10 +40,6 @@ interface PhotoUploadProps {
   maxVideos?: number;
   allowVideos?: boolean;
 }
-
-const MAX_VIDEO_SIZE_MB = 300;
-const MAX_VIDEO_SIZE_BYTES = MAX_VIDEO_SIZE_MB * 1024 * 1024;
-const MAX_VIDEO_DURATION_SECONDS = 300; // 5 minutes
 
 /* ── Helpers ───────────────────────────────────────────────── */
 
@@ -176,8 +173,8 @@ function SortableMedia({
 export default function PhotoUpload({
   onChange,
   onVideoChange,
-  maxFiles = 20,
-  maxVideos = 2,
+  maxFiles = PHOTO_LIMITS.maxPhotosPerEntry,
+  maxVideos = VIDEO_LIMITS.maxVideosPerJournalEntry,
   allowVideos = false,
 }: PhotoUploadProps) {
   const [items, setItems] = useState<MediaFile[]>([]);
@@ -223,16 +220,16 @@ export default function PhotoUpload({
             setVideoError(`Maximum ${maxVideos} videos per entry.`);
             continue;
           }
-          if (file.size > MAX_VIDEO_SIZE_BYTES) {
+          if (file.size > VIDEO_LIMITS.maxSizeBytes) {
             setVideoError(
-              `"${file.name}" is ${formatSize(file.size)} — max ${MAX_VIDEO_SIZE_MB} MB per video.`
+              `"${file.name}" is ${formatSize(file.size)} — max ${VIDEO_LIMITS.maxSizeMB} MB per video.`
             );
             continue;
           }
           // Check duration
           try {
             const duration = await getVideoDuration(file);
-            if (duration > MAX_VIDEO_DURATION_SECONDS) {
+            if (duration > VIDEO_LIMITS.maxDurationSeconds) {
               setVideoError(
                 `"${file.name}" is ${formatDuration(duration)} — max 5 minutes per video.`
               );

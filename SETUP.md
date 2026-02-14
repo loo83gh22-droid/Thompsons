@@ -44,7 +44,6 @@ Open [http://localhost:3000](http://localhost:3000). You'll see the landing page
    ```
    NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-   NEXT_PUBLIC_DEATH_BOX_PASSWORD=choose-a-strong-password
    ```
 
 ---
@@ -56,7 +55,7 @@ Open [http://localhost:3000](http://localhost:3000). You'll see the landing page
 3. Copy its contents and paste into the SQL Editor.
 4. Click **Run**.
 
-This creates the tables for family members, travel locations, journal entries, Spanish lessons, and the Death Box.
+This creates the tables for family members, travel locations, journal entries, and Spanish lessons.
 
 ---
 
@@ -128,7 +127,6 @@ See [RESEND_SETUP.md](RESEND_SETUP.md) for full step-by-step setup.
 
 - **Travel Map**: Add rows to `travel_locations` to see pins on the map.
 - **Journal**: The new entry form will save to `journal_entries` once wired up.
-- **Death Box**: Add items to `death_box_items` (only visible when unlocked with the password).
 
 ---
 

@@ -68,17 +68,6 @@ create table public.spanish_progress (
   unique(family_member_id, lesson_id)
 );
 
--- Death Box items (sensitive info - access controlled by app-level password)
-create table public.death_box_items (
-  id uuid primary key default uuid_generate_v4(),
-  title text not null,
-  content text,
-  category text, -- e.g. 'will', 'documents', 'wishes'
-  sort_order int default 0,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-
 -- Row Level Security (RLS)
 alter table public.family_members enable row level security;
 alter table public.travel_locations enable row level security;
@@ -86,7 +75,6 @@ alter table public.journal_entries enable row level security;
 alter table public.journal_photos enable row level security;
 alter table public.spanish_lessons enable row level security;
 alter table public.spanish_progress enable row level security;
-alter table public.death_box_items enable row level security;
 
 -- Policies: Only authenticated users can read/write
 create policy "Authenticated users can manage family_members"
@@ -111,10 +99,6 @@ create policy "Authenticated users can read spanish_lessons"
 
 create policy "Authenticated users can manage spanish_progress"
   on public.spanish_progress for all
-  using (auth.role() = 'authenticated');
-
-create policy "Authenticated users can manage death_box_items"
-  on public.death_box_items for all
   using (auth.role() = 'authenticated');
 
 -- Storage bucket for journal photos

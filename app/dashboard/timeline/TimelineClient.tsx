@@ -3,6 +3,7 @@
 import { useMemo, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { UI_DISPLAY } from "@/src/lib/constants";
 import type { TimelineItem } from "./types";
 
 const TYPE_LABELS: Record<TimelineItem["type"], string> = {
@@ -20,8 +21,6 @@ const TYPE_ICONS: Record<TimelineItem["type"], string> = {
   photo: "🖼️",
   message: "💬",
 };
-
-const DISPLAY_PAGE_SIZE = 30;
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -152,7 +151,7 @@ export function TimelineClient({
   const [filterMemberId, setFilterMemberId] = useState<string>(initialFilterMemberId ?? "");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
-  const [displayCount, setDisplayCount] = useState(DISPLAY_PAGE_SIZE);
+  const [displayCount, setDisplayCount] = useState(UI_DISPLAY.timelinePageSize);
   const audioRefs = useRef<Record<string, HTMLAudioElement | null>>({});
 
   const filtered = useMemo(() => {
@@ -307,7 +306,7 @@ export function TimelineClient({
               <div className="flex justify-center py-4">
                 <button
                   type="button"
-                  onClick={() => setDisplayCount((c) => c + DISPLAY_PAGE_SIZE)}
+                  onClick={() => setDisplayCount((c) => c + UI_DISPLAY.timelinePageSize)}
                   className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--accent)]/50 hover:bg-[var(--surface-hover)]"
                 >
                   Load more

@@ -213,7 +213,6 @@ export default function HomePage() {
               "Shareable Links",
               "Kid Accounts",
               "Family Spotify",
-              "Da Box",
             ].map((f) => (
               <span
                 key={f}

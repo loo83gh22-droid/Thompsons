@@ -1,5 +1,6 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
+import { SEARCH_LIMITS } from "@/src/lib/constants";
 import { NextResponse } from "next/server";
 
 export type SearchResult = {
@@ -48,7 +49,7 @@ export async function GET(request: Request) {
       .eq("family_id", activeFamilyId)
       .or(`title.ilike.${pattern},content.ilike.${pattern},location.ilike.${pattern}`)
       .order("created_at", { ascending: false })
-      .limit(5),
+      .limit(SEARCH_LIMITS.resultsPerType),
     // Stories
     supabase
       .from("family_stories")
@@ -56,7 +57,7 @@ export async function GET(request: Request) {
       .eq("family_id", activeFamilyId)
       .or(`title.ilike.${pattern},content.ilike.${pattern}`)
       .order("created_at", { ascending: false })
-      .limit(5),
+      .limit(SEARCH_LIMITS.resultsPerType),
     // Recipes
     supabase
       .from("recipes")
@@ -64,7 +65,7 @@ export async function GET(request: Request) {
       .eq("family_id", activeFamilyId)
       .or(`title.ilike.${pattern},story.ilike.${pattern},ingredients.ilike.${pattern}`)
       .order("created_at", { ascending: false })
-      .limit(5),
+      .limit(SEARCH_LIMITS.resultsPerType),
     // Traditions
     supabase
       .from("family_traditions")
@@ -72,7 +73,7 @@ export async function GET(request: Request) {
       .eq("family_id", activeFamilyId)
       .or(`title.ilike.${pattern},description.ilike.${pattern}`)
       .order("created_at", { ascending: false })
-      .limit(5),
+      .limit(SEARCH_LIMITS.resultsPerType),
     // Voice memos
     supabase
       .from("voice_memos")
@@ -80,7 +81,7 @@ export async function GET(request: Request) {
       .eq("family_id", activeFamilyId)
       .or(`title.ilike.${pattern},description.ilike.${pattern}`)
       .order("created_at", { ascending: false })
-      .limit(5),
+      .limit(SEARCH_LIMITS.resultsPerType),
     // Time capsules
     supabase
       .from("time_capsules")
@@ -88,14 +89,14 @@ export async function GET(request: Request) {
       .eq("family_id", activeFamilyId)
       .or(`title.ilike.${pattern},content.ilike.${pattern}`)
       .order("created_at", { ascending: false })
-      .limit(5),
+      .limit(SEARCH_LIMITS.resultsPerType),
     // Family members
     supabase
       .from("family_members")
       .select("id, name, nickname, relationship, birth_place")
       .eq("family_id", activeFamilyId)
       .or(`name.ilike.${pattern},nickname.ilike.${pattern},relationship.ilike.${pattern},birth_place.ilike.${pattern}`)
-      .limit(5),
+      .limit(SEARCH_LIMITS.resultsPerType),
     // Events
     supabase
       .from("family_events")
@@ -103,16 +104,16 @@ export async function GET(request: Request) {
       .eq("family_id", activeFamilyId)
       .ilike("title", pattern)
       .order("event_date", { ascending: false })
-      .limit(5),
+      .limit(SEARCH_LIMITS.resultsPerType),
   ]);
 
-  function snippet(text: string | null, maxLen = 80): string {
+  function snippet(text: string | null, maxLen = SEARCH_LIMITS.snippetMaxLength): string {
     if (!text) return "";
     const lower = text.toLowerCase();
     const idx = lower.indexOf(q.toLowerCase());
     if (idx === -1) return text.slice(0, maxLen) + (text.length > maxLen ? "..." : "");
-    const start = Math.max(0, idx - 30);
-    const end = Math.min(text.length, idx + q.length + 50);
+    const start = Math.max(0, idx - SEARCH_LIMITS.snippetContextBefore);
+    const end = Math.min(text.length, idx + q.length + SEARCH_LIMITS.snippetContextAfter);
     let s = (start > 0 ? "..." : "") + text.slice(start, end) + (end < text.length ? "..." : "");
     return s;
   }
@@ -191,5 +192,5 @@ export async function GET(request: Request) {
     return 0;
   });
 
-  return NextResponse.json({ results: results.slice(0, 20) });
+  return NextResponse.json({ results: results.slice(0, SEARCH_LIMITS.maxTotalResults) });
 }
