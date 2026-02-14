@@ -1,5 +1,6 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
+import { QUERY_LIMITS } from "@/src/lib/constants";
 import { TimelineClient } from "./TimelineClient";
 import type { TimelineItem } from "./types";
 
@@ -36,31 +37,31 @@ export default async function TimelinePage({
       .eq("family_id", activeFamilyId)
       .order("trip_date", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false })
-      .limit(100),
+      .limit(QUERY_LIMITS.timelineItemsPerType),
     supabase
       .from("voice_memos")
       .select("id, title, description, created_at, family_member_id, audio_url, duration_seconds, family_members!family_member_id(name, nickname, relationship)")
       .eq("family_id", activeFamilyId)
       .order("created_at", { ascending: false })
-      .limit(100),
+      .limit(QUERY_LIMITS.timelineItemsPerType),
     supabase
       .from("time_capsules")
       .select("id, title, created_at, from_family_member_id, family_members!from_family_member_id(name, nickname, relationship)")
       .eq("family_id", activeFamilyId)
       .order("created_at", { ascending: false })
-      .limit(100),
+      .limit(QUERY_LIMITS.timelineItemsPerType),
     supabase
       .from("home_mosaic_photos")
       .select("id, url, created_at")
       .eq("family_id", activeFamilyId)
       .order("created_at", { ascending: false })
-      .limit(100),
+      .limit(QUERY_LIMITS.timelineItemsPerType),
     supabase
       .from("family_messages")
       .select("id, title, content, created_at, sender_id, family_members!sender_id(name, nickname, relationship)")
       .eq("family_id", activeFamilyId)
       .order("created_at", { ascending: false })
-      .limit(100),
+      .limit(QUERY_LIMITS.timelineItemsPerType),
   ]);
 
   for (const row of journalRes.data ?? []) {

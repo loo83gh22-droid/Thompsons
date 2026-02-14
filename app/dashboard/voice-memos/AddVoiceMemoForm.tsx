@@ -3,10 +3,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/client";
+import { VOICE_MEMO_LIMITS } from "@/src/lib/constants";
 import { insertVoiceMemo } from "./actions";
-
-const MAX_RECORD_SECONDS = 600;
-const WARNING_AT_SECONDS = 540;
 
 type Member = { id: string; name: string; relationship: string | null };
 
@@ -83,7 +81,7 @@ export function AddVoiceMemoForm({
 
   useEffect(() => {
     if (!recording) return;
-    if (recordSeconds >= MAX_RECORD_SECONDS) {
+    if (recordSeconds >= VOICE_MEMO_LIMITS.maxRecordSeconds) {
       stopRecording();
       return;
     }
@@ -91,7 +89,7 @@ export function AddVoiceMemoForm({
       setRecordSeconds((s) => {
         const next = s + 1;
         recordSecondsRef.current = next;
-        if (next >= MAX_RECORD_SECONDS && timerRef.current) clearInterval(timerRef.current);
+        if (next >= VOICE_MEMO_LIMITS.maxRecordSeconds && timerRef.current) clearInterval(timerRef.current);
         return next;
       });
     }, 1000);
@@ -225,7 +223,7 @@ export function AddVoiceMemoForm({
     }
   }
 
-  const showOneMinuteWarning = recording && recordSeconds >= WARNING_AT_SECONDS;
+  const showOneMinuteWarning = recording && recordSeconds >= VOICE_MEMO_LIMITS.warningAtSeconds;
 
   if (!open) {
     return (
@@ -284,7 +282,7 @@ export function AddVoiceMemoForm({
                   <button
                     type="button"
                     onClick={recording ? stopRecording : startRecording}
-                    disabled={recording && recordSeconds >= MAX_RECORD_SECONDS}
+                    disabled={recording && recordSeconds >= VOICE_MEMO_LIMITS.maxRecordSeconds}
                     className={`mt-8 flex min-h-[140px] min-w-[140px] items-center justify-center rounded-full transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:min-h-[160px] sm:min-w-[160px] ${
                       recording
                         ? "bg-red-600 shadow-lg shadow-red-500/50 animate-pulse ring-4 ring-red-400/30"

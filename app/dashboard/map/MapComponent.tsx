@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { useJsApiLoader, GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
+import { UI_DISPLAY, LOCATION_CONSTANTS } from "@/src/lib/constants";
 import { GoogleMapsCountryLayer } from "./GoogleMapsCountryLayer";
 
 type TravelLocation = {
@@ -36,8 +37,6 @@ const mapContainerStyle = {
   borderRadius: "0.75rem",
 };
 
-const defaultCenter = { lat: 56, lng: -100 };
-
 export type MapFilter = {
   birth?: boolean;
   homes?: boolean;
@@ -61,7 +60,6 @@ function applyFilter(locations: TravelLocation[], filter: MapFilter | undefined)
 
 /** Group locations by cluster_id, or by proximity for legacy pins without cluster */
 function groupLocations(locations: TravelLocation[]) {
-  const LOCATION_TOLERANCE = 0.02;
   const byCluster = new Map<string | null, TravelLocation[]>();
 
   for (const loc of locations) {
@@ -84,7 +82,7 @@ function groupLocations(locations: TravelLocation[]) {
           if (used.has(other.id)) continue;
           const dLat = Math.abs(loc.lat - other.lat);
           const dLng = Math.abs(loc.lng - other.lng);
-          if (dLat < LOCATION_TOLERANCE && dLng < LOCATION_TOLERANCE) {
+          if (dLat < LOCATION_CONSTANTS.proximityToleranceDegrees && dLng < LOCATION_CONSTANTS.proximityToleranceDegrees) {
             sub.push(other);
             used.add(other.id);
           }
@@ -283,7 +281,7 @@ function MapComponentWithLoader({ apiKey, filter }: { apiKey: string; filter?: M
     <div className="overflow-hidden rounded-xl">
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
-        center={defaultCenter}
+        center={UI_DISPLAY.mapDefaultCenter}
         zoom={4}
         onLoad={onLoad}
         onUnmount={onUnmount}

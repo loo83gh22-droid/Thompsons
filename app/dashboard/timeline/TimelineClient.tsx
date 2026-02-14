@@ -151,7 +151,7 @@ export function TimelineClient({
   const [filterMemberId, setFilterMemberId] = useState<string>(initialFilterMemberId ?? "");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
-  const [displayCount, setDisplayCount] = useState(UI_DISPLAY.timelinePageSize);
+  const [displayCount, setDisplayCount] = useState<number>(UI_DISPLAY.timelinePageSize);
   const audioRefs = useRef<Record<string, HTMLAudioElement | null>>({});
 
   const filtered = useMemo(() => {

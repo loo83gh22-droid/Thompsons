@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { LOCATION_CONSTANTS, QUERY_LIMITS } from "./constants";
 
 interface Location {
   latitude: number;
@@ -43,7 +44,7 @@ function sharesPlaceName(a: string, b: string): boolean {
   const wordsA = locationWords(a);
   const wordsB = locationWords(b);
   for (const w of wordsA) {
-    if (w.length >= 3 && wordsB.has(w)) return true; // e.g. "uvita"
+    if (w.length >= LOCATION_CONSTANTS.nameMatchMinLength && wordsB.has(w)) return true; // e.g. "uvita"
   }
   return false;
 }
@@ -53,15 +54,12 @@ export async function findOrCreateLocationCluster(
   familyId: string,
   location: Location
 ): Promise<string | null> {
-  const DISTANCE_KM = 8; // same town by distance
-  const DISTANCE_KM_NAMED = 35; // same place by name + distance (e.g. "Uvita, CR" vs full address)
-
   const { data: existingClusters, error } = await supabase
     .from("location_clusters")
     .select("*")
     .eq("family_id", familyId)
     .order("created_at", { ascending: false })
-    .limit(100);
+    .limit(QUERY_LIMITS.locationClusters);
 
   if (error) {
     console.error("Error fetching clusters:", error);
@@ -98,9 +96,9 @@ export async function findOrCreateLocationCluster(
       Number(cluster.latitude),
       Number(cluster.longitude)
     );
-    const withinDistance = distance <= DISTANCE_KM;
+    const withinDistance = distance <= LOCATION_CONSTANTS.clusterDistanceKm;
     const withinNamed =
-      distance <= DISTANCE_KM_NAMED &&
+      distance <= LOCATION_CONSTANTS.clusterDistanceNamedKm &&
       sharesPlaceName(location.location_name, cluster.location_name ?? "");
 
     if (withinDistance || withinNamed) {

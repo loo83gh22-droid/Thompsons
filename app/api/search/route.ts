@@ -2,6 +2,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { SEARCH_LIMITS } from "@/src/lib/constants";
 import { NextResponse } from "next/server";
+import { createSafeSnippet } from "@/src/lib/validation/sanitize";
 
 export type SearchResult = {
   type: "journal" | "story" | "recipe" | "tradition" | "voice_memo" | "time_capsule" | "member" | "event";
@@ -108,14 +109,7 @@ export async function GET(request: Request) {
   ]);
 
   function snippet(text: string | null, maxLen = SEARCH_LIMITS.snippetMaxLength): string {
-    if (!text) return "";
-    const lower = text.toLowerCase();
-    const idx = lower.indexOf(q.toLowerCase());
-    if (idx === -1) return text.slice(0, maxLen) + (text.length > maxLen ? "..." : "");
-    const start = Math.max(0, idx - SEARCH_LIMITS.snippetContextBefore);
-    const end = Math.min(text.length, idx + q.length + SEARCH_LIMITS.snippetContextAfter);
-    let s = (start > 0 ? "..." : "") + text.slice(start, end) + (end < text.length ? "..." : "");
-    return s;
+    return createSafeSnippet(text, q, maxLen);
   }
 
   for (const j of journalRes.data ?? []) {

@@ -7,6 +7,9 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import { findOrCreateLocationCluster } from "@/src/lib/locationClustering";
 import { getFamilyPlan, journalEntryLimit, canUploadVideos, enforceStorageLimit, addStorageUsage } from "@/src/lib/plans";
 import { VIDEO_LIMITS } from "@/src/lib/constants";
+import { getFormString } from "@/src/lib/validation/schemas";
+import { validateSchema } from "@/src/lib/validation/errors";
+import { createJournalEntrySchema } from "./schemas";
 
 async function getNextMosaicSortOrder(supabase: SupabaseClient, familyId: string) {
   const { data } = await supabase
@@ -47,17 +50,25 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
       }
     }
 
-    const familyMemberId = formData.get("family_member_id") as string;
-    const title = formData.get("title") as string;
-    const content = formData.get("content") as string;
-    const location = formData.get("location") as string;
-    const tripDate = formData.get("trip_date") as string;
-    const tripDateEnd = (formData.get("trip_date_end") as string) || null;
-    const locationLat = formData.get("location_lat") as string | null;
-    const locationLng = formData.get("location_lng") as string | null;
-    const locationType = formData.get("location_type") as string | null;
+    // Extract and validate FormData
+    const rawData = {
+      family_member_id: getFormString(formData, "family_member_id"),
+      title: getFormString(formData, "title"),
+      content: getFormString(formData, "content"),
+      location: getFormString(formData, "location"),
+      trip_date: getFormString(formData, "trip_date"),
+      trip_date_end: getFormString(formData, "trip_date_end"),
+      location_lat: getFormString(formData, "location_lat"),
+      location_lng: getFormString(formData, "location_lng"),
+      location_type: getFormString(formData, "location_type"),
+    };
 
-    if (!familyMemberId) return { success: false, error: "Please select who this entry is about." };
+    const validation = validateSchema(createJournalEntrySchema, rawData);
+    if (!validation.success) {
+      return { success: false, error: validation.error };
+    }
+
+    const input = validation.data;
 
     // Get the logged-in user's family_member record for created_by
     const { data: myMember } = await supabase
@@ -71,13 +82,13 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
       .from("journal_entries")
       .insert({
         family_id: activeFamilyId,
-        author_id: familyMemberId,
+        author_id: input.family_member_id,
         created_by: myMember?.id || null,
-        title,
-        content: content || null,
-        location: location || null,
-        trip_date: tripDate || null,
-        trip_date_end: tripDateEnd || null,
+        title: input.title,
+        content: input.content,
+        location: input.location,
+        trip_date: input.trip_date,
+        trip_date_end: input.trip_date_end,
       })
       .select("id")
       .single();
@@ -86,16 +97,16 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
     if (!entry?.id) return { success: false, error: "Failed to save entry." };
 
   // If location provided, geocode (if needed) and create map pin with clustering
-  if (location?.trim()) {
+  if (input.location?.trim()) {
     try {
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
       let lat = 0;
       let lng = 0;
       let countryCode: string | null = null;
 
-      if (locationLat && locationLng) {
-        lat = parseFloat(locationLat);
-        lng = parseFloat(locationLng);
+      if (input.location_lat && input.location_lng) {
+        lat = input.location_lat;
+        lng = input.location_lng;
         if (apiKey) {
           const geocodeRes = await fetch(
             `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
@@ -110,7 +121,7 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
         }
       } else if (apiKey) {
         const geocodeRes = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location.trim())}&key=${apiKey}`
+          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(input.location.trim())}&key=${apiKey}`
         );
         const geocode = await geocodeRes.json();
         if (geocode.status === "OK" && geocode.results?.[0]) {
@@ -124,7 +135,7 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
         }
       } else {
         const geocodeRes = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(location.trim())}&limit=1`,
+          `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(input.location.trim())}&limit=1`,
           { headers: { "User-Agent": "Thompsons-Family-Site/1.0" } }
         );
         const geocode = await geocodeRes.json();
@@ -135,10 +146,10 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
       }
 
       if (lat && lng) {
-        const date = tripDate ? new Date(tripDate) : new Date();
+        const date = input.trip_date ? new Date(input.trip_date) : new Date();
         if (process.env.NODE_ENV === "development") {
           console.log("[journal] Clustering:", {
-            location: location.trim(),
+            location: input.location.trim(),
             lat,
             lng,
             date: date.toISOString().split("T")[0],
@@ -147,28 +158,28 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
         const locationClusterId = await findOrCreateLocationCluster(supabase, activeFamilyId, {
           latitude: lat,
           longitude: lng,
-          location_name: location.trim(),
+          location_name: input.location.trim(),
           date,
         });
         if (process.env.NODE_ENV === "development") {
           console.log("[journal] Cluster ID:", locationClusterId ?? "(null – pin will show alone)");
         }
 
-        const yearVisited = tripDate ? new Date(tripDate).getFullYear() : null;
+        const yearVisited = input.trip_date ? new Date(input.trip_date).getFullYear() : null;
         await supabase.from("travel_locations").insert({
           family_id: activeFamilyId,
-          family_member_id: familyMemberId,
+          family_member_id: input.family_member_id,
           lat,
           lng,
-          location_name: location.trim(),
+          location_name: input.location.trim(),
           year_visited: yearVisited,
-          trip_date: tripDate || null,
-          notes: title,
+          trip_date: input.trip_date || null,
+          notes: input.title,
           country_code: countryCode,
           journal_entry_id: entry.id,
           location_cluster_id: locationClusterId,
           location_type:
-            locationType === "vacation" || locationType === "memorable_event" ? locationType : null,
+            input.location_type === "vacation" || input.location_type === "memorable" ? input.location_type : null,
         });
       }
     } catch {
@@ -284,27 +295,35 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
-  const familyMemberId = formData.get("family_member_id") as string;
-  const title = formData.get("title") as string;
-  const content = formData.get("content") as string;
-  const location = formData.get("location") as string;
-  const tripDate = formData.get("trip_date") as string;
-  const tripDateEnd = (formData.get("trip_date_end") as string) || null;
-  const locationLat = formData.get("location_lat") as string | null;
-  const locationLng = formData.get("location_lng") as string | null;
-  const locationType = formData.get("location_type") as string | null;
+  // Extract and validate FormData
+  const rawData = {
+    family_member_id: getFormString(formData, "family_member_id"),
+    title: getFormString(formData, "title"),
+    content: getFormString(formData, "content"),
+    location: getFormString(formData, "location"),
+    trip_date: getFormString(formData, "trip_date"),
+    trip_date_end: getFormString(formData, "trip_date_end"),
+    location_lat: getFormString(formData, "location_lat"),
+    location_lng: getFormString(formData, "location_lng"),
+    location_type: getFormString(formData, "location_type"),
+  };
 
-  if (!familyMemberId) throw new Error("Please select who this entry is about.");
+  const validation = validateSchema(createJournalEntrySchema, rawData);
+  if (!validation.success) {
+    throw new Error(validation.error);
+  }
+
+  const input = validation.data;
 
   const { error: updateError } = await supabase
     .from("journal_entries")
     .update({
-      author_id: familyMemberId,
-      title,
-      content: content || null,
-      location: location || null,
-      trip_date: tripDate || null,
-      trip_date_end: tripDateEnd || null,
+      author_id: input.family_member_id,
+      title: input.title,
+      content: input.content,
+      location: input.location,
+      trip_date: input.trip_date,
+      trip_date_end: input.trip_date_end,
       updated_at: new Date().toISOString(),
     })
     .eq("id", entryId);
@@ -317,16 +336,16 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
     .delete()
     .eq("journal_entry_id", entryId);
 
-  if (location?.trim()) {
+  if (input.location?.trim()) {
     try {
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
       let lat = 0;
       let lng = 0;
       let countryCode: string | null = null;
 
-      if (locationLat && locationLng) {
-        lat = parseFloat(locationLat);
-        lng = parseFloat(locationLng);
+      if (input.location_lat && input.location_lng) {
+        lat = input.location_lat;
+        lng = input.location_lng;
         if (apiKey) {
           const geocodeRes = await fetch(
             `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
@@ -341,7 +360,7 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
         }
       } else if (apiKey) {
         const geocodeRes = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location.trim())}&key=${apiKey}`
+          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(input.location.trim())}&key=${apiKey}`
         );
         const geocode = await geocodeRes.json();
         if (geocode.status === "OK" && geocode.results?.[0]) {
@@ -355,7 +374,7 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
         }
       } else {
         const geocodeRes = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(location.trim())}&limit=1`,
+          `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(input.location.trim())}&limit=1`,
           { headers: { "User-Agent": "Thompsons-Family-Site/1.0" } }
         );
         const geocode = await geocodeRes.json();
@@ -366,28 +385,28 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
       }
 
       if (lat && lng) {
-        const date = tripDate ? new Date(tripDate) : new Date();
+        const date = input.trip_date ? new Date(input.trip_date) : new Date();
         const locationClusterId = await findOrCreateLocationCluster(supabase, activeFamilyId, {
           latitude: lat,
           longitude: lng,
-          location_name: location.trim(),
+          location_name: input.location.trim(),
           date,
         });
-        const yearVisited = tripDate ? new Date(tripDate).getFullYear() : null;
+        const yearVisited = input.trip_date ? new Date(input.trip_date).getFullYear() : null;
         await supabase.from("travel_locations").insert({
           family_id: activeFamilyId,
-          family_member_id: familyMemberId,
+          family_member_id: input.family_member_id,
           lat,
           lng,
-          location_name: location.trim(),
+          location_name: input.location.trim(),
           year_visited: yearVisited,
-          trip_date: tripDate || null,
-          notes: title,
+          trip_date: input.trip_date || null,
+          notes: input.title,
           country_code: countryCode,
           journal_entry_id: entryId,
           location_cluster_id: locationClusterId,
           location_type:
-            locationType === "vacation" || locationType === "memorable_event" ? locationType : null,
+            input.location_type === "vacation" || input.location_type === "memorable" ? input.location_type : null,
         });
       }
     } catch {

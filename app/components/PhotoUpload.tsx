@@ -411,7 +411,7 @@ export default function PhotoUpload({
 
       {allowVideos && (
         <p className="text-xs text-[var(--muted)]">
-          Up to {maxFiles} photos and {maxVideos} videos per entry (5 min, {MAX_VIDEO_SIZE_MB} MB each).
+          Up to {maxFiles} photos and {maxVideos} videos per entry (5 min, {VIDEO_LIMITS.maxSizeMB} MB each).
         </p>
       )}
     </div>

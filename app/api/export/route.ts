@@ -1,5 +1,6 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
+import { TEXT_LIMITS, TIME_CONSTANTS } from "@/src/lib/constants";
 import { NextResponse } from "next/server";
 import JSZip from "jszip";
 
@@ -429,7 +430,7 @@ Notes
           }
         }
 
-        const safeName = sanitize(entry.title).slice(0, 60);
+        const safeName = sanitize(entry.title).slice(0, TEXT_LIMITS.entryTitle);
         const safeDate = entry.trip_date ?? entry.created_at?.slice(0, 10) ?? "undated";
         journalsFolder.file(`${safeDate}_${safeName}.md`, md);
       }
@@ -482,7 +483,7 @@ Notes
         md += story.content ?? "";
         md += "\n";
 
-        const safeName = sanitize(story.title).slice(0, 60);
+        const safeName = sanitize(story.title).slice(0, TEXT_LIMITS.entryTitle);
         const safeDate = story.created_at?.slice(0, 10) ?? "undated";
         storiesFolder.file(`${safeDate}_${safeName}.md`, md);
       }
@@ -509,7 +510,7 @@ Notes
           md += `\n## Instructions\n\n${recipe.instructions}\n`;
         }
 
-        const safeName = sanitize(recipe.title).slice(0, 60);
+        const safeName = sanitize(recipe.title).slice(0, TEXT_LIMITS.entryTitle);
         recipesFolder.file(`${safeName}.md`, md);
       }
 
@@ -526,7 +527,7 @@ Notes
         md += trad.description ?? "";
         md += "\n";
 
-        const safeName = sanitize(trad.title).slice(0, 60);
+        const safeName = sanitize(trad.title).slice(0, TEXT_LIMITS.entryTitle);
         traditionsFolder.file(`${safeName}.md`, md);
       }
 
@@ -552,7 +553,7 @@ Notes
         md += cap.content ?? "";
         md += "\n";
 
-        const safeName = sanitize(cap.title).slice(0, 60);
+        const safeName = sanitize(cap.title).slice(0, TEXT_LIMITS.entryTitle);
         const status = isSealed ? "sealed" : "opened";
         capsulesFolder.file(`${status}_${safeName}.md`, md);
       }
@@ -578,7 +579,7 @@ Notes
       if (uploadErr) throw new Error(`Upload failed: ${uploadErr.message}`);
 
       // ------ Update job record ------
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      const expiresAt = new Date(Date.now() + TIME_CONSTANTS.exportLinkExpirationMs).toISOString();
 
       await supabase
         .from("family_exports")

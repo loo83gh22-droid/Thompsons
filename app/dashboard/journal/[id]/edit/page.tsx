@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
+import { VIDEO_LIMITS } from "@/src/lib/constants";
 import {
   updateJournalEntry,
   addJournalPhotos,
@@ -179,8 +180,6 @@ export default function EditJournalPage() {
     }
   }
 
-  const JOURNAL_VIDEO_LIMIT = 2;
-
   async function handleAddVideos(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
@@ -192,8 +191,8 @@ export default function EditJournalPage() {
     }
     const validFiles = files.filter((f) => f.size > 0);
     const totalAfter = videos.length + validFiles.length;
-    if (totalAfter > JOURNAL_VIDEO_LIMIT) {
-      setError(`Each journal entry can have up to ${JOURNAL_VIDEO_LIMIT} videos. You have ${videos.length} and tried to add ${validFiles.length}.`);
+    if (totalAfter > VIDEO_LIMITS.maxVideosPerJournalEntry) {
+      setError(`Each journal entry can have up to ${VIDEO_LIMITS.maxVideosPerJournalEntry} videos. You have ${videos.length} and tried to add ${validFiles.length}.`);
       return;
     }
     setError(null);
@@ -513,7 +512,7 @@ export default function EditJournalPage() {
           </div>
         )}
 
-        {videos.length < JOURNAL_VIDEO_LIMIT && addingVideos ? (
+        {videos.length < VIDEO_LIMITS.maxVideosPerJournalEntry && addingVideos ? (
           <form onSubmit={handleAddVideos} className="mt-4 space-y-4">
             <input
               name="videos"
@@ -542,17 +541,17 @@ export default function EditJournalPage() {
               </button>
             </div>
           </form>
-        ) : videos.length < JOURNAL_VIDEO_LIMIT ? (
+        ) : videos.length < VIDEO_LIMITS.maxVideosPerJournalEntry ? (
           <button
             type="button"
             onClick={() => setAddingVideos(true)}
             className="mt-4 rounded-lg border border-[var(--border)] px-4 py-2 text-sm hover:bg-[var(--surface-hover)]"
           >
-            + Add a video ({videos.length}/{JOURNAL_VIDEO_LIMIT})
+            + Add a video ({videos.length}/{VIDEO_LIMITS.maxVideosPerJournalEntry})
           </button>
         ) : (
           <p className="mt-4 text-sm text-[var(--muted)]">
-            Maximum {JOURNAL_VIDEO_LIMIT} videos per entry. Remove one to add another.
+            Maximum {VIDEO_LIMITS.maxVideosPerJournalEntry} videos per entry. Remove one to add another.
           </p>
         )}
       </div>

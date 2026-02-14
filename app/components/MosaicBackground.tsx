@@ -1,4 +1,5 @@
 import { createClient } from "@/src/lib/supabase/server";
+import { PHOTO_LIMITS } from "@/src/lib/constants";
 import Image from "next/image";
 
 // Deterministic "random" values for SSR - dorm room pinned-up vibe
@@ -17,7 +18,7 @@ export async function MosaicBackground() {
       .from("home_mosaic_photos")
       .select("id, url")
       .order("sort_order")
-      .limit(80);
+      .limit(PHOTO_LIMITS.mosaicDisplayLimit);
     urls = (photos || []).map((p) => p.url);
   } catch {
     // Table may not exist yet or Supabase unavailable - use fallback
