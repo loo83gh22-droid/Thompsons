@@ -12,7 +12,8 @@ type OnboardingStep = {
   done: boolean;
 };
 
-const DISMISSED_KEY = "family-nest-onboarding-dismissed";
+const ARCHIVED_KEY = "family-nest-onboarding-archived";
+const HIDDEN_KEY = "family-nest-onboarding-hidden";
 
 export function OnboardingChecklist({
   memberCount,
@@ -27,14 +28,25 @@ export function OnboardingChecklist({
   storyCount: number;
   voiceMemoCount: number;
 }) {
-  const [dismissed, setDismissed] = useState(true); // hidden by default until checked
+  const [archived, setArchived] = useState(true); // hidden by default until checked
+  const [sessionHidden, setSessionHidden] = useState(false);
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(DISMISSED_KEY);
-      setDismissed(saved === "true");
+      // Migrate old dismissed key to new archived key
+      const oldDismissed = localStorage.getItem("family-nest-onboarding-dismissed");
+      if (oldDismissed === "true") {
+        localStorage.setItem(ARCHIVED_KEY, "true");
+        localStorage.removeItem("family-nest-onboarding-dismissed");
+      }
+
+      const isArchived = localStorage.getItem(ARCHIVED_KEY) === "true";
+      const isHidden = sessionStorage.getItem(HIDDEN_KEY) === "true";
+      setArchived(isArchived);
+      setSessionHidden(isHidden);
     } catch {
-      setDismissed(false);
+      setArchived(false);
+      setSessionHidden(false);
     }
   }, []);
 
@@ -84,15 +96,31 @@ export function OnboardingChecklist({
   const completedCount = steps.filter((s) => s.done).length;
   const allDone = completedCount === steps.length;
 
-  // Don't show if dismissed or all done
-  if (dismissed || allDone) return null;
+  // Auto-archive when all steps are complete
+  useEffect(() => {
+    if (allDone) {
+      try { localStorage.setItem(ARCHIVED_KEY, "true"); } catch { /* ignore */ }
+    }
+  }, [allDone]);
+
+  // Don't show if archived, session-hidden, or all done
+  if (archived || sessionHidden || allDone) return null;
 
   const progressPercent = Math.round((completedCount / steps.length) * 100);
 
-  function handleDismiss() {
-    setDismissed(true);
+  function handleHide() {
+    setSessionHidden(true);
     try {
-      localStorage.setItem(DISMISSED_KEY, "true");
+      sessionStorage.setItem(HIDDEN_KEY, "true");
+    } catch {
+      // ignore
+    }
+  }
+
+  function handleArchive() {
+    setArchived(true);
+    try {
+      localStorage.setItem(ARCHIVED_KEY, "true");
     } catch {
       // ignore
     }
@@ -109,14 +137,24 @@ export function OnboardingChecklist({
             Complete these steps to bring your Family Nest to life.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleDismiss}
-          className="shrink-0 rounded-lg px-2 py-1 text-xs text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]"
-          aria-label="Dismiss checklist"
-        >
-          Hide
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleHide}
+            className="shrink-0 rounded-lg px-2 py-1 text-xs text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]"
+            aria-label="Hide checklist for this session"
+          >
+            Hide
+          </button>
+          <button
+            type="button"
+            onClick={handleArchive}
+            className="shrink-0 rounded-lg border border-[var(--border)] px-2 py-1 text-xs text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]"
+            aria-label="Permanently dismiss checklist"
+          >
+            Don&apos;t show again
+          </button>
+        </div>
       </div>
 
       {/* Progress bar */}

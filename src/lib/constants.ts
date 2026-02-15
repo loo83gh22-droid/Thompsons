@@ -123,7 +123,7 @@ export const QUERY_LIMITS = {
   /** Member list display */
   memberListDisplay: 12,
   /** Recent activity items */
-  recentActivity: 10,
+  recentActivity: 6,
   /** Photos in timeline/gallery views */
   photosDisplay: 10,
 } as const;

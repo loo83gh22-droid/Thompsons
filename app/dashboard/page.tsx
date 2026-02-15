@@ -12,6 +12,9 @@ import { UpcomingEvents } from "./UpcomingEvents";
 import { ActivityFeed, type ActivityItem } from "./ActivityFeed";
 import { FamilySummaryStrip } from "./FamilySummaryStrip";
 import { OnboardingChecklist } from "./OnboardingChecklist";
+import { QuickActions } from "./QuickActions";
+import { FamilyHighlight, type HighlightItem } from "./FamilyHighlight";
+import { InspirationTip } from "./InspirationTip";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -31,7 +34,7 @@ export default async function DashboardPage() {
   let activityItems: ActivityItem[] = [];
   let activityHasMore = false;
   let summaryMembers: { id: string; name: string; avatar_url: string | null }[] = [];
-  let hasNoContent = false;
+  let highlight: HighlightItem | null = null;
 
   if (activeFamilyId) {
     const [
@@ -136,8 +139,8 @@ export default async function DashboardPage() {
     const combined = [...photoRows, ...journalRows, ...voiceRows, ...messageRows].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-    activityHasMore = combined.length > 10;
-    activityItems = combined.slice(0, 10);
+    activityHasMore = combined.length > QUERY_LIMITS.recentActivity;
+    activityItems = combined.slice(0, QUERY_LIMITS.recentActivity);
     summaryMembers = membersListRes.data ?? [];
 
     const first = activityItems[0];
@@ -145,7 +148,22 @@ export default async function DashboardPage() {
       stats.lastActivityAt = first.createdAt;
       stats.lastActivityBy = first.memberName ?? null;
     }
-    hasNoContent = stats.photoCount === 0 && stats.journalCount === 0 && stats.voiceMemoCount === 0;
+
+    // Build highlight candidates from activity data
+    const highlightCandidates: HighlightItem[] = combined.map((item) => ({
+      type: item.type,
+      id: item.id,
+      title: item.title ?? null,
+      imageUrl: item.thumbnailUrl ?? null,
+      createdAt: item.createdAt,
+      href: item.href,
+    }));
+
+    // Pick one highlight based on day-seed (changes daily)
+    if (highlightCandidates.length > 0) {
+      const daySeed = Math.floor(Date.now() / 86_400_000);
+      highlight = highlightCandidates[daySeed % highlightCandidates.length];
+    }
   }
 
   return (
@@ -212,46 +230,13 @@ export default async function DashboardPage() {
         </>
       )}
 
-      <div className={`mt-12 w-full max-w-full grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 ${hasNoContent ? "ring-2 ring-[var(--accent)]/30 ring-offset-2 ring-offset-[var(--background)] rounded-xl" : ""}`}>
-        <DashboardCard href="/dashboard/timeline" title="Timeline" description="All family memories in one chronological view. Journal, photos, voice memos, time capsules." icon="📅" />
-        <DashboardCard href="/dashboard/events" title="Events" description="Birthdays, anniversaries, reunions. Create events and send celebratory messages." icon="🎂" />
-        <DashboardCard href="/dashboard/stories" title="Stories" description="Longer-form family history, advice, and memorable moments. Write and share stories." icon="📖" />
-        <DashboardCard href="/dashboard/map" title="Family Map" description="See where the family has been. Add your own pins." icon="🗺️" />
-        <DashboardCard href="/dashboard/journal" title="Journal" description="Trips, birthdays, celebrations. Add photos. Others can add their perspective to any entry." icon="📔" />
-        <DashboardCard href="/dashboard/photos" title="Photos" description="All uploaded photos can be found here and these are used to complete your background mosaics." icon="🖼️" />
-        <DashboardCard href="/dashboard/voice-memos" title="Voice Memos" description="Record voices for the future—stories, songs, jokes. Preserve personality." icon="🎙️" />
-        <DashboardCard href="/dashboard/time-capsules" title="Time Capsules" description="Write letters for the future. Seal them until a date like &quot;Read when you turn 18.&quot;" icon="📮" />
-        <DashboardCard href="/dashboard/recipes" title="Recipes" description="The story behind the food — who taught it, what occasions, photos from dinners." icon="🍳" />
-        <DashboardCard href="/dashboard/traditions" title="Traditions" description="Taco Tuesday chants, holiday rituals, inside jokes — the cultural DNA that gets lost." icon="🏠" />
-        <DashboardCard href="/dashboard/favourites" title="Favourites" description="Books, movies, shows, games — the stuff we love." icon="⭐" />
-        <DashboardCard href="/dashboard/our-family" title="Our Family" description="See your family connections and manage members. Tree view and list." icon="👨‍👩‍👧‍👦" />
-        <DashboardCard href="/dashboard/messages" title="Messages" description="Send a message that pops up when family logs in. Perfect for Valentine's Day!" icon="💌" />
+      <div className="mt-12 space-y-8">
+        <QuickActions />
+        <div className="grid grid-cols-1 gap-6 min-[768px]:grid-cols-2">
+          <FamilyHighlight item={highlight} />
+          <InspirationTip />
+        </div>
       </div>
     </div>
-  );
-}
-
-function DashboardCard({
-  href,
-  title,
-  description,
-  icon,
-}: {
-  href: string;
-  title: string;
-  description: string;
-  icon: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group block min-w-0 min-h-[44px] w-full rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] md:transition-all md:duration-[250ms] md:ease-in-out md:hover:scale-[1.02] md:hover:border-[var(--primary)]/40 md:hover:shadow-lg"
-    >
-      <span className="text-3xl" role="img" aria-hidden="true">{icon}</span>
-      <h2 className="mt-4 font-display text-xl font-semibold text-[var(--foreground)] break-words md:group-hover:text-[var(--primary)]">
-        {title}
-      </h2>
-      <p className="mt-2 text-sm text-[var(--muted)] break-words">{description}</p>
-    </Link>
   );
 }
