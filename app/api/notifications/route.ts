@@ -46,7 +46,17 @@ export async function GET(request: Request) {
   const dayOfWeek = today.getDay(); // 0 = Sunday
   const threeDaysOut = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
-  const results = { birthdayReminders: 0, capsuleUnlocks: 0, weeklyDigests: 0, errors: [] as string[] };
+  const results = {
+    birthdayReminders: 0,
+    capsuleUnlocks: 0,
+    weeklyDigests: 0,
+    day1Nudges: 0,
+    day3Discovery: 0,
+    day5Invites: 0,
+    day14Upgrades: 0,
+    day30Reengagement: 0,
+    errors: [] as string[]
+  };
 
   // ── 1. Birthday reminders (3 days before) ──
   try {
@@ -144,7 +154,62 @@ export async function GET(request: Request) {
     results.errors.push(`Capsule check: ${err}`);
   }
 
-  // ── 3. Weekly digest (Sundays only) ──
+  // ── 3. Activation Drip Campaigns ──
+
+  // Day 1: Activation Nudge for users with 0 photos
+  try {
+    const oneDayAgo = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
+    const oneDayAgoEnd = new Date(Date.now() - 23 * 60 * 60 * 1000).toISOString();
+
+    const { data: newFamilies } = await supabase
+      .from('families')
+      .select('id, name, family_members!inner(id, name, contact_email, user_id)')
+      .gte('created_at', oneDayAgo)
+      .lte('created_at', oneDayAgoEnd);
+
+    for (const family of newFamilies ?? []) {
+      const { count: photoCount } = await supabase
+        .from('journal_photos')
+        .select('*', { count: 'exact', head: true })
+        .eq('family_id', family.id);
+
+      if (photoCount === 0) {
+        const owner = (family.family_members as any[]).find((m: any) => m.user_id);
+        if (!owner?.contact_email) continue;
+
+        const { data: existingCampaign } = await supabase
+          .from('email_campaigns')
+          .select('id')
+          .eq('family_member_id', owner.id)
+          .eq('campaign_type', 'day1_nudge')
+          .single();
+
+        if (existingCampaign) continue;
+
+        try {
+          await resend.emails.send({
+            from: fromEmail,
+            to: owner.contact_email,
+            subject: "Your family's story starts with one photo 📷",
+            html: day1ActivationEmailHtml(owner.name),
+          });
+
+          await supabase.from('email_campaigns').insert({
+            family_member_id: owner.id,
+            campaign_type: 'day1_nudge',
+          });
+
+          results.day1Nudges++;
+        } catch (err) {
+          results.errors.push(`Day 1 email to ${owner.contact_email}: ${err}`);
+        }
+      }
+    }
+  } catch (err) {
+    results.errors.push(`Day 1 campaign: ${err}`);
+  }
+
+  // ── 4. Weekly digest (Sundays only) ──
   if (dayOfWeek === 0) {
     try {
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -284,5 +349,28 @@ function digestEmailHtml(
 <tr><td style="text-align:center;padding-top:24px;">
   <p style="color:#64748b;font-size:12px;margin:0;">Our Family Nest &middot; <a href="${appUrl}/dashboard/settings" style="color:#64748b;">Manage notifications</a></p>
 </td></tr>
+</table></body></html>`;
+}
+
+// ── Activation Drip Campaign Email Templates ──
+
+function day1ActivationEmailHtml(name: string): string {
+  return `
+<!DOCTYPE html><html><body style="margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;padding:32px 20px;">
+<tr><td style="text-align:center;padding-bottom:24px;"><span style="font-size:48px;">📷</span></td></tr>
+<tr><td style="background:#1e293b;border-radius:12px;padding:32px 24px;border:1px solid #334155;">
+  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Your family's story starts with one photo</h1>
+  <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;">Hi ${e(name)},</p>
+  <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;line-height:1.5;">Yesterday you created your Family Nest. We noticed you haven't uploaded your first photo yet!</p>
+  <p style="margin:0 0 4px;color:#94a3b8;font-size:15px;"><strong style="color:#f8fafc;">Here's why your first photo matters:</strong></p>
+  <ul style="margin:8px 0 20px;padding-left:20px;color:#94a3b8;font-size:15px;line-height:1.7;">
+    <li>It kicks off your family timeline</li>
+    <li>It becomes searchable and shareable</li>
+    <li>It inspires others in your family to contribute</li>
+  </ul>
+  <a href="${appUrl}/dashboard/photos" style="display:inline-block;background:#D4A843;color:#0f172a;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Upload Your First Photo Now</a>
+</td></tr>
+<tr><td style="text-align:center;padding-top:24px;"><p style="color:#64748b;font-size:12px;margin:0;">Our Family Nest</p></td></tr>
 </table></body></html>`;
 }

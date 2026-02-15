@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Confetti from "react-confetti";
 
 type OnboardingStep = {
   id: string;
@@ -14,6 +15,7 @@ type OnboardingStep = {
 
 const ARCHIVED_KEY = "family-nest-onboarding-archived";
 const HIDDEN_KEY = "family-nest-onboarding-hidden";
+const CELEBRATED_KEY = "family-nest-onboarding-celebrated";
 
 export function OnboardingChecklist({
   memberCount,
@@ -30,6 +32,8 @@ export function OnboardingChecklist({
 }) {
   const [archived, setArchived] = useState(true); // hidden by default until checked
   const [sessionHidden, setSessionHidden] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
     try {
@@ -48,6 +52,19 @@ export function OnboardingChecklist({
       setArchived(false);
       setSessionHidden(false);
     }
+  }, []);
+
+  // Track window size for confetti
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    function handleResize() {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    }
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const steps: OnboardingStep[] = [
@@ -96,10 +113,19 @@ export function OnboardingChecklist({
   const completedCount = steps.filter((s) => s.done).length;
   const allDone = completedCount === steps.length;
 
-  // Auto-archive when all steps are complete
+  // Auto-archive and celebrate when all steps are complete
   useEffect(() => {
     if (allDone) {
-      try { localStorage.setItem(ARCHIVED_KEY, "true"); } catch { /* ignore */ }
+      try {
+        const alreadyCelebrated = localStorage.getItem(CELEBRATED_KEY) === "true";
+        if (!alreadyCelebrated) {
+          setShowConfetti(true);
+          localStorage.setItem(CELEBRATED_KEY, "true");
+          // Auto-hide confetti after 5 seconds
+          setTimeout(() => setShowConfetti(false), 5000);
+        }
+        localStorage.setItem(ARCHIVED_KEY, "true");
+      } catch { /* ignore */ }
     }
   }, [allDone]);
 
@@ -127,8 +153,29 @@ export function OnboardingChecklist({
   }
 
   return (
-    <section className="rounded-xl border border-[var(--accent)]/30 bg-gradient-to-br from-[var(--accent)]/5 to-[var(--surface)] p-5 sm:p-6">
-      <div className="flex items-start justify-between gap-4">
+    <>
+      {showConfetti && (
+        <Confetti
+          width={windowSize.width}
+          height={windowSize.height}
+          numberOfPieces={200}
+          recycle={false}
+          gravity={0.3}
+        />
+      )}
+      <section className="rounded-xl border border-[var(--accent)]/30 bg-gradient-to-br from-[var(--accent)]/5 to-[var(--surface)] p-5 sm:p-6">
+        {allDone && (
+          <div className="mb-4 rounded-lg border-2 border-emerald-500 bg-emerald-50 p-4 text-center">
+            <div className="mb-2 text-4xl">🎉</div>
+            <h3 className="font-display text-lg font-bold text-emerald-700">
+              Congratulations!
+            </h3>
+            <p className="mt-1 text-sm text-emerald-600">
+              You&apos;ve completed all onboarding steps. Your Family Nest is ready to grow!
+            </p>
+          </div>
+        )}
+        <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="font-display text-lg font-bold text-[var(--foreground)]">
             Get Started
@@ -201,6 +248,7 @@ export function OnboardingChecklist({
           </li>
         ))}
       </ul>
-    </section>
+      </section>
+    </>
   );
 }

@@ -122,6 +122,14 @@ export function ActivityFeed({
         <p className="mt-2 max-w-sm mx-auto text-[var(--muted)]">
           Your family story starts here. Upload a photo, write a journal entry, or record a voice memo to get started!
         </p>
+        <div className="mt-6">
+          <Link
+            href="/dashboard/photos"
+            className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90"
+          >
+            📷 Upload Your First Photo
+          </Link>
+        </div>
       </section>
     );
   }
