@@ -30,7 +30,9 @@ const tiers = [
     name: "The Full Nest",
     price: "$49",
     priceSub: "/year",
+    priceBreakdown: "Just $4.08/month or 13¢/day",
     description: "Unlock every feature for your family.",
+    badge: "Most Popular",
     features: [
       "Everything in Free, unlimited",
       "Unlimited journal entries with video uploads",
@@ -53,8 +55,9 @@ const tiers = [
     name: "The Legacy",
     price: "$349",
     priceSub: " one-time",
+    priceBreakdown: "Just $7/year over 50 years — true lifetime value",
     description: "Lifetime access. Pass it down.",
-    badge: "Recommended",
+    badge: "Best Value",
     features: [
       "Everything in Full Nest",
       "50 GB storage",
@@ -72,6 +75,11 @@ const tiers = [
 ];
 
 const faqs = [
+  {
+    question: "Which plan is right for me?",
+    answer:
+      "Start with The Nest (Free) to try the platform with your family. Once you're uploading videos, recording voice memos, or approaching the storage limit, upgrade to The Full Nest ($49/year). If you're committed to preserving your family's memories for decades and want to pass ownership to future generations, The Legacy ($349 one-time) offers lifetime access and the best long-term value.",
+  },
   {
     question: "What happens if the platform shuts down?",
     answer:
@@ -140,6 +148,13 @@ export default function PricingPage() {
                   </span>
                 )}
               </div>
+
+              {/* Price breakdown */}
+              {tier.priceBreakdown && (
+                <p className="mt-2 text-sm font-medium text-[var(--muted)]">
+                  {tier.priceBreakdown}
+                </p>
+              )}
 
               {/* Divider */}
               <hr className="my-6 border-[var(--border)]" />

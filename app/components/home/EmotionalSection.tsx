@@ -1,4 +1,11 @@
-import { ShieldCheck, Infinity, Users, Heart } from "lucide-react";
+import { ShieldCheck, Infinity, Users, Heart, Lock, Shield, Database, Globe } from "lucide-react";
+
+const trustBadges = [
+  { icon: Lock, label: "Bank-level encryption" },
+  { icon: Shield, label: "Privacy-first design" },
+  { icon: Database, label: "Own your data - export anytime" },
+  { icon: Globe, label: "US-based secure servers" },
+];
 
 const differentiators = [
   { icon: ShieldCheck, label: "Private, not public social media" },
@@ -56,6 +63,24 @@ export function EmotionalSection() {
                 The story of where they came from.
               </span>
             </p>
+          </div>
+
+          {/* Trust Badges */}
+          <div className="mb-8 flex flex-wrap justify-center gap-6">
+            {trustBadges.map((badge) => (
+              <div key={badge.label} className="flex items-center gap-2">
+                <badge.icon
+                  className="h-4 w-4"
+                  style={{ color: "var(--primary-foreground)", opacity: 0.7 }}
+                />
+                <span
+                  className="text-xs font-medium uppercase tracking-wide"
+                  style={{ color: "var(--primary-foreground)", opacity: 0.8 }}
+                >
+                  {badge.label}
+                </span>
+              </div>
+            ))}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">

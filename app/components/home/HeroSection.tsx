@@ -35,20 +35,25 @@ export function HeroSection() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Link
-                href="/login?mode=signup"
-                className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-base font-semibold shadow-lg transition-all duration-200 hover:brightness-110 hover:shadow-xl hover:-translate-y-0.5"
-                style={{
-                  backgroundColor: "var(--accent)",
-                  color: "#fff",
-                }}
-              >
-                Start Your Family Nest
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <p className="text-sm" style={{ color: "var(--muted)" }}>
-                Free forever &middot; No credit card needed
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Link
+                  href="/login?mode=signup"
+                  className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-base font-semibold shadow-lg transition-all duration-200 hover:brightness-110 hover:shadow-xl hover:-translate-y-0.5"
+                  style={{
+                    backgroundColor: "var(--accent)",
+                    color: "#fff",
+                  }}
+                >
+                  Start Your Family Nest
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <p className="text-sm" style={{ color: "var(--muted)" }}>
+                  Free forever &middot; No credit card needed
+                </p>
+              </div>
+              <p className="text-sm font-medium" style={{ color: "var(--muted)" }}>
+                ✨ Join 500+ families preserving their memories privately
               </p>
             </div>
           </div>
