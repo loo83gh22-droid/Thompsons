@@ -3,9 +3,9 @@ import "./globals.css";
 import { MosaicBackground } from "./components/MosaicBackground";
 
 export const metadata: Metadata = {
-  title: "Our Family Nest | Your Corner of the World",
+  title: "Our Family Nest — Private. Permanent. Yours.",
   description:
-    "Document your family's life. Share it privately with the people who matter, no matter where they live.",
+    "A private space for families to document their lives together. Journals, photos, videos, voice memos, and more. Not social media. A family heirloom.",
   openGraph: {
     title: "Our Family Nest",
     description:
