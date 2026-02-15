@@ -13,7 +13,7 @@ export function HeroSection() {
                 className="text-sm font-medium uppercase tracking-widest"
                 style={{ color: "var(--accent)" }}
               >
-                Private. Permanent. Yours.
+                For every generation, under one roof
               </p>
               <h1
                 className="text-4xl leading-tight md:text-5xl lg:text-6xl"
@@ -23,15 +23,15 @@ export function HeroSection() {
                   textWrap: "balance",
                 }}
               >
-                Where your family&apos;s story lives forever
+                Your whole family&apos;s favorite place on the internet
               </h1>
               <p
                 className="max-w-lg text-lg leading-relaxed"
                 style={{ color: "var(--muted)" }}
               >
-                Not social media. Not a shared drive. A beautiful, private space to document your
-                family&apos;s life — journals, photos, videos, voice memos, and more. You start it.
-                Your kids take it over.
+                A private, beautiful space where grandparents, parents, aunts, uncles, teens,
+                and kids all come together. Journals, photos, videos, voice memos, recipes,
+                and so much more. You start it. Your whole family makes it theirs.
               </p>
             </div>
 
@@ -56,7 +56,6 @@ export function HeroSection() {
           {/* Hero Image */}
           <div className="relative">
             <div className="relative overflow-hidden rounded-2xl shadow-2xl aspect-[4/3]" style={{ backgroundColor: "var(--secondary)" }}>
-              {/* Placeholder illustration since no image file is included */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center p-8">
                   <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full" style={{ backgroundColor: "var(--primary)", opacity: 0.15 }}>
@@ -68,32 +67,7 @@ export function HeroSection() {
                     Your Family, Together
                   </p>
                   <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
-                    Multi-generational memories
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Floating trust badge */}
-            <div
-              className="absolute -bottom-4 -left-4 rounded-xl p-4 shadow-lg md:-bottom-6 md:-left-6"
-              style={{
-                backgroundColor: "var(--card)",
-                border: "1px solid var(--border)",
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex -space-x-2">
-                  <div className="h-8 w-8 rounded-full border-2" style={{ backgroundColor: "rgba(61,107,94,0.2)", borderColor: "var(--card)" }} />
-                  <div className="h-8 w-8 rounded-full border-2" style={{ backgroundColor: "rgba(204,108,35,0.2)", borderColor: "var(--card)" }} />
-                  <div className="h-8 w-8 rounded-full border-2" style={{ backgroundColor: "rgba(61,107,94,0.3)", borderColor: "var(--card)" }} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium" style={{ color: "var(--foreground)" }}>
-                    10,000+ families
-                  </p>
-                  <p className="text-xs" style={{ color: "var(--muted)" }}>
-                    trust Our Family Nest
+                    Every generation in one place
                   </p>
                 </div>
               </div>

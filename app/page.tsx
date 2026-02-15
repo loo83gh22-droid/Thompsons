@@ -1,6 +1,6 @@
 import { Navbar } from "./components/home/Navbar";
 import { HeroSection } from "./components/home/HeroSection";
-import { TrustBar } from "./components/home/TrustBar";
+import { FamilyMosaic } from "./components/home/FamilyMosaic";
 import { FeaturesBento } from "./components/home/FeaturesBento";
 import { AdditionalFeatures } from "./components/home/AdditionalFeatures";
 import { EmotionalSection } from "./components/home/EmotionalSection";
@@ -14,7 +14,7 @@ export default function HomePage() {
       <Navbar />
       <main>
         <HeroSection />
-        <TrustBar />
+        <FamilyMosaic />
         <FeaturesBento />
         <AdditionalFeatures />
         <EmotionalSection />

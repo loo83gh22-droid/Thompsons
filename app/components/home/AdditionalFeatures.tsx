@@ -33,7 +33,7 @@ export function AdditionalFeatures() {
               color: "var(--foreground)",
             }}
           >
-            Plus dozens of features families love
+            Plus all the little things that make it feel like home
           </h3>
           <div className="flex flex-wrap items-center justify-center gap-3">
             {additionalFeatures.map((feature) => (

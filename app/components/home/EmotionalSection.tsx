@@ -1,10 +1,10 @@
 import { ShieldCheck, Infinity, Users, Heart } from "lucide-react";
 
 const differentiators = [
-  { icon: ShieldCheck, label: "Private — not public social media" },
-  { icon: Infinity, label: "Permanent — not ephemeral stories" },
-  { icon: Users, label: "Multi-generational — designed to be passed down" },
-  { icon: Heart, label: "Ad-free — no strangers' content, just your family" },
+  { icon: ShieldCheck, label: "Private, not public social media" },
+  { icon: Infinity, label: "Permanent, not disappearing stories" },
+  { icon: Users, label: "Multi-generational. Designed to be passed down." },
+  { icon: Heart, label: "Ad-free. No strangers' content, just your family." },
 ];
 
 export function EmotionalSection() {
@@ -26,7 +26,7 @@ export function EmotionalSection() {
               textWrap: "balance",
             }}
           >
-            Not just storage. An heirloom.
+            More than a photo dump. A family heirloom.
           </h2>
 
           <div
@@ -34,17 +34,17 @@ export function EmotionalSection() {
             style={{ color: "var(--primary-foreground)", opacity: 0.8 }}
           >
             <p>
-              Your family&apos;s story is scattered across Instagram, iCloud, WhatsApp, and a dozen
-              other apps. Half your relatives never see it. The other half sees it between ads and
-              strangers&apos; content.
+              Right now, your family&apos;s moments are scattered across Instagram, iCloud,
+              WhatsApp, and a dozen other apps. Half your relatives never see any of it. The
+              other half scrolls right past it between ads and strangers&apos; content.
             </p>
             <p>
-              Our Family Nest is different. It&apos;s private. It&apos;s permanent. Everyone in the
-              family can contribute — parents, grandparents, even the kids.
+              Our Family Nest brings it all together. It&apos;s private, it&apos;s permanent,
+              and everyone in the family can jump in. Parents, grandparents, aunts, uncles,
+              teens, and yes, even the little ones.
             </p>
             <p>
-              And one day, when you hand it over, it becomes their inheritance. Not money. Not
-              things.{" "}
+              And one day, you hand it over. It becomes something better than stuff.{" "}
               <span
                 style={{
                   fontFamily: "var(--font-display-serif)",

@@ -6,7 +6,7 @@ const plans = [
     name: "The Nest",
     price: "Free",
     period: "",
-    description: "Start preserving your family story",
+    description: "Dip your toes in. Start preserving for free.",
     features: ["10 journal entries", "500 MB storage", "Family tree", "Map view"],
     cta: "Get Started Free",
     featured: false,
@@ -15,7 +15,7 @@ const plans = [
     name: "The Full Nest",
     price: "$49",
     period: "/yr",
-    description: "For families ready to capture everything",
+    description: "For families ready to go all in",
     features: [
       "Unlimited entries",
       "10 GB storage",
@@ -29,7 +29,7 @@ const plans = [
     name: "The Legacy",
     price: "$349",
     period: " one-time",
-    description: "Your family's forever platform",
+    description: "Pay once, keep it forever. Seriously.",
     features: [
       "Lifetime access",
       "50 GB storage",
@@ -62,10 +62,10 @@ export function PricingCards() {
               textWrap: "balance",
             }}
           >
-            Simple, honest pricing
+            No surprises. No subscriptions you forget about.
           </h2>
           <p className="text-lg leading-relaxed" style={{ color: "var(--muted)" }}>
-            Start free. Upgrade when your family outgrows it.
+            Start free. Upgrade whenever you&apos;re ready. No pressure.
           </p>
         </div>
 

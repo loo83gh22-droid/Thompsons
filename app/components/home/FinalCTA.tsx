@@ -14,14 +14,14 @@ export function FinalCTA() {
               textWrap: "balance",
             }}
           >
-            Start your family&apos;s forever place
+            Ready to get your whole family in one place?
           </h2>
           <p
             className="mb-10 text-lg leading-relaxed"
             style={{ color: "var(--muted)" }}
           >
-            It takes 30 seconds to create your Nest. Invite your family today and start building
-            something they&apos;ll thank you for later.
+            It takes 30 seconds to set up. Invite grandma, the cousins, your siblings, everyone.
+            Start building something the whole family will love.
           </p>
 
           <div className="flex flex-col items-center gap-4">

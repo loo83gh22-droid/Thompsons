@@ -5,37 +5,37 @@ const features = [
     icon: BookOpen,
     title: "Journal with Photos & Video",
     description:
-      "Write about trips, milestones, and everyday moments. Attach photos and short videos — the gems, not everything.",
+      "Write about trips, milestones, and the everyday chaos. Attach photos and short videos of the gems, not everything.",
   },
   {
     icon: MapPin,
     title: "Family Travel Map",
     description:
-      "Pin everywhere your family has been. Vacations, homes, birthplaces — watch your map fill up over the years.",
+      "Pin everywhere your family has been. Vacations, birthplaces, that roadside diner everyone still talks about. Watch your map fill up over the years.",
   },
   {
     icon: GitBranch,
     title: "Family Tree",
     description:
-      "Map your family. Every member gets a profile with photos, birthdays, and their role in the family story.",
+      "Map your whole crew. Every member gets a profile with photos, birthdays, and their place in the family story. Yes, even Uncle Steve.",
   },
   {
     icon: Mic,
     title: "Voice Memos",
     description:
-      "Record grandma's stories, a child's first words, or a bedtime tradition. Voices fade — these won't.",
+      "Record grandma's stories, a toddler's first words, or that bedtime song everyone knows by heart. These voices stick around forever.",
   },
   {
     icon: Lock,
     title: "Time Capsules",
     description:
-      "Write a letter to your future self — or your kids. Seal it and set an unlock date.",
+      "Write a letter to your future self or your kids. Seal it, set an unlock date, and try not to peek.",
   },
   {
     icon: UtensilsCrossed,
     title: "Stories & Recipes",
     description:
-      "Capture family stories that would otherwise only live in someone's memory. Save grandma's recipes with the story behind them.",
+      "Save the family stories that only get told at holidays. Keep grandma's secret recipes (with the actual story behind them).",
   },
 ];
 
@@ -59,11 +59,10 @@ export function FeaturesBento() {
               textWrap: "balance",
             }}
           >
-            Everything your family needs
+            Everything your family will actually use
           </h2>
           <p className="text-lg leading-relaxed" style={{ color: "var(--muted)" }}>
-            Built for real families — not influencers. Every feature exists because a family asked
-            for it.
+            Built for real families, not influencers. Every feature here? A family asked for it.
           </p>
         </div>
 
