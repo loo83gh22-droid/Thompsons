@@ -19,7 +19,8 @@ interface PromptContext {
 
 export async function generateJournalPrompts(context: PromptContext) {
   const supabase = await createClient();
-  await requireRole(['owner', 'adult', 'teen'], supabase);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
 
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) {
@@ -28,6 +29,9 @@ export async function generateJournalPrompts(context: PromptContext) {
       error: 'No active family found'
     };
   }
+
+  // Check role permission
+  await requireRole(supabase, user.id, ['owner', 'adult', 'teen']);
 
   // Check rate limit
   const canProceed = await checkRateLimit(activeFamilyId, 'journal_prompt');

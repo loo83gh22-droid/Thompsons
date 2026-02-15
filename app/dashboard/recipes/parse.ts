@@ -12,7 +12,8 @@ const openai = new OpenAI({
 
 export async function parseRecipeUrl(url: string) {
   const supabase = await createClient();
-  await requireRole(['owner', 'adult', 'teen'], supabase);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
 
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) {
@@ -21,6 +22,9 @@ export async function parseRecipeUrl(url: string) {
       error: 'No active family found'
     };
   }
+
+  // Check role permission
+  await requireRole(supabase, user.id, ['owner', 'adult', 'teen']);
 
   // Check rate limit
   const canProceed = await checkRateLimit(activeFamilyId, 'parse_recipe');

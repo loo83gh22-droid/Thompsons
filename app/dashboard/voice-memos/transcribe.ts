@@ -11,9 +11,8 @@ const openai = new OpenAI({
 
 export async function transcribeVoiceMemo(voiceMemoId: string) {
   const supabase = await createClient();
-
-  // Verify user has permission (owner, adult, or teen can transcribe)
-  await requireRole(['owner', 'adult', 'teen'], supabase);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
 
   try {
     // 1. Get voice memo storage URL and family_id
@@ -27,7 +26,10 @@ export async function transcribeVoiceMemo(voiceMemoId: string) {
       throw new Error('Voice memo not found');
     }
 
-    // 2. Check rate limit
+    // 2. Verify user has permission (owner, adult, or teen can transcribe)
+    await requireRole(supabase, user.id, ['owner', 'adult', 'teen']);
+
+    // 3. Check rate limit
     const canProceed = await checkRateLimit(memo.family_id, 'transcribe');
     if (!canProceed) {
       return {
@@ -36,13 +38,13 @@ export async function transcribeVoiceMemo(voiceMemoId: string) {
       };
     }
 
-    // 3. Update status to processing
+    // 4. Update status to processing
     await supabase
       .from('voice_memos')
       .update({ transcription_status: 'processing' })
       .eq('id', voiceMemoId);
 
-    // 4. Download audio file from Supabase Storage
+    // 5. Download audio file from Supabase Storage
     const { data: audioFile, error: downloadError } = await supabase
       .storage
       .from('voice-memos')
@@ -52,10 +54,10 @@ export async function transcribeVoiceMemo(voiceMemoId: string) {
       throw new Error('Failed to download audio file');
     }
 
-    // 5. Convert Blob to File object for Whisper API
+    // 6. Convert Blob to File object for Whisper API
     const file = new File([audioFile], 'audio.webm', { type: 'audio/webm' });
 
-    // 6. Call Whisper API for transcription
+    // 7. Call Whisper API for transcription
     const transcription = await openai.audio.transcriptions.create({
       file: file,
       model: 'whisper-1',
@@ -63,7 +65,7 @@ export async function transcribeVoiceMemo(voiceMemoId: string) {
       response_format: 'text', // Options: json, text, srt, verbose_json, vtt
     });
 
-    // 7. Save transcript to database
+    // 8. Save transcript to database
     const { error: updateError } = await supabase
       .from('voice_memos')
       .update({
