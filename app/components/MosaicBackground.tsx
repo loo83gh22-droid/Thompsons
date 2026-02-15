@@ -69,7 +69,7 @@ export async function MosaicBackground() {
         />
       )}
       {/* Warm overlay for readability */}
-      <div className="absolute inset-0 bg-[var(--background)]/90" />
+      <div className="absolute inset-0 bg-[var(--background)]/80" />
     </div>
   );
 }

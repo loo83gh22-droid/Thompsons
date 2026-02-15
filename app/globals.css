@@ -2,21 +2,21 @@
 @import "tailwindcss";
 
 :root {
-  --background: hsl(40, 33%, 96%);
-  --foreground: hsl(30, 10%, 15%);
-  --card: hsl(40, 40%, 98%);
-  --card-foreground: hsl(30, 10%, 15%);
-  --primary: hsl(160, 32%, 30%);
+  --background: hsl(40, 25%, 92%);
+  --foreground: hsl(30, 12%, 12%);
+  --card: hsl(40, 30%, 97%);
+  --card-foreground: hsl(30, 12%, 12%);
+  --primary: hsl(160, 36%, 26%);
   --primary-foreground: hsl(40, 33%, 96%);
-  --secondary: hsl(36, 25%, 90%);
-  --secondary-foreground: hsl(30, 10%, 15%);
-  --muted: hsl(30, 8%, 45%);
-  --accent: hsl(24, 60%, 50%);
-  --accent-muted: hsl(24, 55%, 42%);
+  --secondary: hsl(36, 20%, 85%);
+  --secondary-foreground: hsl(30, 12%, 12%);
+  --muted: hsl(30, 8%, 40%);
+  --accent: hsl(24, 65%, 48%);
+  --accent-muted: hsl(24, 55%, 38%);
   --accent-foreground: hsl(40, 33%, 96%);
-  --border: hsl(36, 20%, 87%);
-  --surface: hsl(40, 40%, 98%);
-  --surface-hover: hsl(36, 25%, 90%);
+  --border: hsl(36, 18%, 78%);
+  --surface: hsl(40, 30%, 96%);
+  --surface-hover: hsl(36, 22%, 87%);
 }
 
 /* Landing page wrapper - z-index for mosaic background */
@@ -50,8 +50,8 @@
   --animate-glow-pulse: glow-pulse 2s ease-in-out infinite;
 
   /* Custom shadows for cards */
-  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
-  --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.15);
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.18), 0 1px 3px rgba(0, 0, 0, 0.12);
+  --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.28), 0 2px 4px rgba(0, 0, 0, 0.18);
   --shadow-deep: 0 20px 60px rgba(0, 0, 0, 0.4);
 
   /* Gradients for design */
