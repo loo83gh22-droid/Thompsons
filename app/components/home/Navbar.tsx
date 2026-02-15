@@ -12,7 +12,7 @@ export function Navbar() {
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-2">
           <NestIcon className="h-8 w-8 text-[var(--primary)]" />
-          <span className="text-lg font-[var(--font-display-serif)] text-[var(--foreground)]" style={{ fontFamily: "var(--font-display-serif)" }}>
+          <span className="text-lg font-semibold text-[var(--foreground)]" style={{ fontFamily: "var(--font-display-serif)" }}>
             Our Family Nest
           </span>
         </Link>
@@ -38,7 +38,7 @@ export function Navbar() {
           </Link>
           <Link
             href="/login?mode=signup"
-            className="rounded-full bg-[var(--primary)] px-6 py-2 text-sm font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90"
+            className="rounded-full bg-[var(--accent)] px-6 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:brightness-110 hover:shadow-lg"
           >
             Start Your Family Nest
           </Link>
@@ -79,7 +79,7 @@ export function Navbar() {
             </Link>
             <Link
               href="/login?mode=signup"
-              className="rounded-full bg-[var(--primary)] px-6 py-3 text-center text-sm font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90"
+              className="rounded-full bg-[var(--accent)] px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition-all duration-200 hover:brightness-110 hover:shadow-lg"
               onClick={() => setMobileOpen(false)}
             >
               Start Your Family Nest

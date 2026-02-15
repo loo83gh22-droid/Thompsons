@@ -16,7 +16,7 @@ export function HeroSection() {
                 For every generation, under one roof
               </p>
               <h1
-                className="text-4xl leading-tight md:text-5xl lg:text-6xl"
+                className="text-4xl font-bold leading-tight md:text-5xl lg:text-6xl"
                 style={{
                   fontFamily: "var(--font-display-serif)",
                   color: "var(--foreground)",
@@ -38,10 +38,10 @@ export function HeroSection() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 href="/login?mode=signup"
-                className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-3.5 text-base font-medium transition-colors hover:opacity-90"
+                className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-base font-semibold shadow-lg transition-all duration-200 hover:brightness-110 hover:shadow-xl hover:-translate-y-0.5"
                 style={{
-                  backgroundColor: "var(--primary)",
-                  color: "var(--primary-foreground)",
+                  backgroundColor: "var(--accent)",
+                  color: "#fff",
                 }}
               >
                 Start Your Family Nest

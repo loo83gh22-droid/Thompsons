@@ -7,7 +7,7 @@ export function FinalCTA() {
       <div className="mx-auto max-w-6xl px-6">
         <div className="mx-auto max-w-2xl text-center">
           <h2
-            className="mb-6 text-3xl md:text-4xl lg:text-5xl"
+            className="mb-6 text-3xl font-bold md:text-4xl lg:text-5xl"
             style={{
               fontFamily: "var(--font-display-serif)",
               color: "var(--foreground)",
@@ -27,10 +27,10 @@ export function FinalCTA() {
           <div className="flex flex-col items-center gap-4">
             <Link
               href="/login?mode=signup"
-              className="inline-flex items-center justify-center gap-2 rounded-full px-10 py-3.5 text-base font-medium transition-colors hover:opacity-90"
+              className="inline-flex items-center justify-center gap-2 rounded-full px-10 py-4 text-base font-semibold shadow-lg transition-all duration-200 hover:brightness-110 hover:shadow-xl hover:-translate-y-0.5"
               style={{
-                backgroundColor: "var(--primary)",
-                color: "var(--primary-foreground)",
+                backgroundColor: "var(--accent)",
+                color: "#fff",
               }}
             >
               Start Your Family Nest
