@@ -149,8 +149,55 @@ export default async function DashboardPage() {
       stats.lastActivityBy = first.memberName ?? null;
     }
 
-    // Build highlight candidates from activity data
-    const highlightCandidates: HighlightItem[] = combined.map((item) => ({
+    // Get current user's member ID and name for filtering
+    const { data: currentUser } = await supabase.auth.getUser();
+    const { data: currentMemberData } = await supabase
+      .from("family_members")
+      .select("id, name, nickname")
+      .eq("family_id", activeFamilyId)
+      .eq("user_id", currentUser.user?.id)
+      .single();
+
+    const currentMemberId = currentMemberData?.id;
+    const currentMemberName = currentMemberData ? (currentMemberData.nickname?.trim() || currentMemberData.name) : null;
+
+    // Query journal entries where user has added perspective
+    const { data: userPerspectives } = await supabase
+      .from("journal_perspectives")
+      .select("journal_entry_id")
+      .eq("author_id", currentMemberId);
+    const journalIdsWithUserPerspective = new Set(
+      userPerspectives?.map((p) => p.journal_entry_id) || []
+    );
+
+    // Filter combined activity to user-relevant memories
+    const userRelevantActivity = combined.filter((item) => {
+      // Photos: include all (uploader not currently tracked in activity query)
+      if (item.type === "photo") return true;
+
+      // Journal: created by user OR user added perspective
+      if (item.type === "journal") {
+        return (
+          item.memberName === currentMemberName ||
+          journalIdsWithUserPerspective.has(item.id)
+        );
+      }
+
+      // Voice memo: recorded by user
+      if (item.type === "voice_memo") {
+        return item.memberName === currentMemberName;
+      }
+
+      // Message: sent by user
+      if (item.type === "message") {
+        return item.memberName === currentMemberName;
+      }
+
+      return false;
+    });
+
+    // Build highlight candidates from filtered user-relevant activity
+    const highlightCandidates: HighlightItem[] = userRelevantActivity.map((item) => ({
       type: item.type,
       id: item.id,
       title: item.title ?? null,

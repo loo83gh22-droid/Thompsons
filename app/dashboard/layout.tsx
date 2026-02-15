@@ -7,6 +7,7 @@ import { UnreadMessagesFetcher } from "@/app/dashboard/UnreadMessagesFetcher";
 import { FamilyProvider } from "@/app/dashboard/FamilyContext";
 import { WelcomeModal } from "@/app/dashboard/WelcomeModal";
 import { AgeTransitionBanner } from "@/app/dashboard/AgeTransitionBanner";
+import { BirthdayPrompt } from "@/app/dashboard/BirthdayPrompt";
 
 export default async function DashboardLayout({
   children,
@@ -139,6 +140,7 @@ export default async function DashboardLayout({
     return (
       <FamilyProvider activeFamilyId={activeFamilyId} families={families} currentUserRole={currentUserRole} currentMemberId={currentMemberId} planType={planType}>
         <WelcomeModal familyName={familyName} />
+        <BirthdayPrompt />
         <div className="min-h-screen">
           <Nav
             user={user}

@@ -17,7 +17,7 @@ export function Navbar() {
           </span>
         </Link>
 
-        <div className="hidden items-center gap-8 md:flex">
+        <div className="hidden items-center gap-6 md:flex">
           <Link
             href="#features"
             className="text-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
@@ -35,6 +35,12 @@ export function Navbar() {
             className="text-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
           >
             Pricing
+          </Link>
+          <Link
+            href="/login"
+            className="text-sm font-medium text-[var(--foreground)] transition-colors hover:text-[var(--accent)]"
+          >
+            Log In
           </Link>
           <Link
             href="/login?mode=signup"
@@ -76,6 +82,13 @@ export function Navbar() {
               onClick={() => setMobileOpen(false)}
             >
               Pricing
+            </Link>
+            <Link
+              href="/login"
+              className="text-sm font-medium text-[var(--foreground)]"
+              onClick={() => setMobileOpen(false)}
+            >
+              Log In
             </Link>
             <Link
               href="/login?mode=signup"
