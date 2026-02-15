@@ -57,7 +57,7 @@ export default function PrivacyPage() {
         </div>
 
         <p className="mt-12 text-sm text-[var(--muted)]">
-          <Link href="/" className="text-[var(--accent)] hover:underline">
+          <Link href="/" className="text-[var(--primary)] hover:underline">
             ← Back to home
           </Link>
         </p>

@@ -368,7 +368,7 @@ export default function EditJournalPage() {
         </div>
 
         {error && (
-          <div className="rounded-lg bg-red-500/20 px-4 py-3 text-sm text-red-400">
+          <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
             {error}
           </div>
         )}
@@ -377,7 +377,7 @@ export default function EditJournalPage() {
           <button
             type="submit"
             disabled={saving}
-            className="rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] disabled:opacity-50"
+            className="rounded-full bg-[var(--primary)] px-6 py-3 font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save changes"}
           </button>
@@ -442,7 +442,7 @@ export default function EditJournalPage() {
             <div className="flex gap-2">
               <button
                 type="submit"
-                className="rounded-lg bg-[var(--accent)] px-4 py-2 font-semibold text-[var(--background)]"
+                className="rounded-full bg-[var(--primary)] px-4 py-2 font-medium text-[var(--primary-foreground)]"
               >
                 Add photos
               </button>
@@ -502,7 +502,7 @@ export default function EditJournalPage() {
                   <button
                     type="button"
                     onClick={() => handleDeleteVideo(video.id)}
-                    className="text-red-400 hover:text-red-300 transition-colors"
+                    className="text-red-600 hover:text-red-700 transition-colors"
                   >
                     Remove
                   </button>
@@ -528,7 +528,7 @@ export default function EditJournalPage() {
             <div className="flex gap-2">
               <button
                 type="submit"
-                className="rounded-lg bg-[var(--accent)] px-4 py-2 font-semibold text-[var(--background)]"
+                className="rounded-full bg-[var(--primary)] px-4 py-2 font-medium text-[var(--primary-foreground)]"
               >
                 Upload video
               </button>

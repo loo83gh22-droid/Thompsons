@@ -87,7 +87,7 @@ export function AgeTransitionBanner() {
               type="button"
               onClick={() => handleUpgrade(t)}
               disabled={updating === t.id}
-              className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent)]/90 disabled:opacity-50"
+              className="rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 disabled:opacity-50"
             >
               {updating === t.id ? "Upgrading..." : `Upgrade to ${ROLE_LABELS[t.suggestedRole]}`}
             </button>

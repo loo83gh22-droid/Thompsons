@@ -39,7 +39,7 @@ export default async function KidViewPage({
     if (expires < new Date()) {
       return (
         <div className="flex min-h-screen items-center justify-center bg-[var(--background)] px-4">
-          <div className="max-w-md rounded-xl border border-[var(--border)] bg-[var(--surface)] p-8 text-center">
+          <div className="max-w-md rounded-2xl border border-[var(--border)] bg-[var(--card)] p-8 text-center">
             <span className="text-5xl">🔒</span>
             <h1 className="mt-4 font-display text-2xl font-bold text-[var(--foreground)]">
               Link Expired
@@ -107,7 +107,7 @@ export default async function KidViewPage({
               className="h-10 w-10 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-500/30 text-lg font-semibold text-purple-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--primary)]/15 text-lg font-semibold text-[var(--primary)]">
               {displayName[0]?.toUpperCase()}
             </div>
           )}
@@ -176,9 +176,9 @@ export default async function KidViewPage({
               {timeCapsules.map((tc) => (
                 <article
                   key={tc.id}
-                  className="rounded-xl border border-purple-500/30 bg-purple-500/5 p-4"
+                  className="rounded-xl border border-[var(--primary)]/30 bg-[var(--primary)]/5 p-4"
                 >
-                  <h3 className="font-semibold text-purple-400">
+                  <h3 className="font-semibold text-[var(--primary)]">
                     {tc.title}
                   </h3>
                   <p className="mt-2 whitespace-pre-wrap text-sm text-[var(--muted)]">
@@ -241,7 +241,7 @@ export default async function KidViewPage({
         <footer className="border-t border-[var(--border)] pt-6 text-center text-sm text-[var(--muted)]">
           <p>This is a read-only view of {displayName}&apos;s family content.</p>
           <p className="mt-1">
-            <Link href="/login" className="text-[var(--accent)] hover:underline">
+            <Link href="/login" className="text-[var(--primary)] hover:underline">
               Sign in
             </Link>{" "}
             to access the full Family Nest.

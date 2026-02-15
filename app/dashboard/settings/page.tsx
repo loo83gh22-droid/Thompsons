@@ -14,7 +14,7 @@ const PLAN_DISPLAY: Record<
   free: { name: "The Nest", color: "text-[var(--muted)]", badge: "Free" },
   annual: {
     name: "The Full Nest",
-    color: "text-blue-400",
+    color: "text-blue-600",
     badge: "$49/year",
   },
   legacy: {
@@ -62,7 +62,7 @@ function StorageBar({
         />
       </div>
       {pct > 80 && (
-        <p className={`text-xs ${pct > 95 ? "text-red-400" : "text-amber-400"}`}>
+        <p className={`text-xs ${pct > 95 ? "text-red-600" : "text-amber-700"}`}>
           {pct > 95
             ? "Storage almost full — consider upgrading your plan."
             : "Storage getting full — you may want to upgrade soon."}
@@ -186,7 +186,7 @@ export default async function SettingsPage() {
                   />
                 </div>
                 {journalCount >= 10 && (
-                  <p className="text-xs text-red-400">
+                  <p className="text-xs text-red-600">
                     Journal entry limit reached. Upgrade to unlock unlimited
                     entries.
                   </p>
@@ -205,7 +205,7 @@ export default async function SettingsPage() {
               {/* Upgrade CTA */}
               <Link
                 href="/pricing"
-                className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent)]/90"
+                className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90"
               >
                 Upgrade Plan
                 <span aria-hidden="true">&rarr;</span>

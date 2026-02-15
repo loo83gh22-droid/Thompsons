@@ -141,7 +141,7 @@ export function OnboardingChecklist({
               href={step.href}
               className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors ${
                 step.done
-                  ? "bg-emerald-500/10 text-emerald-400"
+                  ? "bg-emerald-50 text-emerald-700"
                   : "bg-[var(--surface)] hover:bg-[var(--surface-hover)] text-[var(--foreground)]"
               }`}
             >

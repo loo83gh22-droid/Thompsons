@@ -42,7 +42,7 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
   return (
     <div className="mt-8 space-y-6">
       <div className="flex flex-wrap items-center gap-4">
-        <label className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-lg bg-[var(--accent)] px-4 py-3 font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">
+        <label className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-full bg-[var(--primary)] px-4 py-3 font-medium text-[var(--primary-foreground)] hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]">
           {uploading ? "Uploading..." : "Add photo"}
           <input
             ref={fileInputRef}
@@ -60,7 +60,7 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/20 px-4 py-3 text-sm text-red-400" role="alert">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600" role="alert">
           {error}
         </div>
       )}

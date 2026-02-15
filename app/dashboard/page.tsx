@@ -245,10 +245,10 @@ function DashboardCard({
   return (
     <Link
       href={href}
-      className="group block min-w-0 min-h-[44px] w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] md:transition-all md:duration-[250ms] md:ease-in-out md:hover:scale-[1.02] md:hover:border-[var(--accent)]/50 md:hover:bg-[var(--surface-hover)] md:hover:shadow-xl md:hover:shadow-black/25"
+      className="group block min-w-0 min-h-[44px] w-full rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] md:transition-all md:duration-[250ms] md:ease-in-out md:hover:scale-[1.02] md:hover:border-[var(--primary)]/40 md:hover:shadow-lg"
     >
       <span className="text-3xl" role="img" aria-hidden="true">{icon}</span>
-      <h2 className="mt-4 font-display text-xl font-semibold text-[var(--foreground)] break-words md:group-hover:text-[var(--accent)]">
+      <h2 className="mt-4 font-display text-xl font-semibold text-[var(--foreground)] break-words md:group-hover:text-[var(--primary)]">
         {title}
       </h2>
       <p className="mt-2 text-sm text-[var(--muted)] break-words">{description}</p>

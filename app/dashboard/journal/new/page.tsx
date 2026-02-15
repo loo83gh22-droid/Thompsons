@@ -234,7 +234,7 @@ export default function NewJournalPage() {
         </div>
 
         {error && (
-          <div className="rounded-lg bg-red-500/20 px-4 py-3 text-sm text-red-400">
+          <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
             {error}
           </div>
         )}
@@ -243,7 +243,7 @@ export default function NewJournalPage() {
           <button
             type="submit"
             disabled={loading || members.length === 0}
-            className="rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] disabled:opacity-50"
+            className="rounded-full bg-[var(--primary)] px-6 py-3 font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
           >
             {loading ? "Saving..." : "Save entry"}
           </button>

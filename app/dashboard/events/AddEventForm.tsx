@@ -68,7 +68,7 @@ export function AddEventForm({ members }: { members: Member[] }) {
         type="button"
         data-add-event
         onClick={() => setOpen(true)}
-        className="min-h-[44px] shrink-0 rounded-lg bg-[var(--accent)] px-4 py-3 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:py-2"
+        className="min-h-[44px] shrink-0 rounded-full bg-[var(--primary)] px-4 py-3 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] sm:py-2"
       >
         + Add event
       </button>
@@ -190,7 +190,7 @@ export function AddEventForm({ members }: { members: Member[] }) {
               <span className="text-sm text-[var(--muted)]">Repeat every year</span>
             </label>
             {error && (
-              <p className="text-sm text-red-400" role="alert">
+              <p className="text-sm text-red-600" role="alert">
                 {error}
               </p>
             )}
@@ -198,7 +198,7 @@ export function AddEventForm({ members }: { members: Member[] }) {
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-submit rounded-lg bg-[var(--accent)] font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] disabled:opacity-50"
+                className="btn-submit rounded-full bg-[var(--primary)] font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
               >
                 {loading ? "Saving…" : "Save Event"}
               </button>

@@ -115,7 +115,7 @@ export function ExportNest() {
 
         {/* Error */}
         {(error || exportData?.status === "failed") && (
-          <div className="rounded-lg border border-red-500/30 bg-red-900/20 px-4 py-3 text-sm text-red-400">
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
             {error || exportData?.error_message || "Export failed. Please try again."}
           </div>
         )}
@@ -138,12 +138,12 @@ export function ExportNest() {
         {/* Ready to download */}
         {isReady && (
           <div className="space-y-3">
-            <div className="flex items-center gap-3 rounded-lg border border-green-500/30 bg-green-900/15 px-4 py-3">
+            <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3">
               <span className="text-lg" aria-hidden="true">
                 ✓
               </span>
               <div className="flex-1">
-                <p className="text-sm font-medium text-green-400">
+                <p className="text-sm font-medium text-green-600">
                   Export ready
                 </p>
                 <p className="text-xs text-[var(--muted)]">
@@ -164,7 +164,7 @@ export function ExportNest() {
             <a
               href={exportData.download_url!}
               download
-              className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent)]/90"
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90"
             >
               Download Archive
               <span aria-hidden="true">&darr;</span>

@@ -66,12 +66,12 @@ export default async function PublicStoryPage({ params }: Props) {
       {/* Header */}
       <header className="border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4 sm:px-6">
-          <Link href="/" className="font-display text-lg font-semibold text-[var(--accent)]">
+          <Link href="/" className="font-display text-lg font-semibold text-[var(--primary)]">
             Our Family Nest
           </Link>
           <Link
             href="/login"
-            className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--background)] hover:bg-[var(--accent)]/90"
+            className="rounded-full bg-[var(--primary)] px-5 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90"
           >
             Start Your Family Nest
           </Link>
@@ -112,7 +112,7 @@ export default async function PublicStoryPage({ params }: Props) {
         </div>
 
         {/* Story content */}
-        <article className="prose prose-invert max-w-none text-[var(--foreground)] leading-relaxed">
+        <article className="prose max-w-none text-[var(--foreground)] leading-relaxed">
           {story.content.split("\n").map((paragraph: string, i: number) => (
             <p key={i} className="mb-4 text-[var(--muted)] leading-relaxed">
               {paragraph}
@@ -121,7 +121,7 @@ export default async function PublicStoryPage({ params }: Props) {
         </article>
 
         {/* CTA */}
-        <div className="mt-12 rounded-xl border border-[var(--accent)]/30 bg-[var(--accent)]/5 p-6 text-center sm:p-8">
+        <div className="mt-12 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 text-center sm:p-8">
           <h2 className="font-display text-xl font-bold text-[var(--foreground)]">
             Every family has stories worth preserving.
           </h2>
@@ -130,7 +130,7 @@ export default async function PublicStoryPage({ params }: Props) {
           </p>
           <Link
             href="/login"
-            className="mt-4 inline-block rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--background)] hover:bg-[var(--accent)]/90"
+            className="mt-4 inline-block rounded-full bg-[var(--primary)] px-8 py-3 font-medium text-[var(--primary-foreground)] hover:opacity-90"
           >
             Start Your Family Nest — Free
           </Link>

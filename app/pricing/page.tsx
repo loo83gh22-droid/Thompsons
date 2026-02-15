@@ -110,13 +110,13 @@ export default function PricingPage() {
               key={tier.name}
               className={`relative flex flex-col rounded-2xl border p-8 transition-shadow ${
                 tier.highlighted
-                  ? "border-[var(--accent)] bg-[var(--surface)] shadow-[0_0_40px_rgba(212,168,83,0.15)] lg:scale-105 lg:py-10"
-                  : "border-[var(--border)] bg-[var(--surface)]/60"
+                  ? "border-[var(--accent)] bg-[var(--card)] shadow-[0_0_40px_hsla(24,60%,50%,0.12)] lg:scale-105 lg:py-10"
+                  : "border-[var(--border)] bg-[var(--card)]"
               }`}
             >
               {/* Recommended badge */}
               {tier.badge && (
-                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[var(--accent)] px-4 py-1 text-xs font-semibold uppercase tracking-wide text-[var(--background)]">
+                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[var(--accent)] px-4 py-1 text-xs font-semibold uppercase tracking-wide text-[var(--accent-foreground)]">
                   {tier.badge}
                 </span>
               )}
@@ -149,7 +149,7 @@ export default function PricingPage() {
                 {tier.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-2">
                     <span
-                      className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/15 text-[var(--accent)]"
+                      className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--primary)]/15 text-[var(--primary)]"
                       aria-hidden="true"
                     >
                       ✓
@@ -163,10 +163,10 @@ export default function PricingPage() {
               <div className="mt-8">
                 <Link
                   href={tier.ctaHref}
-                  className={`block w-full rounded-lg px-6 py-3 text-center font-semibold transition-all hover:scale-[1.02] ${
+                  className={`block w-full rounded-full px-6 py-3 text-center font-medium transition-all hover:scale-[1.02] ${
                     tier.highlighted
-                      ? "bg-[var(--accent)] text-[var(--background)] hover:bg-[var(--accent-muted)]"
-                      : "border border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent)]/10"
+                      ? "bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90"
+                      : "border border-[var(--border)] text-[var(--foreground)] bg-[var(--secondary)] hover:bg-[var(--surface-hover)]"
                   }`}
                 >
                   {tier.cta}
@@ -190,7 +190,7 @@ export default function PricingPage() {
             {faqs.map((faq) => (
               <div
                 key={faq.question}
-                className="rounded-xl border border-[var(--border)] bg-[var(--surface)]/60 p-6"
+                className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6"
               >
                 <dt className="font-display text-lg font-semibold text-[var(--accent)]">
                   {faq.question}

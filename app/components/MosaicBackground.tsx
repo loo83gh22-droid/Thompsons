@@ -47,7 +47,7 @@ export async function MosaicBackground() {
                 transform: `translate(${offsetX}px, ${offsetY}px) rotate(${rotation}deg)`,
               }}
             >
-              <div className="relative h-full w-full overflow-hidden rounded-sm bg-white p-1.5 shadow-[2px_6px_16px_rgba(0,0,0,0.5)]">
+              <div className="relative h-full w-full overflow-hidden rounded-sm bg-white p-1.5 shadow-[2px_6px_16px_rgba(0,0,0,0.15)]">
                 <Image
                   src={url}
                   alt=""
@@ -62,14 +62,14 @@ export async function MosaicBackground() {
         </div>
       ) : (
         <div
-          className="h-full w-full opacity-[0.03]"
+          className="h-full w-full opacity-[0.04]"
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23806040' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }}
         />
       )}
-      {/* Dark overlay for readability */}
-      <div className="absolute inset-0 bg-[var(--background)]/85" />
+      {/* Warm overlay for readability */}
+      <div className="absolute inset-0 bg-[var(--background)]/90" />
     </div>
   );
 }

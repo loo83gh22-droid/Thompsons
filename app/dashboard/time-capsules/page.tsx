@@ -91,7 +91,7 @@ export default async function TimeCapsulesPage() {
                       <div className="flex items-center gap-2">
                         <span
                           className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                            unlocked ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"
+                            unlocked ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-amber-50 text-amber-700 border border-amber-200"
                           }`}
                         >
                           {unlocked ? "Unlocked" : `Sealed until ${formatDateOnly(letter.unlock_date)}`}
@@ -138,7 +138,7 @@ export default async function TimeCapsulesPage() {
                       </div>
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                          unlocked ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"
+                          unlocked ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-amber-50 text-amber-700 border border-amber-200"
                         }`}
                       >
                         {unlocked ? "Unlocked" : `Sealed until ${formatDateOnly(letter.unlock_date)}`}

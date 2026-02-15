@@ -341,12 +341,12 @@ export function MemberDetailsPanel({
                       }
                     }}
                     disabled={kidLinkLoading}
-                    className="rounded-lg border border-red-500/50 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/20 disabled:opacity-50"
+                    className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-100 disabled:opacity-50"
                   >
                     Revoke
                   </button>
                 </div>
-                <p className="text-xs text-emerald-400">Active link — expires in 30 days</p>
+                <p className="text-xs text-emerald-700">Active link — expires in 30 days</p>
               </div>
             ) : (
               <button
@@ -387,7 +387,7 @@ export function MemberDetailsPanel({
           {status === "pending_invitation" && (
             <Link
               href={`/dashboard/members/${member.id}`}
-              className="rounded-lg border border-amber-500/50 bg-amber-500/10 px-4 py-2 text-center text-sm font-medium text-amber-400 hover:bg-amber-500/20"
+              className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-center text-sm font-medium text-amber-700 hover:bg-amber-100"
             >
               Resend Invitation
             </Link>
@@ -396,7 +396,7 @@ export function MemberDetailsPanel({
             type="button"
             onClick={handleRemove}
             disabled={removing}
-            className="rounded-lg border border-red-500/50 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/20 disabled:opacity-50"
+            className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 disabled:opacity-50"
           >
             {removing ? "Removing…" : "Remove Member"}
           </button>

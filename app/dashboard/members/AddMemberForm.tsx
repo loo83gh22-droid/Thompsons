@@ -279,8 +279,8 @@ export function AddMemberForm({
               <div
                 className={`rounded-lg px-4 py-3 text-sm ${
                   message.type === "success"
-                    ? "bg-emerald-500/20 text-emerald-400"
-                    : "border border-red-500/30 bg-red-500/20 text-red-400"
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    : "bg-red-50 text-red-700 border border-red-200"
                 }`}
                 role="alert"
               >
@@ -291,7 +291,7 @@ export function AddMemberForm({
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-submit order-1 rounded-lg bg-[var(--accent)] font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:order-none"
+                className="btn-submit order-1 rounded-full bg-[var(--primary)] font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] sm:order-none"
               >
                 {loading ? "Adding..." : "Add"}
               </button>

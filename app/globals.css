@@ -2,18 +2,6 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0f1419;
-  --foreground: #e8e6e3;
-  --accent: #d4a853;
-  --accent-muted: #b8923f;
-  --surface: #1a2332;
-  --surface-hover: #243044;
-  --border: #2d3a4d;
-  --muted: #8b9aad;
-}
-
-/* Landing page warm light theme */
-.landing {
   --background: hsl(40, 33%, 96%);
   --foreground: hsl(30, 10%, 15%);
   --card: hsl(40, 40%, 98%);
@@ -24,12 +12,15 @@
   --secondary-foreground: hsl(30, 10%, 15%);
   --muted: hsl(30, 8%, 45%);
   --accent: hsl(24, 60%, 50%);
+  --accent-muted: hsl(24, 55%, 42%);
   --accent-foreground: hsl(40, 33%, 96%);
   --border: hsl(36, 20%, 87%);
   --surface: hsl(40, 40%, 98%);
   --surface-hover: hsl(36, 25%, 90%);
-  color: var(--foreground);
-  background: var(--background);
+}
+
+/* Landing page wrapper - z-index for mosaic background */
+.landing {
   position: relative;
   z-index: 1;
   min-height: 100vh;
@@ -63,9 +54,9 @@
   --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.15);
   --shadow-deep: 0 20px 60px rgba(0, 0, 0, 0.4);
 
-  /* Gradients for new design */
-  --gradient-gold: linear-gradient(135deg, #d4a853 0%, #b8923f 100%);
-  --gradient-dark: linear-gradient(180deg, #0f1419 0%, #1a2332 100%);
+  /* Gradients for design */
+  --gradient-accent: linear-gradient(135deg, hsl(24, 60%, 50%) 0%, hsl(24, 55%, 42%) 100%);
+  --gradient-warm: linear-gradient(180deg, hsl(40, 33%, 96%) 0%, hsl(40, 40%, 98%) 100%);
 }
 
 * {
@@ -73,7 +64,7 @@
 }
 
 body {
-  background: transparent;
+  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
   min-height: 100vh;
@@ -159,7 +150,7 @@ body {
   background: rgba(245, 240, 230, 0.5);
 }
 
-/* Date picker dark theme */
+/* Date picker theme */
 .react-datepicker {
   background: var(--surface);
   border-color: var(--border);
@@ -280,7 +271,7 @@ body {
 }
 .input-base:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(212, 168, 83, 0.25);
+  box-shadow: 0 0 0 2px hsla(24, 60%, 50%, 0.2);
   outline: none;
 }
 
@@ -396,10 +387,10 @@ textarea.input-base {
 /* Pulsing glow effect for CTAs */
 @keyframes glow-pulse {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(212, 168, 83, 0.3);
+    box-shadow: 0 0 20px hsla(24, 60%, 50%, 0.3);
   }
   50% {
-    box-shadow: 0 0 40px rgba(212, 168, 83, 0.6);
+    box-shadow: 0 0 40px hsla(24, 60%, 50%, 0.5);
   }
 }
 

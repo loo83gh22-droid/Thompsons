@@ -58,7 +58,7 @@ function ActivityCard({ item }: { item: ActivityItem }) {
   return (
     <Link
       href={item.href}
-      className="group flex gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 transition-all duration-200 hover:border-[var(--accent)]/50 hover:bg-[var(--surface-hover)] hover:shadow-lg hover:shadow-black/20 md:gap-4"
+      className="group flex gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 transition-all duration-200 hover:border-[var(--primary)]/40 hover:shadow-lg md:gap-4"
     >
       {item.type === "photo" && item.thumbnailUrl ? (
         <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg bg-[var(--border)]">

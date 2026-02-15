@@ -131,7 +131,7 @@ export function JournalPerspectives({
                     type="button"
                     onClick={() => handleRemove(p.id)}
                     disabled={deletingId === p.id}
-                    className="flex-shrink-0 rounded text-sm text-red-400 hover:bg-red-500/10 disabled:opacity-50"
+                    className="flex-shrink-0 rounded text-sm text-red-600 hover:bg-red-100 disabled:opacity-50"
                   >
                     {deletingId === p.id ? "..." : "Remove"}
                   </button>
@@ -175,11 +175,11 @@ export function JournalPerspectives({
               className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p className="text-sm text-red-600">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="rounded-lg bg-[var(--accent)] px-4 py-2 font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] disabled:opacity-50"
+            className="rounded-full bg-[var(--primary)] px-4 py-2 font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
           >
             {loading ? "Adding..." : "Add perspective"}
           </button>

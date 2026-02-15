@@ -274,12 +274,12 @@ function MemberCard({ member }: { member: Member }) {
             />
           </div>
           {message && (
-            <div className={`rounded-lg px-4 py-2 text-sm ${message.type === "success" ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
+            <div className={`rounded-lg px-4 py-2 text-sm ${message.type === "success" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
               {message.text}
             </div>
           )}
           <div className="flex flex-wrap gap-2">
-            <button type="submit" disabled={loading} className="btn-submit rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] disabled:opacity-50">
+            <button type="submit" disabled={loading} className="btn-submit rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50">
               {loading ? "Saving..." : "Save"}
             </button>
             <button type="button" onClick={() => { setEditing(false); clearNewPhoto(); }} disabled={loading} className="btn-secondary rounded-lg border border-[var(--border)] px-4 py-2 text-sm hover:bg-[var(--surface-hover)] disabled:opacity-50">
@@ -294,7 +294,7 @@ function MemberCard({ member }: { member: Member }) {
   const shortBirthday = formatBirthdayShort(member.birth_date);
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 transition-shadow hover:shadow-lg hover:shadow-black/10 sm:p-5">
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 transition-shadow hover:shadow-lg sm:p-5">
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
         <Link href={`/dashboard/members/${member.id}`} className="shrink-0 rounded-full ring-2 ring-transparent focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
           {member.avatar_url ? (
@@ -305,7 +305,7 @@ function MemberCard({ member }: { member: Member }) {
               className="h-20 w-20 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--accent)]/30 text-lg font-semibold text-[var(--accent)]">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--primary)]/15 text-lg font-semibold text-[var(--primary)]">
               {initials(member.name)}
             </div>
           )}
@@ -330,9 +330,9 @@ function MemberCard({ member }: { member: Member }) {
           </div>
           <div className="mt-2">
             {member.user_id ? (
-              <span className="inline-block rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-medium text-emerald-400">Signed In</span>
+              <span className="inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 border border-emerald-200">Signed In</span>
             ) : (
-              <span className="inline-block rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-400">Pending Invitation</span>
+              <span className="inline-block rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 border border-amber-200">Pending Invitation</span>
             )}
           </div>
         </div>
@@ -353,8 +353,8 @@ function MemberCard({ member }: { member: Member }) {
             disabled={loading}
             className={`rounded-lg border p-2 disabled:opacity-50 ${
               confirmRemove
-                ? "border-red-500 bg-red-500/20 text-red-400 hover:bg-red-500/30"
-                : "border-[var(--border)] text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-red-400"
+                ? "border-red-300 bg-red-50 text-red-600 hover:bg-red-100"
+                : "border-[var(--border)] text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-red-600"
             }`}
             title={confirmRemove ? "Click again to remove" : "Remove"}
             aria-label="Remove member"

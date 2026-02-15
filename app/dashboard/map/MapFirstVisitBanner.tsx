@@ -45,7 +45,7 @@ export function MapFirstVisitBanner() {
         <div className="mt-3 flex flex-wrap gap-2">
           <Link
             href="/dashboard/journal/new"
-            className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--background)] hover:bg-[var(--accent-muted)]"
+            className="rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90"
           >
             Add journal entry with location
           </Link>

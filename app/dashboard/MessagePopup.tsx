@@ -63,7 +63,7 @@ export function MessagePopup({ messages, familyMemberId }: { messages: UnreadMes
           <button
             type="button"
             onClick={handleDismiss}
-            className="rounded-lg bg-[var(--accent)] px-6 py-2 font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)]"
+            className="rounded-full bg-[var(--primary)] px-6 py-2 font-medium text-[var(--primary-foreground)] hover:opacity-90"
           >
             {hasMore ? "Next" : "Got it"}
           </button>

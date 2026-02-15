@@ -52,7 +52,7 @@ export default function TermsPage() {
             </h2>
             <p className="mt-2 text-sm">
               Your data is stored securely. We do not sell your information. See our{" "}
-              <Link href="/privacy" className="text-[var(--accent)] hover:underline">
+              <Link href="/privacy" className="text-[var(--primary)] hover:underline">
                 Privacy Policy
               </Link>{" "}
               for details.
@@ -70,7 +70,7 @@ export default function TermsPage() {
         </div>
 
         <p className="mt-12 text-sm text-[var(--muted)]">
-          <Link href="/" className="text-[var(--accent)] hover:underline">
+          <Link href="/" className="text-[var(--primary)] hover:underline">
             ← Back to home
           </Link>
         </p>

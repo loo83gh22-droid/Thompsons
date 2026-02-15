@@ -81,17 +81,17 @@ export function FamilyNameEditor({
           type="button"
           onClick={handleSave}
           disabled={!isDirty || saving}
-          className="shrink-0 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent)]/90 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="shrink-0 rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {saving ? "Saving..." : "Save"}
         </button>
       </div>
 
       {error && (
-        <p className="text-xs text-red-400">{error}</p>
+        <p className="text-xs text-red-600">{error}</p>
       )}
       {success && (
-        <p className="text-xs text-green-400">
+        <p className="text-xs text-green-600">
           Family name updated! The header will reflect the change.
         </p>
       )}

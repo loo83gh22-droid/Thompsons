@@ -63,8 +63,8 @@ export function SendMessageForm({
 
   if (sent) {
     return (
-      <div className="mt-8 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-6">
-        <p className="font-medium text-emerald-400">Message sent!</p>
+      <div className="mt-8 rounded-xl border border-emerald-200 bg-emerald-50 p-6">
+        <p className="font-medium text-emerald-700">Message sent!</p>
         <p className="mt-2 text-sm text-[var(--muted)]">
           It will pop up when recipients next log in.
         </p>
@@ -156,7 +156,7 @@ export function SendMessageForm({
       <button
         type="submit"
         disabled={loading}
-        className="btn-submit rounded-lg bg-[var(--accent)] font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] inline-flex items-center justify-center gap-2"
+        className="btn-submit rounded-full bg-[var(--primary)] font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] inline-flex items-center justify-center gap-2"
       >
         {loading && <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[var(--background)] border-t-transparent" aria-hidden="true" />}
         {loading ? "Sending..." : "Send message"}

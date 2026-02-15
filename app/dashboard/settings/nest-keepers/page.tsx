@@ -184,13 +184,13 @@ export default function NestKeepersPage() {
     switch (status) {
       case "active":
         return (
-          <span className="rounded-full bg-green-900/40 px-2 py-0.5 text-xs text-green-400">
+          <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs text-green-600">
             Active
           </span>
         );
       case "notified":
         return (
-          <span className="rounded-full bg-yellow-900/40 px-2 py-0.5 text-xs text-yellow-400">
+          <span className="rounded-full bg-yellow-50 px-2 py-0.5 text-xs text-yellow-700">
             Notified
           </span>
         );
@@ -258,12 +258,12 @@ export default function NestKeepersPage() {
 
       {/* Messages */}
       {error && (
-        <div className="rounded-lg border border-red-500/30 bg-red-900/20 px-4 py-3 text-sm text-red-400">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
           {error}
         </div>
       )}
       {success && (
-        <div className="rounded-lg border border-green-500/30 bg-green-900/20 px-4 py-3 text-sm text-green-400">
+        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-600">
           {success}
         </div>
       )}
@@ -336,7 +336,7 @@ export default function NestKeepersPage() {
                 <button
                   type="button"
                   onClick={() => handleDelete(keeper.id)}
-                  className="rounded-lg px-3 py-1.5 text-sm text-red-400 hover:bg-red-900/20"
+                  className="rounded-lg px-3 py-1.5 text-sm text-red-600 hover:bg-red-100"
                 >
                   Remove
                 </button>
@@ -391,7 +391,7 @@ export default function NestKeepersPage() {
               htmlFor="nk-email"
               className="mb-1 block text-sm font-medium text-[var(--foreground)]"
             >
-              Email <span className="text-red-400">*</span>
+              Email <span className="text-red-600">*</span>
             </label>
             <input
               id="nk-email"
@@ -433,7 +433,7 @@ export default function NestKeepersPage() {
             <button
               type="submit"
               disabled={saving}
-              className="rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--background)] transition-colors hover:bg-[var(--accent)]/90 disabled:opacity-50"
+              className="rounded-full bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 disabled:opacity-50"
             >
               {saving
                 ? "Saving..."

@@ -84,7 +84,7 @@ export function AddFavouriteForm({
             <button
               type="submit"
               disabled={loading}
-              className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] disabled:opacity-50"
+              className="rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
             >
               {loading ? "Adding..." : "Add"}
             </button>

@@ -126,7 +126,7 @@ export function FavouritesList({
                   type="button"
                   onClick={handleSave}
                   disabled={loading}
-                  className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] disabled:opacity-50"
+                  className="rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
                 >
                   {loading ? "Saving..." : "Save"}
                 </button>
@@ -169,7 +169,7 @@ export function FavouritesList({
               <button
                 type="button"
                 onClick={() => handleRemove(item.id)}
-                className="text-xs text-[var(--muted)] hover:text-red-400"
+                className="text-xs text-[var(--muted)] hover:text-red-600"
               >
                 Remove
               </button>

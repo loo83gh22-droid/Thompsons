@@ -231,7 +231,7 @@ export function AddVoiceMemoForm({
         type="button"
         data-voice-memo-add
         onClick={() => setOpen(true)}
-        className="min-h-[44px] shrink-0 rounded-lg bg-[var(--accent)] px-4 py-3 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:py-2"
+        className="min-h-[44px] shrink-0 rounded-full bg-[var(--primary)] px-4 py-3 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] sm:py-2"
       >
         + Add voice memo
       </button>
@@ -299,14 +299,14 @@ export function AddVoiceMemoForm({
                     <button
                       type="button"
                       onClick={stopRecording}
-                      className="mt-8 min-h-[48px] min-w-[160px] rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)]"
+                      className="mt-8 min-h-[48px] min-w-[160px] rounded-full bg-[var(--primary)] px-6 py-3 font-medium text-[var(--primary-foreground)] hover:opacity-90"
                     >
                       Stop Recording
                     </button>
                   )}
 
                   {showOneMinuteWarning && (
-                    <p className="mt-6 text-sm font-medium text-amber-400" role="alert">
+                    <p className="mt-6 text-sm font-medium text-amber-700" role="alert">
                       You have 1 minute remaining (max 10 minutes)
                     </p>
                   )}
@@ -414,13 +414,13 @@ export function AddVoiceMemoForm({
             )}
 
             {error && (
-              <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400" role="alert">
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600" role="alert">
                 <p>{error}</p>
                 {step === "form" && (
                   <button
                     type="button"
                     onClick={() => setError(null)}
-                    className="mt-2 text-sm font-medium text-red-300 hover:text-red-200 underline"
+                    className="mt-2 text-sm font-medium text-red-600 hover:text-red-700 underline"
                   >
                     Dismiss
                   </button>
@@ -447,7 +447,7 @@ export function AddVoiceMemoForm({
                     type="button"
                     onClick={handleSave}
                     disabled={loading}
-                    className="btn-submit order-1 rounded-lg bg-[var(--accent)] font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] disabled:opacity-50 sm:order-none"
+                    className="btn-submit order-1 rounded-full bg-[var(--primary)] font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 sm:order-none"
                   >
                     {loading ? "Saving…" : "Save Memo"}
                   </button>
@@ -491,7 +491,7 @@ function AudioPreview({ blob }: { blob: Blob }) {
         onError={() => setPlaybackError(true)}
       />
       {playbackError && (
-        <p className="mt-1 text-xs text-red-400" role="alert">
+        <p className="mt-1 text-xs text-red-600" role="alert">
           Unable to play audio. The file may be corrupted.
         </p>
       )}

@@ -94,7 +94,7 @@ export default async function JournalPage() {
         </div>
         <Link
           href="/dashboard/journal/new"
-          className="inline-flex min-h-[44px] w-full shrink-0 items-center justify-center rounded-lg bg-[var(--accent)] px-4 py-3 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:w-auto sm:py-2"
+          className="inline-flex min-h-[44px] w-full shrink-0 items-center justify-center rounded-full bg-[var(--primary)] px-4 py-3 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] sm:w-auto sm:py-2"
         >
           New entry
         </Link>

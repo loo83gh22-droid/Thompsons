@@ -80,7 +80,7 @@ export function WelcomeModal({ familyName }: { familyName: string }) {
           <Link
             href="/dashboard/our-family"
             onClick={handleDismiss}
-            className="min-h-[44px] w-full rounded-lg bg-[var(--accent)] px-6 py-3 text-center font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:w-auto"
+            className="min-h-[44px] w-full rounded-full bg-[var(--primary)] px-6 py-3 text-center font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] sm:w-auto"
           >
             Add Family Members
           </Link>

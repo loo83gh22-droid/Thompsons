@@ -17,7 +17,7 @@ export function DeleteTimeCapsuleButton({ id, className = "" }: { id: string; cl
     <button
       type="button"
       onClick={handleDelete}
-      className={`rounded-lg border border-red-500/50 px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/10 ${className}`}
+      className={`rounded-lg border border-red-200 px-3 py-1.5 text-sm text-red-600 hover:bg-red-100 ${className}`}
     >
       Delete
     </button>

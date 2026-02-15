@@ -13,7 +13,7 @@ type Stats = {
 
 export function DashboardStats({ stats }: { stats: Stats }) {
   return (
-    <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6">
+    <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
       <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">Family at a glance</h2>
       <div className="mt-4 grid grid-cols-2 gap-4 min-[500px]:grid-cols-3">
         <div>

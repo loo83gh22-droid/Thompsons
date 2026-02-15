@@ -88,7 +88,7 @@ function LoginForm() {
             </p>
             <Link
               href="/login"
-              className="mt-6 inline-block rounded-lg bg-[var(--accent)] px-6 py-2 font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)]"
+              className="mt-6 inline-block rounded-full bg-[var(--primary)] px-6 py-2 font-medium text-[var(--primary-foreground)] hover:opacity-90"
             >
               Back to sign in
             </Link>
@@ -181,8 +181,8 @@ function LoginForm() {
             <div
               className={`rounded-lg px-4 py-3 text-sm ${
                 message.type === "success"
-                  ? "bg-emerald-500/20 text-emerald-400"
-                  : "bg-red-500/20 text-red-400"
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  : "bg-red-50 text-red-700 border border-red-200"
               }`}
             >
               {message.text}
@@ -192,7 +192,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-[var(--accent)] py-3 font-semibold text-[var(--background)] transition-all hover:bg-[var(--accent-muted)] disabled:opacity-50"
+            className="w-full rounded-full bg-[var(--primary)] py-3 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 disabled:opacity-50"
           >
             {loading ? "..." : isSignUp ? "Sign up our Family" : "Sign in"}
           </button>

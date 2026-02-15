@@ -26,7 +26,7 @@ export default function MapError({
       <div className="mt-6 flex gap-3 justify-center">
         <button
           onClick={reset}
-          className="rounded-lg bg-[var(--accent)] px-5 py-2 font-medium text-[var(--background)] hover:bg-[var(--accent-muted)]"
+          className="rounded-full bg-[var(--primary)] px-5 py-2 font-medium text-[var(--primary-foreground)] hover:opacity-90"
         >
           Try again
         </button>

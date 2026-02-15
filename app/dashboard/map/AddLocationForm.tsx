@@ -442,7 +442,7 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
       </div>
 
       {error && (
-        <div className="mt-4 rounded-lg bg-red-500/20 px-4 py-2 text-sm text-red-400">
+        <div className="mt-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">
           {error}
         </div>
       )}
@@ -451,7 +451,7 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg bg-[var(--accent)] px-4 py-2 font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] disabled:opacity-50"
+          className="rounded-full bg-[var(--primary)] px-4 py-2 font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
         >
           {loading ? "Adding..." : "Add"}
         </button>

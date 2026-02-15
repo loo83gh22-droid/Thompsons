@@ -191,7 +191,7 @@ function EventCard({
           type="button"
           onClick={onDelete}
           disabled={deleting}
-          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-[var(--muted)] hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
+          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-[var(--muted)] hover:bg-red-100 hover:text-red-600 disabled:opacity-50"
           aria-label="Delete"
         >
           🗑️
@@ -354,12 +354,12 @@ function EditEventModal({
               />
               <span className="text-sm text-[var(--muted)]">Repeat every year</span>
             </label>
-            {error && <p className="text-sm text-red-400" role="alert">{error}</p>}
+            {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
             <div className="flex flex-col gap-2 sm:flex-row">
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-submit rounded-lg bg-[var(--accent)] font-semibold text-[var(--background)] hover:bg-[var(--accent-muted)] disabled:opacity-50"
+                className="btn-submit rounded-full bg-[var(--primary)] font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
               >
                 {loading ? "Saving…" : "Save changes"}
               </button>

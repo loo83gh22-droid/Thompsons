@@ -43,7 +43,7 @@ export function DeleteJournalEntryButton({
         type="button"
         onClick={handleDelete}
         disabled={deleting}
-        className="rounded-lg border border-red-500/50 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/20 disabled:opacity-50"
+        className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 disabled:opacity-50"
       >
         {deleting ? "Deleting…" : "Delete entry"}
       </button>
@@ -55,7 +55,7 @@ export function DeleteJournalEntryButton({
       type="button"
       onClick={handleDelete}
       disabled={deleting}
-      className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 hover:border-red-500/30 disabled:opacity-50"
+      className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 hover:border-red-200 disabled:opacity-50"
     >
       {deleting ? "…" : "Delete"}
     </button>

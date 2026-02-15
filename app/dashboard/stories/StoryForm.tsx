@@ -120,7 +120,7 @@ export function StoryForm({
     <form className="mt-8 max-w-2xl space-y-5" onSubmit={(e) => e.preventDefault()}>
       <div>
         <label htmlFor="story-title" className="block text-sm font-medium text-[var(--muted)]">
-          Title <span className="text-red-400">*</span>
+          Title <span className="text-red-600">*</span>
         </label>
         <input
           id="story-title"
@@ -226,14 +226,14 @@ export function StoryForm({
         </label>
       </div>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={(e) => handleSubmit(e, true)}
           disabled={loading}
-          className="btn-submit min-h-[44px] rounded-lg bg-orange-500 font-semibold text-white hover:bg-orange-600 disabled:opacity-50"
+          className="btn-submit min-h-[44px] rounded-full bg-[var(--primary)] font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
         >
           {loading ? "Saving…" : isEdit ? "Update & Publish" : "Publish Story"}
         </button>

@@ -79,7 +79,7 @@ export function TraditionList({ traditions }: { traditions: Tradition[] }) {
                 type="button"
                 onClick={() => handleDelete(t.id)}
                 disabled={deletingId === t.id}
-                className="flex-shrink-0 rounded-lg border border-red-500/50 px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/10 disabled:opacity-50"
+                className="flex-shrink-0 rounded-lg border border-red-200 px-3 py-1.5 text-sm text-red-600 hover:bg-red-100 disabled:opacity-50"
               >
                 {deletingId === t.id ? "..." : "Remove"}
               </button>

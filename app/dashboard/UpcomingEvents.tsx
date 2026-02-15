@@ -21,7 +21,7 @@ export function UpcomingEvents({ events }: { events: EventRow[] }) {
 
   if (next3.length === 0) {
     return (
-      <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
         <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
           Upcoming Events
         </h2>
@@ -39,7 +39,7 @@ export function UpcomingEvents({ events }: { events: EventRow[] }) {
   }
 
   return (
-    <section className="rounded-xl border border-[var(--accent)]/20 bg-[var(--surface)] p-4">
+    <section className="rounded-2xl border border-[var(--accent)]/20 bg-[var(--card)] p-4">
       <div className="flex items-center justify-between">
         <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
           Upcoming Events

@@ -264,7 +264,7 @@ function MapComponentWithLoader({ apiKey, filter }: { apiKey: string; filter?: M
   if (loadError) {
     return (
       <div className="flex h-[500px] items-center justify-center rounded-xl bg-[var(--surface)]">
-        <p className="text-red-400">Error loading Google Maps. Check your API key.</p>
+        <p className="text-red-600">Error loading Google Maps. Check your API key.</p>
       </div>
     );
   }

@@ -44,7 +44,7 @@ export function FamilySummaryStrip({
 
   return (
     <section
-      className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-4 sm:px-6"
+      className="rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-4 sm:px-6"
       aria-label="Family summary"
     >
       <div className="flex flex-wrap items-center gap-4 sm:gap-6">
