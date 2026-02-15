@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(grep:*)",
+      "Bash(del \"C:\\\\Users\\\\keepi\\\\OneDrive\\\\Desktop\\\\Coding\\\\Thompsons\\\\family-site\\\\app\\\\components\\\\home\\\\TrustBar.tsx\")",
+      "Bash(npm run build:*)",
+      "Bash(npm run lint)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(npm install:*)"
+    ]
+  }
+}
