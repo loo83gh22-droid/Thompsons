@@ -48,6 +48,10 @@ const bangers = Bangers({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://thompsons.vercel.app"),
+  alternates: {
+    canonical: "/",
+  },
   title: "Our Family Nest | Private. Permanent. Yours.",
   description:
     "A private space for families to document their lives together. Journals, photos, videos, voice memos, and more. Not social media. A family heirloom.",

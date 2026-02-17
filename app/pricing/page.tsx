@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Pricing — Our Family Nest",
   description:
     "Choose the right plan for your family. Free, Annual, or Lifetime Legacy access.",
+  alternates: {
+    canonical: "/pricing",
+  },
 };
 
 const tiers = [
@@ -101,9 +104,26 @@ const faqs = [
   },
 ];
 
+const pricingFaqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: faq.answer,
+    },
+  })),
+};
+
 export default function PricingPage() {
   return (
     <div className="relative min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingFaqJsonLd) }}
+      />
       <main className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center">

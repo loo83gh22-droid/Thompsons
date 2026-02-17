@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Privacy Policy — Our Family Nest",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {
