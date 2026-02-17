@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createClient } from '@/src/lib/supabase/server';
 
@@ -41,11 +41,11 @@ export async function POST(request: NextRequest) {
         <body>
           <div class="container">
             <div class="header">
-              <h1>🏡 Welcome to Our Family Nest, ${name}!</h1>
+              <h1>🏡 Welcome to Family Nest, ${name}!</h1>
             </div>
             <div class="content">
               <p>Hi ${name},</p>
-              <p>We're thrilled to have you here! Your Family Nest is ready, and we can't wait to see the memories you'll preserve.</p>
+              <p>We're thrilled to have you here! YFamily Nest is ready, and we can't wait to see the memories you'll preserve.</p>
 
               <div class="checklist">
                 <h3>Get Started in 3 Easy Steps:</h3>
@@ -64,10 +64,10 @@ export async function POST(request: NextRequest) {
 
               <p style="margin-top: 30px;">Need help getting started? Check out our <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/getting-started">Quick Start Guide</a>.</p>
 
-              <p>Welcome to the family,<br>The Our Family Nest Team</p>
+              <p>Welcome to the family,<br>The Family Nest Team</p>
             </div>
             <div class="footer">
-              <p>Our Family Nest • Preserving memories, one family at a time</p>
+              <p>Family Nest • Preserving memories, one family at a time</p>
             </div>
           </div>
         </body>
@@ -76,9 +76,9 @@ export async function POST(request: NextRequest) {
 
     // Send email
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'Our Family Nest <notifications@resend.dev>',
+      from: process.env.RESEND_FROM_EMAIL || 'Family Nest <notifications@resend.dev>',
       to: email,
-      subject: 'Welcome to Our Family Nest! 🏡',
+      subject: 'Welcome to Family Nest! 🏡',
       html: emailHtml,
     });
 

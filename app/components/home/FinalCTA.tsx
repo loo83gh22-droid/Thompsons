@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 export function FinalCTA() {
@@ -33,7 +33,7 @@ export function FinalCTA() {
                 color: "#fff",
               }}
             >
-              Start Your Family Nest
+              Start YFamily Nest
               <ArrowRight className="h-4 w-4" />
             </Link>
             <p className="text-sm" style={{ color: "var(--muted)" }}>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
@@ -7,7 +7,7 @@ const faqs = [
   {
     question: "Is my family's data private?",
     answer:
-      "Absolutely. Your Family Nest is completely private by default. Only family members you invite can see your content. We use bank-level encryption, and your data is stored on secure US-based servers. Unlike social media, we never sell your data or show ads.",
+      "Absolutely. YFamily Nest is completely private by default. Only family members you invite can see your content. We use bank-level encryption, and your data is stored on secure US-based servers. Unlike social media, we never sell your data or show ads.",
   },
   {
     question: "What happens if I stop paying?",
@@ -17,12 +17,12 @@ const faqs = [
   {
     question: "Can my 80-year-old grandma actually use this?",
     answer:
-      "Yes! We designed Our Family Nest to be simple enough for grandparents who struggle with tech. Big buttons, clear labels, and no confusing settings. Many families tell us their grandparents check the Nest daily—it's that easy.",
+      "Yes! We designed Family Nest to be simple enough for grandparents who struggle with tech. Big buttons, clear labels, and no confusing settings. Many families tell us their grandparents check the Nest daily—it's that easy.",
   },
   {
     question: "How is this different from Google Photos or iCloud?",
     answer:
-      "Google Photos and iCloud store photos, but Our Family Nest preserves your family's story. You get journals, voice memos, recipes, traditions, family trees, and a timeline—all in one place. Plus, it's designed for sharing across generations, not just storing files.",
+      "Google Photos and iCloud store photos, but Family Nest preserves your family's story. You get journals, voice memos, recipes, traditions, family trees, and a timeline—all in one place. Plus, it's designed for sharing across generations, not just storing files.",
   },
   {
     question: "Can I import my existing photos?",

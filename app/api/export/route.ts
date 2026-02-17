@@ -1,4 +1,4 @@
-import { createClient } from "@/src/lib/supabase/server";
+﻿import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { TEXT_LIMITS, TIME_CONSTANTS } from "@/src/lib/constants";
 import { NextResponse } from "next/server";
@@ -305,7 +305,7 @@ Notes
 - Photos are named by journal entry for easy cross-reference.
 - Voice memos are named by title and date.
 - Time capsules marked as "SEALED" have not yet reached their unlock date.
-- This archive was generated from your Family Nest Legacy plan.
+- This archive was generated from yFamily Nest Legacy plan.
 - If you have questions, contact support.
 `
       );

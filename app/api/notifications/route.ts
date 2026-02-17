@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Notification cron endpoint.
  * Call via Vercel Cron or external scheduler: GET /api/notifications?key=SECRET
  *
@@ -16,7 +16,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const resendKey = process.env.RESEND_API_KEY;
 const cronSecret = process.env.CRON_SECRET;
-const fromEmail = process.env.RESEND_FROM_EMAIL || "Our Family Nest <notifications@resend.dev>";
+const fromEmail = process.env.RESEND_FROM_EMAIL || "Family Nest <notifications@resend.dev>";
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://localhost:3000");
 
 function e(s: string): string {
@@ -25,7 +25,7 @@ function e(s: string): string {
 
 function emailFooter(): string {
   return `<tr><td style="text-align:center;padding-top:24px;">
-  <p style="color:#64748b;font-size:12px;margin:0;">Our Family Nest &middot; <a href="${appUrl}/dashboard/settings" style="color:#64748b;">Manage notifications</a></p>
+  <p style="color:#64748b;font-size:12px;margin:0;">Family Nest &middot; <a href="${appUrl}/dashboard/settings" style="color:#64748b;">Manage notifications</a></p>
   <p style="color:#475569;font-size:11px;margin:8px 0 0;">
     <a href="${appUrl}/dashboard/settings" style="color:#475569;text-decoration:underline;">Unsubscribe</a> from these emails
   </p>
@@ -467,7 +467,7 @@ function digestEmailHtml(
   <span style="font-size:28px;color:#D4A843;font-weight:700;">${e(familyName)} Nest</span>
 </td></tr>
 <tr><td style="background:#1e293b;border-radius:12px;padding:32px 24px;border:1px solid #334155;">
-  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">This week in your Family Nest</h1>
+  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">This week in yFamily Nest</h1>
   <p style="margin:0 0 4px;color:#94a3b8;font-size:15px;">Hi ${e(name)},</p>
   <p style="margin:0 0 20px;color:#94a3b8;font-size:15px;line-height:1.5;">
     Your family added <strong style="color:#f8fafc;">${summary}</strong> this week. Don't miss out!
@@ -490,7 +490,7 @@ function day1ActivationEmailHtml(name: string): string {
 <tr><td style="background:#1e293b;border-radius:12px;padding:32px 24px;border:1px solid #334155;">
   <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Your family's story starts with one photo</h1>
   <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;">Hi ${e(name)},</p>
-  <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;line-height:1.5;">Yesterday you created your Family Nest. We noticed you haven't uploaded your first photo yet!</p>
+  <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;line-height:1.5;">Yesterday you created yFamily Nest. We noticed you haven't uploaded your first photo yet!</p>
   <p style="margin:0 0 4px;color:#94a3b8;font-size:15px;"><strong style="color:#f8fafc;">Here's why your first photo matters:</strong></p>
   <ul style="margin:8px 0 20px;padding-left:20px;color:#94a3b8;font-size:15px;line-height:1.7;">
     <li>It kicks off your family timeline</li>
@@ -499,7 +499,7 @@ function day1ActivationEmailHtml(name: string): string {
   </ul>
   <a href="${appUrl}/dashboard/photos" style="display:inline-block;background:#D4A843;color:#0f172a;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Upload Your First Photo Now</a>
 </td></tr>
-<tr><td style="text-align:center;padding-top:24px;"><p style="color:#64748b;font-size:12px;margin:0;">Our Family Nest</p></td></tr>
+<tr><td style="text-align:center;padding-top:24px;"><p style="color:#64748b;font-size:12px;margin:0;">Family Nest</p></td></tr>
 </table></body></html>`;
 }
 
@@ -510,7 +510,7 @@ function day3DiscoveryEmailHtml(name: string): string {
 <tr><td style="background:#1e293b;border-radius:12px;padding:32px 24px;border:1px solid #334155;">
   <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Did you know? Your Nest has these hidden gems</h1>
   <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;">Hi ${e(name)},</p>
-  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">Your Family Nest can do so much more than store photos. Here are a few features worth exploring:</p>
+  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">YFamily Nest can do so much more than store photos. Here are a few features worth exploring:</p>
   <ul style="margin:0 0 20px;padding-left:20px;color:#94a3b8;font-size:15px;line-height:1.7;">
     <li><strong style="color:#f8fafc;">Voice Memos</strong> — Record grandparents telling stories</li>
     <li><strong style="color:#f8fafc;">Recipes</strong> — Preserve family recipes with the story behind them</li>
@@ -519,7 +519,7 @@ function day3DiscoveryEmailHtml(name: string): string {
   </ul>
   <a href="${appUrl}/dashboard" style="display:inline-block;background:#D4A843;color:#0f172a;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Explore Features</a>
 </td></tr>
-<tr><td style="text-align:center;padding-top:24px;"><p style="color:#64748b;font-size:12px;margin:0;">Our Family Nest</p></td></tr>
+<tr><td style="text-align:center;padding-top:24px;"><p style="color:#64748b;font-size:12px;margin:0;">Family Nest</p></td></tr>
 </table></body></html>`;
 }
 
@@ -534,7 +534,7 @@ function day5InviteEmailHtml(name: string): string {
   <p style="margin:0 0 20px;color:#94a3b8;font-size:15px;line-height:1.5;">Inviting family takes just 30 seconds — share a link and they're in.</p>
   <a href="${appUrl}/dashboard/members" style="display:inline-block;background:#D4A843;color:#0f172a;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Invite Your Family</a>
 </td></tr>
-<tr><td style="text-align:center;padding-top:24px;"><p style="color:#64748b;font-size:12px;margin:0;">Our Family Nest</p></td></tr>
+<tr><td style="text-align:center;padding-top:24px;"><p style="color:#64748b;font-size:12px;margin:0;">Family Nest</p></td></tr>
 </table></body></html>`;
 }
 
@@ -545,7 +545,7 @@ function day14UpgradeEmailHtml(name: string): string {
 <tr><td style="background:#1e293b;border-radius:12px;padding:32px 24px;border:1px solid #334155;">
   <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Ready to unlock unlimited memories?</h1>
   <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;">Hi ${e(name)},</p>
-  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">You've been using your Family Nest for two weeks now — that's amazing! You're approaching the Free plan limits, and there's so much more available:</p>
+  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">You've been using yFamily Nest for two weeks now — that's amazing! You're approaching the Free plan limits, and there's so much more available:</p>
   <ul style="margin:0 0 20px;padding-left:20px;color:#94a3b8;font-size:15px;line-height:1.7;">
     <li><strong style="color:#f8fafc;">Unlimited journals</strong> with video uploads</li>
     <li><strong style="color:#f8fafc;">10 GB storage</strong> for photos + videos</li>
@@ -555,7 +555,7 @@ function day14UpgradeEmailHtml(name: string): string {
   <p style="margin:0 0 20px;color:#94a3b8;font-size:15px;">All for just <strong style="color:#f8fafc;">$4.08/month</strong> (billed $49/year) — or 13 cents a day.</p>
   <a href="${appUrl}/pricing" style="display:inline-block;background:#D4A843;color:#0f172a;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">See Plans &amp; Pricing</a>
 </td></tr>
-<tr><td style="text-align:center;padding-top:24px;"><p style="color:#64748b;font-size:12px;margin:0;">Our Family Nest</p></td></tr>
+<tr><td style="text-align:center;padding-top:24px;"><p style="color:#64748b;font-size:12px;margin:0;">Family Nest</p></td></tr>
 </table></body></html>`;
 }
 
@@ -570,6 +570,6 @@ function day30ReengagementEmailHtml(name: string, familyName: string): string {
   <p style="margin:0 0 20px;color:#94a3b8;font-size:15px;line-height:1.5;">Even a single photo or a quick journal entry keeps the story going. Your family is counting on you.</p>
   <a href="${appUrl}/dashboard" style="display:inline-block;background:#D4A843;color:#0f172a;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Visit Your Nest</a>
 </td></tr>
-<tr><td style="text-align:center;padding-top:24px;"><p style="color:#64748b;font-size:12px;margin:0;">Our Family Nest</p></td></tr>
+<tr><td style="text-align:center;padding-top:24px;"><p style="color:#64748b;font-size:12px;margin:0;">Family Nest</p></td></tr>
 </table></body></html>`;
 }

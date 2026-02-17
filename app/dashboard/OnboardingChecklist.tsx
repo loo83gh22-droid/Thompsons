@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -171,7 +171,7 @@ export function OnboardingChecklist({
               Congratulations!
             </h3>
             <p className="mt-1 text-sm text-emerald-600">
-              You&apos;ve completed all onboarding steps. Your Family Nest is ready to grow!
+              You&apos;ve completed all onboarding steps. YFamily Nest is ready to grow!
             </p>
           </div>
         )}
@@ -181,7 +181,7 @@ export function OnboardingChecklist({
             Get Started
           </h2>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Complete these steps to bring your Family Nest to life.
+            Complete these steps to bring yFamily Nest to life.
           </p>
         </div>
         <div className="flex items-center gap-2">

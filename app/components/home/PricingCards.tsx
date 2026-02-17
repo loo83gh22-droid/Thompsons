@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { Check } from "lucide-react";
 
 const plans = [
@@ -22,7 +22,7 @@ const plans = [
       "Videos & voice memos",
       "All core features",
     ],
-    cta: "Start Your Family Nest",
+    cta: "Start YFamily Nest",
     featured: false,
   },
   {

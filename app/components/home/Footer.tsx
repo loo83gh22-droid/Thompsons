@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 export function Footer() {
   return (
@@ -14,7 +14,7 @@ export function Footer() {
                   color: "var(--foreground)",
                 }}
               >
-                Our Family Nest
+                Family Nest
               </span>
             </div>
             <p className="text-sm" style={{ color: "var(--muted)" }}>
@@ -59,7 +59,7 @@ export function Footer() {
 
         <div className="mt-8 pt-8 text-center" style={{ borderTop: "1px solid var(--border)" }}>
           <p className="text-xs" style={{ color: "var(--muted)" }}>
-            &copy; {new Date().getFullYear()} Our Family Nest. All rights reserved.
+            &copy; {new Date().getFullYear()} Family Nest. All rights reserved.
           </p>
         </div>
       </div>

@@ -1,8 +1,8 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — Our Family Nest",
+  title: "Privacy Policy — Family Nest",
   alternates: { canonical: "/privacy" },
 };
 
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
               <strong>Account information:</strong> When you sign up, we collect your name, email address, and password. If you sign up for a paid plan, payment is processed by Stripe and we do not store your credit card number.
             </p>
             <p className="mt-2">
-              <strong>Content you create:</strong> Photos, journal entries, voice memos, recipes, stories, family member profiles, messages, and other content you upload or create within your Family Nest.
+              <strong>Content you create:</strong> Photos, journal entries, voice memos, recipes, stories, family member profiles, messages, and other content you upload or create within yFamily Nest.
             </p>
             <p className="mt-2">
               <strong>Usage data:</strong> We collect basic analytics (page views, feature usage) through Vercel Analytics to improve the service. No personal data is sold or used for advertising.
@@ -45,7 +45,7 @@ export default function PrivacyPage() {
               2. How We Use Your Data
             </h2>
             <ul className="mt-2 list-disc pl-5 space-y-1">
-              <li>To provide and operate the Our Family Nest service</li>
+              <li>To provide and operate the Family Nest service</li>
               <li>To share your content with the family members you invite</li>
               <li>To send transactional emails (welcome, password reset, notifications you enable)</li>
               <li>To process payments via Stripe</li>
@@ -60,7 +60,7 @@ export default function PrivacyPage() {
             <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
               3. Third-Party Services
             </h2>
-            <p className="mt-2">We use the following third-party services to operate Our Family Nest:</p>
+            <p className="mt-2">We use the following third-party services to operate Family Nest:</p>
             <ul className="mt-2 list-disc pl-5 space-y-1">
               <li><strong>Supabase</strong> — Database, authentication, and file storage (hosted in US data centers)</li>
               <li><strong>Vercel</strong> — Application hosting and analytics</li>
@@ -120,7 +120,7 @@ export default function PrivacyPage() {
               8. Children&apos;s Privacy
             </h2>
             <p className="mt-2">
-              Our Family Nest is designed for families. Kid accounts are created and managed by adult family members. We do not knowingly collect data from children under 13 without parental consent.
+              Family Nest is designed for families. Kid accounts are created and managed by adult family members. We do not knowingly collect data from children under 13 without parental consent.
             </p>
           </section>
 
@@ -140,10 +140,10 @@ export default function PrivacyPage() {
             <p className="mt-2">
               For privacy questions or data requests, email us at{" "}
               <a
-                href="mailto:privacy@ourfamilynest.com"
+                href="mailto:privacy@familynest.io"
                 className="text-[var(--primary)] hover:underline"
               >
-                privacy@ourfamilynest.com
+                privacy@familynest.io
               </a>
             </p>
           </section>

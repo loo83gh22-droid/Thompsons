@@ -1,4 +1,4 @@
-import { createClient } from "@/src/lib/supabase/server";
+﻿import { createClient } from "@/src/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -18,11 +18,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!recipe) return { title: "Recipe Not Found" };
 
   return {
-    title: `${recipe.title} — Our Family Nest`,
-    description: recipe.story?.slice(0, 160) || `A family recipe shared from Our Family Nest.`,
+    title: `${recipe.title} — Family Nest`,
+    description: recipe.story?.slice(0, 160) || `A family recipe shared from Family Nest.`,
     openGraph: {
       title: recipe.title,
-      description: recipe.story?.slice(0, 160) || "A family recipe shared from Our Family Nest.",
+      description: recipe.story?.slice(0, 160) || "A family recipe shared from Family Nest.",
       type: "article",
     },
   };
@@ -66,13 +66,13 @@ export default async function PublicRecipePage({ params }: Props) {
       <header className="border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4 sm:px-6">
           <Link href="/" className="font-display text-lg font-semibold text-[var(--primary)]">
-            Our Family Nest
+            Family Nest
           </Link>
           <Link
             href="/login"
             className="rounded-full bg-[var(--primary)] px-5 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90"
           >
-            Start Your Family Nest
+            Start YFamily Nest
           </Link>
         </div>
       </header>
@@ -140,13 +140,13 @@ export default async function PublicRecipePage({ params }: Props) {
             Your family has recipes worth saving too.
           </h2>
           <p className="mt-2 text-[var(--muted)]">
-            Our Family Nest helps you preserve the stories behind your food &mdash; who taught it, when you make it, and the memories around the table.
+            Family Nest helps you preserve the stories behind your food &mdash; who taught it, when you make it, and the memories around the table.
           </p>
           <Link
             href="/login"
             className="mt-4 inline-block rounded-full bg-[var(--primary)] px-8 py-3 font-medium text-[var(--primary-foreground)] hover:opacity-90"
           >
-            Start Your Family Nest &mdash; Free
+            Start YFamily Nest &mdash; Free
           </Link>
         </div>
       </main>
