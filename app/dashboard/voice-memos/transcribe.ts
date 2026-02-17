@@ -18,7 +18,7 @@ export async function transcribeVoiceMemo(voiceMemoId: string) {
     // 1. Get voice memo storage URL and family_id
     const { data: memo, error: memoError } = await supabase
       .from('voice_memos')
-      .select('storage_url, family_id')
+      .select('audio_url, family_id')
       .eq('id', voiceMemoId)
       .single();
 
@@ -48,7 +48,7 @@ export async function transcribeVoiceMemo(voiceMemoId: string) {
     const { data: audioFile, error: downloadError } = await supabase
       .storage
       .from('voice-memos')
-      .download(memo.storage_url);
+      .download(memo.audio_url);
 
     if (downloadError || !audioFile) {
       throw new Error('Failed to download audio file');

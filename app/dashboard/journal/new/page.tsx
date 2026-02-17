@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
 import { createJournalEntry } from "../actions";
+import { generateJournalPrompts } from "../prompts";
 import DatePicker, { type DateRange } from "@/app/components/DatePicker";
 import LocationInput from "@/app/components/LocationInput";
 import PhotoUpload from "@/app/components/PhotoUpload";
@@ -20,6 +21,8 @@ export default function NewJournalPage() {
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [prompts, setPrompts] = useState<string[]>([]);
+  const [isGeneratingPrompts, setIsGeneratingPrompts] = useState(false);
 
   const [date, setDate] = useState<DateValue>(() => new Date());
   const [location, setLocation] = useState<{ name: string; latitude: number; longitude: number }>({
@@ -207,9 +210,58 @@ export default function NewJournalPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[var(--muted)]">
-            Your story
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="block text-sm font-medium text-[var(--muted)]">
+              Your story
+            </label>
+            <button
+              type="button"
+              onClick={async () => {
+                setIsGeneratingPrompts(true);
+                const result = await generateJournalPrompts({
+                  location: location.name || undefined,
+                  date: date instanceof Date ? date.toISOString().slice(0, 10) : undefined,
+                  members: members.filter((_, i) => {
+                    const checkbox = document.querySelector<HTMLInputElement>(`input[value="${members[i]?.id}"]`);
+                    return checkbox?.checked;
+                  }).map(m => m.name),
+                });
+                setIsGeneratingPrompts(false);
+                if (result.success && result.prompts) {
+                  setPrompts(result.prompts);
+                }
+              }}
+              disabled={isGeneratingPrompts}
+              className="text-sm font-medium text-[var(--primary)] hover:underline disabled:opacity-50"
+            >
+              {isGeneratingPrompts ? "Generating..." : "✨ Get writing ideas"}
+            </button>
+          </div>
+          {prompts.length > 0 && (
+            <div className="mt-2 mb-2 space-y-1">
+              {prompts.map((prompt, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => {
+                    const textarea = document.querySelector<HTMLTextAreaElement>('textarea[name="content"]');
+                    if (textarea) { textarea.value = prompt + " "; textarea.focus(); }
+                    setPrompts([]);
+                  }}
+                  className="block w-full text-left rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-colors"
+                >
+                  {prompt}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setPrompts([])}
+                className="text-xs text-[var(--muted)] hover:underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
           <textarea
             name="content"
             rows={8}

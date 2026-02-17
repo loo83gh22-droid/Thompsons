@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { addRecipe } from "./actions";
+import { parseRecipeUrl } from "./parse";
 
 type Member = { id: string; name: string };
 type JournalPhoto = {
@@ -32,6 +33,8 @@ export function AddRecipeForm({
   const [instructions, setInstructions] = useState("");
   const [addedById, setAddedById] = useState("");
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(new Set());
+  const [recipeUrl, setRecipeUrl] = useState("");
+  const [isParsing, setIsParsing] = useState(false);
 
   function togglePhoto(id: string) {
     setSelectedPhotoIds((prev) => {
@@ -99,6 +102,52 @@ export function AddRecipeForm({
       <p className="mt-1 text-sm text-[var(--muted)]">
         The story behind the food — who taught it, when it&apos;s made, photos from dinners.
       </p>
+
+      {/* URL Import */}
+      <div className="mt-4 rounded-lg border border-dashed border-[var(--border)] bg-[var(--background)] p-4">
+        <label className="block text-sm font-medium text-[var(--muted)]">
+          Import from URL (optional)
+        </label>
+        <div className="mt-1 flex gap-2">
+          <input
+            type="url"
+            placeholder="https://www.allrecipes.com/recipe/..."
+            value={recipeUrl}
+            onChange={(e) => setRecipeUrl(e.target.value)}
+            className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none"
+          />
+          <button
+            type="button"
+            onClick={async () => {
+              if (!recipeUrl) return;
+              setIsParsing(true);
+              setError(null);
+              const result = await parseRecipeUrl(recipeUrl);
+              setIsParsing(false);
+              if (result.success && result.recipe) {
+                setTitle(result.recipe.title);
+                if (result.recipe.ingredients.length > 0)
+                  setIngredients(result.recipe.ingredients.join("\n"));
+                if (result.recipe.instructions.length > 0)
+                  setInstructions(result.recipe.instructions.join("\n"));
+                if (result.recipe.servings || result.recipe.prepTime || result.recipe.cookTime) {
+                  const meta = [result.recipe.servings, result.recipe.prepTime, result.recipe.cookTime].filter(Boolean).join(" | ");
+                  setOccasions(meta);
+                }
+              } else {
+                setError(result.error || "Failed to parse recipe URL");
+              }
+            }}
+            disabled={isParsing || !recipeUrl}
+            className="rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
+          >
+            {isParsing ? "Parsing..." : "Import"}
+          </button>
+        </div>
+        <p className="mt-1 text-xs text-[var(--muted)]">
+          Paste a recipe URL to auto-fill this form
+        </p>
+      </div>
 
       <div className="mt-6 space-y-4">
         <div>

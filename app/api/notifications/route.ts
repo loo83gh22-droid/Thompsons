@@ -209,6 +209,131 @@ export async function GET(request: Request) {
     results.errors.push(`Day 1 campaign: ${err}`);
   }
 
+  // Day 3: Feature Discovery for users with < 3 features used
+  try {
+    const threeDaysAgo = new Date(Date.now() - 73 * 60 * 60 * 1000).toISOString();
+    const threeDaysAgoEnd = new Date(Date.now() - 71 * 60 * 60 * 1000).toISOString();
+
+    const { data: day3Families } = await supabase
+      .from('families')
+      .select('id, name, family_members!inner(id, name, contact_email, user_id)')
+      .gte('created_at', threeDaysAgo)
+      .lte('created_at', threeDaysAgoEnd);
+
+    for (const family of day3Families ?? []) {
+      const owner = (family.family_members as any[]).find((m: any) => m.user_id);
+      if (!owner?.contact_email) continue;
+
+      const { data: existing } = await supabase.from('email_campaigns').select('id').eq('family_member_id', owner.id).eq('campaign_type', 'day3_discovery').single();
+      if (existing) continue;
+
+      try {
+        await resend.emails.send({
+          from: fromEmail, to: owner.contact_email,
+          subject: 'Did you know? Your Nest has these hidden gems ✨',
+          html: day3DiscoveryEmailHtml(owner.name),
+        });
+        await supabase.from('email_campaigns').insert({ family_member_id: owner.id, campaign_type: 'day3_discovery' });
+        results.day3Discovery++;
+      } catch (err) { results.errors.push(`Day 3 email to ${owner.contact_email}: ${err}`); }
+    }
+  } catch (err) { results.errors.push(`Day 3 campaign: ${err}`); }
+
+  // Day 5: Invite Encouragement for single-member families
+  try {
+    const fiveDaysAgo = new Date(Date.now() - 121 * 60 * 60 * 1000).toISOString();
+    const fiveDaysAgoEnd = new Date(Date.now() - 119 * 60 * 60 * 1000).toISOString();
+
+    const { data: day5Families } = await supabase
+      .from('families')
+      .select('id, name, family_members(id, name, contact_email, user_id)')
+      .gte('created_at', fiveDaysAgo)
+      .lte('created_at', fiveDaysAgoEnd);
+
+    for (const family of day5Families ?? []) {
+      const members = family.family_members as any[];
+      if (members.length > 1) continue; // already invited someone
+      const owner = members.find((m: any) => m.user_id);
+      if (!owner?.contact_email) continue;
+
+      const { data: existing } = await supabase.from('email_campaigns').select('id').eq('family_member_id', owner.id).eq('campaign_type', 'day5_invite').single();
+      if (existing) continue;
+
+      try {
+        await resend.emails.send({
+          from: fromEmail, to: owner.contact_email,
+          subject: 'Your family is waiting to join 👋',
+          html: day5InviteEmailHtml(owner.name),
+        });
+        await supabase.from('email_campaigns').insert({ family_member_id: owner.id, campaign_type: 'day5_invite' });
+        results.day5Invites++;
+      } catch (err) { results.errors.push(`Day 5 email to ${owner.contact_email}: ${err}`); }
+    }
+  } catch (err) { results.errors.push(`Day 5 campaign: ${err}`); }
+
+  // Day 14: Upgrade Consideration for active Free tier users
+  try {
+    const fourteenDaysAgo = new Date(Date.now() - 337 * 60 * 60 * 1000).toISOString();
+    const fourteenDaysAgoEnd = new Date(Date.now() - 335 * 60 * 60 * 1000).toISOString();
+
+    const { data: day14Families } = await supabase
+      .from('families')
+      .select('id, name, family_members!inner(id, name, contact_email, user_id)')
+      .gte('created_at', fourteenDaysAgo)
+      .lte('created_at', fourteenDaysAgoEnd);
+
+    for (const family of day14Families ?? []) {
+      const owner = (family.family_members as any[]).find((m: any) => m.user_id);
+      if (!owner?.contact_email) continue;
+
+      const { data: existing } = await supabase.from('email_campaigns').select('id').eq('family_member_id', owner.id).eq('campaign_type', 'day14_upgrade').single();
+      if (existing) continue;
+
+      const { count: journalCount } = await supabase.from('journal_entries').select('id', { count: 'exact', head: true }).eq('family_id', family.id);
+      if ((journalCount ?? 0) < 3) continue; // only nudge active users
+
+      try {
+        await resend.emails.send({
+          from: fromEmail, to: owner.contact_email,
+          subject: 'Ready to unlock unlimited memories? 🔓',
+          html: day14UpgradeEmailHtml(owner.name),
+        });
+        await supabase.from('email_campaigns').insert({ family_member_id: owner.id, campaign_type: 'day14_upgrade' });
+        results.day14Upgrades++;
+      } catch (err) { results.errors.push(`Day 14 email to ${owner.contact_email}: ${err}`); }
+    }
+  } catch (err) { results.errors.push(`Day 14 campaign: ${err}`); }
+
+  // Day 30: Re-engagement for dormant users
+  try {
+    const thirtyDaysAgo = new Date(Date.now() - 721 * 60 * 60 * 1000).toISOString();
+    const thirtyDaysAgoEnd = new Date(Date.now() - 719 * 60 * 60 * 1000).toISOString();
+
+    const { data: day30Families } = await supabase
+      .from('families')
+      .select('id, name, family_members!inner(id, name, contact_email, user_id)')
+      .gte('created_at', thirtyDaysAgo)
+      .lte('created_at', thirtyDaysAgoEnd);
+
+    for (const family of day30Families ?? []) {
+      const owner = (family.family_members as any[]).find((m: any) => m.user_id);
+      if (!owner?.contact_email) continue;
+
+      const { data: existing } = await supabase.from('email_campaigns').select('id').eq('family_member_id', owner.id).eq('campaign_type', 'day30_reengagement').single();
+      if (existing) continue;
+
+      try {
+        await resend.emails.send({
+          from: fromEmail, to: owner.contact_email,
+          subject: 'Your family misses you 💙',
+          html: day30ReengagementEmailHtml(owner.name, family.name),
+        });
+        await supabase.from('email_campaigns').insert({ family_member_id: owner.id, campaign_type: 'day30_reengagement' });
+        results.day30Reengagement++;
+      } catch (err) { results.errors.push(`Day 30 email to ${owner.contact_email}: ${err}`); }
+    }
+  } catch (err) { results.errors.push(`Day 30 campaign: ${err}`); }
+
   // ── 4. Weekly digest (Sundays only) ──
   if (dayOfWeek === 0) {
     try {
@@ -370,6 +495,77 @@ function day1ActivationEmailHtml(name: string): string {
     <li>It inspires others in your family to contribute</li>
   </ul>
   <a href="${appUrl}/dashboard/photos" style="display:inline-block;background:#D4A843;color:#0f172a;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Upload Your First Photo Now</a>
+</td></tr>
+<tr><td style="text-align:center;padding-top:24px;"><p style="color:#64748b;font-size:12px;margin:0;">Our Family Nest</p></td></tr>
+</table></body></html>`;
+}
+
+function day3DiscoveryEmailHtml(name: string): string {
+  return `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;padding:32px 20px;">
+<tr><td style="text-align:center;padding-bottom:24px;"><span style="font-size:48px;">✨</span></td></tr>
+<tr><td style="background:#1e293b;border-radius:12px;padding:32px 24px;border:1px solid #334155;">
+  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Did you know? Your Nest has these hidden gems</h1>
+  <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;">Hi ${e(name)},</p>
+  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">Your Family Nest can do so much more than store photos. Here are a few features worth exploring:</p>
+  <ul style="margin:0 0 20px;padding-left:20px;color:#94a3b8;font-size:15px;line-height:1.7;">
+    <li><strong style="color:#f8fafc;">Voice Memos</strong> — Record grandparents telling stories</li>
+    <li><strong style="color:#f8fafc;">Recipes</strong> — Preserve family recipes with the story behind them</li>
+    <li><strong style="color:#f8fafc;">Time Capsules</strong> — Write letters to future family members</li>
+    <li><strong style="color:#f8fafc;">Family Map</strong> — Pin your family's important places</li>
+  </ul>
+  <a href="${appUrl}/dashboard" style="display:inline-block;background:#D4A843;color:#0f172a;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Explore Features</a>
+</td></tr>
+<tr><td style="text-align:center;padding-top:24px;"><p style="color:#64748b;font-size:12px;margin:0;">Our Family Nest</p></td></tr>
+</table></body></html>`;
+}
+
+function day5InviteEmailHtml(name: string): string {
+  return `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;padding:32px 20px;">
+<tr><td style="text-align:center;padding-bottom:24px;"><span style="font-size:48px;">👋</span></td></tr>
+<tr><td style="background:#1e293b;border-radius:12px;padding:32px 24px;border:1px solid #334155;">
+  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Your family is waiting to join!</h1>
+  <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;">Hi ${e(name)},</p>
+  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">A Family Nest is so much better when the whole family is involved. Imagine grandparents seeing photos the same day they happen, or cousins sharing memories from across the country.</p>
+  <p style="margin:0 0 20px;color:#94a3b8;font-size:15px;line-height:1.5;">Inviting family takes just 30 seconds — share a link and they're in.</p>
+  <a href="${appUrl}/dashboard/members" style="display:inline-block;background:#D4A843;color:#0f172a;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Invite Your Family</a>
+</td></tr>
+<tr><td style="text-align:center;padding-top:24px;"><p style="color:#64748b;font-size:12px;margin:0;">Our Family Nest</p></td></tr>
+</table></body></html>`;
+}
+
+function day14UpgradeEmailHtml(name: string): string {
+  return `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;padding:32px 20px;">
+<tr><td style="text-align:center;padding-bottom:24px;"><span style="font-size:48px;">🔓</span></td></tr>
+<tr><td style="background:#1e293b;border-radius:12px;padding:32px 24px;border:1px solid #334155;">
+  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Ready to unlock unlimited memories?</h1>
+  <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;">Hi ${e(name)},</p>
+  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">You've been using your Family Nest for two weeks now — that's amazing! You're approaching the Free plan limits, and there's so much more available:</p>
+  <ul style="margin:0 0 20px;padding-left:20px;color:#94a3b8;font-size:15px;line-height:1.7;">
+    <li><strong style="color:#f8fafc;">Unlimited journals</strong> with video uploads</li>
+    <li><strong style="color:#f8fafc;">10 GB storage</strong> for photos + videos</li>
+    <li><strong style="color:#f8fafc;">Voice memos, recipes, time capsules</strong></li>
+    <li><strong style="color:#f8fafc;">Weekly digest</strong> + birthday reminders</li>
+  </ul>
+  <p style="margin:0 0 20px;color:#94a3b8;font-size:15px;">All for just <strong style="color:#f8fafc;">$4.08/month</strong> (billed $49/year) — or 13 cents a day.</p>
+  <a href="${appUrl}/pricing" style="display:inline-block;background:#D4A843;color:#0f172a;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">See Plans &amp; Pricing</a>
+</td></tr>
+<tr><td style="text-align:center;padding-top:24px;"><p style="color:#64748b;font-size:12px;margin:0;">Our Family Nest</p></td></tr>
+</table></body></html>`;
+}
+
+function day30ReengagementEmailHtml(name: string, familyName: string): string {
+  return `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;padding:32px 20px;">
+<tr><td style="text-align:center;padding-bottom:24px;"><span style="font-size:48px;">💙</span></td></tr>
+<tr><td style="background:#1e293b;border-radius:12px;padding:32px 24px;border:1px solid #334155;">
+  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Your family misses you</h1>
+  <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;">Hi ${e(name)},</p>
+  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">It's been a while since you've visited the ${e(familyName)} Nest. Every day is a chance to capture a memory that future generations will treasure.</p>
+  <p style="margin:0 0 20px;color:#94a3b8;font-size:15px;line-height:1.5;">Even a single photo or a quick journal entry keeps the story going. Your family is counting on you.</p>
+  <a href="${appUrl}/dashboard" style="display:inline-block;background:#D4A843;color:#0f172a;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Visit Your Nest</a>
 </td></tr>
 <tr><td style="text-align:center;padding-top:24px;"><p style="color:#64748b;font-size:12px;margin:0;">Our Family Nest</p></td></tr>
 </table></body></html>`;

@@ -25,6 +25,9 @@ export default async function VoiceMemosPage() {
         created_at,
         family_member_id,
         recorded_for_id,
+        transcript,
+        transcription_status,
+        transcribed_at,
         recorded_by:family_members!family_member_id(name, nickname, relationship),
         recorded_for:family_members!recorded_for_id(name, nickname, relationship)
       `)

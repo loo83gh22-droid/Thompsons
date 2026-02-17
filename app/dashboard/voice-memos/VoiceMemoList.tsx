@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { removeVoiceMemo, updateVoiceMemo } from "./actions";
+import { transcribeVoiceMemo } from "./transcribe";
 import { EmptyStateGuide } from "@/app/components/EmptyStateGuide";
 
 type MemberRow = { name: string; nickname: string | null; relationship: string | null };
@@ -19,6 +20,9 @@ type VoiceMemo = {
   recorded_for_id: string | null;
   recorded_by: MemberRow | MemberRow[] | null;
   recorded_for: MemberRow | MemberRow[] | null;
+  transcript: string | null;
+  transcription_status: string | null;
+  transcribed_at: string | null;
 };
 
 function formatDuration(seconds: number | null): string {
@@ -51,6 +55,7 @@ export function VoiceMemoList({
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [transcribingId, setTranscribingId] = useState<string | null>(null);
 
   async function handleRemove(id: string) {
     await removeVoiceMemo(id);
@@ -177,6 +182,63 @@ export function VoiceMemoList({
                 </div>
               </div>
             </div>
+
+            {/* Transcription UI */}
+            {memo.transcript ? (
+              <div className="mt-4 rounded-lg border border-[var(--border)] bg-[var(--background)] p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium text-[var(--foreground)]">Transcript</h4>
+                  <button
+                    type="button"
+                    onClick={() => navigator.clipboard.writeText(memo.transcript!)}
+                    className="text-xs text-[var(--primary)] hover:underline"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <p className="text-sm text-[var(--muted)] whitespace-pre-wrap leading-relaxed">{memo.transcript}</p>
+                {memo.transcribed_at && (
+                  <p className="text-xs text-[var(--muted)] mt-2">
+                    Transcribed on {new Date(memo.transcribed_at).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            ) : memo.transcription_status === 'processing' ? (
+              <p className="mt-3 text-sm text-[var(--muted)] flex items-center gap-2">
+                <span className="animate-spin inline-block">⏳</span> Transcribing audio...
+              </p>
+            ) : memo.transcription_status === 'failed' ? (
+              <div className="mt-3 flex items-center gap-2">
+                <p className="text-sm text-red-500">Transcription failed.</p>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setTranscribingId(memo.id);
+                    await transcribeVoiceMemo(memo.id);
+                    setTranscribingId(null);
+                    router.refresh();
+                  }}
+                  disabled={transcribingId === memo.id}
+                  className="text-xs text-[var(--primary)] hover:underline"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={async () => {
+                  setTranscribingId(memo.id);
+                  await transcribeVoiceMemo(memo.id);
+                  setTranscribingId(null);
+                  router.refresh();
+                }}
+                disabled={transcribingId === memo.id}
+                className="mt-3 text-sm font-medium text-[var(--primary)] hover:underline disabled:opacity-50"
+              >
+                {transcribingId === memo.id ? "Transcribing..." : "✨ Transcribe this memo"}
+              </button>
+            )}
           </article>
         );
       })}
