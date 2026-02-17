@@ -91,16 +91,16 @@ function statusType(m: OurFamilyMember): "signed_in" | "pending_invitation" | "n
 
 function StatusDot({ member }: { member: OurFamilyMember }) {
   const status = statusType(member);
-  const color =
-    status === "signed_in"
-      ? "bg-emerald-500"
-      : status === "pending_invitation"
-        ? "bg-amber-500"
-        : "bg-[var(--muted)]";
+  // No dot for "just listed" members — they're remembered, not incomplete
+  if (status === "no_account") return null;
   return (
     <span
-      className={`absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-[var(--surface)] ${color}`}
-      title={status === "signed_in" ? "Signed In" : status === "pending_invitation" ? "Pending Invitation" : "No account"}
+      className={`absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-[var(--surface)] ${
+        status === "signed_in"
+          ? "bg-emerald-500 animate-pulse"
+          : "bg-amber-400"
+      }`}
+      title={status === "signed_in" ? "Active in the app" : "Invite sent — waiting to join"}
       aria-hidden
     />
   );
@@ -117,6 +117,16 @@ function MemberNode({
   onClick: () => void;
   title?: string;
 }) {
+  const status = statusType(member);
+
+  // Avatar ring colour communicates membership state at a glance
+  const avatarRing =
+    status === "signed_in"
+      ? "ring-2 ring-emerald-400 shadow-emerald-400/20 shadow-md"
+      : status === "pending_invitation"
+        ? "ring-2 ring-amber-400 ring-offset-1"
+        : "ring-1 ring-[var(--border)]";
+
   return (
     <button
       type="button"
@@ -126,11 +136,17 @@ function MemberNode({
         selected ? "border-[var(--accent)] ring-2 ring-[var(--accent)]/30" : "border-[var(--border)]"
       }`}
     >
-      <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-full">
+      <div className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-full ${avatarRing}`}>
         {member.avatar_url ? (
           <img src={member.avatar_url} alt={member.name} loading="lazy" className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-[var(--accent)]/30 text-xl font-semibold text-[var(--accent)]">
+          <div className={`flex h-full w-full items-center justify-center text-xl font-semibold ${
+            status === "signed_in"
+              ? "bg-emerald-500/20 text-emerald-600"
+              : status === "pending_invitation"
+                ? "bg-amber-400/20 text-amber-600"
+                : "bg-[var(--accent)]/20 text-[var(--accent)]"
+          }`}>
             {initials(member.name)}
           </div>
         )}

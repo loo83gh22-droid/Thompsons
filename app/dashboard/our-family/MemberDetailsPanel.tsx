@@ -27,9 +27,15 @@ function memberStatus(m: OurFamilyMember): "signed_in" | "pending_invitation" | 
 }
 
 const STATUS_LABELS: Record<ReturnType<typeof memberStatus>, string> = {
-  signed_in: "Signed In",
-  pending_invitation: "Pending Invitation",
-  no_account: "Not Invited",
+  signed_in: "Active in the app",
+  pending_invitation: "Invite sent — waiting to join",
+  no_account: "Not yet joined",
+};
+
+const STATUS_COLOURS: Record<ReturnType<typeof memberStatus>, string> = {
+  signed_in: "text-emerald-600",
+  pending_invitation: "text-amber-600",
+  no_account: "text-[var(--muted)]",
 };
 
 function useMemberTreeRels(memberId: string, relationships: OurFamilyRelationship[]) {
@@ -147,18 +153,39 @@ export function MemberDetailsPanel({
       </div>
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
         <div className="flex flex-col items-center text-center">
-          {member.avatar_url ? (
-            <img
-              src={member.avatar_url}
-              alt={member.name}
-              loading="lazy"
-              className="h-[120px] w-[120px] rounded-full object-cover shadow-md"
-            />
-          ) : (
-            <div className="flex h-[120px] w-[120px] items-center justify-center rounded-full bg-[var(--accent)]/30 text-3xl font-semibold text-[var(--accent)]">
-              {initials(member.name)}
-            </div>
-          )}
+          {/* Avatar ring colour mirrors list/tree views */}
+          <div className={`relative rounded-full ${
+            status === "signed_in"
+              ? "ring-2 ring-emerald-400 shadow-emerald-400/25 shadow-lg"
+              : status === "pending_invitation"
+                ? "ring-2 ring-amber-400 ring-offset-2 ring-offset-[var(--surface)]"
+                : "ring-1 ring-[var(--border)]"
+          }`}>
+            {member.avatar_url ? (
+              <img
+                src={member.avatar_url}
+                alt={member.name}
+                loading="lazy"
+                className="h-[120px] w-[120px] rounded-full object-cover"
+              />
+            ) : (
+              <div className={`flex h-[120px] w-[120px] items-center justify-center rounded-full text-3xl font-semibold ${
+                status === "signed_in"
+                  ? "bg-emerald-500/20 text-emerald-600"
+                  : status === "pending_invitation"
+                    ? "bg-amber-400/20 text-amber-600"
+                    : "bg-[var(--accent)]/30 text-[var(--accent)]"
+              }`}>
+                {initials(member.name)}
+              </div>
+            )}
+            {status === "signed_in" && (
+              <span className="absolute -right-0.5 -top-0.5 h-4 w-4 rounded-full border-2 border-[var(--surface)] bg-emerald-500 animate-pulse" aria-hidden />
+            )}
+            {status === "pending_invitation" && (
+              <span className="absolute -right-0.5 -top-0.5 h-4 w-4 rounded-full border-2 border-[var(--surface)] bg-amber-400" aria-hidden />
+            )}
+          </div>
           <h3 className="mt-3 font-display text-xl font-bold text-[var(--foreground)]">{member.name}</h3>
           {member.nickname?.trim() && (
             <p className="text-[var(--muted)]">&quot;{member.nickname}&quot;</p>
@@ -187,7 +214,12 @@ export function MemberDetailsPanel({
             </p>
           )}
           <p className="text-[var(--muted)]">
-            <span className="font-medium text-[var(--foreground)]">Status:</span> {STATUS_LABELS[status]}
+            <span className="font-medium text-[var(--foreground)]">Status: </span>
+            <span className={`font-medium ${STATUS_COLOURS[status]}`}>
+              {status === "signed_in" && <span aria-hidden>✓ </span>}
+              {status === "pending_invitation" && <span aria-hidden>✉ </span>}
+              {STATUS_LABELS[status]}
+            </span>
           </p>
           {memberSince && (
             <p className="text-[var(--muted)]">

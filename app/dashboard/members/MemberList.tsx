@@ -46,6 +46,12 @@ export function MemberList({ members }: { members: Member[] }) {
   );
 }
 
+function memberStatus(m: Member): "signed_in" | "pending_invitation" | "no_account" {
+  if (m.user_id) return "signed_in";
+  if (m.contact_email?.trim()) return "pending_invitation";
+  return "no_account";
+}
+
 function MemberCard({ member }: { member: Member }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(member.name);
@@ -292,11 +298,27 @@ function MemberCard({ member }: { member: Member }) {
   }
 
   const shortBirthday = formatBirthdayShort(member.birth_date);
+  const status = memberStatus(member);
+
+  // Avatar ring: green glow = active, dashed amber = invite sent, quiet = just listed
+  const avatarRingClass =
+    status === "signed_in"
+      ? "ring-2 ring-emerald-400 shadow-emerald-400/20 shadow-md"
+      : status === "pending_invitation"
+        ? "ring-2 ring-amber-400 ring-offset-1 ring-offset-[var(--card)]"
+        : "ring-1 ring-[var(--border)]";
+
+  const avatarBgClass =
+    status === "signed_in"
+      ? "bg-emerald-500/20 text-emerald-600"
+      : status === "pending_invitation"
+        ? "bg-amber-400/20 text-amber-600"
+        : "bg-[var(--primary)]/15 text-[var(--primary)]";
 
   return (
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 transition-shadow hover:shadow-lg sm:p-5">
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-        <Link href={`/dashboard/members/${member.id}`} className="shrink-0 rounded-full ring-2 ring-transparent focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
+        <Link href={`/dashboard/members/${member.id}`} className={`relative shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--accent)] ${avatarRingClass}`}>
           {member.avatar_url ? (
             <img
               src={member.avatar_url}
@@ -305,9 +327,17 @@ function MemberCard({ member }: { member: Member }) {
               className="h-20 w-20 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--primary)]/15 text-lg font-semibold text-[var(--primary)]">
+            <div className={`flex h-20 w-20 items-center justify-center rounded-full text-lg font-semibold ${avatarBgClass}`}>
               {initials(member.name)}
             </div>
+          )}
+          {/* Live pulse dot for active members */}
+          {status === "signed_in" && (
+            <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-[var(--card)] bg-emerald-500 animate-pulse" aria-hidden />
+          )}
+          {/* Amber dot for invited members */}
+          {status === "pending_invitation" && (
+            <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-[var(--card)] bg-amber-400" aria-hidden />
           )}
         </Link>
         <div className="min-w-0 flex-1">
@@ -329,11 +359,19 @@ function MemberCard({ member }: { member: Member }) {
             {member.contact_email && <span>{member.contact_email}</span>}
           </div>
           <div className="mt-2">
-            {member.user_id ? (
-              <span className="inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 border border-emerald-200">Signed In</span>
-            ) : (
-              <span className="inline-block rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 border border-amber-200">Pending Invitation</span>
+            {status === "signed_in" && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 border border-emerald-200">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+                In the app
+              </span>
             )}
+            {status === "pending_invitation" && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 border border-amber-200">
+                <span aria-hidden>✉️</span>
+                Invite sent
+              </span>
+            )}
+            {/* No badge for "just listed" — they're remembered, not incomplete */}
           </div>
         </div>
         <div className="flex w-full shrink-0 gap-2 sm:w-auto">
