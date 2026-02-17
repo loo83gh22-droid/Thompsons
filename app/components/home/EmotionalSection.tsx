@@ -3,7 +3,7 @@ import { ShieldCheck, Infinity, Users, Heart, Lock, Shield, Database, Globe } fr
 const trustBadges = [
   { icon: Lock, label: "Bank-level encryption" },
   { icon: Shield, label: "Privacy-first design" },
-  { icon: Database, label: "Own your data - export anytime" },
+  { icon: Database, label: "Your data, always yours" },
   { icon: Globe, label: "US-based secure servers" },
 ];
 

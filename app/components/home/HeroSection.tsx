@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, BookOpen, MapPin, Camera, Mic, Heart, Users } from "lucide-react";
 
 export function HeroSection() {
   return (
@@ -53,29 +53,149 @@ export function HeroSection() {
                 </p>
               </div>
               <p className="text-sm font-medium" style={{ color: "var(--muted)" }}>
-                ✨ Join 500+ families preserving their memories privately
+                🏡 Built by a family, for families — now open to everyone
               </p>
             </div>
           </div>
 
-          {/* Hero Image */}
+          {/* Hero Product Preview — App UI mockup */}
           <div className="relative">
-            <div className="relative overflow-hidden rounded-2xl shadow-2xl aspect-[4/3]" style={{ backgroundColor: "var(--secondary)" }}>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center p-8">
-                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full" style={{ backgroundColor: "var(--primary)", opacity: 0.15 }}>
-                    <svg className="h-10 w-10" style={{ color: "var(--primary)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </div>
-                  <p className="text-lg font-medium" style={{ color: "var(--foreground)", fontFamily: "var(--font-display-serif)" }}>
-                    Your Family, Together
-                  </p>
-                  <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
-                    Every generation in one place
-                  </p>
+            <div
+              className="relative overflow-hidden rounded-2xl shadow-2xl"
+              style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)" }}
+            >
+              {/* Top bar */}
+              <div
+                className="flex items-center gap-2 px-4 py-3"
+                style={{ borderBottom: "1px solid var(--border)", backgroundColor: "var(--surface)" }}
+              >
+                <div className="flex gap-1.5">
+                  <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: "var(--border)" }} />
+                  <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: "var(--border)" }} />
+                  <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: "var(--border)" }} />
+                </div>
+                <div
+                  className="mx-auto rounded-md px-12 py-1 text-[10px]"
+                  style={{ backgroundColor: "var(--background)", color: "var(--muted)" }}
+                >
+                  ourfamilynest.com
                 </div>
               </div>
+
+              {/* Sidebar + Content layout */}
+              <div className="flex" style={{ minHeight: "320px" }}>
+                {/* Sidebar nav */}
+                <div
+                  className="hidden sm:flex w-44 shrink-0 flex-col gap-1 p-3"
+                  style={{ borderRight: "1px solid var(--border)", backgroundColor: "var(--surface)" }}
+                >
+                  <p
+                    className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-wider"
+                    style={{ color: "var(--muted)" }}
+                  >
+                    The Thompsons
+                  </p>
+                  {[
+                    { icon: BookOpen, label: "Journal", active: true },
+                    { icon: Camera, label: "Photos", active: false },
+                    { icon: MapPin, label: "Family Map", active: false },
+                    { icon: Users, label: "Family Tree", active: false },
+                    { icon: Mic, label: "Voice Memos", active: false },
+                    { icon: Heart, label: "Traditions", active: false },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs"
+                      style={{
+                        backgroundColor: item.active ? "rgba(61,107,94,0.1)" : "transparent",
+                        color: item.active ? "var(--primary)" : "var(--muted)",
+                        fontWeight: item.active ? 600 : 400,
+                      }}
+                    >
+                      <item.icon className="h-3.5 w-3.5" />
+                      {item.label}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Main content area — journal entries */}
+                <div className="flex-1 p-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <p
+                      className="text-sm font-semibold"
+                      style={{ color: "var(--foreground)", fontFamily: "var(--font-display-serif)" }}
+                    >
+                      Family Journal
+                    </p>
+                    <span
+                      className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+                      style={{ backgroundColor: "var(--accent)", color: "#fff" }}
+                    >
+                      + New Entry
+                    </span>
+                  </div>
+
+                  {/* Mock journal entries */}
+                  <div className="flex flex-col gap-2.5">
+                    {[
+                      {
+                        title: "Beach day with the whole crew",
+                        date: "June 14",
+                        preview: "The kids finally got Grandpa in the water...",
+                        hasPhoto: true,
+                      },
+                      {
+                        title: "Nana's birthday dinner",
+                        date: "June 8",
+                        preview: "Three generations around one table. Made her famous...",
+                        hasPhoto: true,
+                      },
+                      {
+                        title: "First day of summer break",
+                        date: "June 1",
+                        preview: "The look on their faces when we told them about the trip...",
+                        hasPhoto: false,
+                      },
+                    ].map((entry) => (
+                      <div
+                        key={entry.title}
+                        className="flex gap-3 rounded-xl p-2.5"
+                        style={{ backgroundColor: "var(--background)", border: "1px solid var(--border)" }}
+                      >
+                        {entry.hasPhoto && (
+                          <div
+                            className="h-14 w-14 shrink-0 rounded-lg"
+                            style={{
+                              backgroundColor: "var(--secondary)",
+                              backgroundImage: "linear-gradient(135deg, var(--secondary) 0%, var(--border) 100%)",
+                            }}
+                          />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold truncate" style={{ color: "var(--foreground)" }}>
+                            {entry.title}
+                          </p>
+                          <p className="text-[10px]" style={{ color: "var(--accent)" }}>
+                            {entry.date}
+                          </p>
+                          <p className="text-[10px] truncate mt-0.5" style={{ color: "var(--muted)" }}>
+                            {entry.preview}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Floating accent badge */}
+            <div
+              className="absolute -bottom-3 -right-3 rounded-xl px-3 py-2 shadow-lg sm:-bottom-4 sm:-right-4"
+              style={{ backgroundColor: "var(--primary)", color: "var(--primary-foreground)" }}
+            >
+              <p className="text-[10px] font-medium opacity-75">Updated just now</p>
+              <p className="text-xs font-semibold">3 family members online</p>
             </div>
           </div>
         </div>

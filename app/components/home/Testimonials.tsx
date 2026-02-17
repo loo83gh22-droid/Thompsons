@@ -1,22 +1,24 @@
+import { Coffee, Heart, Smartphone } from "lucide-react";
+
 export function Testimonials() {
-  const testimonials = [
+  const stories = [
     {
-      quote:
-        "Finally, a place where Grandma can see all our photos without needing to understand Google Photos. She checks the Nest every morning with her coffee.",
-      author: "Sarah M.",
-      role: "Mom of 3",
+      icon: Coffee,
+      scenario: "The Grandma Test",
+      story:
+        "Picture this: Grandma opens the Nest with her morning coffee. New photos from the grandkids, a voice memo from her daughter, a recipe someone finally wrote down. No passwords to remember. No confusing feeds. Just her family.",
     },
     {
-      quote:
-        "We found recipes we thought were lost forever when my mom passed. Now they're preserved for my grandkids to make someday.",
-      author: "David & Linda T.",
-      role: "Grandparents",
+      icon: Heart,
+      scenario: "The Recipes That Almost Disappeared",
+      story:
+        "Every family has recipes that live in someone's head. Handwriting that's fading. Stories only told at Thanksgiving. The Nest is where those things stop being fragile and start being permanent.",
     },
     {
-      quote:
-        "It's like a private Instagram but only for people who matter. No ads, no algorithm, just our family.",
-      author: "Alex K.",
-      role: "Family organizer",
+      icon: Smartphone,
+      scenario: "Private Instagram — Minus Everything Bad",
+      story:
+        "All the sharing. None of the ads, algorithms, or strangers. Just the cousins in Ohio, the aunt in Florida, the teens who actually check it, and Grandpa who just learned how to tap.",
     },
   ];
 
@@ -24,16 +26,29 @@ export function Testimonials() {
     <section className="py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
-          <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            Loved by families everywhere
+          <p
+            className="mb-3 text-sm font-medium uppercase tracking-widest"
+            style={{ color: "var(--accent)" }}
+          >
+            Imagine this
+          </p>
+          <h2
+            className="text-3xl font-bold tracking-tight sm:text-4xl"
+            style={{
+              fontFamily: "var(--font-display-serif)",
+              color: "var(--foreground)",
+              textWrap: "balance",
+            }}
+          >
+            The moments you&apos;ll actually preserve
           </h2>
-          <p className="mt-4 text-lg" style={{ color: "var(--muted)" }}>
-            See what families are saying about Our Family Nest
+          <p className="mx-auto mt-4 max-w-xl text-lg" style={{ color: "var(--muted)" }}>
+            Real scenarios from real family life. This is what a Nest is for.
           </p>
         </div>
 
         <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map((testimonial, index) => (
+          {stories.map((item, index) => (
             <div
               key={index}
               className="rounded-2xl border p-8"
@@ -42,23 +57,27 @@ export function Testimonials() {
                 borderColor: "var(--border)",
               }}
             >
-              <p
-                className="text-lg leading-relaxed"
-                style={{ color: "var(--foreground)" }}
+              <div
+                className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg"
+                style={{ backgroundColor: "rgba(61,107,94,0.1)" }}
               >
-                "{testimonial.quote}"
-              </p>
-              <div className="mt-6">
-                <p
-                  className="font-semibold"
-                  style={{ color: "var(--foreground)" }}
-                >
-                  {testimonial.author}
-                </p>
-                <p className="text-sm" style={{ color: "var(--muted)" }}>
-                  {testimonial.role}
-                </p>
+                <item.icon className="h-5 w-5" style={{ color: "var(--primary)" }} />
               </div>
+              <p
+                className="mb-3 text-lg font-semibold"
+                style={{
+                  fontFamily: "var(--font-display-serif)",
+                  color: "var(--foreground)",
+                }}
+              >
+                {item.scenario}
+              </p>
+              <p
+                className="text-sm leading-relaxed"
+                style={{ color: "var(--muted)" }}
+              >
+                {item.story}
+              </p>
             </div>
           ))}
         </div>
