@@ -4,6 +4,7 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import Link from "next/link";
 import { ExportNest } from "./ExportNest";
 import { FamilyNameEditor } from "./FamilyNameEditor";
+import { ManageBilling } from "./ManageBilling";
 
 type PlanType = "free" | "annual" | "legacy";
 
@@ -244,14 +245,17 @@ export default async function SettingsPage() {
                 </p>
               )}
 
-              {/* Upgrade CTA */}
-              <Link
-                href="/pricing"
-                className="inline-flex items-center gap-2 rounded-lg border border-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/10"
-              >
-                Upgrade to Legacy
-                <span aria-hidden="true">&rarr;</span>
-              </Link>
+              {/* Upgrade CTA + Billing */}
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center gap-2 rounded-lg border border-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/10"
+                >
+                  Upgrade to Legacy
+                  <span aria-hidden="true">&rarr;</span>
+                </Link>
+                <ManageBilling />
+              </div>
             </div>
           )}
 

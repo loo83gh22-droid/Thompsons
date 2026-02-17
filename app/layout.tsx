@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { MosaicBackground } from "./components/MosaicBackground";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "Our Family Nest | Private. Permanent. Yours.",
@@ -42,6 +44,8 @@ export default function RootLayout({
       <body className="antialiased">
         <MosaicBackground />
         {children}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

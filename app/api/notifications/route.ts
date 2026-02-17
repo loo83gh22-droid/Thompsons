@@ -23,6 +23,15 @@ function e(s: string): string {
   return s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+function emailFooter(): string {
+  return `<tr><td style="text-align:center;padding-top:24px;">
+  <p style="color:#64748b;font-size:12px;margin:0;">Our Family Nest &middot; <a href="${appUrl}/dashboard/settings" style="color:#64748b;">Manage notifications</a></p>
+  <p style="color:#475569;font-size:11px;margin:8px 0 0;">
+    <a href="${appUrl}/dashboard/settings" style="color:#475569;text-decoration:underline;">Unsubscribe</a> from these emails
+  </p>
+</td></tr>`;
+}
+
 export async function GET(request: Request) {
   // Auth check
   const { searchParams } = new URL(request.url);
@@ -412,9 +421,7 @@ function birthdayEmailHtml(name: string, ageText: string, recipientName: string)
     Write them a time capsule
   </a>
 </td></tr>
-<tr><td style="text-align:center;padding-top:24px;">
-  <p style="color:#64748b;font-size:12px;margin:0;">Our Family Nest</p>
-</td></tr>
+${emailFooter()}
 </table></body></html>`;
 }
 
@@ -437,9 +444,7 @@ function capsuleEmailHtml(recipientName: string, senderName: string, title: stri
     Read your letter
   </a>
 </td></tr>
-<tr><td style="text-align:center;padding-top:24px;">
-  <p style="color:#64748b;font-size:12px;margin:0;">Our Family Nest</p>
-</td></tr>
+${emailFooter()}
 </table></body></html>`;
 }
 
@@ -471,9 +476,7 @@ function digestEmailHtml(
     See what's new
   </a>
 </td></tr>
-<tr><td style="text-align:center;padding-top:24px;">
-  <p style="color:#64748b;font-size:12px;margin:0;">Our Family Nest &middot; <a href="${appUrl}/dashboard/settings" style="color:#64748b;">Manage notifications</a></p>
-</td></tr>
+${emailFooter()}
 </table></body></html>`;
 }
 

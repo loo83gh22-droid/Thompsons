@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { UpgradeButton } from "./UpgradeButton";
 
 export const metadata: Metadata = {
   title: "Pricing — Our Family Nest",
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
 const tiers = [
   {
     name: "The Nest",
+    plan: "free" as const,
     price: "Free",
     priceSub: null,
     description: "Everything you need to get started.",
@@ -28,6 +30,7 @@ const tiers = [
   },
   {
     name: "The Full Nest",
+    plan: "annual" as const,
     price: "$49",
     priceSub: "/year",
     priceBreakdown: "Just $4.08/month or 13¢/day",
@@ -53,6 +56,7 @@ const tiers = [
   },
   {
     name: "The Legacy",
+    plan: "legacy" as const,
     price: "$349",
     priceSub: " one-time",
     priceBreakdown: "Just $7/year over 50 years — true lifetime value",
@@ -176,16 +180,20 @@ export default function PricingPage() {
 
               {/* CTA */}
               <div className="mt-8">
-                <Link
-                  href={tier.ctaHref}
-                  className={`block w-full rounded-full px-6 py-3 text-center font-medium transition-all hover:scale-[1.02] ${
-                    tier.highlighted
-                      ? "bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90"
-                      : "border border-[var(--border)] text-[var(--foreground)] bg-[var(--secondary)] hover:bg-[var(--surface-hover)]"
-                  }`}
-                >
-                  {tier.cta}
-                </Link>
+                {tier.plan === "free" ? (
+                  <Link
+                    href={tier.ctaHref}
+                    className="block w-full rounded-full px-6 py-3 text-center font-medium transition-all hover:scale-[1.02] border border-[var(--border)] text-[var(--foreground)] bg-[var(--secondary)] hover:bg-[var(--surface-hover)]"
+                  >
+                    {tier.cta}
+                  </Link>
+                ) : (
+                  <UpgradeButton
+                    plan={tier.plan}
+                    label={tier.cta}
+                    highlighted={tier.highlighted}
+                  />
+                )}
                 {tier.ctaNote && (
                   <p className="mt-2 text-center text-xs text-[var(--muted)]">
                     {tier.ctaNote}
