@@ -155,34 +155,38 @@ export function MemberDetailsPanel({
         <div className="flex flex-col items-center text-center">
           {/* Avatar ring colour mirrors list/tree views */}
           <div className={`relative rounded-full ${
-            status === "signed_in"
-              ? "ring-2 ring-emerald-400 shadow-emerald-400/25 shadow-lg"
-              : status === "pending_invitation"
-                ? "ring-2 ring-amber-400 ring-offset-2 ring-offset-[var(--surface)]"
-                : "ring-1 ring-[var(--border)]"
+            member.is_remembered
+              ? "ring-1 ring-stone-300/60 opacity-85"
+              : status === "signed_in"
+                ? "ring-2 ring-emerald-400 shadow-emerald-400/25 shadow-lg"
+                : status === "pending_invitation"
+                  ? "ring-2 ring-amber-400 ring-offset-2 ring-offset-[var(--surface)]"
+                  : "ring-1 ring-[var(--border)]"
           }`}>
             {member.avatar_url ? (
               <img
                 src={member.avatar_url}
                 alt={member.name}
                 loading="lazy"
-                className="h-[120px] w-[120px] rounded-full object-cover"
+                className={`h-[120px] w-[120px] rounded-full object-cover ${member.is_remembered ? "grayscale-[30%] brightness-90" : ""}`}
               />
             ) : (
               <div className={`flex h-[120px] w-[120px] items-center justify-center rounded-full text-3xl font-semibold ${
-                status === "signed_in"
-                  ? "bg-emerald-500/20 text-emerald-600"
-                  : status === "pending_invitation"
-                    ? "bg-amber-400/20 text-amber-600"
-                    : "bg-[var(--accent)]/30 text-[var(--accent)]"
+                member.is_remembered
+                  ? "bg-stone-200/60 text-stone-500"
+                  : status === "signed_in"
+                    ? "bg-emerald-500/20 text-emerald-600"
+                    : status === "pending_invitation"
+                      ? "bg-amber-400/20 text-amber-600"
+                      : "bg-[var(--accent)]/30 text-[var(--accent)]"
               }`}>
                 {initials(member.name)}
               </div>
             )}
-            {status === "signed_in" && (
+            {!member.is_remembered && status === "signed_in" && (
               <span className="absolute -right-0.5 -top-0.5 h-4 w-4 rounded-full border-2 border-[var(--surface)] bg-emerald-500 animate-pulse" aria-hidden />
             )}
-            {status === "pending_invitation" && (
+            {!member.is_remembered && status === "pending_invitation" && (
               <span className="absolute -right-0.5 -top-0.5 h-4 w-4 rounded-full border-2 border-[var(--surface)] bg-amber-400" aria-hidden />
             )}
           </div>
@@ -213,14 +217,25 @@ export function MemberDetailsPanel({
               <span className="font-medium text-[var(--foreground)]">Email:</span> {member.contact_email}
             </p>
           )}
-          <p className="text-[var(--muted)]">
-            <span className="font-medium text-[var(--foreground)]">Status: </span>
-            <span className={`font-medium ${STATUS_COLOURS[status]}`}>
-              {status === "signed_in" && <span aria-hidden>✓ </span>}
-              {status === "pending_invitation" && <span aria-hidden>✉ </span>}
-              {STATUS_LABELS[status]}
-            </span>
-          </p>
+          {member.is_remembered ? (
+            <p className="text-[var(--muted)]">
+              <span className="font-medium text-stone-500">Remembered with love</span>
+              {member.passed_date && (
+                <span className="ml-1 text-stone-400">
+                  · {new Date(member.passed_date + "T12:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                </span>
+              )}
+            </p>
+          ) : (
+            <p className="text-[var(--muted)]">
+              <span className="font-medium text-[var(--foreground)]">Status: </span>
+              <span className={`font-medium ${STATUS_COLOURS[status]}`}>
+                {status === "signed_in" && <span aria-hidden>✓ </span>}
+                {status === "pending_invitation" && <span aria-hidden>✉ </span>}
+                {STATUS_LABELS[status]}
+              </span>
+            </p>
+          )}
           {memberSince && (
             <p className="text-[var(--muted)]">
               <span className="font-medium text-[var(--foreground)]">Member since:</span> {memberSince}
@@ -416,7 +431,7 @@ export function MemberDetailsPanel({
           >
             Send Message
           </Link>
-          {status === "pending_invitation" && (
+          {!member.is_remembered && status === "pending_invitation" && (
             <Link
               href={`/dashboard/members/${member.id}`}
               className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-center text-sm font-medium text-amber-700 hover:bg-amber-100"

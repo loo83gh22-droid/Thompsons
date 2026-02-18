@@ -17,6 +17,8 @@ export type OurFamilyMember = {
   role: MemberRole;
   kid_access_token: string | null;
   created_at: string;
+  is_remembered: boolean;
+  passed_date: string | null;
 };
 
 export type OurFamilyRelationship = {
@@ -44,7 +46,7 @@ export default async function OurFamilyPage() {
   ] = await Promise.all([
     supabase
       .from("family_members")
-      .select("id, name, nickname, relationship, contact_email, user_id, birth_date, birth_place, avatar_url, role, kid_access_token, created_at")
+      .select("id, name, nickname, relationship, contact_email, user_id, birth_date, birth_place, avatar_url, role, kid_access_token, created_at, is_remembered, passed_date")
       .eq("family_id", activeFamilyId)
       .order("name"),
     supabase

@@ -27,6 +27,8 @@ export function AddMemberForm({
   const [open, setOpen] = useState(false);
   const [linkType, setLinkType] = useState<"" | "spouse" | "child" | "parent">("");
   const [linkMemberId, setLinkMemberId] = useState("");
+  const [isRemembered, setIsRemembered] = useState(false);
+  const [passedDate, setPassedDate] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -77,7 +79,9 @@ export function AddMemberForm({
         birthDate || "",
         birthPlace.trim() || "",
         nickname.trim() || null,
-        avatarUrl
+        avatarUrl,
+        isRemembered,
+        passedDate || ""
       );
 
       if (result?.id && linkType && linkMemberId) {
@@ -96,6 +100,8 @@ export function AddMemberForm({
       setBirthPlace("");
       setLinkType("");
       setLinkMemberId("");
+      setIsRemembered(false);
+      setPassedDate("");
       clearPhoto();
 
       let text = "Member added. Add another or close.";
@@ -217,6 +223,38 @@ export function AddMemberForm({
               />
               <p className="mt-1 text-xs text-[var(--muted)]">Creates a balloon pin on the map.</p>
             </div>
+            {/* Remembered member toggle */}
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-hover)]/50 p-3">
+              <label className="flex cursor-pointer items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={isRemembered}
+                  onChange={(e) => setIsRemembered(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-[var(--border)] accent-[var(--accent)]"
+                />
+                <div>
+                  <span className="text-sm font-medium text-[var(--foreground)]">This person is remembered</span>
+                  <p className="mt-0.5 text-xs text-[var(--muted)]">
+                    For family members who have passed, or who will never use the app — elderly grandparents, those unable to. Their memories, photos and stories still live here.
+                  </p>
+                </div>
+              </label>
+              {isRemembered && (
+                <div className="mt-3">
+                  <label htmlFor="passed-date" className="block text-sm font-medium text-[var(--muted)]">
+                    Date of passing <span className="text-[var(--muted)]">(optional)</span>
+                  </label>
+                  <input
+                    id="passed-date"
+                    type="date"
+                    value={passedDate}
+                    onChange={(e) => setPassedDate(e.target.value)}
+                    className="input-base mt-1 w-full"
+                  />
+                </div>
+              )}
+            </div>
+
             {linkMembers.length > 0 && (
               <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-hover)]/50 p-3">
                 <h4 className="text-sm font-medium text-[var(--foreground)]">Link in family tree (optional)</h4>

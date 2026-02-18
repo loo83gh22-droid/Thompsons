@@ -18,6 +18,8 @@ export type Member = {
   birth_date: string | null;
   birth_place: string | null;
   avatar_url: string | null;
+  is_remembered: boolean;
+  passed_date: string | null;
 };
 
 function initials(name: string): string {
@@ -61,6 +63,8 @@ function MemberCard({ member }: { member: Member }) {
   const [birthDate, setBirthDate] = useState(member.birth_date ?? "");
   const [birthPlace, setBirthPlace] = useState(member.birth_place ?? "");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(member.avatar_url);
+  const [isRemembered, setIsRemembered] = useState(member.is_remembered);
+  const [passedDate, setPassedDate] = useState(member.passed_date ?? "");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -115,7 +119,9 @@ function MemberCard({ member }: { member: Member }) {
         birthDate || "",
         birthPlace.trim() || "",
         nickname.trim() || null,
-        finalAvatarUrl
+        finalAvatarUrl,
+        isRemembered,
+        passedDate || ""
       );
       setAvatarUrl(finalAvatarUrl);
       clearNewPhoto();
@@ -279,6 +285,37 @@ function MemberCard({ member }: { member: Member }) {
               placeholder="e.g. Vancouver, BC"
             />
           </div>
+          {/* Remembered member toggle */}
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-hover)]/50 p-3">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                checked={isRemembered}
+                onChange={(e) => setIsRemembered(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-[var(--border)] accent-[var(--accent)]"
+              />
+              <div>
+                <span className="text-sm font-medium text-[var(--foreground)]">This person is remembered</span>
+                <p className="mt-0.5 text-xs text-[var(--muted)]">
+                  For family members who have passed, or who will never use the app. Their memories still live here.
+                </p>
+              </div>
+            </label>
+            {isRemembered && (
+              <div className="mt-3">
+                <label htmlFor={`passed-date-${member.id}`} className="block text-sm font-medium text-[var(--muted)]">
+                  Date of passing <span className="text-[var(--muted)]">(optional)</span>
+                </label>
+                <input
+                  id={`passed-date-${member.id}`}
+                  type="date"
+                  value={passedDate}
+                  onChange={(e) => setPassedDate(e.target.value)}
+                  className="input-base mt-1 w-full"
+                />
+              </div>
+            )}
+          </div>
           {message && (
             <div className={`rounded-lg px-4 py-2 text-sm ${message.type === "success" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
               {message.text}
@@ -299,24 +336,36 @@ function MemberCard({ member }: { member: Member }) {
 
   const shortBirthday = formatBirthdayShort(member.birth_date);
   const status = memberStatus(member);
+  const isRemembered = member.is_remembered;
 
-  // Avatar ring: green glow = active, dashed amber = invite sent, quiet = just listed
-  const avatarRingClass =
-    status === "signed_in"
+  // Avatar ring: remembered = soft warm stone, active = emerald glow, invited = amber, listed = quiet
+  const avatarRingClass = isRemembered
+    ? "ring-1 ring-stone-300/60 opacity-80"
+    : status === "signed_in"
       ? "ring-2 ring-emerald-400 shadow-emerald-400/20 shadow-md"
       : status === "pending_invitation"
         ? "ring-2 ring-amber-400 ring-offset-1 ring-offset-[var(--card)]"
         : "ring-1 ring-[var(--border)]";
 
-  const avatarBgClass =
-    status === "signed_in"
+  const avatarBgClass = isRemembered
+    ? "bg-stone-200/60 text-stone-500"
+    : status === "signed_in"
       ? "bg-emerald-500/20 text-emerald-600"
       : status === "pending_invitation"
         ? "bg-amber-400/20 text-amber-600"
         : "bg-[var(--primary)]/15 text-[var(--primary)]";
 
+  // Dates shown under name for remembered members
+  const rememberedDates = isRemembered && (member.birth_date || member.passed_date)
+    ? [member.birth_date?.slice(0, 4), member.passed_date?.slice(0, 4)].filter(Boolean).join(" – ")
+    : null;
+
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 transition-shadow hover:shadow-lg sm:p-5">
+    <div className={`rounded-2xl border p-4 transition-shadow hover:shadow-lg sm:p-5 ${
+      isRemembered
+        ? "border-stone-200/60 bg-stone-50/40 dark:border-stone-700/40 dark:bg-stone-900/20"
+        : "border-[var(--border)] bg-[var(--card)]"
+    }`}>
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
         <Link href={`/dashboard/members/${member.id}`} className={`relative shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--accent)] ${avatarRingClass}`}>
           {member.avatar_url ? (
@@ -324,7 +373,7 @@ function MemberCard({ member }: { member: Member }) {
               src={member.avatar_url}
               alt={member.name}
               loading="lazy"
-              className="h-20 w-20 rounded-full object-cover"
+              className={`h-20 w-20 rounded-full object-cover ${isRemembered ? "grayscale-[30%] brightness-90" : ""}`}
             />
           ) : (
             <div className={`flex h-20 w-20 items-center justify-center rounded-full text-lg font-semibold ${avatarBgClass}`}>
@@ -332,11 +381,11 @@ function MemberCard({ member }: { member: Member }) {
             </div>
           )}
           {/* Live pulse dot for active members */}
-          {status === "signed_in" && (
+          {!isRemembered && status === "signed_in" && (
             <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-[var(--card)] bg-emerald-500 animate-pulse" aria-hidden />
           )}
           {/* Amber dot for invited members */}
-          {status === "pending_invitation" && (
+          {!isRemembered && status === "pending_invitation" && (
             <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-[var(--card)] bg-amber-400" aria-hidden />
           )}
         </Link>
@@ -355,23 +404,35 @@ function MemberCard({ member }: { member: Member }) {
             </span>
           )}
           <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm text-[var(--muted)]">
-            {shortBirthday && <span>Born {shortBirthday}</span>}
-            {member.contact_email && <span>{member.contact_email}</span>}
+            {!isRemembered && shortBirthday && <span>Born {shortBirthday}</span>}
+            {!isRemembered && member.contact_email && <span>{member.contact_email}</span>}
+            {/* For remembered members, show birth–passing years instead */}
+            {isRemembered && rememberedDates && (
+              <span className="text-stone-400">{rememberedDates}</span>
+            )}
           </div>
           <div className="mt-2">
-            {status === "signed_in" && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 border border-emerald-200">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
-                In the app
+            {isRemembered ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-500 border border-stone-200/80">
+                In our hearts
               </span>
+            ) : (
+              <>
+                {status === "signed_in" && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 border border-emerald-200">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+                    In the app
+                  </span>
+                )}
+                {status === "pending_invitation" && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 border border-amber-200">
+                    <span aria-hidden>✉️</span>
+                    Invite sent
+                  </span>
+                )}
+                {/* No badge for "just listed" — not incomplete, just not yet invited */}
+              </>
             )}
-            {status === "pending_invitation" && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 border border-amber-200">
-                <span aria-hidden>✉️</span>
-                Invite sent
-              </span>
-            )}
-            {/* No badge for "just listed" — they're remembered, not incomplete */}
           </div>
         </div>
         <div className="flex w-full shrink-0 gap-2 sm:w-auto">

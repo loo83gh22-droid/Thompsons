@@ -90,6 +90,8 @@ function statusType(m: OurFamilyMember): "signed_in" | "pending_invitation" | "n
 }
 
 function StatusDot({ member }: { member: OurFamilyMember }) {
+  // No dot for remembered members — they're held in love, not missing
+  if (member.is_remembered) return null;
   const status = statusType(member);
   // No dot for "just listed" members — they're remembered, not incomplete
   if (status === "no_account") return null;
@@ -118,14 +120,25 @@ function MemberNode({
   title?: string;
 }) {
   const status = statusType(member);
+  const isRemembered = member.is_remembered;
 
-  // Avatar ring colour communicates membership state at a glance
-  const avatarRing =
-    status === "signed_in"
+  // Remembered: soft warm sepia tone, no ring colour
+  // Active: emerald glow, Invited: amber ring, Listed: quiet border
+  const avatarRing = isRemembered
+    ? "ring-1 ring-stone-300/60 opacity-80"
+    : status === "signed_in"
       ? "ring-2 ring-emerald-400 shadow-emerald-400/20 shadow-md"
       : status === "pending_invitation"
         ? "ring-2 ring-amber-400 ring-offset-1"
         : "ring-1 ring-[var(--border)]";
+
+  const avatarBg = isRemembered
+    ? "bg-stone-200/60 text-stone-500"
+    : status === "signed_in"
+      ? "bg-emerald-500/20 text-emerald-600"
+      : status === "pending_invitation"
+        ? "bg-amber-400/20 text-amber-600"
+        : "bg-[var(--accent)]/20 text-[var(--accent)]";
 
   return (
     <button
@@ -134,27 +147,33 @@ function MemberNode({
       title={title ?? member.relationship ?? undefined}
       className={`flex flex-col items-center rounded-xl border-2 bg-[var(--surface)] p-2 shadow-md transition-all hover:border-[var(--accent)]/50 hover:shadow-lg focus:outline focus:ring-2 focus:ring-[var(--accent)] ${
         selected ? "border-[var(--accent)] ring-2 ring-[var(--accent)]/30" : "border-[var(--border)]"
-      }`}
+      } ${isRemembered ? "opacity-85" : ""}`}
     >
       <div className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-full ${avatarRing}`}>
         {member.avatar_url ? (
-          <img src={member.avatar_url} alt={member.name} loading="lazy" className="h-full w-full object-cover" />
+          <img
+            src={member.avatar_url}
+            alt={member.name}
+            loading="lazy"
+            className={`h-full w-full object-cover ${isRemembered ? "grayscale-[30%] brightness-90" : ""}`}
+          />
         ) : (
-          <div className={`flex h-full w-full items-center justify-center text-xl font-semibold ${
-            status === "signed_in"
-              ? "bg-emerald-500/20 text-emerald-600"
-              : status === "pending_invitation"
-                ? "bg-amber-400/20 text-amber-600"
-                : "bg-[var(--accent)]/20 text-[var(--accent)]"
-          }`}>
+          <div className={`flex h-full w-full items-center justify-center text-xl font-semibold ${avatarBg}`}>
             {initials(member.name)}
           </div>
         )}
         <StatusDot member={member} />
       </div>
-      <span className="mt-1.5 max-w-[100px] truncate text-center text-sm font-medium text-[var(--foreground)]">
+      <span className={`mt-1.5 max-w-[100px] truncate text-center text-sm font-medium ${isRemembered ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}>
         {member.nickname?.trim() || member.name}
       </span>
+      {isRemembered && (
+        <span className="mt-0.5 text-center text-[10px] text-stone-400/80" aria-hidden>
+          {member.passed_date
+            ? `${member.birth_date?.slice(0, 4) ?? ""}–${member.passed_date.slice(0, 4)}`
+            : "In our hearts"}
+        </span>
+      )}
     </button>
   );
 }
