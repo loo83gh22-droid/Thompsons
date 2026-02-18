@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { removeVoiceMemo, updateVoiceMemo } from "./actions";
+import { removeVoiceMemo, updateVoiceMemo, sendTranscriptToJournal } from "./actions";
 import { transcribeVoiceMemo } from "./transcribe";
 import { EmptyStateGuide } from "@/app/components/EmptyStateGuide";
 
@@ -56,6 +56,7 @@ export function VoiceMemoList({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [transcribingId, setTranscribingId] = useState<string | null>(null);
+  const [sendingToJournalId, setSendingToJournalId] = useState<string | null>(null);
 
   async function handleRemove(id: string) {
     await removeVoiceMemo(id);
@@ -186,15 +187,32 @@ export function VoiceMemoList({
             {/* Transcription UI */}
             {memo.transcript ? (
               <div className="mt-4 rounded-lg border border-[var(--border)] bg-[var(--background)] p-4">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                   <h4 className="text-sm font-medium text-[var(--foreground)]">Transcript</h4>
-                  <button
-                    type="button"
-                    onClick={() => navigator.clipboard.writeText(memo.transcript!)}
-                    className="text-xs text-[var(--primary)] hover:underline"
-                  >
-                    Copy
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText(memo.transcript!)}
+                      className="text-xs text-[var(--primary)] hover:underline"
+                    >
+                      Copy
+                    </button>
+                    <button
+                      type="button"
+                      disabled={sendingToJournalId === memo.id}
+                      onClick={async () => {
+                        setSendingToJournalId(memo.id);
+                        const result = await sendTranscriptToJournal(memo.id);
+                        setSendingToJournalId(null);
+                        if (result.success) {
+                          router.push(`/dashboard/journal/${result.id}`);
+                        }
+                      }}
+                      className="text-xs font-medium text-[var(--primary)] hover:underline disabled:opacity-50"
+                    >
+                      {sendingToJournalId === memo.id ? "Sending…" : "→ Send to Journal"}
+                    </button>
+                  </div>
                 </div>
                 <p className="text-sm text-[var(--muted)] whitespace-pre-wrap leading-relaxed">{memo.transcript}</p>
                 {memo.transcribed_at && (

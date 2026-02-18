@@ -89,6 +89,44 @@ function pathFromAudioUrl(audioUrl: string): string | null {
   }
 }
 
+/**
+ * Creates a journal entry pre-filled with a voice memo's transcript.
+ * Returns the new journal entry ID so the user can navigate to it.
+ */
+export async function sendTranscriptToJournal(voiceMemoId: string): Promise<{ success: true; id: string } | { success: false; error: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return { success: false, error: "No active family" };
+
+  const { data: memo } = await supabase
+    .from("voice_memos")
+    .select("title, transcript, family_member_id, recorded_date")
+    .eq("id", voiceMemoId)
+    .single();
+
+  if (!memo?.transcript) return { success: false, error: "No transcript available." };
+
+  const { data: inserted, error } = await supabase
+    .from("journal_entries")
+    .insert({
+      family_id: activeFamilyId,
+      family_member_id: memo.family_member_id,
+      title: memo.title,
+      content: memo.transcript,
+      trip_date: memo.recorded_date ?? new Date().toISOString().split("T")[0],
+      location_type: "visit",
+    })
+    .select("id")
+    .single();
+
+  if (error || !inserted) return { success: false, error: error?.message ?? "Failed to create journal entry." };
+
+  revalidatePath("/dashboard/journal");
+  return { success: true, id: inserted.id };
+}
+
 export async function removeVoiceMemo(id: string) {
   const supabase = await createClient();
   const {

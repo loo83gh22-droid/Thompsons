@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { enforceStorageLimit, addStorageUsage } from "@/src/lib/plans";
 
-export async function addPhoto(file: File) {
+export async function addPhoto(file: File, caption?: string) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -57,8 +57,9 @@ export async function addPhoto(file: File) {
       url: urlData.publicUrl,
       sort_order: nextOrder,
       uploaded_by: myMember?.id || null,
+      caption: caption?.trim().slice(0, 200) || null,
     })
-    .select("id, url, sort_order")
+    .select("id, url, sort_order, caption")
     .single();
 
   if (insertError) throw insertError;

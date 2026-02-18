@@ -44,11 +44,22 @@ export async function transcribeVoiceMemo(voiceMemoId: string) {
       .update({ transcription_status: 'processing' })
       .eq('id', voiceMemoId);
 
-    // 5. Download audio file from Supabase Storage
+    // 5. Extract storage path from public URL and download the audio file
+    let storagePath: string | null = null;
+    try {
+      const u = new URL(memo.audio_url);
+      const match = u.pathname.match(/\/storage\/v1\/object\/public\/voice-memos\/(.+)$/);
+      storagePath = match ? match[1] : null;
+    } catch { /* ignore */ }
+
+    if (!storagePath) {
+      throw new Error('Could not resolve audio storage path from URL');
+    }
+
     const { data: audioFile, error: downloadError } = await supabase
       .storage
       .from('voice-memos')
-      .download(memo.audio_url);
+      .download(storagePath);
 
     if (downloadError || !audioFile) {
       throw new Error('Failed to download audio file');

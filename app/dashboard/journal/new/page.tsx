@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
@@ -11,6 +11,15 @@ import LocationInput from "@/app/components/LocationInput";
 import PhotoUpload from "@/app/components/PhotoUpload";
 import { extractMetadataFromMultiplePhotos } from "@/src/lib/exifExtractor";
 import { canUploadVideos } from "@/src/lib/plans";
+import { VoiceDictation } from "@/app/components/VoiceDictation";
+
+const INLINE_PROMPTS = [
+  "What made today worth remembering?",
+  "What did you see, smell, or hear that you want to remember?",
+  "What would you want the kids to know about this moment?",
+  "What surprised you? What made you laugh?",
+  "Describe it so vividly someone could picture it.",
+];
 
 type FamilyMember = { id: string; name: string; color: string; symbol: string };
 type DateValue = Date | DateRange;
@@ -23,6 +32,9 @@ export default function NewJournalPage() {
   const [error, setError] = useState<string | null>(null);
   const [prompts, setPrompts] = useState<string[]>([]);
   const [isGeneratingPrompts, setIsGeneratingPrompts] = useState(false);
+  const [content, setContent] = useState("");
+  const [promptIndex] = useState(() => Math.floor(Math.random() * INLINE_PROMPTS.length));
+  const contentRef = useRef<HTMLTextAreaElement>(null);
 
   const [date, setDate] = useState<DateValue>(() => new Date());
   const [location, setLocation] = useState<{ name: string; latitude: number; longitude: number }>({
@@ -73,7 +85,7 @@ export default function NewJournalPage() {
       const formData = new FormData();
       formData.set("family_member_id", (form.elements.namedItem("family_member_id") as HTMLSelectElement).value);
       formData.set("title", (form.elements.namedItem("title") as HTMLInputElement).value);
-      formData.set("content", (form.elements.namedItem("content") as HTMLTextAreaElement).value);
+      formData.set("content", content);
       const startDate = date instanceof Date ? date : date.start;
       const endDate = date instanceof Date ? null : date.end;
       formData.set("trip_date", startDate.toISOString().split("T")[0]);
@@ -210,32 +222,38 @@ export default function NewJournalPage() {
         </div>
 
         <div>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <label className="block text-sm font-medium text-[var(--muted)]">
               Your story
             </label>
-            <button
-              type="button"
-              onClick={async () => {
-                setIsGeneratingPrompts(true);
-                const result = await generateJournalPrompts({
-                  location: location.name || undefined,
-                  date: date instanceof Date ? date.toISOString().slice(0, 10) : undefined,
-                  members: members.filter((_, i) => {
-                    const checkbox = document.querySelector<HTMLInputElement>(`input[value="${members[i]?.id}"]`);
-                    return checkbox?.checked;
-                  }).map(m => m.name),
-                });
-                setIsGeneratingPrompts(false);
-                if (result.success && result.prompts) {
-                  setPrompts(result.prompts);
-                }
-              }}
-              disabled={isGeneratingPrompts}
-              className="text-sm font-medium text-[var(--primary)] hover:underline disabled:opacity-50"
-            >
-              {isGeneratingPrompts ? "Generating..." : "✨ Get writing ideas"}
-            </button>
+            <div className="flex flex-wrap items-center gap-3">
+              <VoiceDictation
+                onTranscript={(text) => {
+                  setContent((prev) => prev + text);
+                  contentRef.current?.focus();
+                }}
+                disabled={loading}
+              />
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsGeneratingPrompts(true);
+                  const result = await generateJournalPrompts({
+                    location: location.name || undefined,
+                    date: date instanceof Date ? date.toISOString().slice(0, 10) : undefined,
+                    members: [],
+                  });
+                  setIsGeneratingPrompts(false);
+                  if (result.success && result.prompts) {
+                    setPrompts(result.prompts);
+                  }
+                }}
+                disabled={isGeneratingPrompts}
+                className="text-sm font-medium text-[var(--primary)] hover:underline disabled:opacity-50"
+              >
+                {isGeneratingPrompts ? "Generating..." : "✨ Get writing ideas"}
+              </button>
+            </div>
           </div>
           {prompts.length > 0 && (
             <div className="mt-2 mb-2 space-y-1">
@@ -244,9 +262,9 @@ export default function NewJournalPage() {
                   key={i}
                   type="button"
                   onClick={() => {
-                    const textarea = document.querySelector<HTMLTextAreaElement>('textarea[name="content"]');
-                    if (textarea) { textarea.value = prompt + " "; textarea.focus(); }
+                    setContent(prompt + " ");
                     setPrompts([]);
+                    contentRef.current?.focus();
                   }}
                   className="block w-full text-left rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-colors"
                 >
@@ -263,11 +281,19 @@ export default function NewJournalPage() {
             </div>
           )}
           <textarea
+            ref={contentRef}
             name="content"
             rows={8}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
             className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
-            placeholder="What happened? What did you see? What will you remember?"
+            placeholder={INLINE_PROMPTS[promptIndex]}
           />
+          {content.length === 0 && (
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              Tip: tap <strong>Dictate</strong> to speak your story instead of typing.
+            </p>
+          )}
         </div>
 
         <div>

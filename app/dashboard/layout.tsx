@@ -8,6 +8,7 @@ import { FamilyProvider } from "@/app/dashboard/FamilyContext";
 import { WelcomeModal } from "@/app/dashboard/WelcomeModal";
 import { AgeTransitionBanner } from "@/app/dashboard/AgeTransitionBanner";
 import { BirthdayPrompt } from "@/app/dashboard/BirthdayPrompt";
+import { QuickCapture } from "@/app/components/QuickCapture";
 
 export default async function DashboardLayout({
   children,
@@ -153,6 +154,7 @@ export default async function DashboardLayout({
           </div>
           <main id="main-content" className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8" tabIndex={-1}>{children}</main>
           {playlistId && <MusicPlayer playlistId={playlistId} />}
+          <QuickCapture />
           <UnreadMessagesFetcher />
         </div>
       </FamilyProvider>
