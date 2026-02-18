@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { ArrowRight, BookOpen, MapPin, Camera, Mic, Heart, Users } from "lucide-react";
 
 export function HeroSection() {
@@ -78,7 +78,7 @@ export function HeroSection() {
                   className="mx-auto rounded-md px-12 py-1 text-[10px]"
                   style={{ backgroundColor: "var(--background)", color: "var(--muted)" }}
                 >
-                  ourfamilynest.com
+                  familynest.io
                 </div>
               </div>
 

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
@@ -225,7 +225,7 @@ export default function NestKeepersPage() {
         </Link>
         <h1 className="font-display text-3xl font-bold">Nest Keepers</h1>
         <p className="mt-1 text-[var(--muted)]">
-          Designate up to 3 trusted people to inherit your Family Nest
+          Designate up to 3 trusted people to inherit Your Family Nest
         </p>
       </div>
 
@@ -242,7 +242,7 @@ export default function NestKeepersPage() {
             <p>
               If no one in your family logs in for <strong>12 months</strong>,
               your first Nest Keeper will be notified by email and given the
-              option to claim ownership of your Family Nest.
+              option to claim ownership of Your Family Nest.
             </p>
             <p>
               If they don&apos;t respond within <strong>30 days</strong>, the

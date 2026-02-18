@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import Link from "next/link";
@@ -307,7 +307,7 @@ export default async function SettingsPage() {
                 Nest Keepers
               </p>
               <p className="text-[var(--muted)]">
-                Designate successors for your Family Nest
+                Designate successors for Your Family Nest
               </p>
             </div>
             <span className="text-[var(--muted)]">&rsaquo;</span>

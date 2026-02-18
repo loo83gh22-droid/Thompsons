@@ -1,4 +1,4 @@
-import { ShieldCheck, Infinity, Users, Heart, Lock, Shield, Database, Globe } from "lucide-react";
+﻿import { ShieldCheck, Infinity, Users, Heart, Lock, Shield, Database, Globe } from "lucide-react";
 
 const trustBadges = [
   { icon: Lock, label: "Bank-level encryption" },
@@ -23,7 +23,7 @@ export function EmotionalSection() {
             className="mb-3 text-sm font-medium uppercase tracking-widest"
             style={{ color: "var(--primary-foreground)", opacity: 0.6 }}
           >
-            Why Our Family Nest
+            Why Family Nest
           </p>
           <h2
             className="mb-8 text-3xl md:text-4xl lg:text-5xl"
@@ -46,7 +46,7 @@ export function EmotionalSection() {
               other half scrolls right past it between ads and strangers&apos; content.
             </p>
             <p>
-              Our Family Nest brings it all together. It&apos;s private, it&apos;s permanent,
+              Family Nest brings it all together. It&apos;s private, it&apos;s permanent,
               and everyone in the family can jump in. Parents, grandparents, aunts, uncles,
               teens, and yes, even the little ones.
             </p>

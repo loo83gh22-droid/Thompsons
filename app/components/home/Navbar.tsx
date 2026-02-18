@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -13,7 +13,7 @@ export function Navbar() {
         <Link href="/" className="flex items-center gap-2">
           <NestIcon className="h-8 w-8 text-[var(--primary)]" />
           <span className="text-lg font-semibold text-[var(--foreground)]" style={{ fontFamily: "var(--font-display-serif)" }}>
-            Our Family Nest
+            Family Nest
           </span>
         </Link>
 

@@ -1,4 +1,4 @@
-import { createClient } from "@/src/lib/supabase/server";
+﻿import { createClient } from "@/src/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -18,11 +18,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!story) return { title: "Story Not Found" };
 
   return {
-    title: `${story.title} — Our Family Nest`,
-    description: story.content?.slice(0, 160) || "A family story shared from Our Family Nest.",
+    title: `${story.title} — Family Nest`,
+    description: story.content?.slice(0, 160) || "A family story shared from Family Nest.",
     openGraph: {
       title: story.title,
-      description: story.content?.slice(0, 160) || "A family story shared from Our Family Nest.",
+      description: story.content?.slice(0, 160) || "A family story shared from Family Nest.",
       type: "article",
     },
   };
@@ -67,7 +67,7 @@ export default async function PublicStoryPage({ params }: Props) {
       <header className="border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4 sm:px-6">
           <Link href="/" className="font-display text-lg font-semibold text-[var(--primary)]">
-            Our Family Nest
+            Family Nest
           </Link>
           <Link
             href="/login"
@@ -126,7 +126,7 @@ export default async function PublicStoryPage({ params }: Props) {
             Every family has stories worth preserving.
           </h2>
           <p className="mt-2 text-[var(--muted)]">
-            Our Family Nest is a private space to capture memories, photos, recipes, and voices for generations to come.
+            Family Nest is a private space to capture memories, photos, recipes, and voices for generations to come.
           </p>
           <Link
             href="/login"

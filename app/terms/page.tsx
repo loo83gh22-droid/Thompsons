@@ -1,8 +1,8 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — Our Family Nest",
+  title: "Terms of Service — Family Nest",
   alternates: { canonical: "/terms" },
 };
 
@@ -30,7 +30,7 @@ export default function TermsPage() {
               1. Acceptance of Terms
             </h2>
             <p className="mt-2">
-              By creating an account or using Our Family Nest, you agree to these Terms of Service and our{" "}
+              By creating an account or using Family Nest, you agree to these Terms of Service and our{" "}
               <Link href="/privacy" className="text-[var(--primary)] hover:underline">
                 Privacy Policy
               </Link>
@@ -43,7 +43,7 @@ export default function TermsPage() {
               2. Description of Service
             </h2>
             <p className="mt-2">
-              Our Family Nest is a private family documentation and memory preservation platform. You can create journals, upload photos and videos, record voice memos, save recipes, build a family tree, and share content with invited family members.
+              Family Nest is a private family documentation and memory preservation platform. You can create journals, upload photos and videos, record voice memos, save recipes, build a family tree, and share content with invited family members.
             </p>
           </section>
 
@@ -136,7 +136,7 @@ export default function TermsPage() {
               11. Limitation of Liability
             </h2>
             <p className="mt-2">
-              Our Family Nest is provided &quot;as is.&quot; To the maximum extent permitted by law, we shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the service. Our total liability shall not exceed the amount you have paid us in the 12 months preceding the claim.
+              Family Nest is provided &quot;as is.&quot; To the maximum extent permitted by law, we shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the service. Our total liability shall not exceed the amount you have paid us in the 12 months preceding the claim.
             </p>
           </section>
 
@@ -156,10 +156,10 @@ export default function TermsPage() {
             <p className="mt-2">
               For questions about these Terms, email{" "}
               <a
-                href="mailto:support@ourfamilynest.com"
+                href="mailto:support@familynest.io"
                 className="text-[var(--primary)] hover:underline"
               >
-                support@ourfamilynest.com
+                support@familynest.io
               </a>
             </p>
           </section>

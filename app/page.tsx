@@ -1,4 +1,4 @@
-import { Navbar } from "./components/home/Navbar";
+﻿import { Navbar } from "./components/home/Navbar";
 import { HeroSection } from "./components/home/HeroSection";
 import { FeaturesBento } from "./components/home/FeaturesBento";
 import { AdditionalFeatures } from "./components/home/AdditionalFeatures";
@@ -37,7 +37,7 @@ const faqStructuredData = {
       name: "Can my 80-year-old grandma actually use this?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes! We designed Our Family Nest to be simple enough for grandparents who struggle with tech. Big buttons, clear labels, and no confusing settings. Many families tell us their grandparents check the Nest daily\u2014it's that easy.",
+        text: "Yes! We designed Family Nest to be simple enough for grandparents who struggle with tech. Big buttons, clear labels, and no confusing settings. Many families tell us their grandparents check the Nest daily\u2014it's that easy.",
       },
     },
     {
@@ -45,7 +45,7 @@ const faqStructuredData = {
       name: "How is this different from Google Photos or iCloud?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Google Photos and iCloud store photos, but Our Family Nest preserves your family's story. You get journals, voice memos, recipes, traditions, family trees, and a timeline\u2014all in one place. Plus, it's designed for sharing across generations, not just storing files.",
+        text: "Google Photos and iCloud store photos, but Family Nest preserves your family's story. You get journals, voice memos, recipes, traditions, family trees, and a timeline\u2014all in one place. Plus, it's designed for sharing across generations, not just storing files.",
       },
     },
     {
@@ -62,7 +62,7 @@ const faqStructuredData = {
 const softwareStructuredData = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "Our Family Nest",
+  name: "Family Nest",
   applicationCategory: "LifestyleApplication",
   operatingSystem: "Web",
   description:
@@ -103,7 +103,7 @@ const softwareStructuredData = {
 const organizationStructuredData = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "Our Family Nest",
+  name: "Family Nest",
   url: "https://thompsons.vercel.app",
   logo: "https://thompsons.vercel.app/og-image.jpg",
   description:
