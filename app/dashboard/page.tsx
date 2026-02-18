@@ -15,6 +15,8 @@ import { OnboardingChecklist } from "./OnboardingChecklist";
 import { QuickActions } from "./QuickActions";
 import { FamilyHighlight, type HighlightItem } from "./FamilyHighlight";
 import { InspirationTip } from "./InspirationTip";
+import { BirthdayBanner, type BirthdayPerson } from "./BirthdayBanner";
+import { WeeklyStreak } from "./WeeklyStreak";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -35,6 +37,9 @@ export default async function DashboardPage() {
   let activityHasMore = false;
   let summaryMembers: { id: string; name: string; avatar_url: string | null }[] = [];
   let highlight: HighlightItem | null = null;
+  let upcomingBirthdays: BirthdayPerson[] = [];
+  let weekActiveDays: string[] = [];
+  let weekStreak = 0;
 
   if (activeFamilyId) {
     const [
@@ -50,6 +55,8 @@ export default async function DashboardPage() {
       journalActivity,
       voiceActivity,
       messagesActivity,
+      birthdayMembersRes,
+      recentActivityDatesRes,
     ] = await Promise.all([
       supabase.from("family_members").select("id, name, avatar_url").eq("family_id", activeFamilyId).order("name").limit(QUERY_LIMITS.memberListDisplay),
       supabase.from("family_members").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
@@ -63,6 +70,10 @@ export default async function DashboardPage() {
       supabase.from("journal_entries").select("id, title, created_at, family_members!author_id(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("voice_memos").select("id, title, created_at, duration_seconds, family_members!family_member_id(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("family_messages").select("id, title, created_at, family_members!sender_id(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
+      // Birthday detection: fetch members with birth dates
+      supabase.from("family_members").select("id, name, birth_date").eq("family_id", activeFamilyId).not("birth_date", "is", null),
+      // Streak: get distinct activity dates for last 56 days (8 weeks) across all content types
+      supabase.from("journal_entries").select("created_at").eq("family_id", activeFamilyId).gte("created_at", new Date(Date.now() - 56 * 86_400_000).toISOString()).order("created_at", { ascending: false }),
     ]);
 
     stats = {
@@ -149,6 +160,71 @@ export default async function DashboardPage() {
       stats.lastActivityBy = first.memberName ?? null;
     }
 
+    // ── Birthday detection ──────────────────────────────────────────────
+    const todayLocal = new Date();
+    todayLocal.setHours(0, 0, 0, 0);
+    const BIRTHDAY_WINDOW_DAYS = 7;
+
+    upcomingBirthdays = ((birthdayMembersRes.data ?? []) as { id: string; name: string; birth_date: string }[])
+      .map((m) => {
+        const bd = new Date(m.birth_date + "T12:00:00"); // noon to avoid tz shift
+        // This year's birthday
+        const thisYearBirthday = new Date(todayLocal.getFullYear(), bd.getMonth(), bd.getDate());
+        // If already passed this year, check next year
+        const nextBirthday = thisYearBirthday < todayLocal
+          ? new Date(todayLocal.getFullYear() + 1, bd.getMonth(), bd.getDate())
+          : thisYearBirthday;
+        const daysUntil = Math.round((nextBirthday.getTime() - todayLocal.getTime()) / 86_400_000);
+        const birthYear = bd.getFullYear();
+        const turningAge = birthYear > 1900
+          ? nextBirthday.getFullYear() - birthYear
+          : null;
+        return { id: m.id, name: m.name, turningAge, daysUntil };
+      })
+      .filter((b) => b.daysUntil <= BIRTHDAY_WINDOW_DAYS)
+      .sort((a, b) => a.daysUntil - b.daysUntil);
+
+    // ── Weekly activity streak ──────────────────────────────────────────
+    // Collect unique ISO dates (YYYY-MM-DD) with any activity in past 8 weeks
+    const allActivityDates = new Set<string>();
+    // Journal dates
+    for (const row of (recentActivityDatesRes.data ?? []) as { created_at: string }[]) {
+      allActivityDates.add(row.created_at.slice(0, 10));
+    }
+    // Also fold in activity feed items (photos, voice, messages already fetched)
+    for (const item of activityItems) {
+      allActivityDates.add(item.createdAt.slice(0, 10));
+    }
+
+    // Build current week's active days (Sun–Sat)
+    const currentSunday = new Date(todayLocal);
+    currentSunday.setDate(todayLocal.getDate() - todayLocal.getDay());
+    weekActiveDays = Array.from(allActivityDates).filter((d) => {
+      const date = new Date(d + "T12:00:00");
+      const weekEnd = new Date(currentSunday);
+      weekEnd.setDate(currentSunday.getDate() + 6);
+      return date >= currentSunday && date <= weekEnd;
+    });
+
+    // Count consecutive weeks with at least one active day (going backwards from current week)
+    weekStreak = 0;
+    let checkWeekStart = new Date(currentSunday);
+    for (let w = 0; w < 8; w++) {
+      const weekStart = new Date(checkWeekStart);
+      const weekEnd = new Date(checkWeekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      const hasActivity = Array.from(allActivityDates).some((d) => {
+        const date = new Date(d + "T12:00:00");
+        return date >= weekStart && date <= weekEnd;
+      });
+      if (hasActivity) {
+        weekStreak++;
+        checkWeekStart.setDate(checkWeekStart.getDate() - 7);
+      } else {
+        break; // streak broken
+      }
+    }
+
     // Get current user's member ID and name for filtering
     const { data: currentUser } = await supabase.auth.getUser();
     const { data: currentMemberData } = await supabase
@@ -224,6 +300,13 @@ export default async function DashboardPage() {
 
       {activeFamilyId && (
         <>
+          {/* Birthday banner — shown when any family member has a birthday within 7 days */}
+          {upcomingBirthdays.length > 0 && (
+            <div className="mt-6">
+              <BirthdayBanner birthdays={upcomingBirthdays} />
+            </div>
+          )}
+
           <div className="mt-6">
             <OnboardingChecklist
               memberCount={stats.memberCount}
@@ -279,9 +362,13 @@ export default async function DashboardPage() {
 
       <div className="mt-12 space-y-8">
         <QuickActions />
-        <div className="grid grid-cols-1 gap-6 min-[768px]:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 min-[768px]:grid-cols-2 min-[768px]:grid-rows-[auto_auto]">
           <FamilyHighlight item={highlight} />
           <InspirationTip />
+          {/* Weekly streak spans full width below the two above */}
+          <div className="min-[768px]:col-span-2">
+            <WeeklyStreak activeDays={weekActiveDays} weekStreak={weekStreak} />
+          </div>
         </div>
       </div>
     </div>
