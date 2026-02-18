@@ -307,7 +307,7 @@ export default async function SettingsPage() {
                 Nest Keepers
               </p>
               <p className="text-[var(--muted)]">
-                Designate successors for yFamily Nest
+                Designate successors for Your Family Nest
               </p>
             </div>
             <span className="text-[var(--muted)]">&rsaquo;</span>

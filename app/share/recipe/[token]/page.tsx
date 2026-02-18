@@ -72,7 +72,7 @@ export default async function PublicRecipePage({ params }: Props) {
             href="/login"
             className="rounded-full bg-[var(--primary)] px-5 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90"
           >
-            Start YFamily Nest
+            Start Your Family Nest
           </Link>
         </div>
       </header>
@@ -146,7 +146,7 @@ export default async function PublicRecipePage({ params }: Props) {
             href="/login"
             className="mt-4 inline-block rounded-full bg-[var(--primary)] px-8 py-3 font-medium text-[var(--primary-foreground)] hover:opacity-90"
           >
-            Start YFamily Nest &mdash; Free
+            Start Your Family Nest &mdash; Free
           </Link>
         </div>
       </main>

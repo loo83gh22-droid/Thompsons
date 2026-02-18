@@ -305,7 +305,7 @@ Notes
 - Photos are named by journal entry for easy cross-reference.
 - Voice memos are named by title and date.
 - Time capsules marked as "SEALED" have not yet reached their unlock date.
-- This archive was generated from yFamily Nest Legacy plan.
+- This archive was generated from Your Family Nest Legacy plan.
 - If you have questions, contact support.
 `
       );

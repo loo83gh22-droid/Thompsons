@@ -467,7 +467,7 @@ function digestEmailHtml(
   <span style="font-size:28px;color:#D4A843;font-weight:700;">${e(familyName)} Nest</span>
 </td></tr>
 <tr><td style="background:#1e293b;border-radius:12px;padding:32px 24px;border:1px solid #334155;">
-  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">This week in yFamily Nest</h1>
+  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">This week in Your Family Nest</h1>
   <p style="margin:0 0 4px;color:#94a3b8;font-size:15px;">Hi ${e(name)},</p>
   <p style="margin:0 0 20px;color:#94a3b8;font-size:15px;line-height:1.5;">
     Your family added <strong style="color:#f8fafc;">${summary}</strong> this week. Don't miss out!
@@ -490,7 +490,7 @@ function day1ActivationEmailHtml(name: string): string {
 <tr><td style="background:#1e293b;border-radius:12px;padding:32px 24px;border:1px solid #334155;">
   <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Your family's story starts with one photo</h1>
   <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;">Hi ${e(name)},</p>
-  <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;line-height:1.5;">Yesterday you created yFamily Nest. We noticed you haven't uploaded your first photo yet!</p>
+  <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;line-height:1.5;">Yesterday you created Your Family Nest. We noticed you haven't uploaded your first photo yet!</p>
   <p style="margin:0 0 4px;color:#94a3b8;font-size:15px;"><strong style="color:#f8fafc;">Here's why your first photo matters:</strong></p>
   <ul style="margin:8px 0 20px;padding-left:20px;color:#94a3b8;font-size:15px;line-height:1.7;">
     <li>It kicks off your family timeline</li>
@@ -510,7 +510,7 @@ function day3DiscoveryEmailHtml(name: string): string {
 <tr><td style="background:#1e293b;border-radius:12px;padding:32px 24px;border:1px solid #334155;">
   <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Did you know? Your Nest has these hidden gems</h1>
   <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;">Hi ${e(name)},</p>
-  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">YFamily Nest can do so much more than store photos. Here are a few features worth exploring:</p>
+  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">Your Family Nest can do so much more than store photos. Here are a few features worth exploring:</p>
   <ul style="margin:0 0 20px;padding-left:20px;color:#94a3b8;font-size:15px;line-height:1.7;">
     <li><strong style="color:#f8fafc;">Voice Memos</strong> — Record grandparents telling stories</li>
     <li><strong style="color:#f8fafc;">Recipes</strong> — Preserve family recipes with the story behind them</li>
@@ -545,7 +545,7 @@ function day14UpgradeEmailHtml(name: string): string {
 <tr><td style="background:#1e293b;border-radius:12px;padding:32px 24px;border:1px solid #334155;">
   <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Ready to unlock unlimited memories?</h1>
   <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;">Hi ${e(name)},</p>
-  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">You've been using yFamily Nest for two weeks now — that's amazing! You're approaching the Free plan limits, and there's so much more available:</p>
+  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">You've been using Your Family Nest for two weeks now — that's amazing! You're approaching the Free plan limits, and there's so much more available:</p>
   <ul style="margin:0 0 20px;padding-left:20px;color:#94a3b8;font-size:15px;line-height:1.7;">
     <li><strong style="color:#f8fafc;">Unlimited journals</strong> with video uploads</li>
     <li><strong style="color:#f8fafc;">10 GB storage</strong> for photos + videos</li>

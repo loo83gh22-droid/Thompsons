@@ -33,7 +33,7 @@ export default function PrivacyPage() {
               <strong>Account information:</strong> When you sign up, we collect your name, email address, and password. If you sign up for a paid plan, payment is processed by Stripe and we do not store your credit card number.
             </p>
             <p className="mt-2">
-              <strong>Content you create:</strong> Photos, journal entries, voice memos, recipes, stories, family member profiles, messages, and other content you upload or create within yFamily Nest.
+              <strong>Content you create:</strong> Photos, journal entries, voice memos, recipes, stories, family member profiles, messages, and other content you upload or create within Your Family Nest.
             </p>
             <p className="mt-2">
               <strong>Usage data:</strong> We collect basic analytics (page views, feature usage) through Vercel Analytics to improve the service. No personal data is sold or used for advertising.

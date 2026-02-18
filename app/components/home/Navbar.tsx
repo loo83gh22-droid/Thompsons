@@ -46,7 +46,7 @@ export function Navbar() {
             href="/login?mode=signup"
             className="rounded-full bg-[var(--accent)] px-6 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:brightness-110 hover:shadow-lg"
           >
-            Start YFamily Nest
+            Start Your Family Nest
           </Link>
         </div>
 
@@ -95,7 +95,7 @@ export function Navbar() {
               className="rounded-full bg-[var(--accent)] px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition-all duration-200 hover:brightness-110 hover:shadow-lg"
               onClick={() => setMobileOpen(false)}
             >
-              Start YFamily Nest
+              Start Your Family Nest
             </Link>
           </div>
         </div>

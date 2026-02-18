@@ -7,7 +7,7 @@ const faqs = [
   {
     question: "Is my family's data private?",
     answer:
-      "Absolutely. YFamily Nest is completely private by default. Only family members you invite can see your content. We use bank-level encryption, and your data is stored on secure US-based servers. Unlike social media, we never sell your data or show ads.",
+      "Absolutely. Your Family Nest is completely private by default. Only family members you invite can see your content. We use bank-level encryption, and your data is stored on secure US-based servers. Unlike social media, we never sell your data or show ads.",
   },
   {
     question: "What happens if I stop paying?",

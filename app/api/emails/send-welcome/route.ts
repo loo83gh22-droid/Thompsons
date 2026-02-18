@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
             </div>
             <div class="content">
               <p>Hi ${name},</p>
-              <p>We're thrilled to have you here! YFamily Nest is ready, and we can't wait to see the memories you'll preserve.</p>
+              <p>We're thrilled to have you here! Your Family Nest is ready, and we can't wait to see the memories you'll preserve.</p>
 
               <div class="checklist">
                 <h3>Get Started in 3 Easy Steps:</h3>

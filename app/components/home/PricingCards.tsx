@@ -22,7 +22,7 @@ const plans = [
       "Videos & voice memos",
       "All core features",
     ],
-    cta: "Start YFamily Nest",
+    cta: "Start Your Family Nest",
     featured: false,
   },
   {

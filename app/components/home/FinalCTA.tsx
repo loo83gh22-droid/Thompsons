@@ -33,7 +33,7 @@ export function FinalCTA() {
                 color: "#fff",
               }}
             >
-              Start YFamily Nest
+              Start Your Family Nest
               <ArrowRight className="h-4 w-4" />
             </Link>
             <p className="text-sm" style={{ color: "var(--muted)" }}>
