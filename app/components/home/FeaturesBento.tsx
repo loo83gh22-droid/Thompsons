@@ -32,36 +32,48 @@ function JournalPreview() {
 }
 
 function MapPreview() {
+  const miniPins = [
+    { cx: 52, cy: 40, highlight: false },
+    { cx: 66, cy: 46, highlight: true },
+    { cx: 88, cy: 38, highlight: false },
+    { cx: 120, cy: 55, highlight: false },
+    { cx: 140, cy: 68, highlight: false },
+  ];
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      {/* Simplified map background */}
-      <div className="absolute inset-0" style={{ backgroundColor: "hsl(120,15%,88%)" }}>
-        {/* Map lines */}
-        <div className="absolute top-[30%] left-0 right-0 h-px" style={{ backgroundColor: "hsl(120,10%,80%)" }} />
-        <div className="absolute top-[55%] left-0 right-0 h-px" style={{ backgroundColor: "hsl(120,10%,80%)" }} />
-        <div className="absolute top-0 bottom-0 left-[40%] w-px" style={{ backgroundColor: "hsl(120,10%,80%)" }} />
-        <div className="absolute top-0 bottom-0 left-[70%] w-px" style={{ backgroundColor: "hsl(120,10%,80%)" }} />
-      </div>
-      {/* Pins */}
-      {[
-        { left: "25%", top: "28%", label: "Home" },
-        { left: "55%", top: "40%", label: "Vacation" },
-        { left: "72%", top: "22%", label: "Nana's" },
-        { left: "38%", top: "65%", label: "Road trip" },
-      ].map((pin) => (
-        <div
-          key={pin.label}
-          className="absolute flex flex-col items-center"
-          style={{ left: pin.left, top: pin.top, transform: "translate(-50%, -100%)" }}
-        >
-          <div className="rounded-full px-1.5 py-0.5 text-[7px] font-medium shadow-sm whitespace-nowrap" style={{ backgroundColor: "var(--card)", color: "var(--foreground)", border: "1px solid var(--border)" }}>
-            {pin.label}
-          </div>
-          <div className="h-3 w-3 rounded-full shadow-md" style={{ backgroundColor: "var(--accent)", border: "2px solid #fff" }} />
-        </div>
-      ))}
-      <div className="absolute bottom-2 right-2 rounded px-1.5 py-0.5 text-[8px] font-medium" style={{ backgroundColor: "var(--card)", color: "var(--muted)", border: "1px solid var(--border)" }}>
-        4 pins
+    <div
+      className="relative h-full w-full overflow-hidden"
+      style={{ background: "linear-gradient(160deg, hsl(205,55%,88%) 0%, hsl(210,50%,82%) 100%)" }}
+    >
+      <svg viewBox="0 0 160 90" className="absolute inset-0 h-full w-full" aria-hidden="true">
+        {/* Grid */}
+        {[40, 80, 120].map((x) => (
+          <line key={x} x1={x} y1={0} x2={x} y2={90} stroke="hsl(210,40%,78%)" strokeWidth="0.4" strokeDasharray="2,3" />
+        ))}
+        {[30, 60].map((y) => (
+          <line key={y} x1={0} y1={y} x2={160} y2={y} stroke="hsl(210,40%,78%)" strokeWidth="0.4" strokeDasharray="2,3" />
+        ))}
+        {/* Simplified land blobs */}
+        <path d="M 30,25 L 45,22 L 55,27 L 60,35 L 55,42 L 45,45 L 35,42 L 28,35 Z" fill="hsl(130,18%,72%)" stroke="hsl(130,15%,62%)" strokeWidth="0.5" />
+        <path d="M 68,30 L 80,27 L 92,30 L 98,38 L 94,47 L 82,50 L 70,47 L 64,38 Z" fill="hsl(130,18%,72%)" stroke="hsl(130,15%,62%)" strokeWidth="0.5" />
+        <path d="M 100,30 L 112,27 L 125,30 L 130,40 L 125,50 L 112,53 L 100,50 L 95,40 Z" fill="hsl(130,18%,72%)" stroke="hsl(130,15%,62%)" strokeWidth="0.5" />
+        <path d="M 100,58 L 115,55 L 128,58 L 132,67 L 127,75 L 112,78 L 98,74 L 95,65 Z" fill="hsl(130,18%,72%)" stroke="hsl(130,15%,62%)" strokeWidth="0.5" />
+        {/* Connector lines */}
+        {miniPins.slice(0, -1).map((pin, i) => (
+          <line key={i} x1={pin.cx} y1={pin.cy} x2={miniPins[i + 1].cx} y2={miniPins[i + 1].cy} stroke="hsl(155,35%,50%)" strokeWidth="0.6" strokeDasharray="2,2" opacity="0.4" />
+        ))}
+        {/* Pins */}
+        {miniPins.map((pin, i) => (
+          <g key={i}>
+            <circle cx={pin.cx} cy={pin.cy} r="4" fill="none" stroke={pin.highlight ? "hsl(25,85%,55%)" : "hsl(155,45%,45%)"} strokeWidth="1" opacity="0.4" />
+            <circle cx={pin.cx} cy={pin.cy} r="2.5" fill={pin.highlight ? "hsl(25,85%,55%)" : "hsl(155,40%,38%)"} stroke="#fff" strokeWidth="1" />
+          </g>
+        ))}
+      </svg>
+      <div
+        className="absolute bottom-2 right-2 rounded-lg px-1.5 py-0.5 text-[8px] font-medium"
+        style={{ backgroundColor: "rgba(255,255,255,0.85)", color: "var(--foreground)", border: "1px solid var(--border)" }}
+      >
+        5 pins · worldwide
       </div>
     </div>
   );
