@@ -32,36 +32,26 @@ function JournalPreview() {
 }
 
 function MapPreview() {
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const src = apiKey
+    ? `https://maps.googleapis.com/maps/api/staticmap?center=30,10&zoom=1&size=400x192&scale=2&maptype=roadmap&markers=color:0x3d6b5e|size:tiny|43.65,-79.38&markers=color:0x3d6b5e|size:tiny|40.71,-74.01&markers=color:0xd97706|size:tiny|17.99,-66.61&markers=color:0x3d6b5e|size:tiny|38.72,-9.14&markers=color:0x3d6b5e|size:tiny|19.08,72.88&markers=color:0x3d6b5e|size:tiny|-33.87,151.21&key=${apiKey}`
+    : null;
+
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      {/* Simplified map background */}
-      <div className="absolute inset-0" style={{ backgroundColor: "hsl(120,15%,88%)" }}>
-        {/* Map lines */}
-        <div className="absolute top-[30%] left-0 right-0 h-px" style={{ backgroundColor: "hsl(120,10%,80%)" }} />
-        <div className="absolute top-[55%] left-0 right-0 h-px" style={{ backgroundColor: "hsl(120,10%,80%)" }} />
-        <div className="absolute top-0 bottom-0 left-[40%] w-px" style={{ backgroundColor: "hsl(120,10%,80%)" }} />
-        <div className="absolute top-0 bottom-0 left-[70%] w-px" style={{ backgroundColor: "hsl(120,10%,80%)" }} />
-      </div>
-      {/* Pins */}
-      {[
-        { left: "25%", top: "28%", label: "Home" },
-        { left: "55%", top: "40%", label: "Vacation" },
-        { left: "72%", top: "22%", label: "Nana's" },
-        { left: "38%", top: "65%", label: "Road trip" },
-      ].map((pin) => (
-        <div
-          key={pin.label}
-          className="absolute flex flex-col items-center"
-          style={{ left: pin.left, top: pin.top, transform: "translate(-50%, -100%)" }}
-        >
-          <div className="rounded-full px-1.5 py-0.5 text-[7px] font-medium shadow-sm whitespace-nowrap" style={{ backgroundColor: "var(--card)", color: "var(--foreground)", border: "1px solid var(--border)" }}>
-            {pin.label}
-          </div>
-          <div className="h-3 w-3 rounded-full shadow-md" style={{ backgroundColor: "var(--accent)", border: "2px solid #fff" }} />
+    <div className="relative h-full w-full overflow-hidden bg-blue-50">
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt="Family travel map" className="h-full w-full object-cover" />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center">
+          <MapPin className="h-8 w-8 opacity-20" />
         </div>
-      ))}
-      <div className="absolute bottom-2 right-2 rounded px-1.5 py-0.5 text-[8px] font-medium" style={{ backgroundColor: "var(--card)", color: "var(--muted)", border: "1px solid var(--border)" }}>
-        4 pins
+      )}
+      <div
+        className="absolute bottom-2 right-2 rounded-lg px-1.5 py-0.5 text-[8px] font-medium"
+        style={{ backgroundColor: "rgba(255,255,255,0.9)", color: "var(--foreground)", border: "1px solid var(--border)" }}
+      >
+        6 pins · worldwide
       </div>
     </div>
   );
