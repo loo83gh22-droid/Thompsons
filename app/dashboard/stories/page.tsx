@@ -48,13 +48,13 @@ export default async function StoriesPage() {
       {!stories?.length ? (
         <EmptyStateGuide
           icon="📖"
-          title="No stories yet"
-          description="Be the first to share a family memory, historical account, or lesson learned"
+          title="The stories that made your family who you are"
+          description="Not the photo-dump moments — the real ones. The ones that get told at dinner tables, at funerals, at weddings. Write them down before they're only half-remembered."
           inspiration={[
-            "How your parents met",
-            "The story of your family's immigration or big move",
-            "A lesson a grandparent taught you",
-            "The funniest thing that happened on a family vacation",
+            "How your parents met — the real version, not the polished one",
+            "The story of your family's big move, immigration, or leap of faith",
+            "A lesson a grandparent taught you that still rings in your head",
+            "The funniest thing that's ever happened at a family gathering",
           ]}
           ctaLabel="Write your first story"
           ctaHref="/dashboard/stories/new"

@@ -17,6 +17,7 @@ import { FamilyHighlight, type HighlightItem } from "./FamilyHighlight";
 import { InspirationTip } from "./InspirationTip";
 import { BirthdayBanner, type BirthdayPerson } from "./BirthdayBanner";
 import { WeeklyStreak } from "./WeeklyStreak";
+import { OnThisDay, type OnThisDayItem } from "./OnThisDay";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -40,6 +41,7 @@ export default async function DashboardPage() {
   let upcomingBirthdays: BirthdayPerson[] = [];
   let weekActiveDays: string[] = [];
   let weekStreak = 0;
+  let onThisDayItems: OnThisDayItem[] = [];
 
   if (activeFamilyId) {
     const [
@@ -57,6 +59,7 @@ export default async function DashboardPage() {
       messagesActivity,
       birthdayMembersRes,
       recentActivityDatesRes,
+      allJournalForOTDRes,
     ] = await Promise.all([
       supabase.from("family_members").select("id, name, avatar_url").eq("family_id", activeFamilyId).order("name").limit(QUERY_LIMITS.memberListDisplay),
       supabase.from("family_members").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
@@ -74,6 +77,8 @@ export default async function DashboardPage() {
       supabase.from("family_members").select("id, name, birth_date").eq("family_id", activeFamilyId).not("birth_date", "is", null),
       // Streak: get distinct activity dates for last 56 days (8 weeks) across all content types
       supabase.from("journal_entries").select("created_at").eq("family_id", activeFamilyId).gte("created_at", new Date(Date.now() - 56 * 86_400_000).toISOString()).order("created_at", { ascending: false }),
+      // On This Day: journal entries created on today's month/day in prior years
+      supabase.from("journal_entries").select("id, title, created_at, family_members!author_id(name, nickname)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(200),
     ]);
 
     stats = {
@@ -225,6 +230,43 @@ export default async function DashboardPage() {
       }
     }
 
+    // ── On This Day ────────────────────────────────────────────────────
+    // Find content created on the same month/day in previous years
+    const todayMonth = todayLocal.getMonth(); // 0-indexed
+    const todayDay = todayLocal.getDate();
+    const todayYear = todayLocal.getFullYear();
+
+    const otdJournal = ((allJournalForOTDRes.data ?? []) as { id: string; title: string; created_at: string; family_members: { name: string; nickname: string | null } | { name: string; nickname: string | null }[] | null }[])
+      .filter((j) => {
+        const d = new Date(j.created_at);
+        return d.getMonth() === todayMonth && d.getDate() === todayDay && d.getFullYear() < todayYear;
+      })
+      .map((j): OnThisDayItem => {
+        const raw = j.family_members;
+        const author = Array.isArray(raw) ? raw[0] : raw;
+        const yearsAgo = todayYear - new Date(j.created_at).getFullYear();
+        return {
+          type: "journal",
+          id: j.id,
+          title: j.title,
+          memberName: author ? (author.nickname?.trim() || author.name) : null,
+          createdAt: j.created_at,
+          href: `/dashboard/journal/${j.id}/edit`,
+          yearsAgo,
+        };
+      });
+
+    // Cap at 4 items total — pick most recent per unique year
+    const seenYears = new Set<number>();
+    onThisDayItems = otdJournal
+      .sort((a, b) => a.yearsAgo - b.yearsAgo)
+      .filter((item) => {
+        if (seenYears.has(item.yearsAgo)) return false;
+        seenYears.add(item.yearsAgo);
+        return true;
+      })
+      .slice(0, 4);
+
     // Get current user's member ID and name for filtering
     const { data: currentUser } = await supabase.auth.getUser();
     const { data: currentMemberData } = await supabase
@@ -362,10 +404,14 @@ export default async function DashboardPage() {
 
       <div className="mt-12 space-y-8">
         <QuickActions />
-        <div className="grid grid-cols-1 gap-6 min-[768px]:grid-cols-2 min-[768px]:grid-rows-[auto_auto]">
+        <div className="grid grid-cols-1 gap-6 min-[768px]:grid-cols-2">
           <FamilyHighlight item={highlight} />
           <InspirationTip />
-          {/* Weekly streak spans full width below the two above */}
+          {onThisDayItems.length > 0 && (
+            <div className="min-[768px]:col-span-2">
+              <OnThisDay items={onThisDayItems} />
+            </div>
+          )}
           <div className="min-[768px]:col-span-2">
             <WeeklyStreak activeDays={weekActiveDays} weekStreak={weekStreak} />
           </div>
