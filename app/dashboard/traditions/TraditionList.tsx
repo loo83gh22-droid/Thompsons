@@ -33,13 +33,13 @@ export function TraditionList({ traditions }: { traditions: Tradition[] }) {
     return (
       <EmptyStateGuide
         icon="🎉"
-        title="No traditions yet"
-        description="Document your family's unique rituals — the cultural DNA that gets lost between generations"
+        title="Your family's quirks are worth preserving."
+        description="Traditions aren't just the big ones — it's Taco Tuesday, the road trip playlist, the way you do birthdays. Write them down before they disappear between generations."
         inspiration={[
-          "Your birthday celebration routine — the cake, the song, the quirks",
-          "Holiday traditions: who does what and why",
-          "Weekly rituals like Taco Tuesday or movie night",
-          "Road trip games or bedtime routines the kids love",
+          "The birthday routine — the exact cake, the song, the embarrassing traditions",
+          "What your family does every Christmas, Eid, Diwali, or 'just because it's ours'",
+          "The weekly ritual that became non-negotiable without anyone deciding it",
+          "The inside jokes, the road trip games, the bedtime rituals only your kids know",
         ]}
         ctaLabel="+ Add your first tradition"
         onAction={() => document.querySelector<HTMLButtonElement>("[data-add-tradition]")?.click()}

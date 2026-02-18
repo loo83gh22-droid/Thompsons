@@ -67,15 +67,15 @@ export function VoiceMemoList({
     return (
       <EmptyStateGuide
         icon="🎙️"
-        title="No voice memos yet"
-        description="Record voices for the future — imagine kids hearing their great-grandparent's voice decades from now"
+        title="Voices are the most fleeting thing we have."
+        description="A laugh. A bedtime story. The way someone says your name. Record it here — and it will last forever. Imagine your grandchildren hearing your voice decades from now."
         inspiration={[
-          "Record yourself telling your favorite childhood story",
-          "Sing the lullaby you sing to your kids",
-          "Tell a joke only your family would understand",
-          "Record a message to your future grandchildren",
+          "Tell your favourite childhood story in your own words",
+          "Sing the lullaby you sing to your kids every night",
+          "Record an inside joke that only your family would get",
+          "Leave a message to your future grandchildren — or great-grandchildren",
         ]}
-        ctaLabel="Record your first memory"
+        ctaLabel="Record your first voice memo"
         onAction={() => document.querySelector<HTMLButtonElement>("[data-voice-memo-add]")?.click()}
       />
     );

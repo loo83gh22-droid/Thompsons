@@ -104,8 +104,8 @@ export default async function JournalPage() {
         {!entries?.length ? (
           <EmptyState
             icon="📔"
-            headline="No journal entries yet"
-            description="Start documenting your family story. Write about trips, celebrations, everyday moments—memories you'll treasure forever."
+            headline="Your first entry is waiting to be written"
+            description="Trips, birthdays, regular Tuesdays that turned into something — it all belongs here. Future you will be so glad you started."
             actionLabel="+ Write your first entry"
             actionHref="/dashboard/journal/new"
           />
