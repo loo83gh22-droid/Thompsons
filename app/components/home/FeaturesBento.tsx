@@ -32,48 +32,26 @@ function JournalPreview() {
 }
 
 function MapPreview() {
-  const miniPins = [
-    { cx: 52, cy: 40, highlight: false },
-    { cx: 66, cy: 46, highlight: true },
-    { cx: 88, cy: 38, highlight: false },
-    { cx: 120, cy: 55, highlight: false },
-    { cx: 140, cy: 68, highlight: false },
-  ];
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const src = apiKey
+    ? `https://maps.googleapis.com/maps/api/staticmap?center=30,10&zoom=1&size=400x192&scale=2&maptype=roadmap&markers=color:0x3d6b5e|size:tiny|43.65,-79.38&markers=color:0x3d6b5e|size:tiny|40.71,-74.01&markers=color:0xd97706|size:tiny|17.99,-66.61&markers=color:0x3d6b5e|size:tiny|38.72,-9.14&markers=color:0x3d6b5e|size:tiny|19.08,72.88&markers=color:0x3d6b5e|size:tiny|-33.87,151.21&key=${apiKey}`
+    : null;
+
   return (
-    <div
-      className="relative h-full w-full overflow-hidden"
-      style={{ background: "linear-gradient(160deg, hsl(205,55%,88%) 0%, hsl(210,50%,82%) 100%)" }}
-    >
-      <svg viewBox="0 0 160 90" className="absolute inset-0 h-full w-full" aria-hidden="true">
-        {/* Grid */}
-        {[40, 80, 120].map((x) => (
-          <line key={x} x1={x} y1={0} x2={x} y2={90} stroke="hsl(210,40%,78%)" strokeWidth="0.4" strokeDasharray="2,3" />
-        ))}
-        {[30, 60].map((y) => (
-          <line key={y} x1={0} y1={y} x2={160} y2={y} stroke="hsl(210,40%,78%)" strokeWidth="0.4" strokeDasharray="2,3" />
-        ))}
-        {/* Simplified land blobs */}
-        <path d="M 30,25 L 45,22 L 55,27 L 60,35 L 55,42 L 45,45 L 35,42 L 28,35 Z" fill="hsl(130,18%,72%)" stroke="hsl(130,15%,62%)" strokeWidth="0.5" />
-        <path d="M 68,30 L 80,27 L 92,30 L 98,38 L 94,47 L 82,50 L 70,47 L 64,38 Z" fill="hsl(130,18%,72%)" stroke="hsl(130,15%,62%)" strokeWidth="0.5" />
-        <path d="M 100,30 L 112,27 L 125,30 L 130,40 L 125,50 L 112,53 L 100,50 L 95,40 Z" fill="hsl(130,18%,72%)" stroke="hsl(130,15%,62%)" strokeWidth="0.5" />
-        <path d="M 100,58 L 115,55 L 128,58 L 132,67 L 127,75 L 112,78 L 98,74 L 95,65 Z" fill="hsl(130,18%,72%)" stroke="hsl(130,15%,62%)" strokeWidth="0.5" />
-        {/* Connector lines */}
-        {miniPins.slice(0, -1).map((pin, i) => (
-          <line key={i} x1={pin.cx} y1={pin.cy} x2={miniPins[i + 1].cx} y2={miniPins[i + 1].cy} stroke="hsl(155,35%,50%)" strokeWidth="0.6" strokeDasharray="2,2" opacity="0.4" />
-        ))}
-        {/* Pins */}
-        {miniPins.map((pin, i) => (
-          <g key={i}>
-            <circle cx={pin.cx} cy={pin.cy} r="4" fill="none" stroke={pin.highlight ? "hsl(25,85%,55%)" : "hsl(155,45%,45%)"} strokeWidth="1" opacity="0.4" />
-            <circle cx={pin.cx} cy={pin.cy} r="2.5" fill={pin.highlight ? "hsl(25,85%,55%)" : "hsl(155,40%,38%)"} stroke="#fff" strokeWidth="1" />
-          </g>
-        ))}
-      </svg>
+    <div className="relative h-full w-full overflow-hidden bg-blue-50">
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt="Family travel map" className="h-full w-full object-cover" />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center">
+          <MapPin className="h-8 w-8 opacity-20" />
+        </div>
+      )}
       <div
         className="absolute bottom-2 right-2 rounded-lg px-1.5 py-0.5 text-[8px] font-medium"
-        style={{ backgroundColor: "rgba(255,255,255,0.85)", color: "var(--foreground)", border: "1px solid var(--border)" }}
+        style={{ backgroundColor: "rgba(255,255,255,0.9)", color: "var(--foreground)", border: "1px solid var(--border)" }}
       >
-        5 pins · worldwide
+        6 pins · worldwide
       </div>
     </div>
   );
