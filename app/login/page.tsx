@@ -29,15 +29,21 @@ function LoginForm() {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined,
-            data: { full_name: name.trim(), relationship: relationship.trim() || undefined, family_name: familyName.trim() || undefined },
-          },
+        // Use our custom signup API to send branded confirmation email
+        const res = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            name: name.trim(),
+            familyName: familyName.trim(),
+            relationship: relationship.trim() || undefined,
+            redirectTo: typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined,
+          }),
         });
-        if (error) throw error;
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Signup failed");
         setSignUpSuccess(true);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -77,14 +83,15 @@ function LoginForm() {
 
         {isSignUp && signUpSuccess ? (
           <div className="mt-8 rounded-xl border-2 border-[var(--accent)]/40 bg-[var(--accent)]/10 px-6 py-8 text-center">
-            <p className="font-display text-xl font-semibold text-[var(--foreground)]">
-              Check your email
+            <p className="text-4xl">&#127881;</p>
+            <p className="mt-3 font-display text-xl font-semibold text-[var(--foreground)]">
+              Almost there!
             </p>
             <p className="mt-3 text-sm text-[var(--muted)]">
-              We sent a confirmation link to your email. Click it to activate your account, then sign in.
+              We just sent a beautiful confirmation email to <strong className="text-[var(--foreground)]">{email}</strong>. Click the link inside to activate your Family Nest.
             </p>
             <p className="mt-4 text-xs text-[var(--muted)]">
-              Didn&apos;t get it? Check spam, or try signing up again with the same email.
+              Don&apos;t see it? Check your spam folder — it&apos;s from <strong>Family Nest</strong>.
             </p>
             <Link
               href="/login"
