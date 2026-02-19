@@ -133,7 +133,7 @@ export async function syncBirthPlacesToMap(): Promise<{ added: number; error?: s
       } else {
         const res = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(birthPlace)}&limit=1`,
-          { headers: { "User-Agent": "Thompsons-Family-Site/1.0" } }
+          { headers: { "User-Agent": "FamilyNest/1.0" } }
         );
         const json = await res.json();
         const result = json[0];
