@@ -28,15 +28,16 @@ export async function GET(request: Request) {
               .eq('user_id', user.id)
               .single();
 
-            if (member?.contact_email && process.env.RESEND_API_KEY) {
+            const emailTo = member?.contact_email || user.email;
+            if (emailTo && process.env.RESEND_API_KEY) {
               // Send welcome email asynchronously (don't block redirect)
               fetch(`${origin}/api/emails/send-welcome`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  email: member.contact_email,
-                  name: member.name,
-                  familyId: member.family_id,
+                  email: emailTo,
+                  name: member?.name || user.email?.split('@')[0] || 'there',
+                  familyId: member?.family_id,
                 }),
               }).catch(err => console.error('Failed to send welcome email:', err));
             }

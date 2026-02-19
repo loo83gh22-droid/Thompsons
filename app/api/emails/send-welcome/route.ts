@@ -22,63 +22,44 @@ export async function POST(request: NextRequest) {
       .eq('family_id', familyId)
       .single();
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://familynest.io';
+    const safeName = name.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
     const emailHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-            .content { background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; }
-            .checklist { background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0; }
-            .checklist-item { margin: 10px 0; padding-left: 25px; position: relative; }
-            .checklist-item:before { content: "✓"; position: absolute; left: 0; color: #0ea5e9; font-weight: bold; }
-            .cta { display: inline-block; background: #0ea5e9; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
-            .footer { text-align: center; color: #6b7280; font-size: 14px; margin-top: 30px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>🏡 Welcome to Our Family Nest, ${name}!</h1>
-            </div>
-            <div class="content">
-              <p>Hi ${name},</p>
-              <p>We're thrilled to have you here! Your Family Nest is ready, and we can't wait to see the memories you'll preserve.</p>
-
-              <div class="checklist">
-                <h3>Get Started in 3 Easy Steps:</h3>
-                <div class="checklist-item">Add your first family member (or they add themselves!)</div>
-                <div class="checklist-item">Upload your favorite family photo</div>
-                <div class="checklist-item">Write one sentence about that moment</div>
-              </div>
-
-              <p>That's it! In less than 5 minutes, you'll have started your family's digital heirloom.</p>
-
-              <center>
-                <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/dashboard/photos" class="cta">
-                  📷 Upload Your First Photo
-                </a>
-              </center>
-
-              <p style="margin-top: 30px;">Need help getting started? Check out our <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/getting-started">Quick Start Guide</a>.</p>
-
-              <p>Welcome to the family,<br>The Our Family Nest Team</p>
-            </div>
-            <div class="footer">
-              <p>Our Family Nest • Preserving memories, one family at a time</p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;padding:32px 20px;">
+  <tr><td style="text-align:center;padding-bottom:24px;">
+    <span style="font-size:28px;color:#D4A843;font-weight:700;">Family Nest</span>
+  </td></tr>
+  <tr><td style="background:#1e293b;border-radius:12px;padding:32px 24px;border:1px solid #334155;">
+    <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">🏡 Welcome, ${safeName}!</h1>
+    <p style="margin:0 0 20px;color:#94a3b8;font-size:15px;line-height:1.6;">
+      Your Family Nest is ready. Start preserving memories your family will cherish for generations.
+    </p>
+    <div style="background:#0f172a;border-radius:8px;padding:20px;margin:0 0 24px;">
+      <p style="margin:0 0 12px;color:#D4A843;font-weight:600;font-size:14px;">GET STARTED IN 3 STEPS</p>
+      <p style="margin:0 0 8px;color:#cbd5e1;font-size:14px;">✓ &nbsp;Add your first family member</p>
+      <p style="margin:0 0 8px;color:#cbd5e1;font-size:14px;">✓ &nbsp;Upload a favourite family photo</p>
+      <p style="margin:0;color:#cbd5e1;font-size:14px;">✓ &nbsp;Write one sentence about that moment</p>
+    </div>
+    <a href="${appUrl}/dashboard" style="display:inline-block;background:#D4A843;color:#0f172a;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">
+      Open Family Nest →
+    </a>
+  </td></tr>
+  <tr><td style="text-align:center;padding-top:24px;">
+    <p style="color:#64748b;font-size:12px;margin:0;">Family Nest &middot; <a href="${appUrl}/dashboard/settings" style="color:#64748b;">Manage notifications</a></p>
+  </td></tr>
+</table>
+</body>
+</html>`;
 
     // Send email
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'Our Family Nest <notifications@resend.dev>',
       to: email,
-      subject: 'Welcome to Our Family Nest! 🏡',
+      subject: `Welcome to Family Nest, ${safeName}! 🏡`,
       html: emailHtml,
     });
 
