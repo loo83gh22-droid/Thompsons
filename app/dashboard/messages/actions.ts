@@ -65,19 +65,34 @@ export async function sendFamilyMessage(
     const emails = (members || []).map((m) => m.contact_email).filter(Boolean) as string[];
     if (emails.length > 0) {
       const resend = new Resend(process.env.RESEND_API_KEY);
-      const from = process.env.RESEND_FROM_EMAIL || "Thompsons <onboarding@resend.dev>";
+      const from = process.env.RESEND_FROM_EMAIL || "Family Nest <noreply@send.familynest.io>";
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://familynest.io");
+      const safeTitle = title.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const safeContent = content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const safeSender = sender?.name?.replace(/</g, "&lt;").replace(/>/g, "&gt;") || "";
       resend.emails.send({
         from,
         to: emails,
-        subject: `Family message: ${title}`,
+        subject: `New family message: ${title}`,
         html: `
-          <h2>${title}</h2>
-          ${sender?.name ? `<p><em>From ${sender.name}</em></p>` : ""}
-          <div style="white-space: pre-wrap;">${content.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
-          <p style="margin-top: 24px; color: #888; font-size: 12px;">
-            Log in to the Thompsons family site to see this message.
-          </p>
-        `,
+<!DOCTYPE html><html><body style="margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;padding:32px 20px;">
+<tr><td style="text-align:center;padding-bottom:24px;">
+  <span style="font-size:28px;color:#D4A843;font-weight:700;">Family Nest</span>
+</td></tr>
+<tr><td style="background:#1e293b;border-radius:12px;padding:32px 24px;border:1px solid #334155;">
+  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">💬 ${safeTitle}</h1>
+  ${safeSender ? `<p style="margin:0 0 16px;color:#64748b;font-size:13px;">From ${safeSender}</p>` : ""}
+  <div style="margin:0 0 24px;color:#94a3b8;font-size:15px;line-height:1.6;white-space:pre-wrap;">${safeContent}</div>
+  <a href="${appUrl}/dashboard" style="display:inline-block;background:#D4A843;color:#0f172a;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">
+    View in Family Nest
+  </a>
+</td></tr>
+<tr><td style="text-align:center;padding-top:24px;">
+  <p style="color:#64748b;font-size:12px;margin:0;">Family Nest &middot; <a href="${appUrl}/dashboard/settings" style="color:#64748b;">Manage notifications</a></p>
+</td></tr>
+</table>
+</body></html>`,
       }).catch(() => {});
     }
   }

@@ -136,7 +136,7 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
       } else {
         const geocodeRes = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(input.location.trim())}&limit=1`,
-          { headers: { "User-Agent": "Thompsons-Family-Site/1.0" } }
+          { headers: { "User-Agent": "FamilyNest/1.0" } }
         );
         const geocode = await geocodeRes.json();
         const result = geocode[0];
@@ -375,7 +375,7 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
       } else {
         const geocodeRes = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(input.location.trim())}&limit=1`,
-          { headers: { "User-Agent": "Thompsons-Family-Site/1.0" } }
+          { headers: { "User-Agent": "FamilyNest/1.0" } }
         );
         const geocode = await geocodeRes.json();
         const result = geocode[0];
