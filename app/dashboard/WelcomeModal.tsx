@@ -1,36 +1,55 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 
-const STORAGE_KEY = "family-nest-welcome-dismissed";
+const COMPLETED_KEY = "family-nest-welcome-completed";
 const STEP_KEY = "family-nest-welcome-step";
 
 export function WelcomeModal({ familyName }: { familyName: string }) {
   const [open, setOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
+  const openModal = useCallback(() => {
+    try {
+      const savedStep = localStorage.getItem(STEP_KEY);
+      if (savedStep) setCurrentStep(parseInt(savedStep, 10));
+    } catch { /* ignore */ }
+    setOpen(true);
+  }, []);
+
   useEffect(() => {
     try {
       if (typeof window === "undefined") return;
-      const dismissed = localStorage.getItem(STORAGE_KEY);
-      const savedStep = localStorage.getItem(STEP_KEY);
-      if (!dismissed) {
-        setOpen(true);
-        if (savedStep) setCurrentStep(parseInt(savedStep, 10));
+      const completed = localStorage.getItem(COMPLETED_KEY);
+      if (!completed) {
+        openModal();
       }
     } catch {
       setOpen(true);
     }
-  }, []);
+  }, [openModal]);
 
-  function handleDismiss() {
-    try {
-      localStorage.setItem(STORAGE_KEY, "true");
-      localStorage.removeItem(STEP_KEY);
-    } catch {
-      // ignore
+  // Listen for "reopen welcome tour" events from other components
+  useEffect(() => {
+    function handleReopen() {
+      openModal();
     }
+    window.addEventListener("reopen-welcome-tour", handleReopen);
+    return () => window.removeEventListener("reopen-welcome-tour", handleReopen);
+  }, [openModal]);
+
+  // Close temporarily — modal will reappear on next visit
+  function handleClose() {
+    setOpen(false);
+  }
+
+  // Mark as permanently completed (only from final step Done button)
+  function handleComplete() {
+    try {
+      localStorage.setItem(COMPLETED_KEY, "true");
+      localStorage.removeItem(STEP_KEY);
+    } catch { /* ignore */ }
     setOpen(false);
   }
 
@@ -39,9 +58,7 @@ export function WelcomeModal({ familyName }: { familyName: string }) {
     setCurrentStep(nextStep);
     try {
       localStorage.setItem(STEP_KEY, nextStep.toString());
-    } catch {
-      // ignore
-    }
+    } catch { /* ignore */ }
   }
 
   function handlePrevious() {
@@ -49,14 +66,15 @@ export function WelcomeModal({ familyName }: { familyName: string }) {
     setCurrentStep(prevStep);
     try {
       localStorage.setItem(STEP_KEY, prevStep.toString());
-    } catch {
-      // ignore
-    }
+    } catch { /* ignore */ }
+  }
+
+  // Navigate to action link — close temporarily, save step progress
+  function handleActionClick() {
+    setOpen(false);
   }
 
   if (!open) return null;
-
-  const displayName = familyName?.trim() || "Your Family";
 
   const steps = [
     {
@@ -64,25 +82,26 @@ export function WelcomeModal({ familyName }: { familyName: string }) {
       description: "Start with the people closest to you. Family members can add photos, stories, and memories.",
       action: "/dashboard/our-family",
       actionText: "Add Family Members",
-      icon: "👨‍👩‍👧‍👦"
+      icon: "\u{1F468}\u200D\u{1F469}\u200D\u{1F467}\u200D\u{1F466}"
     },
     {
       title: "Upload Your Favorite Photo",
       description: "Your photos become part of the family mosaic and are searchable by faces, places, and dates.",
       action: "/dashboard/photos",
       actionText: "Upload a Photo",
-      icon: "📷"
+      icon: "\u{1F4F7}"
     },
     {
       title: "Write One Sentence",
       description: "Create your first journal entry. Share a memory, thought, or what happened today.",
       action: "/dashboard/journal/new",
       actionText: "Write Journal Entry",
-      icon: "✍️"
+      icon: "\u270D\uFE0F"
     }
   ];
 
   const step = steps[currentStep];
+  const isLastStep = currentStep === steps.length - 1;
 
   return (
     <div
@@ -94,9 +113,21 @@ export function WelcomeModal({ familyName }: { familyName: string }) {
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         aria-hidden
-        onClick={handleDismiss}
+        onClick={handleClose}
       />
       <div className="relative w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-2xl sm:p-8">
+        {/* Close button */}
+        <button
+          type="button"
+          onClick={handleClose}
+          className="absolute right-4 top-4 rounded-lg p-1 text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]"
+          aria-label="Close welcome tour"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M5 5l10 10M15 5L5 15" />
+          </svg>
+        </button>
+
         {/* Progress indicator */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex gap-2">
@@ -113,7 +144,7 @@ export function WelcomeModal({ familyName }: { familyName: string }) {
               />
             ))}
           </div>
-          <span className="text-sm font-medium text-[var(--muted)]">
+          <span className="mr-6 text-sm font-medium text-[var(--muted)]">
             {currentStep + 1} / {steps.length}
           </span>
         </div>
@@ -133,7 +164,7 @@ export function WelcomeModal({ familyName }: { familyName: string }) {
         <div className="mt-8 flex flex-col gap-3">
           <Link
             href={step.action}
-            onClick={handleDismiss}
+            onClick={handleActionClick}
             className="min-h-[44px] w-full rounded-full bg-[var(--primary)] px-6 py-3 text-center font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
           >
             {step.actionText}
@@ -149,7 +180,15 @@ export function WelcomeModal({ familyName }: { familyName: string }) {
                 Previous
               </button>
             )}
-            {currentStep < steps.length - 1 ? (
+            {isLastStep ? (
+              <button
+                type="button"
+                onClick={handleComplete}
+                className="min-h-[44px] flex-1 rounded-lg bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--accent-foreground)] hover:opacity-90"
+              >
+                Done — I&apos;m all set!
+              </button>
+            ) : (
               <button
                 type="button"
                 onClick={handleNext}
@@ -157,18 +196,24 @@ export function WelcomeModal({ familyName }: { familyName: string }) {
               >
                 Next
               </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleDismiss}
-                className="min-h-[44px] flex-1 rounded-lg border border-[var(--border)] px-4 py-3 text-sm font-medium text-[var(--muted)] hover:bg-[var(--surface-hover)]"
-              >
-                I&apos;ll explore later
-              </button>
             )}
           </div>
         </div>
       </div>
     </div>
   );
+}
+
+/** Check if the welcome tour has been completed */
+export function isWelcomeTourCompleted(): boolean {
+  try {
+    return localStorage.getItem(COMPLETED_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+/** Dispatch event to reopen the welcome tour */
+export function reopenWelcomeTour() {
+  window.dispatchEvent(new Event("reopen-welcome-tour"));
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Confetti from "react-confetti";
+import { isWelcomeTourCompleted, reopenWelcomeTour } from "./WelcomeModal";
 
 type OnboardingStep = {
   id: string;
@@ -218,6 +219,9 @@ export function OnboardingChecklist({
         </div>
       </div>
 
+      {/* Resume Welcome Tour link — shown if tour isn't completed yet */}
+      <ResumeWelcomeTourLink />
+
       {/* Steps */}
       <ul className="mt-5 space-y-2">
         {steps.map((step) => (
@@ -250,5 +254,26 @@ export function OnboardingChecklist({
       </ul>
       </section>
     </>
+  );
+}
+
+function ResumeWelcomeTourLink() {
+  const [showLink, setShowLink] = useState(false);
+
+  useEffect(() => {
+    setShowLink(!isWelcomeTourCompleted());
+  }, []);
+
+  if (!showLink) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={() => reopenWelcomeTour()}
+      className="mt-4 flex items-center gap-2 text-sm font-medium text-[var(--accent)] hover:underline"
+    >
+      <span aria-hidden>&#x1F3E0;</span>
+      Resume Welcome Tour
+    </button>
   );
 }
