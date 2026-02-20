@@ -269,18 +269,33 @@ export function TimelineClient({
         </div>
 
         {filtered.length === 0 ? (
-          <div className="mt-8 rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)]/50 py-12 text-center">
-            <p className="font-medium text-[var(--foreground)]">
-              {initialItems.length === 0
-                ? "Your family timeline will appear here"
-                : "No items match your filters. Try changing filters."}
-            </p>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              {initialItems.length === 0
-                ? "Start by uploading photos, writing journal entries, or recording voice memos."
-                : null}
-            </p>
-          </div>
+          initialItems.length === 0 ? (
+            <div className="mt-8 flex items-center justify-center py-8">
+              <div className="w-full max-w-lg rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)]/50 px-5 py-10 text-center sm:px-8 sm:py-12">
+                <span className="text-5xl" role="img" aria-hidden="true">&#x1F4C5;</span>
+                <h2 className="mt-4 font-display text-xl font-semibold text-[var(--accent)]">
+                  Your family story starts today
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--muted)] sm:text-base">
+                  Every photo, journal entry, and voice memo you create will appear here as a beautiful timeline of your family&apos;s life.
+                </p>
+                <div className="mt-6">
+                  <Link
+                    href="/dashboard/journal/new"
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent)]/90"
+                  >
+                    Create Your First Memory
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-8 rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)]/50 py-12 text-center">
+              <p className="font-medium text-[var(--foreground)]">
+                No items match your filters. Try changing filters.
+              </p>
+            </div>
+          )
         ) : (
           <div className="mt-6 flex flex-col gap-8">
             {grouped.map(({ key, label, items: groupItems }) => (

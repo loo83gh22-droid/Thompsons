@@ -79,13 +79,24 @@ export default async function FamilyTreePage() {
 
       <div className="mt-12">
         {uniqueParents.length === 0 && kids.length === 0 ? (
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-12 text-center">
-            <p className="text-[var(--muted)]">
-              No family relationships yet. Run migration 010 to seed the tree.
-            </p>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              Dad, Mom, Huck, and Maui will appear once the migration is applied.
-            </p>
+          <div className="flex items-center justify-center py-8">
+            <div className="w-full max-w-lg rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)]/50 px-5 py-10 text-center sm:px-8 sm:py-12">
+              <span className="text-5xl" role="img" aria-hidden="true">&#x1F333;</span>
+              <h2 className="mt-4 font-display text-xl font-semibold text-[var(--accent)]">
+                Your family tree starts here
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-[var(--muted)] sm:text-base">
+                Once you add family members and set up their relationships, your tree will grow right before your eyes.
+              </p>
+              <div className="mt-6">
+                <Link
+                  href="/dashboard/our-family"
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent)]/90"
+                >
+                  Add Family Members
+                </Link>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-center">

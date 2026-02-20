@@ -9,18 +9,25 @@ export default async function SendMessagePage() {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return null;
 
-  const { data: familyMembers } = await supabase
-    .from("family_members")
-    .select("id, name")
-    .eq("family_id", activeFamilyId)
-    .order("name");
+  const [{ data: familyMembers }, { data: myMember }, { count: messageCount }] = await Promise.all([
+    supabase
+      .from("family_members")
+      .select("id, name")
+      .eq("family_id", activeFamilyId)
+      .order("name"),
+    supabase
+      .from("family_members")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("family_id", activeFamilyId)
+      .single(),
+    supabase
+      .from("family_messages")
+      .select("id", { count: "exact", head: true })
+      .eq("family_id", activeFamilyId),
+  ]);
 
-  const { data: myMember } = await supabase
-    .from("family_members")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("family_id", activeFamilyId)
-    .single();
+  const hasMessages = (messageCount ?? 0) > 0;
 
   return (
     <div>
@@ -30,11 +37,16 @@ export default async function SendMessagePage() {
       <p className="mt-2 text-[var(--muted)]">
         Your message will pop up the next time recipients log in. Optionally set a date (e.g. Valentine&apos;s Day) for it to appear on that day.
       </p>
-      <div className="mt-6 rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)]/50 px-6 py-8 text-center">
-        <span className="text-4xl" role="img" aria-hidden="true">💌</span>
-        <h2 className="mt-3 font-display text-lg font-semibold text-[var(--foreground)]">No messages sent yet?</h2>
-        <p className="mt-1 max-w-sm mx-auto text-sm text-[var(--muted)]">Send your first message below. It&apos;ll pop up when family logs in—perfect for birthdays or just because.</p>
-      </div>
+
+      {!hasMessages && (
+        <div className="mt-6 rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)]/50 px-6 py-8 text-center">
+          <span className="text-4xl" role="img" aria-hidden="true">&#x1F48C;</span>
+          <h2 className="mt-3 font-display text-lg font-semibold text-[var(--accent)]">Send your first family message</h2>
+          <p className="mt-1 max-w-sm mx-auto text-sm text-[var(--muted)]">
+            Surprise someone with a note that pops up when they log in &mdash; perfect for birthdays, encouragement, or just because.
+          </p>
+        </div>
+      )}
 
       <SendMessageForm
         senderFamilyMemberId={myMember?.id}

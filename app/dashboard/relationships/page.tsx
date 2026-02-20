@@ -1,6 +1,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { FamilyWebClient } from "./FamilyWebClient";
+import { EmptyStateGuide } from "@/app/components/EmptyStateGuide";
 import type { FamilyMemberRow, RelationshipRow } from "./types";
 
 export default async function RelationshipsPage() {
@@ -30,10 +31,19 @@ export default async function RelationshipsPage() {
       </p>
 
       {!members?.length ? (
-        <div className="mt-12 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-12 text-center">
-          <p className="text-[var(--muted)]">
-            No family members yet. Add members in the Members section to see your family web.
-          </p>
+        <div className="mt-6">
+          <EmptyStateGuide
+            icon={<span>&#x1F578;&#xFE0F;</span>}
+            title="Your family web is waiting"
+            description="Add family members to see how everyone is connected. Each person becomes a node in your family's web of relationships."
+            inspiration={[
+              "Add parents, siblings, and children",
+              "See who shares the most memories together",
+              "Discover connection patterns in your family",
+            ]}
+            ctaLabel="Add Family Members"
+            ctaHref="/dashboard/our-family"
+          />
         </div>
       ) : (
         <FamilyWebClient
