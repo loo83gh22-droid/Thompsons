@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "My Family Nest — Dashboard",
 };
 import { getActiveFamilyId } from "@/src/lib/family";
+import { PersonalGreeting } from "./PersonalGreeting";
 import { DashboardStats } from "./DashboardStats";
 import { UpcomingEvents } from "./UpcomingEvents";
 import { ActivityFeed, type ActivityItem } from "./ActivityFeed";
@@ -42,6 +43,7 @@ export default async function DashboardPage() {
   let weekActiveDays: string[] = [];
   let weekStreak = 0;
   let onThisDayItems: OnThisDayItem[] = [];
+  let userFirstName: string | null = null;
 
   if (activeFamilyId) {
     const [
@@ -278,6 +280,7 @@ export default async function DashboardPage() {
 
     const currentMemberId = currentMemberData?.id;
     const currentMemberName = currentMemberData ? (currentMemberData.nickname?.trim() || currentMemberData.name) : null;
+    userFirstName = currentMemberName ? currentMemberName.split(" ")[0] : null;
 
     // Query journal entries where user has added perspective
     const { data: userPerspectives } = await supabase
@@ -333,12 +336,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-w-0 w-full overflow-x-hidden">
-      <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-        Welcome home
-      </h1>
-      <p className="mt-2 text-[var(--muted)]">
-        Your family hub. Pick a destination below.
-      </p>
+      <PersonalGreeting firstName={userFirstName} />
 
       {activeFamilyId && (
         <>
