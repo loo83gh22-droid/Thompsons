@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import Link from "next/link";
 import { ExportNest } from "./ExportNest";
 import { FamilyNameEditor } from "./FamilyNameEditor";
 import { ManageBilling } from "./ManageBilling";
+import { PaymentSuccessBanner } from "./PaymentSuccessBanner";
 
 type PlanType = "free" | "annual" | "legacy";
 
@@ -111,6 +113,10 @@ export default async function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
+      <Suspense>
+        <PaymentSuccessBanner planName={plan.name} />
+      </Suspense>
+
       {/* Header */}
       <div>
         <Link

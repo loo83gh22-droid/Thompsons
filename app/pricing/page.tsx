@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { UpgradeButton } from "./UpgradeButton";
+import { PaymentCancelledBanner } from "./PaymentCancelledBanner";
 
 export const metadata: Metadata = {
   title: "Pricing — Our Family Nest",
@@ -125,6 +127,10 @@ export default function PricingPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingFaqJsonLd) }}
       />
       <main className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
+        <Suspense>
+          <PaymentCancelledBanner />
+        </Suspense>
+
         {/* Header */}
         <div className="text-center">
           <h1 className="font-display text-4xl font-bold tracking-tight text-[var(--foreground)] sm:text-5xl md:text-6xl">
