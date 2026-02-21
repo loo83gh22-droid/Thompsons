@@ -293,9 +293,45 @@ function MemberCard({ member }: { member: Member }) {
 
   const shortBirthday = formatBirthdayShort(member.birth_date);
 
+  // Status logic: signed in > pending invitation (has email, no account) > no badge
+  const status = member.user_id
+    ? "signed_in"
+    : member.contact_email?.trim()
+      ? "pending"
+      : null;
+
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 transition-shadow hover:shadow-lg sm:p-5">
-      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 transition-shadow hover:shadow-lg">
+      {/* Action buttons top-right */}
+      <div className="mb-3 flex items-center justify-end gap-1.5">
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          disabled={loading}
+          className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] disabled:opacity-50"
+          title="Edit"
+          aria-label="Edit member"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+        </button>
+        <button
+          type="button"
+          onClick={handleRemove}
+          disabled={loading}
+          className={`rounded-lg border p-1.5 disabled:opacity-50 ${
+            confirmRemove
+              ? "border-red-300 bg-red-50 text-red-600 hover:bg-red-100"
+              : "border-[var(--border)] text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-red-600"
+          }`}
+          title={confirmRemove ? "Click again to remove" : "Remove"}
+          aria-label="Remove member"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+        </button>
+      </div>
+
+      {/* Centered avatar */}
+      <div className="flex justify-center">
         <Link href={`/dashboard/members/${member.id}`} className="shrink-0 rounded-full ring-2 ring-transparent focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
           {member.avatar_url ? (
             <img
@@ -310,61 +346,42 @@ function MemberCard({ member }: { member: Member }) {
             </div>
           )}
         </Link>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Link href={`/dashboard/members/${member.id}`} className="font-display text-lg font-bold text-[var(--foreground)] hover:underline">
-              {member.name}
-            </Link>
-            {member.nickname && (
-              <span className="text-[var(--muted)]">&quot;{member.nickname}&quot;</span>
-            )}
-          </div>
+      </div>
+
+      {/* Info centered below avatar */}
+      <div className="mt-3 text-center">
+        <Link href={`/dashboard/members/${member.id}`} className="font-display text-lg font-bold text-[var(--foreground)] hover:underline">
+          {member.name}
+        </Link>
+        {member.nickname && (
+          <p className="text-sm text-[var(--muted)]">&quot;{member.nickname}&quot;</p>
+        )}
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
           {member.relationship && (
-            <span className="mt-1 inline-block rounded-full bg-[var(--accent)]/20 px-2.5 py-0.5 text-xs font-medium text-[var(--accent)]">
+            <span className="inline-block rounded-full bg-[var(--accent)]/20 px-2.5 py-0.5 text-xs font-medium text-[var(--accent)]">
               {member.relationship}
             </span>
           )}
-          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm text-[var(--muted)]">
-            {shortBirthday && <span>Born {shortBirthday}</span>}
-            {member.contact_email && <span>{member.contact_email}</span>}
-          </div>
+          {shortBirthday && (
+            <span className="text-xs text-[var(--muted)]">Born {shortBirthday}</span>
+          )}
+        </div>
+        {member.contact_email && (
+          <p className="mt-1.5 truncate text-xs text-[var(--muted)]">{member.contact_email}</p>
+        )}
+        {status && (
           <div className="mt-2">
-            {member.user_id ? (
+            {status === "signed_in" ? (
               <span className="inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 border border-emerald-200">Signed In</span>
             ) : (
               <span className="inline-block rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 border border-amber-200">Pending Invitation</span>
             )}
           </div>
-        </div>
-        <div className="flex w-full shrink-0 gap-2 sm:w-auto">
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            disabled={loading}
-            className="rounded-lg border border-[var(--border)] p-2 text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] disabled:opacity-50"
-            title="Edit"
-            aria-label="Edit member"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-          </button>
-          <button
-            type="button"
-            onClick={handleRemove}
-            disabled={loading}
-            className={`rounded-lg border p-2 disabled:opacity-50 ${
-              confirmRemove
-                ? "border-red-300 bg-red-50 text-red-600 hover:bg-red-100"
-                : "border-[var(--border)] text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-red-600"
-            }`}
-            title={confirmRemove ? "Click again to remove" : "Remove"}
-            aria-label="Remove member"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-          </button>
-        </div>
+        )}
       </div>
+
       {confirmRemove && (
-        <p className="mt-3 text-sm text-[var(--muted)]">
+        <p className="mt-3 text-center text-sm text-[var(--muted)]">
           Remove {member.name}? Click the trash icon again to confirm.
         </p>
       )}
