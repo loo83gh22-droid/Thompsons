@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: false, // Prevents duplicate map in dev (Strict Mode double-mount)
   // Explicit root so build doesn't infer wrong workspace (e.g. on Vercel)
   turbopack: { root: "." },
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
   images: supabaseHost
     ? {
         remotePatterns: [
