@@ -140,10 +140,10 @@ export default function PrivacyPage() {
             <p className="mt-2">
               For privacy questions or data requests, email us at{" "}
               <a
-                href="mailto:privacy@ourfamilynest.com"
+                href="mailto:privacy@familynest.io"
                 className="text-[var(--primary)] hover:underline"
               >
-                privacy@ourfamilynest.com
+                privacy@familynest.io
               </a>
             </p>
           </section>

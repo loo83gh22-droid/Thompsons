@@ -3,6 +3,7 @@ import "./globals.css";
 import { MosaicBackground } from "./components/MosaicBackground";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import {
   Inter,
   DM_Sans,
@@ -48,18 +49,18 @@ const bangers = Bangers({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://thompsons.vercel.app"),
-  alternates: {
-    canonical: "/",
-  },
+  metadataBase: new URL("https://familynest.io"),
   title: "Our Family Nest | Private. Permanent. Yours.",
   description:
     "A private space for families to document their lives together. Journals, photos, videos, voice memos, and more. Not social media. A family heirloom.",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "Our Family Nest",
     description:
       "Document your family's life. Share it privately with the people who matter, no matter where they live.",
-    url: "https://thompsons.vercel.app",
+    url: "https://familynest.io",
     siteName: "Our Family Nest",
     images: [
       {
@@ -91,12 +92,24 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${dmSans.variable} ${dmSerifDisplay.variable} ${cormorantGaramond.variable} ${bangers.variable}`}
     >
+      <head>
+        <link
+          rel="preconnect"
+          href="https://tstbngohenxrbqroejth.supabase.co"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="dns-prefetch"
+          href="https://tstbngohenxrbqroejth.supabase.co"
+        />
+      </head>
       <body className="antialiased">
         <MosaicBackground />
         {children}
         <Analytics />
         <SpeedInsights />
       </body>
+      <GoogleAnalytics gaId="G-VE8BK3627V" />
     </html>
   );
 }

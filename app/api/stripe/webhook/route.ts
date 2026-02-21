@@ -136,7 +136,7 @@ export async function POST(request: Request) {
 
       default:
         // Unhandled event type — that's fine, just log it
-        console.log(`Unhandled Stripe event: ${event.type}`);
+        // Unhandled event type — ignored
     }
   } catch (err) {
     console.error(`Error handling ${event.type}:`, err);

@@ -1,8 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { MemberList } from "../members/MemberList";
-import { FamilyTreeView } from "./FamilyTreeView";
+
+const FamilyTreeView = dynamic(
+  () => import("./FamilyTreeView").then((m) => m.FamilyTreeView),
+  { loading: () => <div className="flex items-center justify-center py-12 text-sm" style={{ color: "var(--muted)" }}>Loading family tree...</div> }
+);
 import { MemberDetailsPanel } from "./MemberDetailsPanel";
 import type { OurFamilyMember } from "./page";
 import type { OurFamilyRelationship } from "./page";

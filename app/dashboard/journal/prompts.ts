@@ -76,7 +76,7 @@ Generate 3 opening sentences for this family memory.`,
       .filter((line) => line.trim().length > 0)
       .slice(0, 3) || [];
 
-    console.log(`✅ Generated ${prompts.length} writing prompts`);
+    // prompts generated successfully
 
     return {
       success: true,
