@@ -23,8 +23,9 @@ export async function POST(request: NextRequest) {
       .eq('family_id', familyId)
       .single();
 
-    const familyRecord = member?.families as { name: string } | null;
-    const familyName = familyRecord?.name || 'Your Family';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const familyRecord = member?.families as any;
+    const familyName: string = familyRecord?.name || 'Your Family';
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://familynest.io';
     const safeName = esc(name || 'there');
