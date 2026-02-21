@@ -9,7 +9,8 @@ export async function createTimeCapsule(
   title: string,
   content: string,
   unlockDate: string,
-  memberIds?: string[]
+  memberIds?: string[],
+  unlockOnPassing?: boolean
 ) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -33,6 +34,7 @@ export async function createTimeCapsule(
     title: title.trim(),
     content: content.trim(),
     unlock_date: unlockDate,
+    unlock_on_passing: unlockOnPassing ?? false,
   }).select("id").single();
 
   if (error) throw error;
@@ -53,8 +55,46 @@ export async function deleteTimeCapsule(id: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
+  // RLS policy already ensures only sender can delete
   const { error } = await supabase.from("time_capsules").delete().eq("id", id);
   if (error) throw error;
   revalidatePath("/dashboard/time-capsules");
   revalidatePath(`/dashboard/time-capsules/${id}`);
+}
+
+/**
+ * Mark a family member as passed/remembered.
+ * This triggers unlock_on_passing time capsules.
+ */
+export async function markMemberAsPassed(memberId: string, passedDate: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
+  // Only owners can mark members as passed
+  const { data: myMember } = await supabase
+    .from("family_members")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+
+  if (!myMember || myMember.role !== "owner") {
+    throw new Error("Only the family owner can mark a member as passed");
+  }
+
+  const { error } = await supabase
+    .from("family_members")
+    .update({
+      is_remembered: true,
+      passed_date: passedDate,
+    })
+    .eq("id", memberId)
+    .eq("family_id", activeFamilyId);
+
+  if (error) throw error;
+  revalidatePath("/dashboard/time-capsules");
+  revalidatePath("/dashboard");
 }
