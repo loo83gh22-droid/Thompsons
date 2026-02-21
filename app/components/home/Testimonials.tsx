@@ -1,4 +1,4 @@
-import { Coffee, Heart, Smartphone } from "lucide-react";
+import { Coffee, Heart, Smartphone, Users, Gift, Sparkles } from "lucide-react";
 
 export function Testimonials() {
   const stories = [
@@ -6,7 +6,25 @@ export function Testimonials() {
       icon: Coffee,
       scenario: "The Grandma Test",
       story:
-        "Picture this: Grandma opens the Nest with her morning coffee. New photos from the grandkids, a voice memo from her daughter, a recipe someone finally wrote down. No passwords to remember. No confusing feeds. Just her family.",
+        "I open the Nest with my morning coffee. New photos from the grandkids, a voice memo from my daughter, a recipe someone finally wrote down. No passwords to remember. No confusing feeds. Just my family.",
+    },
+    {
+      icon: Gift,
+      scenario: "The Dad Who Nailed Christmas",
+      story:
+        "He set up the Nest, uploaded 20 years of family photos, invited everyone, and wrapped the login on a card. His mom cried. His wife said it was the best gift he\u2019d ever given. It cost less than a sweater.",
+    },
+    {
+      icon: Users,
+      scenario: "The Grandparent in Two Families",
+      story:
+        "My son started a Nest for his family. My daughter started one for hers. I'm in both — I just switch between them. I see my grandkids on both sides, all from one account. No juggling apps or group chats.",
+    },
+    {
+      icon: Sparkles,
+      scenario: "The Mom Who Stopped Being the Memory Manager",
+      story:
+        "I used to be the only one saving photos and writing things down. Now Dad posts from the fishing trip, Grandma shares her recipes, and the kids add their own stuff. I'm not the family archivist anymore — everyone contributes.",
     },
     {
       icon: Heart,

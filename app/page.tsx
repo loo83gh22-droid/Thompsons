@@ -1,5 +1,6 @@
 import { Navbar } from "./components/home/Navbar";
 import { HeroSection } from "./components/home/HeroSection";
+import { HowItWorks } from "./components/home/HowItWorks";
 import { FeaturesBento } from "./components/home/FeaturesBento";
 import { AdditionalFeatures } from "./components/home/AdditionalFeatures";
 import { WorldMapSection } from "./components/home/WorldMapSection";
@@ -34,10 +35,26 @@ const faqStructuredData = {
     },
     {
       "@type": "Question",
-      name: "Can my 80-year-old grandma actually use this?",
+      name: "Can I be in more than one family?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes! We designed Our Family Nest to be simple enough for grandparents who struggle with tech. Big buttons, clear labels, and no confusing settings. Many families tell us their grandparents check the Nest daily\u2014it's that easy.",
+        text: "Yes! If your son starts a Nest and your daughter starts a different one, you can be a member of both. You only need one account — no matter how many families you belong to.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "I'm a grandparent — is this easy enough for me?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Absolutely. We designed Our Family Nest with grandparents in mind from day one. Big buttons, clear labels, and no confusing settings. If you can check email, you can use the Nest.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Who pays — me or the person who starts the Nest?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Only the Nest creator picks a plan. Everyone else joins for free. Members can belong to unlimited Nests with one account.",
       },
     },
     {
@@ -46,6 +63,22 @@ const faqStructuredData = {
       acceptedAnswer: {
         "@type": "Answer",
         text: "Google Photos and iCloud store photos, but Our Family Nest preserves your family's story. You get journals, voice memos, recipes, traditions, family trees, and a timeline\u2014all in one place. Plus, it's designed for sharing across generations, not just storing files.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can I give this as a gift?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Absolutely. Start a Nest, upload some family photos, then invite the family. Many people wrap the login details on a card for Christmas or Mother\u2019s Day. The Legacy plan is especially popular as a gift since it\u2019s a one-time purchase that lasts forever.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Will my family actually use this?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "That\u2019s the number one concern we hear \u2014 and the answer is yes. The Nest is designed so everyone can contribute on their own terms. Dad posts a fishing photo, Grandma shares a recipe, the kids add a silly video. You don\u2019t have to be the family archivist. Once one person starts, others jump in naturally.",
       },
     },
     {
@@ -136,6 +169,7 @@ export default function HomePage() {
       <Navbar />
       <main>
         <HeroSection />
+        <HowItWorks />
         <FeaturesBento />
         <WorldMapSection />
         <AdditionalFeatures />

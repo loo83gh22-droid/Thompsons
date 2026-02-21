@@ -10,6 +10,7 @@ const plans = [
     features: ["10 journal entries", "500 MB storage", "Family tree", "Map view"],
     cta: "Get Started Free",
     featured: false,
+    note: null as string | null,
   },
   {
     name: "The Full Nest",
@@ -24,21 +25,23 @@ const plans = [
     ],
     cta: "Start Your Family Nest",
     featured: false,
+    note: null as string | null,
   },
   {
     name: "The Legacy",
     price: "$349",
     period: " one-time",
-    description: "Pay once, keep it forever. Seriously.",
+    description: "The forever gift. Pay once, keep it for generations.",
     features: [
       "Lifetime access",
       "50 GB storage",
-      "Ownership transfer",
+      "Hand it down to the next generation",
       "Full data export",
       "Everything in Full Nest",
     ],
-    cta: "Claim Your Legacy",
+    cta: "Give Your Family a Legacy",
     featured: true,
+    note: "Makes a perfect holiday or Mother\u2019s Day gift",
   },
 ];
 
@@ -66,6 +69,11 @@ export function PricingCards() {
           </h2>
           <p className="text-lg leading-relaxed" style={{ color: "var(--muted)" }}>
             Start free. Upgrade whenever you&apos;re ready. No pressure.
+          </p>
+          <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
+            Only the Nest creator picks a plan — everyone else joins for free.
+            <br />
+            Members can belong to unlimited Nests with one account.
           </p>
         </div>
 
@@ -165,6 +173,14 @@ export function PricingCards() {
               >
                 {plan.cta}
               </Link>
+              {plan.note && (
+                <p
+                  className="mt-3 text-center text-xs"
+                  style={{ color: "var(--muted)", fontStyle: "italic" }}
+                >
+                  {plan.note}
+                </p>
+              )}
             </div>
           ))}
         </div>

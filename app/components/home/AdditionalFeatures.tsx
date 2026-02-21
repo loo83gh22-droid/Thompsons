@@ -1,4 +1,5 @@
 const additionalFeatures = [
+  "Multi-Family Support",
   "Family Messages",
   "Sports & Activities",
   "Family Traditions",
@@ -7,6 +8,7 @@ const additionalFeatures = [
   "Shareable Links",
   "Kid Accounts",
   "Family Spotify",
+  "Works on Any Device",
 ];
 
 export function AdditionalFeatures() {

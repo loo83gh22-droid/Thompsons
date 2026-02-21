@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, MapPin, Camera, Mic, Heart, Users } from "lucide-react";
+import { ArrowRight, BookOpen, MapPin, Camera, Mic, Heart, Users, Shield, ChevronDown } from "lucide-react";
 
 export function HeroSection() {
   return (
@@ -31,7 +31,8 @@ export function HeroSection() {
               >
                 A private, beautiful space where grandparents, parents, aunts, uncles, teens,
                 and kids all come together. Journals, photos, videos, voice memos, recipes,
-                and so much more. You start it. Your whole family makes it theirs.
+                and so much more. Join your daughter&apos;s nest, your son&apos;s nest, or start
+                your own — all from one account.
               </p>
             </div>
 
@@ -52,9 +53,23 @@ export function HeroSection() {
                   Free forever &middot; No credit card needed
                 </p>
               </div>
-              <p className="text-sm font-medium" style={{ color: "var(--muted)" }}>
-                🏡 Built by a family, for families — now open to everyone
+              <p className="text-sm" style={{ color: "var(--muted)" }}>
+                Someone invited you?{" "}
+                <Link
+                  href="/login?mode=signup"
+                  className="font-semibold underline underline-offset-4 transition-colors"
+                  style={{ color: "var(--primary)" }}
+                >
+                  Join an existing Nest
+                </Link>
               </p>
+              {/* Trust signal */}
+              <div className="flex items-center gap-2 mt-1">
+                <Shield className="h-4 w-4" style={{ color: "var(--primary)" }} />
+                <p className="text-xs" style={{ color: "var(--muted)" }}>
+                  Bank-level encryption &middot; Private by default &middot; Your data, always yours
+                </p>
+              </div>
             </div>
           </div>
 
@@ -78,7 +93,7 @@ export function HeroSection() {
                   className="mx-auto rounded-md px-12 py-1 text-[10px]"
                   style={{ backgroundColor: "var(--background)", color: "var(--muted)" }}
                 >
-                  ourfamilynest.com
+                  familynest.io
                 </div>
               </div>
 
@@ -89,12 +104,38 @@ export function HeroSection() {
                   className="hidden sm:flex w-44 shrink-0 flex-col gap-1 p-3"
                   style={{ borderRight: "1px solid var(--border)", backgroundColor: "var(--surface)" }}
                 >
-                  <p
-                    className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-wider"
-                    style={{ color: "var(--muted)" }}
+                  {/* Family switcher */}
+                  <div
+                    className="mb-1 flex items-center justify-between rounded-lg px-2 py-1.5"
+                    style={{ backgroundColor: "rgba(61,107,94,0.08)", border: "1px solid var(--border)" }}
                   >
-                    The Thompsons
-                  </p>
+                    <p
+                      className="text-[10px] font-semibold uppercase tracking-wider"
+                      style={{ color: "var(--foreground)" }}
+                    >
+                      The Thompsons
+                    </p>
+                    <ChevronDown className="h-3 w-3" style={{ color: "var(--muted)" }} />
+                  </div>
+                  {/* Switcher hint — other family */}
+                  <div
+                    className="mb-2 flex items-center gap-1.5 rounded-lg px-2 py-1"
+                    style={{ backgroundColor: "transparent" }}
+                  >
+                    <div
+                      className="h-1.5 w-1.5 rounded-full"
+                      style={{ backgroundColor: "var(--accent)" }}
+                    />
+                    <p className="text-[9px]" style={{ color: "var(--muted)" }}>
+                      The Garcias
+                    </p>
+                    <span
+                      className="ml-auto rounded-full px-1 py-0.5 text-[7px] font-medium"
+                      style={{ backgroundColor: "var(--accent)", color: "#fff" }}
+                    >
+                      3 new
+                    </span>
+                  </div>
                   {[
                     { icon: BookOpen, label: "Journal", active: true },
                     { icon: Camera, label: "Photos", active: false },
