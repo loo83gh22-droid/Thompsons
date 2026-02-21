@@ -25,8 +25,7 @@ export function AddMemberForm({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [open, setOpen] = useState(false);
-  const [linkType, setLinkType] = useState<"" | "spouse" | "child" | "parent">("");
-  const [linkMemberId, setLinkMemberId] = useState("");
+  const [links, setLinks] = useState<{ type: "spouse" | "child" | "parent"; memberId: string }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -80,11 +79,14 @@ export function AddMemberForm({
         avatarUrl
       );
 
-      if (result?.id && linkType && linkMemberId) {
-        if (linkType === "parent") {
-          await addRelationship(linkMemberId, result.id, "child");
-        } else {
-          await addRelationship(result.id, linkMemberId, linkType as "spouse" | "child");
+      const validLinks = links.filter((l) => l.memberId);
+      if (result?.id && validLinks.length > 0) {
+        for (const link of validLinks) {
+          if (link.type === "parent") {
+            await addRelationship(link.memberId, result.id, "child");
+          } else {
+            await addRelationship(result.id, link.memberId, link.type);
+          }
         }
       }
 
@@ -94,13 +96,12 @@ export function AddMemberForm({
       setEmail("");
       setBirthDate("");
       setBirthPlace("");
-      setLinkType("");
-      setLinkMemberId("");
+      setLinks([]);
       clearPhoto();
 
       let text = "Member added. Add another or close.";
       if (result?.birthdayEventAdded) text += " Birthday added to Family Events!";
-      if (result?.id && linkType && linkMemberId) text += " Linked in tree.";
+      if (result?.id && validLinks.length > 0) text += " Linked in tree.";
       setMessage({ type: "success", text });
     } catch (err) {
       setMessage({
@@ -220,29 +221,56 @@ export function AddMemberForm({
             {linkMembers.length > 0 && (
               <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-hover)]/50 p-3">
                 <h4 className="text-sm font-medium text-[var(--foreground)]">Link in family tree (optional)</h4>
-                <p className="mt-0.5 text-xs text-[var(--muted)]">Connect this person to someone already in the family.</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <select
-                    value={linkType}
-                    onChange={(e) => setLinkType(e.target.value as "" | "spouse" | "child" | "parent")}
-                    className="input-base min-h-0 flex-1 py-1.5 text-sm"
+                <p className="mt-0.5 text-xs text-[var(--muted)]">Connect this person to family members. You can add multiple links.</p>
+                <div className="mt-2 space-y-2">
+                  {links.map((link, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <select
+                        value={link.type}
+                        onChange={(e) => {
+                          const next = [...links];
+                          next[i] = { ...next[i], type: e.target.value as "spouse" | "child" | "parent" };
+                          setLinks(next);
+                        }}
+                        className="input-base min-h-0 flex-1 py-1.5 text-sm"
+                      >
+                        <option value="spouse">Spouse of</option>
+                        <option value="child">Child of</option>
+                        <option value="parent">Parent of</option>
+                      </select>
+                      <select
+                        value={link.memberId}
+                        onChange={(e) => {
+                          const next = [...links];
+                          next[i] = { ...next[i], memberId: e.target.value };
+                          setLinks(next);
+                        }}
+                        className="input-base min-h-0 flex-1 py-1.5 text-sm"
+                      >
+                        <option value="">Select member</option>
+                        {linkMembers.map((m) => (
+                          <option key={m.id} value={m.id}>{m.nickname?.trim() || m.name}</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => setLinks(links.filter((_, j) => j !== i))}
+                        className="shrink-0 rounded-md p-1.5 text-[var(--muted)] hover:bg-red-50 hover:text-red-500"
+                        aria-label="Remove link"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                          <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setLinks([...links, { type: "child", memberId: "" }])}
+                    className="text-sm font-medium text-[var(--accent)] hover:underline"
                   >
-                    <option value="">No link</option>
-                    <option value="spouse">Spouse of</option>
-                    <option value="child">Child of</option>
-                    <option value="parent">Parent of</option>
-                  </select>
-                  <select
-                    value={linkMemberId}
-                    onChange={(e) => setLinkMemberId(e.target.value)}
-                    disabled={!linkType}
-                    className="input-base min-h-0 flex-1 py-1.5 text-sm disabled:opacity-50"
-                  >
-                    <option value="">Select member</option>
-                    {linkMembers.map((m) => (
-                      <option key={m.id} value={m.id}>{m.nickname?.trim() || m.name}</option>
-                    ))}
-                  </select>
+                    + Add link
+                  </button>
                 </div>
               </div>
             )}
