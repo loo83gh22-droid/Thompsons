@@ -9,7 +9,7 @@
 
 ## Context
 
-Our Family Nest has comprehensive features but lacks AI-powered enhancements that would:
+Family Nest has comprehensive features but lacks AI-powered enhancements that would:
 - **Increase stickiness**: Voice transcription makes memos searchable forever
 - **Reduce friction**: Recipe URL parsing saves 10 minutes per recipe entry
 - **Encourage engagement**: Journal writing prompts eliminate blank-page anxiety

@@ -5,7 +5,7 @@ import { UpgradeButton } from "./UpgradeButton";
 import { PaymentCancelledBanner } from "./PaymentCancelledBanner";
 
 export const metadata: Metadata = {
-  title: "Pricing — Our Family Nest",
+  title: "Pricing — Family Nest",
   description:
     "Choose the right plan for your family. Free, Annual, or Lifetime Legacy access.",
   alternates: {
