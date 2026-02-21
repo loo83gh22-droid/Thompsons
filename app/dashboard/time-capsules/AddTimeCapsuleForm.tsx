@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
 import { createTimeCapsule } from "./actions";
+import { MemberSelect } from "@/app/components/MemberSelect";
 
 type Member = { id: string; name: string; birth_date: string | null };
 
@@ -15,7 +16,7 @@ export function AddTimeCapsuleForm({ onAdded }: { onAdded?: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
-  const [toId, setToId] = useState("");
+  const [selectedRecipientIds, setSelectedRecipientIds] = useState<string[]>([]);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [unlockDate, setUnlockDate] = useState("");
@@ -35,19 +36,22 @@ export function AddTimeCapsuleForm({ onAdded }: { onAdded?: () => void }) {
     fetchMembers();
   }, [activeFamilyId]);
 
-  function handleRecipientChange(memberId: string) {
-    setToId(memberId);
-    const member = members.find((m) => m.id === memberId);
-    if (member?.birth_date && useAge18) {
-      const [y, m, d] = member.birth_date.split("-").map(Number);
-      setUnlockDate(`${y + 18}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
+  function handleRecipientChange(ids: string[]) {
+    setSelectedRecipientIds(ids);
+    // Auto-set unlock date for the first selected member if useAge18 is on
+    if (ids.length > 0) {
+      const member = members.find((m) => m.id === ids[0]);
+      if (member?.birth_date && useAge18) {
+        const [y, m, d] = member.birth_date.split("-").map(Number);
+        setUnlockDate(`${y + 18}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
+      }
     }
   }
 
   function handleAge18Toggle() {
     setUseAge18((prev) => !prev);
-    if (!useAge18 && toId) {
-      const member = members.find((m) => m.id === toId);
+    if (!useAge18 && selectedRecipientIds.length > 0) {
+      const member = members.find((m) => m.id === selectedRecipientIds[0]);
       if (member?.birth_date) {
         const [y, m, d] = member.birth_date.split("-").map(Number);
         setUnlockDate(`${y + 18}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
@@ -60,8 +64,8 @@ export function AddTimeCapsuleForm({ onAdded }: { onAdded?: () => void }) {
     setLoading(true);
     setError(null);
     try {
-      await createTimeCapsule(toId, title, content, unlockDate);
-      setToId("");
+      await createTimeCapsule(selectedRecipientIds[0], title, content, unlockDate, selectedRecipientIds);
+      setSelectedRecipientIds([]);
       setTitle("");
       setContent("");
       setUnlockDate("");
@@ -101,24 +105,14 @@ export function AddTimeCapsuleForm({ onAdded }: { onAdded?: () => void }) {
       </p>
 
       <div className="mt-6 space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-[var(--muted)]">
-            For
-          </label>
-          <select
-            value={toId}
-            onChange={(e) => handleRecipientChange(e.target.value)}
-            required
-            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
-          >
-            <option value="">Select family member...</option>
-            {members.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <MemberSelect
+          members={members}
+          selectedIds={selectedRecipientIds}
+          onChange={handleRecipientChange}
+          label="For"
+          hint="Select who this letter is for."
+          required
+        />
 
         <div>
           <label className="block text-sm font-medium text-[var(--muted)]">
@@ -140,12 +134,12 @@ export function AddTimeCapsuleForm({ onAdded }: { onAdded?: () => void }) {
             id="age18"
             checked={useAge18}
             onChange={handleAge18Toggle}
-            disabled={!toId || !members.find((m) => m.id === toId)?.birth_date}
+            disabled={selectedRecipientIds.length === 0 || !members.find((m) => m.id === selectedRecipientIds[0])?.birth_date}
             className="rounded border-[var(--border)]"
           />
           <label htmlFor="age18" className="text-sm text-[var(--muted)]">
             Unlock when they turn 18
-            {toId && !members.find((m) => m.id === toId)?.birth_date && (
+            {selectedRecipientIds.length > 0 && !members.find((m) => m.id === selectedRecipientIds[0])?.birth_date && (
               <span className="ml-1 text-[var(--muted)]/70">(add birth date on Members)</span>
             )}
           </label>

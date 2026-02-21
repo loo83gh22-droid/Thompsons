@@ -51,8 +51,10 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
     }
 
     // Extract and validate FormData
+    const memberIds = formData.getAll("member_ids").map(String).filter(Boolean);
     const rawData = {
-      family_member_id: getFormString(formData, "family_member_id"),
+      family_member_id: memberIds[0] || null,
+      member_ids: memberIds,
       title: getFormString(formData, "title"),
       content: getFormString(formData, "content"),
       location: getFormString(formData, "location"),
@@ -82,7 +84,7 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
       .from("journal_entries")
       .insert({
         family_id: activeFamilyId,
-        author_id: input.family_member_id,
+        author_id: input.member_ids[0],
         created_by: myMember?.id || null,
         title: input.title,
         content: input.content,
@@ -95,6 +97,16 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
 
     if (entryError) return { success: false, error: entryError.message || "Failed to save entry." };
     if (!entry?.id) return { success: false, error: "Failed to save entry." };
+
+    // Insert junction table rows for all selected members
+    if (input.member_ids.length > 0) {
+      await supabase.from("journal_entry_members").insert(
+        input.member_ids.map((memberId: string) => ({
+          journal_entry_id: entry.id,
+          family_member_id: memberId,
+        }))
+      );
+    }
 
   // If location provided, geocode (if needed) and create map pin with clustering
   if (input.location?.trim()) {
@@ -166,9 +178,9 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
         }
 
         const yearVisited = input.trip_date ? new Date(input.trip_date).getFullYear() : null;
-        await supabase.from("travel_locations").insert({
+        const { data: travelLoc } = await supabase.from("travel_locations").insert({
           family_id: activeFamilyId,
-          family_member_id: input.family_member_id,
+          family_member_id: input.member_ids[0],
           lat,
           lng,
           location_name: input.location.trim(),
@@ -180,7 +192,17 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
           location_cluster_id: locationClusterId,
           location_type:
             input.location_type === "vacation" || input.location_type === "memorable" ? input.location_type : null,
-        });
+        }).select("id").single();
+
+        // Insert junction table rows for travel location members
+        if (travelLoc?.id && input.member_ids.length > 0) {
+          await supabase.from("travel_location_members").insert(
+            input.member_ids.map((memberId: string) => ({
+              travel_location_id: travelLoc.id,
+              family_member_id: memberId,
+            }))
+          );
+        }
       }
     } catch {
       // Geocoding failed - journal entry still saved, just no map pin
@@ -296,8 +318,10 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
   if (!activeFamilyId) throw new Error("No active family");
 
   // Extract and validate FormData
+  const memberIds = formData.getAll("member_ids").map(String).filter(Boolean);
   const rawData = {
-    family_member_id: getFormString(formData, "family_member_id"),
+    family_member_id: memberIds[0] || null,
+    member_ids: memberIds,
     title: getFormString(formData, "title"),
     content: getFormString(formData, "content"),
     location: getFormString(formData, "location"),
@@ -315,10 +339,21 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
 
   const input = validation.data;
 
+  // Update junction table: delete old, insert new
+  await supabase.from("journal_entry_members").delete().eq("journal_entry_id", entryId);
+  if (input.member_ids.length > 0) {
+    await supabase.from("journal_entry_members").insert(
+      input.member_ids.map((memberId: string) => ({
+        journal_entry_id: entryId,
+        family_member_id: memberId,
+      }))
+    );
+  }
+
   const { error: updateError } = await supabase
     .from("journal_entries")
     .update({
-      author_id: input.family_member_id,
+      author_id: input.member_ids[0],
       title: input.title,
       content: input.content,
       location: input.location,
@@ -393,9 +428,9 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
           date,
         });
         const yearVisited = input.trip_date ? new Date(input.trip_date).getFullYear() : null;
-        await supabase.from("travel_locations").insert({
+        const { data: travelLoc } = await supabase.from("travel_locations").insert({
           family_id: activeFamilyId,
-          family_member_id: input.family_member_id,
+          family_member_id: input.member_ids[0],
           lat,
           lng,
           location_name: input.location.trim(),
@@ -407,7 +442,17 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
           location_cluster_id: locationClusterId,
           location_type:
             input.location_type === "vacation" || input.location_type === "memorable" ? input.location_type : null,
-        });
+        }).select("id").single();
+
+        // Insert junction table rows for travel location members
+        if (travelLoc?.id && input.member_ids.length > 0) {
+          await supabase.from("travel_location_members").insert(
+            input.member_ids.map((memberId: string) => ({
+              travel_location_id: travelLoc.id,
+              family_member_id: memberId,
+            }))
+          );
+        }
       }
     } catch {
       // Geocoding failed – entry updated, map pin may be missing

@@ -6,6 +6,7 @@ import { getActiveFamilyId } from "@/src/lib/family";
 
 export type AddAchievementData = {
   familyMemberId?: string;
+  memberIds?: string[];
   what: string;
   achievementDate?: string;
   location?: string;
@@ -48,7 +49,7 @@ export async function addAchievement(
 
   const nextOrder = (last?.[0]?.sort_order ?? -1) + 1;
 
-  const { error: insertError } = await supabase.from("achievements").insert({
+  const { data: row, error: insertError } = await supabase.from("achievements").insert({
     family_id: activeFamilyId,
     family_member_id: data.familyMemberId || null,
     what: data.what.trim(),
@@ -57,9 +58,18 @@ export async function addAchievement(
     description: data.description?.trim() || null,
     attachment_url: attachmentUrl,
     sort_order: nextOrder,
-  });
+  }).select("id").single();
 
   if (insertError) throw insertError;
+
+  // Insert junction table rows for all selected members
+  const ids = data.memberIds?.filter(Boolean) ?? [];
+  if (row?.id && ids.length > 0) {
+    await supabase.from("achievement_members").insert(
+      ids.map((memberId) => ({ achievement_id: row.id, family_member_id: memberId }))
+    );
+  }
+
   revalidatePath("/dashboard/achievements");
 }
 

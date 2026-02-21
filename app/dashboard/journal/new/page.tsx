@@ -11,14 +11,16 @@ import LocationInput from "@/app/components/LocationInput";
 import PhotoUpload from "@/app/components/PhotoUpload";
 import { extractMetadataFromMultiplePhotos } from "@/src/lib/exifExtractor";
 import { canUploadVideos } from "@/src/lib/plans";
+import { MemberSelect } from "@/app/components/MemberSelect";
 
-type FamilyMember = { id: string; name: string; color: string; symbol: string };
+type FamilyMember = { id: string; name: string; color: string | null; symbol: string };
 type DateValue = Date | DateRange;
 
 export default function NewJournalPage() {
   const { activeFamilyId, planType } = useFamily();
   const videosAllowed = canUploadVideos(planType);
   const [members, setMembers] = useState<FamilyMember[]>([]);
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [prompts, setPrompts] = useState<string[]>([]);
@@ -71,7 +73,8 @@ export default function NewJournalPage() {
     try {
       const form = e.currentTarget;
       const formData = new FormData();
-      formData.set("family_member_id", (form.elements.namedItem("family_member_id") as HTMLSelectElement).value);
+      // member_ids are set via hidden inputs from MemberSelect
+      selectedMemberIds.forEach((id) => formData.append("member_ids", id));
       formData.set("title", (form.elements.namedItem("title") as HTMLInputElement).value);
       formData.set("content", (form.elements.namedItem("content") as HTMLTextAreaElement).value);
       const startDate = date instanceof Date ? date : date.start;
@@ -135,28 +138,15 @@ export default function NewJournalPage() {
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-[var(--muted)]">
-            Who is this about?
-          </label>
-          <select
-            name="family_member_id"
-            required
-            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
-          >
-            <option value="">
-              {members.length === 0 ? "Loading..." : "Select person or Family..."}
-            </option>
-            {members.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
-          <p className="mt-1 text-xs text-[var(--muted)]">
-            Choose &quot;Family&quot; for trips you took together. This also sets the map pin colour.
-          </p>
-        </div>
+        <MemberSelect
+          members={members}
+          selectedIds={selectedMemberIds}
+          onChange={setSelectedMemberIds}
+          label="Who is this about?"
+          hint="Select everyone involved, or use Select All for the whole family."
+          required
+          name="member_ids"
+        />
 
         <div>
           <label className="block text-sm font-medium text-[var(--muted)]">
@@ -294,7 +284,7 @@ export default function NewJournalPage() {
         <div className="flex gap-4">
           <button
             type="submit"
-            disabled={loading || members.length === 0}
+            disabled={loading || members.length === 0 || selectedMemberIds.length === 0}
             className="rounded-full bg-[var(--primary)] px-6 py-3 font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
           >
             {loading ? "Saving..." : "Save entry"}

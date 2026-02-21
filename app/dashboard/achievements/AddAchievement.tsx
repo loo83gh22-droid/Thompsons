@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { addAchievement } from "./actions";
+import { MemberSelect } from "@/app/components/MemberSelect";
 
 type Member = { id: string; name: string };
 
@@ -10,7 +11,7 @@ export function AddAchievement({ members }: { members: Member[] }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [who, setWho] = useState("");
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [what, setWhat] = useState("");
   const [when, setWhen] = useState("");
   const [where, setWhere] = useState("");
@@ -23,13 +24,14 @@ export function AddAchievement({ members }: { members: Member[] }) {
     setLoading(true);
     try {
       await addAchievement(file ?? null, {
-        familyMemberId: who || undefined,
+        familyMemberId: selectedMemberIds[0] || undefined,
+        memberIds: selectedMemberIds,
         what: what.trim(),
         achievementDate: when || undefined,
         location: where.trim() || undefined,
         description: description.trim() || undefined,
       });
-      setWho("");
+      setSelectedMemberIds([]);
       setWhat("");
       setWhen("");
       setWhere("");
@@ -54,21 +56,15 @@ export function AddAchievement({ members }: { members: Member[] }) {
             Add achievement
           </h3>
 
-          <label className="mb-1 block text-sm font-medium text-[var(--sports-dark)]">
-            Who did it
-          </label>
-          <select
-            value={who}
-            onChange={(e) => setWho(e.target.value)}
-            className="mb-3 w-full rounded border border-[var(--sports-border)] bg-white px-4 py-2 text-[var(--sports-dark)] focus:border-[var(--sports-gold)] focus:outline-none"
-          >
-            <option value="">Select family member</option>
-            {members.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
+          <div className="mb-3">
+            <MemberSelect
+              members={members}
+              selectedIds={selectedMemberIds}
+              onChange={setSelectedMemberIds}
+              label="Who did it"
+              hint="Select everyone who was part of this achievement."
+            />
+          </div>
 
           <label className="mb-1 block text-sm font-medium text-[var(--sports-dark)]">
             What was it

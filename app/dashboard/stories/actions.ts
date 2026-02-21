@@ -11,7 +11,8 @@ export async function createStory(
   category: string,
   published: boolean,
   coverUrl?: string | null,
-  authorFamilyMemberId?: string | null
+  authorFamilyMemberId?: string | null,
+  memberIds?: string[]
 ) {
   // Validate input
   const validation = validateSchema(createStorySchema, {
@@ -57,12 +58,22 @@ export async function createStory(
     .select("id")
     .single();
   if (error || !row) return { error: error?.message ?? "Failed to create story" };
+
+  // Insert junction table rows for all selected members
+  const ids = memberIds?.filter(Boolean) ?? [];
+  if (ids.length > 0) {
+    await supabase.from("family_story_members").insert(
+      ids.map((memberId) => ({ story_id: row.id, family_member_id: memberId }))
+    );
+  }
+
   return { id: row.id };
 }
 
 export async function updateStory(
   id: string,
-  updates: { title?: string; content?: string; category?: string; published?: boolean; cover_url?: string | null; author_family_member_id?: string | null }
+  updates: { title?: string; content?: string; category?: string; published?: boolean; cover_url?: string | null; author_family_member_id?: string | null },
+  memberIds?: string[]
 ) {
   // Validate updates
   const validation = validateSchema(updateStorySchema, updates);
@@ -81,6 +92,18 @@ export async function updateStory(
     .update({ ...validatedUpdates, updated_at: new Date().toISOString() })
     .eq("id", id)
     .eq("family_id", activeFamilyId);
+
+  // Sync junction table
+  if (memberIds) {
+    await supabase.from("family_story_members").delete().eq("story_id", id);
+    const ids = memberIds.filter(Boolean);
+    if (ids.length > 0) {
+      await supabase.from("family_story_members").insert(
+        ids.map((memberId) => ({ story_id: id, family_member_id: memberId }))
+      );
+    }
+  }
+
   return { error: error?.message };
 }
 

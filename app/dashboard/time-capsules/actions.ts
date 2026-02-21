@@ -8,7 +8,8 @@ export async function createTimeCapsule(
   toFamilyMemberId: string,
   title: string,
   content: string,
-  unlockDate: string
+  unlockDate: string,
+  memberIds?: string[]
 ) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -25,16 +26,25 @@ export async function createTimeCapsule(
 
   if (!myMember) throw new Error("No family member found");
 
-  const { error } = await supabase.from("time_capsules").insert({
+  const { data: row, error } = await supabase.from("time_capsules").insert({
     family_id: activeFamilyId,
     from_family_member_id: myMember.id,
     to_family_member_id: toFamilyMemberId,
     title: title.trim(),
     content: content.trim(),
     unlock_date: unlockDate,
-  });
+  }).select("id").single();
 
   if (error) throw error;
+
+  // Insert junction table rows for all selected recipients
+  const ids = memberIds?.filter(Boolean) ?? [];
+  if (row?.id && ids.length > 0) {
+    await supabase.from("time_capsule_members").insert(
+      ids.map((memberId) => ({ time_capsule_id: row.id, family_member_id: memberId }))
+    );
+  }
+
   revalidatePath("/dashboard/time-capsules");
 }
 
