@@ -16,8 +16,9 @@ import {
 } from "../../actions";
 import { DeleteJournalEntryButton } from "../../DeleteJournalEntryButton";
 import { JournalPerspectives } from "../../JournalPerspectives";
+import { MemberSelect } from "@/app/components/MemberSelect";
 
-type FamilyMember = { id: string; name: string; color: string; symbol: string };
+type FamilyMember = { id: string; name: string; color: string | null; symbol: string };
 type JournalPhoto = { id: string; url: string; caption: string | null };
 type JournalVideo = { id: string; url: string; duration_seconds: number | null; file_size_bytes: number };
 
@@ -28,6 +29,7 @@ export default function EditJournalPage() {
   const { activeFamilyId } = useFamily();
 
   const [members, setMembers] = useState<FamilyMember[]>([]);
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [entry, setEntry] = useState<{
     title: string;
     content: string;
@@ -52,7 +54,7 @@ export default function EditJournalPage() {
     }
     async function load() {
       const supabase = createClient();
-      const [membersRes, entryRes, photosRes, videosRes, pinRes] = await Promise.all([
+      const [membersRes, entryRes, photosRes, videosRes, pinRes, junctionRes] = await Promise.all([
         supabase.from("family_members").select("id, name, color, symbol").eq("family_id", activeFamilyId).order("name"),
         supabase
           .from("journal_entries")
@@ -75,6 +77,10 @@ export default function EditJournalPage() {
           .eq("journal_entry_id", entryId)
           .limit(1)
           .maybeSingle(),
+        supabase
+          .from("journal_entry_members")
+          .select("family_member_id")
+          .eq("journal_entry_id", entryId),
       ]);
 
       if (membersRes.data) setMembers(membersRes.data as FamilyMember[]);
@@ -98,6 +104,14 @@ export default function EditJournalPage() {
       }
       if (photosRes.data) setPhotos(photosRes.data as JournalPhoto[]);
       if (videosRes.data) setVideos(videosRes.data as JournalVideo[]);
+      // Load selected members from junction table, fall back to author_id
+      const junctionIds = (junctionRes.data || []).map((r: { family_member_id: string }) => r.family_member_id);
+      if (junctionIds.length > 0) {
+        setSelectedMemberIds(junctionIds);
+      } else if (entryRes.data) {
+        const e = entryRes.data as { author_id?: string };
+        if (e.author_id) setSelectedMemberIds([e.author_id]);
+      }
       const pin = pinRes.data as { location_type?: string } | null;
       if (pin?.location_type === "vacation" || pin?.location_type === "memorable_event") {
         setLocationType(pin.location_type);
@@ -115,7 +129,7 @@ export default function EditJournalPage() {
     try {
       const form = e.currentTarget;
       const formData = new FormData(form);
-      formData.set("family_member_id", entry.author_id);
+      selectedMemberIds.forEach((id) => formData.append("member_ids", id));
       formData.set("title", entry.title);
       formData.set("content", entry.content);
       formData.set("location", entry.location);
@@ -250,26 +264,15 @@ export default function EditJournalPage() {
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-[var(--muted)]">
-            Who is this about?
-          </label>
-          <select
-            name="family_member_id"
-            required
-            value={entry.author_id}
-            onChange={(e) =>
-              setEntry((prev) => prev && { ...prev, author_id: e.target.value })
-            }
-            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
-          >
-            {members.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <MemberSelect
+          members={members}
+          selectedIds={selectedMemberIds}
+          onChange={setSelectedMemberIds}
+          label="Who is this about?"
+          hint="Select everyone involved, or use Select All for the whole family."
+          required
+          name="member_ids"
+        />
 
         <div>
           <label className="block text-sm font-medium text-[var(--muted)]">

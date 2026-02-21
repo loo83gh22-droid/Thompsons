@@ -5,8 +5,9 @@ import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
 import { canEditMap } from "@/src/lib/plans";
 import Link from "next/link";
+import { MemberSelect } from "@/app/components/MemberSelect";
 
-type FamilyMember = { id: string; name: string; color: string; symbol: string };
+type FamilyMember = { id: string; name: string; color: string | null; symbol: string };
 
 export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
   const { activeFamilyId, planType } = useFamily();
@@ -16,7 +17,7 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [familyMemberId, setFamilyMemberId] = useState("");
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [locationKind, setLocationKind] = useState<"travel" | "lived" | "vacation" | "memorable_event" | "other">("travel");
   const [locationName, setLocationName] = useState("");
   const [locationLabel, setLocationLabel] = useState("");
@@ -170,9 +171,9 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
         setError("No active family selected.");
         return;
       }
-      const { error: insertError } = await supabase.from("travel_locations").insert({
+      const { data: locRow, error: insertError } = await supabase.from("travel_locations").insert({
         family_id: activeFamilyId,
-        family_member_id: familyMemberId,
+        family_member_id: selectedMemberIds[0] || null,
         lat,
         lng,
         location_name: locationName,
@@ -191,11 +192,21 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
                 ? "other"
                 : null,
         location_label: locationLabel.trim() || null,
-      });
+      }).select("id").single();
 
       if (insertError) throw insertError;
 
-      setFamilyMemberId("");
+      // Insert junction table rows for all selected members
+      if (locRow?.id && selectedMemberIds.length > 0) {
+        await supabase.from("travel_location_members").insert(
+          selectedMemberIds.map((memberId) => ({
+            travel_location_id: locRow.id,
+            family_member_id: memberId,
+          }))
+        );
+      }
+
+      setSelectedMemberIds([]);
       setLocationKind("travel");
       setLocationName("");
       setLocationLabel("");
@@ -322,37 +333,22 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
           </div>
         )}
 
-        <div>
-          <label className="block text-sm font-medium text-[var(--muted)]">
-            {locationKind === "lived"
-              ? "Who lived here?"
-              : locationKind === "vacation"
-                ? "Who was on this vacation?"
-                : locationKind === "memorable_event"
-                  ? "Who was at this event?"
-                  : locationKind === "other"
-                    ? "Who is this for?"
-                    : "Who traveled here?"}
-          </label>
-          <select
-            value={familyMemberId}
-            onChange={(e) => setFamilyMemberId(e.target.value)}
-            required
-            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)]"
-          >
-            <option value="">Select...</option>
-            {members.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
-          <p className="mt-1 text-xs text-[var(--muted)]">
-            {locationKind === "lived"
-              ? "Pick the person (or Family if you lived there together)."
-              : 'Choose "Family" for trips or events you did together.'}
-          </p>
-        </div>
+        <MemberSelect
+          members={members}
+          selectedIds={selectedMemberIds}
+          onChange={setSelectedMemberIds}
+          label={locationKind === "lived"
+            ? "Who lived here?"
+            : locationKind === "vacation"
+              ? "Who was on this vacation?"
+              : locationKind === "memorable_event"
+                ? "Who was at this event?"
+                : locationKind === "other"
+                  ? "Who is this for?"
+                  : "Who traveled here?"}
+          hint="Select everyone who was there, or use Select All for the whole family."
+          required
+        />
 
         <div>
           <label className="block text-sm font-medium text-[var(--muted)]">

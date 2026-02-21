@@ -3,15 +3,14 @@ import {
   titleSchema,
   longContentSchema,
   locationNameSchema,
-  latitudeSchema,
-  longitudeSchema,
   optionalDateStringSchema,
   uuidSchema,
 } from "@/src/lib/validation/schemas";
 
 export const createJournalEntrySchema = z
   .object({
-    family_member_id: uuidSchema,
+    family_member_id: uuidSchema.optional().nullable(),
+    member_ids: z.array(uuidSchema).min(1, "Select at least one family member"),
     title: titleSchema,
     content: longContentSchema(50), // 50KB max
     location: locationNameSchema,

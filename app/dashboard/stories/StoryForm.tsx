@@ -7,6 +7,7 @@ import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/client";
 import { createStory, updateStory } from "./actions";
 import { RichTextToolbar } from "./RichTextToolbar";
+import { MemberSelect } from "@/app/components/MemberSelect";
 
 type Member = { id: string; name: string };
 
@@ -44,8 +45,12 @@ export function StoryForm({
   const [title, setTitle] = useState(editStory?.title ?? "");
   const [content, setContent] = useState(editStory?.content ?? "");
   const [category, setCategory] = useState(editStory?.category ?? "memorable_moments");
-  const [authorMemberId, setAuthorMemberId] = useState(
-    editStory?.author_family_member_id ?? defaultAuthorMemberId ?? ""
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>(
+    editStory?.author_family_member_id
+      ? [editStory.author_family_member_id]
+      : defaultAuthorMemberId
+        ? [defaultAuthorMemberId]
+        : []
   );
   const [coverUrl, setCoverUrl] = useState<string | null>(editStory?.cover_url ?? null);
   const [coverUploading, setCoverUploading] = useState(false);
@@ -88,8 +93,8 @@ export function StoryForm({
         category,
         published: publish,
         cover_url: coverUrl,
-        author_family_member_id: authorMemberId || null,
-      });
+        author_family_member_id: selectedMemberIds[0] || null,
+      }, selectedMemberIds);
       setLoading(false);
       if (err.error) {
         setError(err.error);
@@ -105,7 +110,8 @@ export function StoryForm({
       category,
       publish,
       coverUrl,
-      authorMemberId || null
+      selectedMemberIds[0] || null,
+      selectedMemberIds
     );
     setLoading(false);
     if (result.error) {
@@ -193,24 +199,13 @@ export function StoryForm({
         />
       </div>
 
-      <div>
-        <label htmlFor="story-author" className="block text-sm font-medium text-[var(--muted)]">
-          Author
-        </label>
-        <select
-          id="story-author"
-          value={authorMemberId}
-          onChange={(e) => setAuthorMemberId(e.target.value)}
-          className="input-base mt-1"
-        >
-          <option value="">Me (logged-in user)</option>
-          {members.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <MemberSelect
+        members={members}
+        selectedIds={selectedMemberIds}
+        onChange={setSelectedMemberIds}
+        label="Who is this story about?"
+        hint="Select the family members featured in this story."
+      />
 
       <div className="flex flex-wrap items-center gap-4">
         <label className="flex cursor-pointer items-center gap-2">

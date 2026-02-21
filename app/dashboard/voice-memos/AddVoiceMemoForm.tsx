@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/client";
 import { VOICE_MEMO_LIMITS } from "@/src/lib/constants";
 import { insertVoiceMemo } from "./actions";
+import { MemberSelect } from "@/app/components/MemberSelect";
 
 type Member = { id: string; name: string; relationship: string | null };
 
@@ -30,7 +31,7 @@ export function AddVoiceMemoForm({
 
   const [title, setTitle] = useState("");
   const [recordedById, setRecordedById] = useState("");
-  const [recordedForId, setRecordedForId] = useState("");
+  const [recordedForIds, setRecordedForIds] = useState<string[]>([]);
   const [recordedDate, setRecordedDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [description, setDescription] = useState("");
 
@@ -66,7 +67,7 @@ export function AddVoiceMemoForm({
     resetRecording();
     setTitle("");
     setRecordedById("");
-    setRecordedForId("");
+    setRecordedForIds([]);
     setRecordedDate(new Date().toISOString().slice(0, 10));
     setDescription("");
     setError(null);
@@ -202,7 +203,8 @@ export function AddVoiceMemoForm({
       await insertVoiceMemo({
         title: title.trim().slice(0, 100),
         recordedById,
-        recordedForId: recordedForId || null,
+        recordedForId: recordedForIds[0] || null,
+        memberIds: recordedForIds,
         recordedDate,
         description: description.trim().slice(0, 500) || null,
         audioUrl: publicUrl,
@@ -362,24 +364,13 @@ export function AddVoiceMemoForm({
                     </select>
                   </div>
 
-                  <div>
-                    <label htmlFor="vm-for" className="block text-sm font-medium text-[var(--muted)]">
-                      Who is this for?
-                    </label>
-                    <select
-                      id="vm-for"
-                      value={recordedForId}
-                      onChange={(e) => setRecordedForId(e.target.value)}
-                      className="input-base mt-1"
-                    >
-                      <option value="">Select someone (optional)</option>
-                      {members.map((m) => (
-                        <option key={m.id} value={m.id}>
-                          {m.relationship ? `${m.name} (${m.relationship})` : m.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <MemberSelect
+                    members={members}
+                    selectedIds={recordedForIds}
+                    onChange={setRecordedForIds}
+                    label="Who is this for?"
+                    hint="Select the family members this recording is for (optional)."
+                  />
 
                   <div>
                     <label htmlFor="vm-date" className="block text-sm font-medium text-[var(--muted)]">

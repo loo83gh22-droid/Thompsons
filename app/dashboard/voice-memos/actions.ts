@@ -8,6 +8,7 @@ export type VoiceMemoInsert = {
   title: string;
   recordedById: string;
   recordedForId?: string | null;
+  memberIds?: string[];
   recordedDate: string;
   description?: string | null;
   audioUrl: string;
@@ -31,7 +32,7 @@ export async function insertVoiceMemo(data: VoiceMemoInsert) {
     .limit(1);
   const nextOrder = (last?.[0]?.sort_order ?? -1) + 1;
 
-  const { error } = await supabase.from("voice_memos").insert({
+  const { data: row, error } = await supabase.from("voice_memos").insert({
     family_id: activeFamilyId,
     family_member_id: data.recordedById,
     recorded_for_id: data.recordedForId ?? null,
@@ -42,9 +43,18 @@ export async function insertVoiceMemo(data: VoiceMemoInsert) {
     recorded_date: data.recordedDate,
     sort_order: nextOrder,
     updated_at: new Date().toISOString(),
-  });
+  }).select("id").single();
 
   if (error) throw error;
+
+  // Insert junction table rows for all selected members
+  const ids = data.memberIds?.filter(Boolean) ?? [];
+  if (row?.id && ids.length > 0) {
+    await supabase.from("voice_memo_members").insert(
+      ids.map((memberId) => ({ voice_memo_id: row.id, family_member_id: memberId }))
+    );
+  }
+
   revalidatePath("/dashboard/voice-memos");
 }
 
