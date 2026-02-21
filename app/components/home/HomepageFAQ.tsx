@@ -22,12 +22,12 @@ const faqs = [
   {
     question: "I'm a grandparent — is this easy enough for me?",
     answer:
-      "Absolutely. We designed Our Family Nest with grandparents in mind from day one. Big buttons, clear labels, and no confusing settings. If you can check email, you can use the Nest. Many grandparents tell us it's the first thing they open with their morning coffee.",
+      "Absolutely. We designed Family Nest with grandparents in mind from day one. Big buttons, clear labels, and no confusing settings. If you can check email, you can use the Nest. Many grandparents tell us it's the first thing they open with their morning coffee.",
   },
   {
     question: "How is this different from Google Photos or iCloud?",
     answer:
-      "Google Photos and iCloud store photos, but Our Family Nest preserves your family's story. You get journals, voice memos, recipes, traditions, family trees, and a timeline—all in one place. Plus, it's designed for sharing across generations, not just storing files.",
+      "Google Photos and iCloud store photos, but Family Nest preserves your family's story. You get journals, voice memos, recipes, traditions, family trees, and a timeline—all in one place. Plus, it's designed for sharing across generations, not just storing files.",
   },
   {
     question: "Who pays — me or the person who starts the Nest?",

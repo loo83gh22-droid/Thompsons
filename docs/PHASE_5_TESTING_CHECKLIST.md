@@ -2,7 +2,7 @@
 
 **Status:** Ready to execute
 **Estimated Duration:** 2-3 hours
-**Goal:** Ensure Our Family Nest is production-ready with no critical bugs
+**Goal:** Ensure Family Nest is production-ready with no critical bugs
 
 ---
 
@@ -93,14 +93,14 @@ This checklist covers:
 - [ ] **Trigger Test**
   - [ ] Sign up with new test account
   - [ ] Welcome email arrives within 60 seconds
-  - [ ] Email subject: "Welcome to Our Family Nest! 🏡"
-  - [ ] From: "Our Family Nest <notifications@...>"
+  - [ ] Email subject: "Welcome to Family Nest! 🏡"
+  - [ ] From: "Family Nest <notifications@...>"
 
 - [ ] **Email Content**
   - [ ] Personalized with user's name
   - [ ] 3 steps checklist visible
   - [ ] "Upload Your First Photo" CTA button works
-  - [ ] Footer includes "Our Family Nest" branding
+  - [ ] Footer includes "Family Nest" branding
   - [ ] No broken images or formatting issues
 
 - [ ] **Email Rendering** (Test in 3 clients)

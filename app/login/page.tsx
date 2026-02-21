@@ -70,7 +70,7 @@ function LoginForm() {
           className="mb-8 inline-flex items-center gap-2 text-[var(--muted)] hover:text-[var(--foreground)]"
         >
           <span>←</span>
-          <span className="font-display text-2xl font-semibold">Our Family Nest</span>
+          <span className="font-display text-2xl font-semibold">Family Nest</span>
         </Link>
 
         <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">

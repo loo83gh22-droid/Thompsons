@@ -293,6 +293,13 @@ function MemberCard({ member, index }: { member: Member; index: number }) {
 
   const shortBirthday = formatBirthdayShort(member.birth_date);
 
+  // Status logic: signed in > pending invitation (has email, no account) > no badge
+  const status = member.user_id
+    ? "signed_in"
+    : member.contact_email?.trim()
+      ? "pending"
+      : null;
+
   return (
     <div
       className="group relative overflow-hidden rounded-3xl border border-[var(--border)]/60 bg-gradient-to-b from-[var(--card)] to-[var(--surface)] p-6 text-center opacity-0 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)]"
@@ -345,12 +352,14 @@ function MemberCard({ member, index }: { member: Member; index: number }) {
             </div>
           )}
           {/* Online / pending status dot */}
-          <span
-            className={`absolute bottom-1 right-1 block h-4 w-4 rounded-full border-2 border-[var(--card)] ${
-              member.user_id ? "bg-emerald-400" : "bg-amber-400"
-            }`}
-            title={member.user_id ? "Signed in" : "Pending invitation"}
-          />
+          {status && (
+            <span
+              className={`absolute bottom-1 right-1 block h-4 w-4 rounded-full border-2 border-[var(--card)] ${
+                status === "signed_in" ? "bg-emerald-400" : "bg-amber-400"
+              }`}
+              title={status === "signed_in" ? "Signed in" : "Pending invitation"}
+            />
+          )}
         </div>
       </Link>
 
@@ -393,19 +402,21 @@ function MemberCard({ member, index }: { member: Member; index: number }) {
       </div>
 
       {/* Status label (small, subtle) */}
-      <div className="mt-4">
-        {member.user_id ? (
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            Active
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-            Invited
-          </span>
-        )}
-      </div>
+      {status && (
+        <div className="mt-4">
+          {status === "signed_in" ? (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              Active
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+              Invited
+            </span>
+          )}
+        </div>
+      )}
 
       {confirmRemove && (
         <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">

@@ -76,12 +76,14 @@ Repository: https://github.com/loo83gh22-droid/Thompsons
 
 ### When completing tasks:
 
+**Every task MUST end with code committed, pushed, and a PR created (or merged to main).** Do not leave changes uncommitted or only on a local branch. The site is not live until it reaches `main`.
+
 1. **Always commit changes** when a task is done:
    ```bash
    git add .
    git commit -m "Description of changes
 
-   Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+   Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
    ```
 
 2. **Apply any new Supabase migrations** before pushing:
@@ -89,10 +91,12 @@ Repository: https://github.com/loo83gh22-droid/Thompsons
    - Project ID: `tstbngohenxrbqroejth`
    - This ensures the database schema is up to date before the new code goes live
 
-3. **Push to trigger deployment:**
+3. **Push and create a PR** (or push directly to `main` if on `main`):
    ```bash
-   git push
+   git push -u origin <branch-name>
    ```
+   - If on a feature branch, always create a GitHub PR targeting `main`
+   - Share the PR URL with the user so they can merge it
 
 4. **Vercel auto-deploys** from the `main` branch (2-3 minutes)
 
