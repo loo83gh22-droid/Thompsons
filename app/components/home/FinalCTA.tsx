@@ -21,7 +21,8 @@ export function FinalCTA() {
             style={{ color: "var(--muted)" }}
           >
             It takes 30 seconds to set up. Invite grandma, the cousins, your siblings, everyone.
-            Start building something the whole family will love.
+            Start building something the whole family will love. Already been invited? Just sign
+            up and you&apos;ll find your family&apos;s Nest waiting for you.
           </p>
 
           <div className="flex flex-col items-center gap-4">
@@ -47,6 +48,19 @@ export function FinalCTA() {
                 style={{ color: "var(--primary)" }}
               >
                 Sign in
+              </Link>
+            </p>
+            <p
+              className="mt-4 text-sm"
+              style={{ color: "var(--muted)", fontStyle: "italic" }}
+            >
+              Or give it as a gift — the one they&apos;ll actually keep forever.{" "}
+              <Link
+                href="#pricing"
+                className="underline underline-offset-4 transition-colors"
+                style={{ color: "var(--primary)", fontStyle: "normal" }}
+              >
+                See The Legacy plan
               </Link>
             </p>
           </div>

@@ -44,6 +44,12 @@ export function Navbar() {
           </Link>
           <Link
             href="/login?mode=signup"
+            className="text-sm font-medium text-[var(--primary)] transition-colors hover:text-[var(--accent)]"
+          >
+            I Was Invited
+          </Link>
+          <Link
+            href="/login?mode=signup"
             className="rounded-full bg-[var(--accent)] px-6 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:brightness-110 hover:shadow-lg"
           >
             Start Your Family Nest
@@ -89,6 +95,13 @@ export function Navbar() {
               onClick={() => setMobileOpen(false)}
             >
               Log In
+            </Link>
+            <Link
+              href="/login?mode=signup"
+              className="text-sm font-medium text-[var(--primary)]"
+              onClick={() => setMobileOpen(false)}
+            >
+              I Was Invited
             </Link>
             <Link
               href="/login?mode=signup"

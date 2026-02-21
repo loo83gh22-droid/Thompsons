@@ -65,6 +65,21 @@ export function EmotionalSection() {
             </p>
           </div>
 
+          {/* Comparison differentiator */}
+          <div
+            className="mb-12 rounded-xl px-6 py-5"
+            style={{ backgroundColor: "rgba(240,235,225,0.1)" }}
+          >
+            <p
+              className="text-center text-sm leading-relaxed"
+              style={{ color: "var(--primary-foreground)", opacity: 0.9 }}
+            >
+              Unlike a group chat, nothing gets buried. Unlike a photo album,
+              everyone can contribute. Unlike social media, it&apos;s actually
+              private.
+            </p>
+          </div>
+
           {/* Trust Badges */}
           <div className="mb-8 flex flex-wrap justify-center gap-6">
             {trustBadges.map((badge) => (
@@ -103,6 +118,14 @@ export function EmotionalSection() {
               </div>
             ))}
           </div>
+
+          <p
+            className="mt-8 text-center text-sm"
+            style={{ color: "var(--primary-foreground)", opacity: 0.6 }}
+          >
+            You don&apos;t have to move everything at once. Start with what
+            matters most — the rest can come over time.
+          </p>
         </div>
       </div>
     </section>
