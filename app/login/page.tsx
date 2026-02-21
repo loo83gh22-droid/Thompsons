@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/client";
+import { RELATIONSHIP_OPTIONS } from "@/app/dashboard/members/constants";
 
 function LoginForm() {
   const router = useRouter();
@@ -133,16 +134,22 @@ function LoginForm() {
               </div>
               <div>
                 <label htmlFor="relationship" className="block text-sm font-medium text-[var(--muted)]">
-                  Your relationship
+                  Your role in the family
                 </label>
-                <input
+                <p className="mt-0.5 text-xs text-[var(--muted)]">
+                  Pick how other family members know you — e.g. if you&apos;re setting up the site for your household, you might be &quot;Father&quot; or &quot;Mother&quot;.
+                </p>
+                <select
                   id="relationship"
-                  type="text"
                   value={relationship}
                   onChange={(e) => setRelationship(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
-                  placeholder="e.g. Mom, Dad, Child"
-                />
+                  className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+                >
+                  <option value="">Select your role…</option>
+                  {RELATIONSHIP_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
               </div>
             </>
           )}
