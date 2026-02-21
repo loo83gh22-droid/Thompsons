@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — Our Family Nest",
+  title: "Privacy Policy — Family Nest",
   alternates: { canonical: "/privacy" },
 };
 
@@ -45,7 +45,7 @@ export default function PrivacyPage() {
               2. How We Use Your Data
             </h2>
             <ul className="mt-2 list-disc pl-5 space-y-1">
-              <li>To provide and operate the Our Family Nest service</li>
+              <li>To provide and operate the Family Nest service</li>
               <li>To share your content with the family members you invite</li>
               <li>To send transactional emails (welcome, password reset, notifications you enable)</li>
               <li>To process payments via Stripe</li>
@@ -60,7 +60,7 @@ export default function PrivacyPage() {
             <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
               3. Third-Party Services
             </h2>
-            <p className="mt-2">We use the following third-party services to operate Our Family Nest:</p>
+            <p className="mt-2">We use the following third-party services to operate Family Nest:</p>
             <ul className="mt-2 list-disc pl-5 space-y-1">
               <li><strong>Supabase</strong> — Database, authentication, and file storage (hosted in US data centers)</li>
               <li><strong>Vercel</strong> — Application hosting and analytics</li>
@@ -120,7 +120,7 @@ export default function PrivacyPage() {
               8. Children&apos;s Privacy
             </h2>
             <p className="mt-2">
-              Our Family Nest is designed for families. Kid accounts are created and managed by adult family members. We do not knowingly collect data from children under 13 without parental consent.
+              Family Nest is designed for families. Kid accounts are created and managed by adult family members. We do not knowingly collect data from children under 13 without parental consent.
             </p>
           </section>
 

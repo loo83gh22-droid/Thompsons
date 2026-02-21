@@ -9,7 +9,7 @@
 
 ## Context
 
-Our Family Nest currently has:
+Family Nest currently has:
 - ✅ Welcome modal that can be dismissed
 - ✅ Onboarding checklist with 5 steps (optional, can be hidden)
 - ✅ Resend API integrated with 3 email types (birthday, time capsule, weekly digest)
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
         <body>
           <div class="container">
             <div class="header">
-              <h1>🏡 Welcome to Our Family Nest, ${name}!</h1>
+              <h1>🏡 Welcome to Family Nest, ${name}!</h1>
             </div>
             <div class="content">
               <p>Hi ${name},</p>
@@ -152,10 +152,10 @@ export async function POST(request: NextRequest) {
 
               <p style="margin-top: 30px;">Need help getting started? Check out our <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://ourfamilynest.com'}/getting-started">Quick Start Guide</a>.</p>
 
-              <p>Welcome to the family,<br>The Our Family Nest Team</p>
+              <p>Welcome to the family,<br>The Family Nest Team</p>
             </div>
             <div class="footer">
-              <p>Our Family Nest • Preserving memories, one family at a time</p>
+              <p>Family Nest • Preserving memories, one family at a time</p>
             </div>
           </div>
         </body>
@@ -164,9 +164,9 @@ export async function POST(request: NextRequest) {
 
     // Send email
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'Our Family Nest <notifications@resend.dev>',
+      from: process.env.RESEND_FROM_EMAIL || 'Family Nest <notifications@resend.dev>',
       to: email,
-      subject: 'Welcome to Our Family Nest! 🏡',
+      subject: 'Welcome to Family Nest! 🏡',
       html: emailHtml,
     });
 
@@ -281,7 +281,7 @@ async function sendDay1ActivationEmails(supabase: SupabaseClient) {
         `;
 
         await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || 'Our Family Nest <notifications@resend.dev>',
+          from: process.env.RESEND_FROM_EMAIL || 'Family Nest <notifications@resend.dev>',
           to: owner.contact_email,
           subject: "Your family's story starts with one photo 📷",
           html: emailHtml,
@@ -427,7 +427,7 @@ import Confetti from 'react-confetti';
 Add to Vercel and `.env.local`:
 ```
 RESEND_API_KEY=re_...
-RESEND_FROM_EMAIL=Our Family Nest <notifications@resend.dev>
+RESEND_FROM_EMAIL=Family Nest <notifications@resend.dev>
 CRON_SECRET=[secure random string]
 NEXT_PUBLIC_SITE_URL=https://ourfamilynest.com
 ```

@@ -1,4 +1,4 @@
-# AI Opportunities for Our Family Nest
+# AI Opportunities for Family Nest
 
 A deep dive into how AI could enhance the family site—better UX, smarter features, and dynamic personalization.
 
@@ -265,7 +265,7 @@ Scale with usage; consider usage-based pricing for families.
 
 ## Summary
 
-AI can make Our Family Nest feel more **guided** (writing help, onboarding), **discoverable** (search, summaries), and **connected** (suggestions, reminders, links between content). The richest opportunities are in:
+AI can make Family Nest feel more **guided** (writing help, onboarding), **discoverable** (search, summaries), and **connected** (suggestions, reminders, links between content). The richest opportunities are in:
 
 1. **Removing friction** — recipe parsing, transcription, auto-captions
 2. **Unlocking content** — search, "on this day," summaries

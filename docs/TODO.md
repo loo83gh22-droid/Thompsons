@@ -1,4 +1,4 @@
-# Our Family Nest — Master TODO
+# Family Nest — Master TODO
 
 > **Living document.** Update this every session. Check items off as they're completed.
 > Last updated: 2026-02-17
@@ -45,7 +45,7 @@ STRIPE_PRICE_LEGACY=price_...
 - [ ] `SUPABASE_SERVICE_ROLE_KEY` — From Supabase Dashboard (may already be set)
 - [ ] `CRON_SECRET` — Random string for cron auth (may already be set)
 - [ ] `RESEND_API_KEY` — From Resend Dashboard (may already be set)
-- [ ] `RESEND_FROM_EMAIL` — e.g. `Our Family Nest <hello@yourdomain.com>`
+- [ ] `RESEND_FROM_EMAIL` — e.g. `Family Nest <hello@yourdomain.com>`
 - [ ] `NEXT_PUBLIC_APP_URL` — e.g. `https://ourfamilynest.com`
 - [ ] `NEXT_PUBLIC_FEEDBACK_EMAIL` — e.g. `support@ourfamilynest.com`
 - [ ] `OPENAI_API_KEY` — For AI features (transcription, recipe parsing, prompts)

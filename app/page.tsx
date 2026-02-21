@@ -46,7 +46,7 @@ const faqStructuredData = {
       name: "I'm a grandparent — is this easy enough for me?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Absolutely. We designed Our Family Nest with grandparents in mind from day one. Big buttons, clear labels, and no confusing settings. If you can check email, you can use the Nest.",
+        text: "Absolutely. We designed Family Nest with grandparents in mind from day one. Big buttons, clear labels, and no confusing settings. If you can check email, you can use the Nest.",
       },
     },
     {
@@ -62,7 +62,7 @@ const faqStructuredData = {
       name: "How is this different from Google Photos or iCloud?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Google Photos and iCloud store photos, but Our Family Nest preserves your family's story. You get journals, voice memos, recipes, traditions, family trees, and a timeline\u2014all in one place. Plus, it's designed for sharing across generations, not just storing files.",
+        text: "Google Photos and iCloud store photos, but Family Nest preserves your family's story. You get journals, voice memos, recipes, traditions, family trees, and a timeline\u2014all in one place. Plus, it's designed for sharing across generations, not just storing files.",
       },
     },
     {
@@ -95,7 +95,7 @@ const faqStructuredData = {
 const softwareStructuredData = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "Our Family Nest",
+  name: "Family Nest",
   applicationCategory: "LifestyleApplication",
   operatingSystem: "Web",
   description:
@@ -136,7 +136,7 @@ const softwareStructuredData = {
 const organizationStructuredData = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "Our Family Nest",
+  name: "Family Nest",
   url: "https://familynest.io",
   logo: "https://familynest.io/og-image.jpg",
   description:

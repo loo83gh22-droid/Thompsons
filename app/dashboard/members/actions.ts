@@ -13,7 +13,7 @@ async function sendInviteEmail(to: string, name: string, familyName: string): Pr
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return;
   const resend = new Resend(apiKey);
-  const from = process.env.RESEND_FROM_EMAIL || "Our Family Nest <onboarding@resend.dev>";
+  const from = process.env.RESEND_FROM_EMAIL || "Family Nest <onboarding@resend.dev>";
   const baseUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
     (typeof process.env.VERCEL_URL === "string" ? `https://${process.env.VERCEL_URL}` : null);
@@ -97,7 +97,7 @@ async function sendInviteEmail(to: string, name: string, familyName: string): Pr
 <!-- Footer -->
 <tr><td style="text-align:center;padding-top:24px;">
   <p style="color:#64748b;font-size:12px;margin:0;">
-    Our Family Nest &mdash; Private family memories, preserved forever.
+    Family Nest &mdash; Private family memories, preserved forever.
   </p>
   <p style="color:#475569;font-size:11px;margin:8px 0 0;">
     If you didn&apos;t expect this, you can safely ignore this email.
