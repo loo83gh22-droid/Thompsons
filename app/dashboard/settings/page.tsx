@@ -5,6 +5,7 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import Link from "next/link";
 import { ExportNest } from "./ExportNest";
 import { FamilyNameEditor } from "./FamilyNameEditor";
+import { PLAN_LIMITS } from "@/src/lib/constants";
 import { ManageBilling } from "./ManageBilling";
 import { PaymentSuccessBanner } from "./PaymentSuccessBanner";
 
@@ -101,14 +102,28 @@ export default async function SettingsPage() {
   const planStarted: string | null = family?.plan_started_at ?? null;
   const planExpires: string | null = family?.plan_expires_at ?? null;
 
-  // Count journal entries for free tier limit display
-  let journalCount = 0;
+  // Count feature usage for free tier limit display
+  const featureCounts: Record<string, number> = {};
   if (planType === "free") {
-    const { count } = await supabase
-      .from("journal_entries")
-      .select("id", { count: "exact", head: true })
-      .eq("family_id", activeFamilyId);
-    journalCount = count ?? 0;
+    const tables = [
+      ["journalEntries", "journal_entries"],
+      ["stories", "family_stories"],
+      ["recipes", "recipes"],
+      ["timeCapsules", "time_capsules"],
+      ["voiceMemos", "voice_memos"],
+      ["traditions", "family_traditions"],
+      ["events", "family_events"],
+      ["mapLocations", "travel_locations"],
+    ] as const;
+    await Promise.all(
+      tables.map(async ([key, table]) => {
+        const { count } = await supabase
+          .from(table)
+          .select("id", { count: "exact", head: true })
+          .eq("family_id", activeFamilyId);
+        featureCounts[key] = count ?? 0;
+      })
+    );
   }
 
   return (
@@ -168,53 +183,52 @@ export default async function SettingsPage() {
           {/* Plan details depending on tier */}
           {planType === "free" && (
             <div className="space-y-4">
-              {/* Journal limit */}
-              <div className="space-y-1.5">
-                <div className="flex items-baseline justify-between text-sm">
-                  <span className="text-[var(--foreground)]">
-                    Journal Entries
-                  </span>
-                  <span className="text-[var(--muted)]">
-                    {journalCount} / 10
-                  </span>
-                </div>
-                <div className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--border)]">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      journalCount >= 10
-                        ? "bg-red-500"
-                        : journalCount >= 8
-                          ? "bg-amber-500"
-                          : "bg-[var(--accent)]"
-                    }`}
-                    style={{
-                      width: `${Math.max((journalCount / 10) * 100, 0.5)}%`,
-                    }}
-                  />
-                </div>
-                {journalCount >= 10 && (
-                  <p className="text-xs text-red-600">
-                    Journal entry limit reached. Upgrade to unlock unlimited
-                    entries.
-                  </p>
-                )}
+              {/* Feature usage counters */}
+              <div className="grid gap-2 sm:grid-cols-2">
+                {([
+                  ["journalEntries", "Journal Entries"],
+                  ["stories", "Stories"],
+                  ["recipes", "Recipes"],
+                  ["timeCapsules", "Time Capsules"],
+                  ["voiceMemos", "Voice Memos"],
+                  ["traditions", "Traditions"],
+                  ["events", "Events"],
+                  ["mapLocations", "Map Locations"],
+                ] as const).map(([key, label]) => {
+                  const used = featureCounts[key] ?? 0;
+                  const limit = PLAN_LIMITS.free[key] as number;
+                  const pct = Math.min((used / limit) * 100, 100);
+                  const atLimit = used >= limit;
+                  return (
+                    <div key={key} className="rounded-lg border border-[var(--border)] px-3 py-2">
+                      <div className="flex items-baseline justify-between text-xs">
+                        <span className="font-medium text-[var(--foreground)]">{label}</span>
+                        <span className={atLimit ? "text-red-600 font-semibold" : "text-[var(--muted)]"}>
+                          {used} / {limit}
+                        </span>
+                      </div>
+                      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-[var(--border)]">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            atLimit ? "bg-red-500" : pct > 66 ? "bg-amber-500" : "bg-[var(--accent)]"
+                          }`}
+                          style={{ width: `${Math.max(pct, 1)}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Storage */}
               <StorageBar used={storageUsed} limit={storageLimit} />
-
-              {/* Map note */}
-              <p className="text-sm text-[var(--muted)]">
-                Family Map is view-only on the free plan. Upgrade to add
-                locations.
-              </p>
 
               {/* Upgrade CTA */}
               <Link
                 href="/pricing"
                 className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90"
               >
-                Upgrade Plan
+                Upgrade for Unlimited
                 <span aria-hidden="true">&rarr;</span>
               </Link>
             </div>

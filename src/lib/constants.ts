@@ -14,30 +14,43 @@
  */
 export const PLAN_LIMITS = {
   free: {
-    /** Maximum journal entries allowed (null = unlimited) */
-    journalEntries: 10,
+    /** Maximum instances per feature (null = unlimited) */
+    journalEntries: 5,
+    stories: 3,
+    recipes: 3,
+    timeCapsules: 2,
+    voiceMemos: 3,
+    traditions: 3,
+    events: 5,
+    mapLocations: 20,
+    /** Max videos per journal entry */
+    videosPerEntry: 1,
     /** Storage limit in bytes (500 MB) */
     storageLimitBytes: 524288000,
-    /** Whether video uploads are permitted */
-    videoUploads: false,
-    /** Whether map editing (adding locations) is permitted */
-    mapEditing: false,
-    /** Whether public sharing links are permitted */
-    publicSharing: false,
   },
   annual: {
     journalEntries: null, // unlimited
-    storageLimitBytes: 2097152000, // 2000 MB = 2 GB
-    videoUploads: true,
-    mapEditing: true,
-    publicSharing: true,
+    stories: null,
+    recipes: null,
+    timeCapsules: null,
+    voiceMemos: null,
+    traditions: null,
+    events: null,
+    mapLocations: null,
+    videosPerEntry: 2,
+    storageLimitBytes: 10737418240, // 10 GB
   },
   legacy: {
     journalEntries: null, // unlimited
-    storageLimitBytes: 5242880000, // 5000 MB = 5 GB
-    videoUploads: true,
-    mapEditing: true,
-    publicSharing: true,
+    stories: null,
+    recipes: null,
+    timeCapsules: null,
+    voiceMemos: null,
+    traditions: null,
+    events: null,
+    mapLocations: null,
+    videosPerEntry: 2,
+    storageLimitBytes: 53687091200, // 50 GB
     /** Only legacy plans can manage nest keepers */
     nestKeeperManagement: true,
   },

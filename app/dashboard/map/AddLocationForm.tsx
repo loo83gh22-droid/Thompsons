@@ -3,15 +3,14 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
-import { canEditMap } from "@/src/lib/plans";
-import Link from "next/link";
+import { featureLimit } from "@/src/lib/plans";
 import { MemberSelect } from "@/app/components/MemberSelect";
 
 type FamilyMember = { id: string; name: string; color: string | null; symbol: string };
 
 export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
   const { activeFamilyId, planType } = useFamily();
-  const mapEditAllowed = canEditMap(planType);
+  const mapLimit = featureLimit(planType, "mapLocations");
   const [open, setOpen] = useState(false);
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(false);
@@ -171,6 +170,20 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
         setError("No active family selected.");
         return;
       }
+
+      // Enforce map location limit
+      if (mapLimit !== null) {
+        const { count } = await supabase
+          .from("travel_locations")
+          .select("id", { count: "exact", head: true })
+          .eq("family_id", activeFamilyId);
+        if ((count ?? 0) >= mapLimit) {
+          throw new Error(
+            `Free plan allows up to ${mapLimit} map locations. Upgrade to unlock unlimited locations.`
+          );
+        }
+      }
+
       const { data: locRow, error: insertError } = await supabase.from("travel_locations").insert({
         family_id: activeFamilyId,
         family_member_id: selectedMemberIds[0] || null,
@@ -225,15 +238,6 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
     } finally {
       setLoading(false);
     }
-  }
-
-  if (!mapEditAllowed) {
-    return (
-      <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
-        Map is view-only on the free plan.{" "}
-        <Link href="/pricing" className="text-[var(--accent)] hover:underline">Upgrade</Link> to add locations.
-      </div>
-    );
   }
 
   if (!open) {
