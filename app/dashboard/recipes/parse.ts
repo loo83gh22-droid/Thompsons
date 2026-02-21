@@ -78,7 +78,7 @@ Only return the JSON, no explanation.`,
 
     const parsed = JSON.parse(completion.choices[0].message.content || '{}');
 
-    console.log(`✅ Parsed recipe from ${url}:`, parsed.title);
+    // recipe parsed successfully
 
     return {
       success: true,

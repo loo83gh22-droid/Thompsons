@@ -155,10 +155,10 @@ export default function TermsPage() {
             <p className="mt-2">
               For questions about these Terms, email{" "}
               <a
-                href="mailto:support@ourfamilynest.com"
+                href="mailto:support@familynest.io"
                 className="text-[var(--primary)] hover:underline"
               >
-                support@ourfamilynest.com
+                support@familynest.io
               </a>
             </p>
           </section>

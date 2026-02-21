@@ -79,7 +79,7 @@ export async function transcribeVoiceMemo(voiceMemoId: string) {
       throw updateError;
     }
 
-    console.log(`✅ Transcribed voice memo ${voiceMemoId}: ${transcription.length} chars`);
+    // transcription complete
 
     return { success: true, transcript: transcription };
 

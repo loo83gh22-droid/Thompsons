@@ -104,8 +104,8 @@ const organizationStructuredData = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "Our Family Nest",
-  url: "https://thompsons.vercel.app",
-  logo: "https://thompsons.vercel.app/og-image.jpg",
+  url: "https://familynest.io",
+  logo: "https://familynest.io/og-image.jpg",
   description:
     "A private, permanent space for families to preserve their memories together.",
 };
