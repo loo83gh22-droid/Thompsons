@@ -11,7 +11,7 @@ import DatePicker, { type DateRange } from "@/app/components/DatePicker";
 import LocationInput from "@/app/components/LocationInput";
 import PhotoUpload from "@/app/components/PhotoUpload";
 import { extractMetadataFromMultiplePhotos } from "@/src/lib/exifExtractor";
-import { canUploadVideos } from "@/src/lib/plans";
+import { videosPerEntryLimit } from "@/src/lib/plans";
 import { MemberSelect } from "@/app/components/MemberSelect";
 import { compressImages } from "@/src/lib/compressImage";
 
@@ -27,7 +27,7 @@ function formatDateTitle(d: DateValue): string {
 export default function NewJournalPage() {
   const router = useRouter();
   const { activeFamilyId, planType, currentMemberId } = useFamily();
-  const videosAllowed = canUploadVideos(planType);
+  const maxVideos = videosPerEntryLimit(planType);
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>(
     currentMemberId ? [currentMemberId] : []
@@ -299,12 +299,13 @@ export default function NewJournalPage() {
             onChange={handlePhotoChange}
             onVideoChange={handleVideoChange}
             maxFiles={20}
-            maxVideos={5}
-            allowVideos={videosAllowed}
+            maxVideos={maxVideos}
+            allowVideos={true}
           />
-          {!videosAllowed && (
+          {maxVideos < 2 && (
             <p className="mt-2 text-xs text-[var(--muted)]">
-              <Link href="/pricing" className="text-[var(--accent)] hover:underline">Upgrade to Full Nest</Link> to add videos.
+              Free plan: {maxVideos} video per entry.{" "}
+              <Link href="/pricing" className="text-[var(--accent)] hover:underline">Upgrade</Link> for more.
             </p>
           )}
         </div>

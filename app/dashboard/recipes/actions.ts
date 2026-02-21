@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { validateSchema } from "@/src/lib/validation/errors";
 import { createRecipeSchema } from "./schemas";
+import { getFamilyPlan, checkFeatureLimit } from "@/src/lib/plans";
 
 export async function addRecipe(data: {
   title: string;
@@ -39,6 +40,11 @@ export async function addRecipe(data: {
   if (!user) throw new Error("Not authenticated");
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
+
+  // Enforce recipe limit
+  const plan = await getFamilyPlan(supabase, activeFamilyId);
+  const limitError = await checkFeatureLimit(supabase, activeFamilyId, plan.planType, "recipes", "recipes");
+  if (limitError) throw new Error(limitError);
 
   const { data: last } = await supabase
     .from("recipes")

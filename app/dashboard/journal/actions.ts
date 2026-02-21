@@ -4,7 +4,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { findOrCreateLocationCluster } from "@/src/lib/locationClustering";
-import { getFamilyPlan, canUploadVideos, enforceStorageLimit, addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
+import { getFamilyPlan, checkFeatureLimit, videosPerEntryLimit, enforceStorageLimit, addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
 import { VIDEO_LIMITS } from "@/src/lib/constants";
 import { getFormString } from "@/src/lib/validation/schemas";
 import { validateSchema } from "@/src/lib/validation/errors";
@@ -268,14 +268,13 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
     }
   }
 
-  // Upload videos (max 2 per journal entry, 300 MB each) — paid plans only
+  // Upload videos — limit per entry depends on plan
   // NOTE: Videos are now uploaded client-side via registerJournalVideo() to avoid
   // Vercel payload limits. This block is kept for backward compatibility but will
   // typically receive an empty array.
+  const maxVideos = videosPerEntryLimit(plan.planType);
   const allVideos = formData.getAll("videos") as File[];
-  const validVideos = canUploadVideos(plan.planType)
-    ? allVideos.filter((f) => f.size > 0 && f.size <= VIDEO_LIMITS.maxSizeBytes).slice(0, VIDEO_LIMITS.maxVideosPerJournalEntry)
-    : []; // Free plan: skip videos silently
+  const validVideos = allVideos.filter((f) => f.size > 0 && f.size <= VIDEO_LIMITS.maxSizeBytes).slice(0, maxVideos);
 
   for (let i = 0; i < validVideos.length; i++) {
     const file = validVideos[i];
@@ -787,11 +786,7 @@ export async function addJournalVideos(entryId: string, formData: FormData) {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
-  // Plan check: videos are paid-only
   const plan = await getFamilyPlan(supabase, activeFamilyId);
-  if (!canUploadVideos(plan.planType)) {
-    throw new Error("Video uploads require the Full Nest or Legacy plan. Upgrade to add videos.");
-  }
 
   // Get logged-in user's member record
   const { data: myMember } = await supabase
@@ -868,12 +863,6 @@ export async function registerJournalVideo(
   if (!user) throw new Error("Not authenticated");
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
-
-  // Plan check
-  const plan = await getFamilyPlan(supabase, activeFamilyId);
-  if (!canUploadVideos(plan.planType)) {
-    throw new Error("Video uploads require the Full Nest or Legacy plan.");
-  }
 
   // Get member record
   const { data: myMember } = await supabase
