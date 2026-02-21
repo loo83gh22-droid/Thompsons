@@ -3,6 +3,7 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import { SEARCH_LIMITS } from "@/src/lib/constants";
 import { NextResponse } from "next/server";
 import { createSafeSnippet } from "@/src/lib/validation/sanitize";
+import { checkHttpRateLimit, defaultLimiter } from "@/src/lib/httpRateLimit";
 
 export type SearchResult = {
   type: "journal" | "story" | "recipe" | "tradition" | "voice_memo" | "time_capsule" | "member" | "event";
@@ -15,6 +16,9 @@ export type SearchResult = {
 };
 
 export async function GET(request: Request) {
+  const limited = await checkHttpRateLimit(request, defaultLimiter);
+  if (limited) return limited;
+
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim() ?? "";
 

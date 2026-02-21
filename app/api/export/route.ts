@@ -3,6 +3,7 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import { TEXT_LIMITS, TIME_CONSTANTS } from "@/src/lib/constants";
 import { NextResponse } from "next/server";
 import JSZip from "jszip";
+import { checkHttpRateLimit, strictLimiter } from "@/src/lib/httpRateLimit";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -59,7 +60,10 @@ function fileExtFromUrl(url: string): string {
 // GET — check export status / get download link
 // ---------------------------------------------------------------------------
 
-export async function GET() {
+export async function GET(request: Request) {
+  const limited = await checkHttpRateLimit(request, strictLimiter);
+  if (limited) return limited;
+
   try {
     const supabase = await createClient();
     const {

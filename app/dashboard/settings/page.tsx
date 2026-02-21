@@ -7,6 +7,7 @@ import { ExportNest } from "./ExportNest";
 import { FamilyNameEditor } from "./FamilyNameEditor";
 import { ManageBilling } from "./ManageBilling";
 import { PaymentSuccessBanner } from "./PaymentSuccessBanner";
+import { EmailNotificationsToggle } from "./EmailNotificationsToggle";
 
 type PlanType = "free" | "annual" | "legacy";
 
@@ -100,6 +101,14 @@ export default async function SettingsPage() {
   const storageLimit: number = family?.storage_limit_bytes ?? 524288000;
   const planStarted: string | null = family?.plan_started_at ?? null;
   const planExpires: string | null = family?.plan_expires_at ?? null;
+
+  // Fetch current member for email notification preference
+  const { data: currentMember } = await supabase
+    .from("family_members")
+    .select("id, email_notifications")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
 
   // Count journal entries for free tier limit display
   let journalCount = 0;
@@ -356,6 +365,21 @@ export default async function SettingsPage() {
           </div>
         </div>
       </section>
+
+      {/* Notifications */}
+      {currentMember && (
+        <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+          <div className="border-b border-[var(--border)] px-6 py-4">
+            <h2 className="text-lg font-semibold">Notifications</h2>
+          </div>
+          <div className="px-6 py-5">
+            <EmailNotificationsToggle
+              enabled={currentMember.email_notifications ?? true}
+              memberId={currentMember.id}
+            />
+          </div>
+        </section>
+      )}
 
       {/* Legal */}
       <div className="flex gap-4 pb-4 text-xs text-[var(--muted)]">

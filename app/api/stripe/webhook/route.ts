@@ -83,11 +83,25 @@ export async function POST(request: Request) {
         const plan = session.metadata?.plan as "annual" | "legacy";
 
         if (familyId && plan === "legacy") {
-          await activatePlan(
-            familyId,
-            "legacy",
-            session.customer as string
-          );
+          // If upgrading from Annual → Legacy, cancel the existing annual
+          // subscription so the family isn't billed again at renewal.
+          const supabase = createClient(supabaseUrl, supabaseServiceKey);
+          const { data: family } = await supabase
+            .from("families")
+            .select("stripe_subscription_id")
+            .eq("id", familyId)
+            .single();
+
+          if (family?.stripe_subscription_id) {
+            try {
+              await stripe.subscriptions.cancel(family.stripe_subscription_id);
+            } catch (err) {
+              // Log but don't block — Legacy plan must still activate
+              console.warn("Could not cancel prior annual subscription:", err);
+            }
+          }
+
+          await activatePlan(familyId, "legacy", session.customer as string);
         }
         break;
       }
