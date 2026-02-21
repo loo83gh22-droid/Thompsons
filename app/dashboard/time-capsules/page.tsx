@@ -20,25 +20,79 @@ export default async function TimeCapsulesPage() {
     .eq("family_id", activeFamilyId)
     .single();
 
+  // Letters the current user SENT
   const sent = myMember
     ? (await supabase
         .from("time_capsules")
-        .select("id, title, unlock_date, to_family_member:family_members!to_family_member_id(name)")
+        .select("id, title, unlock_date, unlock_on_passing, to_family_member:family_members!to_family_member_id(name)")
         .eq("family_id", activeFamilyId)
         .eq("from_family_member_id", myMember.id)
         .order("unlock_date", { ascending: true })).data ?? []
     : [];
 
-  const received = myMember
+  // Letters addressed TO the current user (legacy FK)
+  const receivedLegacy = myMember
     ? (await supabase
         .from("time_capsules")
-        .select("id, title, unlock_date, from_family_member:family_members!from_family_member_id(name)")
+        .select("id, title, unlock_date, unlock_on_passing, from_family_member_id, from_family_member:family_members!from_family_member_id(name)")
         .eq("family_id", activeFamilyId)
         .eq("to_family_member_id", myMember.id)
         .order("unlock_date", { ascending: true })).data ?? []
     : [];
 
+  // Letters where current user is in the junction table
+  const receivedJunction = myMember
+    ? (await supabase
+        .from("time_capsule_members")
+        .select("time_capsule_id")
+        .eq("family_member_id", myMember.id)).data ?? []
+    : [];
+
+  const junctionIds = receivedJunction.map((r) => r.time_capsule_id);
+
+  // Fetch junction capsules that aren't already in legacy list
+  const legacyIds = new Set(receivedLegacy.map((r) => r.id));
+  const extraJunctionIds = junctionIds.filter((id) => !legacyIds.has(id));
+
+  let receivedFromJunction: typeof receivedLegacy = [];
+  if (extraJunctionIds.length > 0) {
+    const { data } = await supabase
+      .from("time_capsules")
+      .select("id, title, unlock_date, unlock_on_passing, from_family_member_id, from_family_member:family_members!from_family_member_id(name)")
+      .eq("family_id", activeFamilyId)
+      .in("id", extraJunctionIds)
+      .order("unlock_date", { ascending: true });
+    receivedFromJunction = data ?? [];
+  }
+
+  const received = [...receivedLegacy, ...receivedFromJunction];
+
+  // Check passing status for senders who have unlock_on_passing capsules
+  const senderIdsToCheck = new Set<string>();
+  for (const r of [...sent, ...received]) {
+    if (r.unlock_on_passing && "from_family_member_id" in r && r.from_family_member_id) {
+      senderIdsToCheck.add(r.from_family_member_id);
+    }
+  }
+
+  const passedSenders = new Set<string>();
+  if (senderIdsToCheck.size > 0) {
+    const { data: senders } = await supabase
+      .from("family_members")
+      .select("id, is_remembered")
+      .in("id", Array.from(senderIdsToCheck));
+    for (const s of senders ?? []) {
+      if (s.is_remembered) passedSenders.add(s.id);
+    }
+  }
+
   const today = new Date().toISOString().slice(0, 10);
+
+  function isUnlocked(letter: { unlock_date: string; unlock_on_passing: boolean; from_family_member_id?: string }) {
+    const dateUnlocked = letter.unlock_date <= today;
+    const passingUnlocked = letter.unlock_on_passing && letter.from_family_member_id && passedSenders.has(letter.from_family_member_id);
+    return dateUnlocked || !!passingUnlocked;
+  }
 
   return (
     <div>
@@ -73,7 +127,7 @@ export default async function TimeCapsulesPage() {
               received.map((letter) => {
                 const raw = letter.from_family_member as { name: string } | { name: string }[] | null;
                 const from = Array.isArray(raw) ? raw[0] : raw;
-                const unlocked = letter.unlock_date <= today;
+                const unlocked = isUnlocked(letter);
                 return (
                   <Link
                     key={letter.id}
@@ -128,12 +182,14 @@ export default async function TimeCapsulesPage() {
                                 : "bg-amber-50 text-amber-700 border border-amber-200"
                             }`}
                           >
-                            {unlocked ? "✉️ Unlocked" : `🔒 Sealed until ${formatDateOnly(letter.unlock_date)}`}
+                            {unlocked ? "✉️ Unlocked" : letter.unlock_on_passing ? "🕊️ Sealed until passing" : `🔒 Sealed until ${formatDateOnly(letter.unlock_date)}`}
                           </span>
                         </div>
                         {!unlocked && (
                           <p className="mt-1 text-xs text-[var(--muted)] italic">
-                            A letter waits patiently for its day…
+                            {letter.unlock_on_passing
+                              ? "A letter kept safe, to be opened when the time comes…"
+                              : "A letter waits patiently for its day…"}
                           </p>
                         )}
                       </div>
@@ -210,12 +266,14 @@ export default async function TimeCapsulesPage() {
                                 : "bg-amber-50 text-amber-700 border border-amber-200"
                             }`}
                           >
-                            {unlocked ? "✉️ Unlocked" : `🔒 Sealed until ${formatDateOnly(letter.unlock_date)}`}
+                            {unlocked ? "✉️ Unlocked" : letter.unlock_on_passing ? "🕊️ Opens when you pass" : `🔒 Sealed until ${formatDateOnly(letter.unlock_date)}`}
                           </span>
                         </div>
                         {!unlocked && (
                           <p className="mt-1 text-xs text-[var(--muted)] italic">
-                            Your words, kept safe until {formatDateOnly(letter.unlock_date)}.
+                            {letter.unlock_on_passing
+                              ? "Your words, kept safe for when the time comes."
+                              : `Your words, kept safe until ${formatDateOnly(letter.unlock_date)}.`}
                           </p>
                         )}
                       </div>
