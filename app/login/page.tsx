@@ -137,7 +137,7 @@ function LoginForm() {
                   Your role in the family
                 </label>
                 <p className="mt-0.5 text-xs text-[var(--muted)]">
-                  Pick how other family members know you — e.g. if you&apos;re setting up the site for your household, you might be &quot;Father&quot; or &quot;Mother&quot;.
+                  Pick your role in the family. Choose &quot;Me&quot; if you&apos;re adding yourself, or your family role like &quot;Father&quot; or &quot;Mother&quot;.
                 </p>
                 <select
                   id="relationship"

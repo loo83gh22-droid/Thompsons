@@ -1,4 +1,5 @@
 export const RELATIONSHIP_OPTIONS = [
+  "Me",
   "Mother",
   "Father",
   "Spouse/Partner",
