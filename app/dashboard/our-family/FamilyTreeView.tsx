@@ -66,7 +66,16 @@ function buildTree(
     return { member, spouse: resolvedSpouse, children };
   }
 
-  const roots = members.filter((m) => !childIds.has(m.id));
+  const roots = members
+    .filter((m) => !childIds.has(m.id))
+    // Sort so members with direct child relationships (real parents/grandparents)
+    // are processed before members who only appear as someone else's spouse.
+    // This prevents a spouse (e.g. Peach) whose name sorts first alphabetically
+    // from being claimed as the root before the grandparent generation is built.
+    .sort((a, b) => {
+      const diff = getChildIds(b.id).length - getChildIds(a.id).length;
+      return diff !== 0 ? diff : a.name.localeCompare(b.name);
+    });
 
   // Detect co-parents: two roots that share at least one child but have no formal
   // spouse relationship. Pair them so they appear side-by-side at the same level
