@@ -307,6 +307,27 @@ export default async function SettingsPage() {
       {/* Export — Legacy plan only */}
       {planType === "legacy" && <ExportNest />}
 
+      {/* Import */}
+      <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+        <div className="border-b border-[var(--border)] px-6 py-4">
+          <h2 className="text-lg font-semibold">Import Content</h2>
+        </div>
+        <div className="space-y-3 px-6 py-5">
+          <p className="text-sm text-[var(--muted)]">
+            Import journal entries, stories, recipes, or events from a{" "}
+            <strong>.json</strong> file or a <strong>.zip</strong> archive
+            exported from this app.
+          </p>
+          <Link
+            href="/dashboard/import"
+            className="inline-flex items-center gap-2 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/5 px-5 py-2.5 text-sm font-semibold text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/10"
+          >
+            Import Content
+            <span aria-hidden="true">&uarr;</span>
+          </Link>
+        </div>
+      </section>
+
       {/* Quick links */}
       <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
         <div className="border-b border-[var(--border)] px-6 py-4">
