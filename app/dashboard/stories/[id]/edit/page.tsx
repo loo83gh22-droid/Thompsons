@@ -11,7 +11,7 @@ export default async function EditStoryPage({ params }: { params: Promise<{ id: 
 
   const { data: story } = await supabase
     .from("family_stories")
-    .select("id, title, content, cover_url, category, published, author_family_member_id")
+    .select("id, title, content, cover_url, category, published, author_family_member_id, created_by")
     .eq("id", id)
     .eq("family_id", activeFamilyId)
     .single();
@@ -26,7 +26,8 @@ export default async function EditStoryPage({ params }: { params: Promise<{ id: 
     .eq("family_id", activeFamilyId)
     .eq("user_id", user.id)
     .single();
-  const isAuthor = !!me && story.author_family_member_id === me.id;
+  // Allow edit if you created the story OR you're listed as the author/subject
+  const isAuthor = !!me && (story.created_by === me.id || story.author_family_member_id === me.id);
   if (!isAuthor) notFound();
 
   const { data: members } = await supabase

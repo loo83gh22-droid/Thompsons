@@ -48,6 +48,7 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
       created_at,
       updated_at,
       author_family_member_id,
+      created_by,
       is_public,
       share_token,
       family_members!author_family_member_id(name, nickname, relationship)
@@ -70,7 +71,8 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
     myMemberId = me?.id ?? null;
   }
 
-  const isAuthor = !!myMemberId && story.author_family_member_id === myMemberId;
+  // You can edit if you created the story OR you're listed as the author/subject
+  const isAuthor = !!myMemberId && (story.created_by === myMemberId || story.author_family_member_id === myMemberId);
   if (!story.published && !isAuthor) notFound();
 
   const authorStr = authorDisplay(story.family_members);
