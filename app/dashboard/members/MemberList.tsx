@@ -36,17 +36,23 @@ function formatBirthdayShort(birthDate: string | null): string | null {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export function MemberList({ members }: { members: Member[] }) {
+export function MemberList({
+  members,
+  aliasMap = {},
+}: {
+  members: Member[];
+  aliasMap?: Record<string, string>;
+}) {
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {members.map((m, i) => (
-        <MemberCard key={m.id} member={m} index={i} />
+        <MemberCard key={m.id} member={m} index={i} alias={aliasMap[m.id] ?? null} />
       ))}
     </div>
   );
 }
 
-function MemberCard({ member, index }: { member: Member; index: number }) {
+function MemberCard({ member, index, alias }: { member: Member; index: number; alias: string | null }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(member.name);
   const [relationship, setRelationship] = useState(member.relationship ?? "");
@@ -377,12 +383,18 @@ function MemberCard({ member, index }: { member: Member; index: number }) {
         </p>
       )}
 
-      {/* Relationship badge */}
-      {member.relationship && (
-        <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-[var(--accent)]/10 px-3 py-1 text-xs font-semibold tracking-wide text-[var(--accent)]">
-          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-          {member.relationship}
-        </span>
+      {/* Relationship / personal alias badge */}
+      {(alias || member.relationship) && (
+        <div className="mt-3 flex flex-col items-center gap-1">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[var(--accent)]/10 px-3 py-1 text-xs font-semibold tracking-wide text-[var(--accent)]">
+            <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+            {alias ?? member.relationship}
+          </span>
+          {/* Show the real relationship label dimly when an alias overrides it */}
+          {alias && member.relationship && alias !== member.relationship && (
+            <span className="text-xs text-[var(--muted)]/60">{member.relationship}</span>
+          )}
+        </div>
       )}
 
       {/* Details */}
