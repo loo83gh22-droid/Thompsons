@@ -17,7 +17,15 @@
       "Bash(git -C \"C:/Users/keepi/OneDrive/Desktop/Coding/Thompsons/family-site\" merge claude/bold-lumiere)",
       "Bash(git -C \"C:/Users/keepi/OneDrive/Desktop/Coding/Thompsons/family-site\" add .claude/settings.local.json)",
       "Bash(git -C \"C:/Users/keepi/OneDrive/Desktop/Coding/Thompsons/family-site\" stash:*)",
-      "Bash(git -C \"C:/Users/keepi/OneDrive/Desktop/Coding/Thompsons/family-site\" push origin main)"
+      "Bash(git -C \"C:/Users/keepi/OneDrive/Desktop/Coding/Thompsons/family-site\" push origin main)",
+      "Bash(git rm:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(curl:*)",
+      "Bash(where:*)",
+      "Bash(node --version:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)"
     ]
   }
 }
