@@ -369,14 +369,14 @@ export function Nav({
                   >
                     Pricing
                   </Link>
-                  <a
-                    href={`mailto:${typeof process.env.NEXT_PUBLIC_FEEDBACK_EMAIL === "string" ? process.env.NEXT_PUBLIC_FEEDBACK_EMAIL : "feedback@example.com"}?subject=Family%20Nest%20Feedback`}
+                  <Link
+                    href="/dashboard/feedback"
                     role="menuitem"
                     className="block px-4 py-3 text-left text-sm text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] focus:bg-[var(--surface-hover)]"
                     onClick={() => setMenuOpen(false)}
                   >
                     Send feedback
-                  </a>
+                  </Link>
                   <button
                     type="button"
                     role="menuitem"
@@ -513,13 +513,13 @@ export function Nav({
               >
                 Pricing
               </Link>
-              <a
-                href={`mailto:${typeof process.env.NEXT_PUBLIC_FEEDBACK_EMAIL === "string" ? process.env.NEXT_PUBLIC_FEEDBACK_EMAIL : "feedback@example.com"}?subject=Family%20Nest%20Feedback`}
+              <Link
+                href="/dashboard/feedback"
                 className="block w-full rounded-lg px-4 py-3 text-left text-sm font-medium text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] min-h-[44px] flex items-center"
                 onClick={closeMobileMenu}
               >
                 Send feedback
-              </a>
+              </Link>
               <button
                 type="button"
                 onClick={() => { closeMobileMenu(); handleSignOut(); }}
