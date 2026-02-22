@@ -3,8 +3,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
+import { getFamilyPlan, canSharePublicly } from "@/src/lib/plans";
 import { StoryContent } from "../StoryContent";
 import { StoryDetailActions } from "../StoryDetailActions";
+import { StoryShareButton } from "../StoryShareButton";
 
 const CATEGORY_LABELS: Record<string, string> = {
   family_history: "Family History",
@@ -46,6 +48,8 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
       created_at,
       updated_at,
       author_family_member_id,
+      is_public,
+      share_token,
       family_members!author_family_member_id(name, nickname, relationship)
     `)
     .eq("id", id)
@@ -101,6 +105,18 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
       <div className="mt-8 flex flex-wrap gap-2">
         <StoryDetailActions storyId={story.id} isAuthor={isAuthor} />
       </div>
+
+      {/* Share to social media */}
+      {isAuthor && (
+        <div className="mt-6">
+          <StoryShareButton
+            storyId={story.id}
+            title={story.title}
+            isPublic={story.is_public ?? false}
+            shareToken={story.share_token ?? null}
+          />
+        </div>
+      )}
     </div>
   );
 }

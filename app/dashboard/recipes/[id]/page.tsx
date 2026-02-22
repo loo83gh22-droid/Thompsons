@@ -4,6 +4,7 @@ import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { DeleteRecipeButton } from "../DeleteRecipeButton";
+import { RecipeShareButton } from "../RecipeShareButton";
 
 export default async function RecipePage({
   params,
@@ -24,6 +25,8 @@ export default async function RecipePage({
       occasions,
       ingredients,
       instructions,
+      is_public,
+      share_token,
       taught_by_member:family_members!taught_by(name),
       added_by_member:family_members!added_by(name),
       recipe_photo_links(journal_photos(id, url, caption, journal_entries(title, trip_date)))
@@ -156,6 +159,16 @@ export default async function RecipePage({
               </div>
             </div>
           )}
+        </div>
+
+        {/* Share to social media */}
+        <div className="border-t border-[var(--border)] p-6">
+          <RecipeShareButton
+            recipeId={recipe.id}
+            title={recipe.title}
+            isPublic={recipe.is_public ?? false}
+            shareToken={recipe.share_token ?? null}
+          />
         </div>
       </article>
     </div>

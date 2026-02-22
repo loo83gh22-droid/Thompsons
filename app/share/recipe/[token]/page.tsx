@@ -17,13 +17,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!recipe) return { title: "Recipe Not Found" };
 
+  const description = recipe.story?.slice(0, 160) || "A family recipe shared from Family Nest.";
+
   return {
     title: `${recipe.title} — Family Nest`,
-    description: recipe.story?.slice(0, 160) || `A family recipe shared from Family Nest.`,
+    description,
     openGraph: {
       title: recipe.title,
-      description: recipe.story?.slice(0, 160) || "A family recipe shared from Family Nest.",
+      description,
+      siteName: "Family Nest",
       type: "article",
+      images: [
+        {
+          url: "/og-image.jpg",
+          width: 1200,
+          height: 630,
+          alt: "Family Nest — Your Corner of the World",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${recipe.title} — Family Nest`,
+      description,
+      images: ["/og-image.jpg"],
     },
   };
 }
