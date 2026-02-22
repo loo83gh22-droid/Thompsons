@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { useJsApiLoader, GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
+import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
 import { UI_DISPLAY, LOCATION_CONSTANTS } from "@/src/lib/constants";
-import { GoogleMapsCountryLayer } from "./GoogleMapsCountryLayer";
+import { COUNTRY_FLAG_STYLES } from "./countryFlagColors";
+import * as topojsonClient from "topojson-client";
+import type { Topology, GeometryCollection } from "topojson-specification";
+import type { FeatureCollection, Feature, GeoJsonProperties } from "geojson";
 
 type TravelLocation = {
   id: string;
@@ -31,12 +36,6 @@ type TravelLocation = {
     | null;
 };
 
-const mapContainerStyle = {
-  width: "100%",
-  height: "500px",
-  borderRadius: "0.75rem",
-};
-
 export type MapFilter = {
   birth?: boolean;
   homes?: boolean;
@@ -44,6 +43,12 @@ export type MapFilter = {
   memorableEvent?: boolean;
   other?: boolean;
   visits?: boolean;
+};
+
+const NUMERIC_TO_ALPHA2: Record<string, string> = {
+  "124": "CA", "484": "MX", "840": "US", "826": "GB", "250": "FR",
+  "724": "ES", "380": "IT", "392": "JP", "036": "AU", "276": "DE",
+  "076": "BR", "156": "CN", "356": "IN",
 };
 
 function applyFilter(locations: TravelLocation[], filter: MapFilter | undefined): TravelLocation[] {
@@ -58,16 +63,13 @@ function applyFilter(locations: TravelLocation[], filter: MapFilter | undefined)
   });
 }
 
-/** Group locations by cluster_id, or by proximity for legacy pins without cluster */
 function groupLocations(locations: TravelLocation[]) {
   const byCluster = new Map<string | null, TravelLocation[]>();
-
   for (const loc of locations) {
     const key = loc.location_cluster_id ?? null;
     if (!byCluster.has(key)) byCluster.set(key, []);
     byCluster.get(key)!.push(loc);
   }
-
   const result: TravelLocation[][] = [];
   for (const [clusterId, group] of byCluster) {
     if (clusterId) {
@@ -102,7 +104,6 @@ function createPinSvgUrl(
   clusterCount?: number
 ): string {
   const size = isFamily ? 20 : 14;
-
   const shapes: Record<string, string> = {
     circle: `<circle cx="12" cy="12" r="${size / 2}" fill="${color}" stroke="white" stroke-width="2"/>`,
     square: `<rect x="${12 - size / 2}" y="${12 - size / 2}" width="${size}" height="${size}" fill="${color}" stroke="white" stroke-width="2"/>`,
@@ -115,7 +116,6 @@ function createPinSvgUrl(
     vacation: `<circle cx="12" cy="12" r="5" fill="${color}" stroke="white" stroke-width="2"/><path d="M12 2v2M12 20v2M4 12h2M18 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M5.2 18.8l1.4-1.4M17.4 6.6l1.4-1.4" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>`,
     memorable_event: `<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="${color}" stroke="white" stroke-width="2" stroke-linejoin="round"/>`,
   };
-
   const shapeSvg = shapes[symbol] || shapes.circle;
   const labelSvg = dateLabel
     ? `<text x="12" y="28" font-size="9" fill="white" text-anchor="middle" style="text-shadow: 0 0 2px black;">${dateLabel}</text>`
@@ -124,126 +124,219 @@ function createPinSvgUrl(
     clusterCount && clusterCount > 1
       ? `<circle cx="20" cy="4" r="8" fill="#ef4444"/><text x="20" y="6" font-size="10" font-weight="bold" fill="white" text-anchor="middle">${clusterCount}</text>`
       : "";
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="40" viewBox="0 0 24 40">
-    <g transform="translate(0,0)">
-      ${shapeSvg}
-      ${labelSvg}
-      ${countBadge}
-    </g>
-  </svg>`;
-
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="40" viewBox="0 0 24 40">${shapeSvg}${labelSvg}${countBadge}</svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
-/** Renders the "add API key" message without calling any Google Maps hooks. */
-function MapNoApiKeyMessage() {
+/** Leaflet country layer that highlights visited countries */
+function CountryLayer({ visitedCodes }: { visitedCodes: Set<string> }) {
+  const [geojson, setGeojson] = useState<FeatureCollection | null>(null);
+
+  useEffect(() => {
+    fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")
+      .then((r) => r.json())
+      .then((topology: Topology) => {
+        const countries = topology.objects.countries as GeometryCollection<object>;
+        const geo = topojsonClient.feature(topology, countries) as FeatureCollection;
+        setGeojson(geo);
+      })
+      .catch(() => {});
+  }, []);
+
+  const styleFeature = useCallback(
+    (feature?: Feature<import("geojson").Geometry, GeoJsonProperties>): L.PathOptions => {
+      if (!feature) return { fillOpacity: 0, weight: 0 };
+      const id = (feature.id ?? feature.properties?.id)?.toString();
+      const code = id ? NUMERIC_TO_ALPHA2[id] : null;
+      if (!code || !visitedCodes.has(code)) {
+        return { fillOpacity: 0, weight: 0 };
+      }
+      const style = COUNTRY_FLAG_STYLES[code];
+      return {
+        fillColor: style?.fill ?? "#3b82f6",
+        fillOpacity: style?.fillOpacity ?? 0.15,
+        weight: 1,
+        color: "rgba(255,255,255,0.2)",
+      };
+    },
+    [visitedCodes]
+  );
+
+  if (!geojson || visitedCodes.size === 0) return null;
+  return <GeoJSON key={Array.from(visitedCodes).sort().join(",")} data={geojson} style={styleFeature} />;
+}
+
+/** Auto-fit map bounds to markers */
+function FitBounds({ positions }: { positions: [number, number][] }) {
+  const map = useMap();
+  const fitted = useRef(false);
+  useEffect(() => {
+    if (positions.length > 0 && !fitted.current) {
+      const bounds = L.latLngBounds(positions.map(([lat, lng]) => [lat, lng]));
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 10 });
+      fitted.current = true;
+    }
+  }, [map, positions]);
+  return null;
+}
+
+function ClusterPopupContent({
+  locs,
+  onNavigate,
+}: {
+  locs: TravelLocation[];
+  onNavigate: (path: string) => void;
+}) {
+  const sorted = [...locs].sort((a, b) => {
+    const da = a.trip_date ? new Date(a.trip_date + "T12:00:00").getTime() : 0;
+    const db = b.trip_date ? new Date(b.trip_date + "T12:00:00").getTime() : 0;
+    return db - da;
+  });
+  const first = sorted[0];
+  const locationName = first?.location_name ?? "Location";
+
+  const dateRangeStart = locs.reduce<string | null>((min, l) => {
+    const d = l.trip_date ?? (l.year_visited ? `${l.year_visited}-01-01` : null);
+    if (!d) return min;
+    return !min || d < min ? d : min;
+  }, null);
+  const dateRangeEnd = locs.reduce<string | null>((max, l) => {
+    const d = l.trip_date_end ?? l.trip_date ?? (l.year_visited ? `${l.year_visited}-12-31` : null);
+    if (!d) return max;
+    return !max || d > max ? d : max;
+  }, null);
+  const dateLabel =
+    dateRangeStart && dateRangeEnd
+      ? dateRangeStart === dateRangeEnd
+        ? format(new Date(dateRangeStart + "T12:00:00"), "MMMM d, yyyy")
+        : `${format(new Date(dateRangeStart + "T12:00:00"), "MMM d, yyyy")} – ${format(new Date(dateRangeEnd + "T12:00:00"), "MMM d, yyyy")}`
+      : dateRangeStart
+        ? format(new Date(dateRangeStart + "T12:00:00"), "MMMM d, yyyy")
+        : null;
+
+  const livedHere = locs.some((l) => l.is_place_lived);
+  const livedLabel =
+    livedHere && dateRangeStart
+      ? dateRangeEnd && dateRangeEnd !== dateRangeStart
+        ? `Lived ${format(new Date(dateRangeStart + "T12:00:00"), "MMM d, yyyy")} – ${format(new Date(dateRangeEnd + "T12:00:00"), "MMM d, yyyy")}`
+        : `Lived from ${format(new Date(dateRangeStart + "T12:00:00"), "MMM d, yyyy")}`
+      : null;
+
+  const firstLabel = first?.location_label?.trim();
+
   return (
-    <div className="flex h-[500px] items-center justify-center rounded-xl bg-[var(--surface)]">
-      <p className="max-w-md text-center text-[var(--muted)]">
-        Add <code className="rounded bg-[var(--surface-hover)] px-1">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to your{" "}
-        <code className="rounded bg-[var(--surface-hover)] px-1">.env.local</code> to enable the map.
-      </p>
+    <div style={{ minWidth: 220, maxWidth: 320 }}>
+      <div style={{ borderBottom: "1px solid #e5e7eb", paddingBottom: 8, marginBottom: 8 }}>
+        <h3 style={{ fontWeight: "bold", fontSize: 16, margin: 0 }}>{locationName}</h3>
+        {firstLabel && <p style={{ fontSize: 12, fontWeight: 500, color: "#b8860b", margin: "4px 0 0" }}>{firstLabel}</p>}
+        {livedHere && !livedLabel && <p style={{ fontSize: 12, fontWeight: 500, color: "#b8860b", margin: "4px 0 0" }}>Lived here</p>}
+        {livedLabel && <p style={{ fontSize: 12, fontWeight: 500, color: "#b8860b", margin: "4px 0 0" }}>{livedLabel}</p>}
+        {locs.some((l) => l.location_type === "vacation") && !livedHere && (
+          <p style={{ fontSize: 12, color: "#6b7280", margin: "4px 0 0" }}>Vacation</p>
+        )}
+        {locs.some((l) => l.location_type === "memorable_event") && !livedHere && (
+          <p style={{ fontSize: 12, color: "#6b7280", margin: "4px 0 0" }}>Memorable event</p>
+        )}
+        {dateLabel && !livedLabel && <p style={{ fontSize: 13, color: "#6b7280", margin: "4px 0 0" }}>{dateLabel}</p>}
+        {locs.length > 1 && (
+          <span style={{ display: "inline-block", marginTop: 6, fontSize: 12, fontWeight: 600, background: "rgba(184,134,11,0.15)", color: "#b8860b", padding: "2px 8px", borderRadius: 6 }}>
+            {locs.length} memories here
+          </span>
+        )}
+      </div>
+      <div style={{ maxHeight: 260, overflowY: "auto" }}>
+        {sorted.map((l) => {
+          const member = Array.isArray(l.family_members) ? l.family_members[0] : l.family_members;
+          const title = l.notes || "Journal entry";
+          const dateStr = l.trip_date
+            ? format(new Date(l.trip_date + "T12:00:00"), "MMMM d, yyyy")
+            : l.year_visited ? String(l.year_visited) : "";
+          return (
+            <div
+              key={l.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => {
+                if (l.journal_entry_id) onNavigate(`/dashboard/journal/${l.journal_entry_id}/edit`);
+              }}
+              onKeyDown={(e) => {
+                if ((e.key === "Enter" || e.key === " ") && l.journal_entry_id) {
+                  e.preventDefault();
+                  onNavigate(`/dashboard/journal/${l.journal_entry_id}/edit`);
+                }
+              }}
+              style={{
+                borderRadius: 8, border: "1px solid #e5e7eb", background: "#fafaf8",
+                padding: 10, marginBottom: 6, cursor: l.journal_entry_id ? "pointer" : "default",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: 8 }}>
+                <div>
+                  <h4 style={{ fontWeight: 600, fontSize: 14, margin: 0 }}>{title}</h4>
+                  {dateStr && <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>{dateStr}</p>}
+                  {member?.name && member.name !== "Family" && (
+                    <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>{member.name}</p>
+                  )}
+                </div>
+                {l.journal_entry_id && <span style={{ color: "#6b7280" }}>→</span>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
-/** Inner component that uses useJsApiLoader — only mounted when we have a valid API key. */
-function MapComponentWithLoader({ apiKey, filter }: { apiKey: string; filter?: MapFilter }) {
+export default function MapComponent({ filter }: { filter?: MapFilter } = {}) {
   const router = useRouter();
   const { activeFamilyId } = useFamily();
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: apiKey,
-  });
-
   const [locations, setLocations] = useState<TravelLocation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCluster, setSelectedCluster] = useState<{
-    locs: TravelLocation[];
-    pos: [number, number];
-  } | null>(null);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
 
-  const onLoad = useCallback((map: google.maps.Map) => {
-    setMap(map);
-  }, []);
-
-  const onUnmount = useCallback(() => {
-    setMap(null);
-  }, []);
-
-  function fetchLocations(showLoading = true) {
-    if (!activeFamilyId) return;
-    if (showLoading) setLoading(true);
-    try {
-      const supabase = createClient();
-      supabase
-        .from("travel_locations")
-        .select(`
-          id,
-          lat,
-          lng,
-          location_name,
-          year_visited,
-          trip_date,
-          notes,
-          country_code,
-          is_birth_place,
-          is_place_lived,
-          trip_date_end,
-          location_type,
-          location_label,
-          journal_entry_id,
-          location_cluster_id,
-          family_members (name, color, symbol)
-        `)
-        .eq("family_id", activeFamilyId)
-        .order("created_at", { ascending: true })
-        .then(({ data, error }) => {
-          if (!error && data) {
-            const rows = data as unknown as TravelLocation[];
-            const byId = new Map<string, TravelLocation>();
-            rows.forEach((r) => byId.set(r.id, r));
-            const list = Array.from(byId.values());
-            setLocations(list);
-            if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
-              const withCluster = list.filter((l) => l.location_cluster_id);
-              const groups = groupLocations(list);
-              console.log("🗺️ Map: travel_locations fetched", {
-                total: list.length,
-                withClusterId: withCluster.length,
-                withoutClusterId: list.length - withCluster.length,
-                groupCount: groups.length,
-                perGroup: groups.map((g) => ({ locs: g.length, clusterId: g[0]?.location_cluster_id ?? "null", name: g[0]?.location_name })),
-              });
+  const fetchLocations = useCallback(
+    (showLoading = true) => {
+      if (!activeFamilyId) return;
+      if (showLoading) setLoading(true);
+      try {
+        const supabase = createClient();
+        supabase
+          .from("travel_locations")
+          .select(`
+            id, lat, lng, location_name, year_visited, trip_date, notes,
+            country_code, is_birth_place, is_place_lived, trip_date_end,
+            location_type, location_label, journal_entry_id, location_cluster_id,
+            family_members (name, color, symbol)
+          `)
+          .eq("family_id", activeFamilyId)
+          .order("created_at", { ascending: true })
+          .then(({ data, error }) => {
+            if (!error && data) {
+              const rows = data as unknown as TravelLocation[];
+              const byId = new Map<string, TravelLocation>();
+              rows.forEach((r) => byId.set(r.id, r));
+              setLocations(Array.from(byId.values()));
             }
-          }
-          setLoading(false);
-        });
-    } catch {
-      setLoading(false);
-    }
-  }
+            setLoading(false);
+          });
+      } catch {
+        setLoading(false);
+      }
+    },
+    [activeFamilyId]
+  );
 
   useEffect(() => {
     fetchLocations(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchLocations intentionally omitted to avoid re-fetch loops
-  }, [activeFamilyId]);
+  }, [fetchLocations]);
 
   useEffect(() => {
-    function onRefresh() {
-      fetchLocations(false);
-    }
+    const onRefresh = () => fetchLocations(false);
     window.addEventListener("map-refresh", onRefresh);
     return () => window.removeEventListener("map-refresh", onRefresh);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchLocations intentionally not in deps
-  }, []);
+  }, [fetchLocations]);
 
-  const filteredLocations = useMemo(
-    () => applyFilter(locations, filter),
-    [locations, filter]
-  );
+  const filteredLocations = useMemo(() => applyFilter(locations, filter), [locations, filter]);
 
   const visitedCountryCodes = useMemo(() => {
     const codes = new Set<string>();
@@ -261,15 +354,7 @@ function MapComponentWithLoader({ apiKey, filter }: { apiKey: string; filter?: M
     });
   }, [filteredLocations]);
 
-  if (loadError) {
-    return (
-      <div className="flex h-[500px] items-center justify-center rounded-xl bg-[var(--surface)]">
-        <p className="text-red-600">Error loading Google Maps. Check your API key.</p>
-      </div>
-    );
-  }
-
-  if (!isLoaded || loading) {
+  if (loading) {
     return (
       <div className="flex h-[500px] items-center justify-center rounded-xl bg-[var(--surface)]">
         <span className="text-[var(--muted)]">Loading map...</span>
@@ -277,40 +362,25 @@ function MapComponentWithLoader({ apiKey, filter }: { apiKey: string; filter?: M
     );
   }
 
+  const center: [number, number] = [UI_DISPLAY.mapDefaultCenter.lat, UI_DISPLAY.mapDefaultCenter.lng];
+
   return (
-    <div className="overflow-hidden rounded-xl">
-      <GoogleMap
-        mapContainerStyle={mapContainerStyle}
-        center={UI_DISPLAY.mapDefaultCenter}
-        zoom={4}
-        onLoad={onLoad}
-        onUnmount={onUnmount}
-        options={{
-          minZoom: 1,
-          maxZoom: 20,
-          styles: [
-            {
-              featureType: "poi",
-              elementType: "labels",
-              stylers: [{ visibility: "off" }],
-            },
-            {
-              featureType: "transit",
-              elementType: "labels",
-              stylers: [{ visibility: "off" }],
-            },
-          ],
-          mapTypeControl: true,
-          mapTypeControlOptions: {
-            style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-            position: google.maps.ControlPosition.TOP_RIGHT,
-          },
-          streetViewControl: true,
-          fullscreenControl: true,
-          zoomControl: true,
-        }}
+    <div className="overflow-hidden rounded-xl" style={{ height: 500 }}>
+      <MapContainer
+        center={center}
+        zoom={UI_DISPLAY.mapDefaultZoom}
+        style={{ width: "100%", height: "100%" }}
+        scrollWheelZoom={true}
+        zoomControl={true}
       >
-        <GoogleMapsCountryLayer map={map} visitedCodes={visitedCountryCodes} />
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <CountryLayer visitedCodes={visitedCountryCodes} />
+        {clusterPins.length > 0 && (
+          <FitBounds positions={clusterPins.map((c) => c.pos)} />
+        )}
         {clusterPins.map(({ locs, pos }) => {
           const loc = locs[0];
           const member = Array.isArray(loc.family_members)
@@ -322,177 +392,41 @@ function MapComponentWithLoader({ apiKey, filter }: { apiKey: string; filter?: M
           const isPlaceLived = loc.is_place_lived === true;
           const locationType = loc.location_type ?? null;
           const symbol =
-            isBirthPlace
-              ? "balloons"
-              : isPlaceLived
-                ? "house"
-                : locationType === "memorable_event"
-                  ? "memorable_event"
-                  : locationType === "vacation"
-                    ? "vacation"
-                    : locationType === "other"
-                      ? "circle"
-                      : isFamily
-                        ? "star"
-                        : "pin";
+            isBirthPlace ? "balloons"
+              : isPlaceLived ? "house"
+                : locationType === "memorable_event" ? "memorable_event"
+                  : locationType === "vacation" ? "vacation"
+                    : locationType === "other" ? "circle"
+                      : isFamily ? "star" : "pin";
           const dateLabel =
             loc.trip_date
               ? new Date(loc.trip_date + "T12:00:00").getFullYear().toString()
-              : loc.year_visited
-                ? loc.year_visited.toString()
-                : "";
+              : loc.year_visited ? loc.year_visited.toString() : "";
+
+          const iconUrl = createPinSvgUrl(color, symbol, dateLabel, isFamily, locs.length);
+          const icon = L.icon({
+            iconUrl,
+            iconSize: [48, 40],
+            iconAnchor: [24, 38],
+            popupAnchor: [0, -38],
+          });
 
           return (
             <Marker
               key={loc.location_cluster_id || loc.id}
-              position={{ lat: pos[0], lng: pos[1] }}
-              icon={{
-                url: createPinSvgUrl(color, symbol, dateLabel, isFamily, locs.length),
-                scaledSize: new google.maps.Size(48, 40),
-                anchor: new google.maps.Point(24, 38),
-              }}
-              onClick={() => {
-                if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
-                  console.log("📍 Pin clicked:", { location: loc.location_name, entriesInCluster: locs.length, locs: locs.map((l) => ({ id: l.id, notes: l.notes, journal_entry_id: l.journal_entry_id })) });
-                }
-                setSelectedCluster({ locs, pos });
-              }}
-            />
+              position={[pos[0], pos[1]]}
+              icon={icon}
+            >
+              <Popup maxWidth={340} minWidth={220}>
+                <ClusterPopupContent
+                  locs={locs}
+                  onNavigate={(path) => router.push(path)}
+                />
+              </Popup>
+            </Marker>
           );
         })}
-        {selectedCluster && (() => {
-          const locs = [...selectedCluster.locs].sort((a, b) => {
-            const da = a.trip_date ? new Date(a.trip_date + "T12:00:00").getTime() : 0;
-            const db = b.trip_date ? new Date(b.trip_date + "T12:00:00").getTime() : 0;
-            return db - da; // most recent first
-          });
-          const first = locs[0];
-          const locationName = first?.location_name ?? "Location";
-          const dateRangeStart = locs.reduce<string | null>((min, l) => {
-            const d = l.trip_date ?? (l.year_visited ? `${l.year_visited}-01-01` : null);
-            if (!d) return min;
-            return !min || d < min ? d : min;
-          }, null);
-          const dateRangeEnd = locs.reduce<string | null>((max, l) => {
-            const d = l.trip_date_end ?? l.trip_date ?? (l.year_visited ? `${l.year_visited}-12-31` : null);
-            if (!d) return max;
-            return !max || d > max ? d : max;
-          }, null);
-          const dateLabel =
-            dateRangeStart && dateRangeEnd
-              ? dateRangeStart === dateRangeEnd
-                ? format(new Date(dateRangeStart + "T12:00:00"), "MMMM d, yyyy")
-                : `${format(new Date(dateRangeStart + "T12:00:00"), "MMM d, yyyy")} – ${format(new Date(dateRangeEnd + "T12:00:00"), "MMM d, yyyy")}`
-              : dateRangeStart
-                ? format(new Date(dateRangeStart + "T12:00:00"), "MMMM d, yyyy")
-                : null;
-          const livedHere = locs.some((l) => l.is_place_lived);
-          const livedLabel =
-            livedHere && dateRangeStart
-              ? dateRangeEnd && dateRangeEnd !== dateRangeStart
-                ? `Lived ${format(new Date(dateRangeStart + "T12:00:00"), "MMM d, yyyy")} – ${format(new Date(dateRangeEnd + "T12:00:00"), "MMM d, yyyy")}`
-                : `Lived from ${format(new Date(dateRangeStart + "T12:00:00"), "MMM d, yyyy")}`
-              : null;
-          const firstLabel = first?.location_label?.trim();
-          return (
-            <InfoWindow
-              position={{ lat: selectedCluster.pos[0], lng: selectedCluster.pos[1] }}
-              onCloseClick={() => setSelectedCluster(null)}
-            >
-              <div className="min-w-[220px] max-w-[320px] p-3 text-[var(--foreground)]">
-                <div className="mb-3 border-b border-[var(--border)] pb-2">
-                  <h3 className="font-bold text-lg text-[var(--foreground)]">
-                    {locationName}
-                  </h3>
-                  {firstLabel && (
-                    <p className="text-xs font-medium text-[var(--accent)] mt-1">{firstLabel}</p>
-                  )}
-                  {livedHere && !livedLabel && (
-                    <p className="text-xs font-medium text-[var(--accent)] mt-1">Lived here</p>
-                  )}
-                  {livedLabel && (
-                    <p className="text-xs font-medium text-[var(--accent)] mt-1">{livedLabel}</p>
-                  )}
-                  {locs.some((l) => l.location_type === "vacation") && !livedHere && (
-                    <p className="text-xs font-medium text-[var(--muted)] mt-1">Vacation</p>
-                  )}
-                  {locs.some((l) => l.location_type === "memorable_event") && !livedHere && (
-                    <p className="text-xs font-medium text-[var(--muted)] mt-1">Memorable event</p>
-                  )}
-                  {locs.some((l) => l.location_type === "other") && !livedHere && !firstLabel && (
-                    <p className="text-xs font-medium text-[var(--muted)] mt-1">Other</p>
-                  )}
-                  {dateLabel && !livedLabel && (
-                    <p className="text-sm text-[var(--muted)] mt-1">{dateLabel}</p>
-                  )}
-                  {locs.length > 1 && (
-                    <div className="mt-2 inline-block rounded bg-[var(--accent)]/20 px-2 py-1 text-xs font-semibold text-[var(--accent)]">
-                      {locs.length} memories here
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-2 max-h-[280px] overflow-y-auto">
-                  {locs.map((l) => {
-                    const member = Array.isArray(l.family_members) ? l.family_members[0] : l.family_members;
-                    const title = l.notes || "Journal entry";
-                    const dateStr = l.trip_date
-                      ? format(new Date(l.trip_date + "T12:00:00"), "MMMM d, yyyy")
-                      : l.year_visited
-                        ? String(l.year_visited)
-                        : "";
-                    return (
-                      <div
-                        key={l.id}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => {
-                          setSelectedCluster(null);
-                          if (l.journal_entry_id) {
-                            router.push(`/dashboard/journal/${l.journal_entry_id}/edit`);
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            setSelectedCluster(null);
-                            if (l.journal_entry_id) {
-                              router.push(`/dashboard/journal/${l.journal_entry_id}/edit`);
-                            }
-                          }
-                        }}
-                        className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 hover:bg-[var(--surface-hover)] hover:border-[var(--accent)]/50 cursor-pointer transition-all group"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors truncate">
-                              {title}
-                            </h4>
-                            {dateStr && (
-                              <p className="text-xs text-[var(--muted)] mt-1">{dateStr}</p>
-                            )}
-                            {member?.name && member.name !== "Family" && (
-                              <p className="text-xs text-[var(--muted)] mt-0.5">{member.name}</p>
-                            )}
-                          </div>
-                          <span className="text-[var(--muted)] group-hover:text-[var(--accent)] transition-colors shrink-0">→</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </InfoWindow>
-          );
-        })()}
-      </GoogleMap>
+      </MapContainer>
     </div>
   );
-}
-
-export default function MapComponent({ filter }: { filter?: MapFilter } = {}) {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-  if (!apiKey || apiKey.trim() === "") {
-    return <MapNoApiKeyMessage />;
-  }
-  return <MapComponentWithLoader apiKey={apiKey} filter={filter} />;
 }

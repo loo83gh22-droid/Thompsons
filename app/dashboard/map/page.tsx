@@ -7,7 +7,7 @@ import { MapFirstVisitBanner } from "./MapFirstVisitBanner";
 import { rebuildLocationClusters, syncBirthPlacesToMap } from "./actions";
 import type { MapFilter } from "./MapComponent";
 
-// Google Maps loads client-side only
+// Leaflet map loads client-side only (no SSR)
 const MapComponent = dynamic(() => import("./MapComponent"), {
   ssr: false,
   loading: () => (
