@@ -29,45 +29,77 @@ function buildTree(
   const getChildIds = (parentId: string): string[] =>
     childRels.filter((r) => r.related_id === parentId).map((r) => r.member_id);
 
-  function buildNode(memberId: string): TreeMemberNode {
+  // Global rendered set: every member may only appear once in the entire tree.
+  // This prevents ME! (and their spouse + kids) from being duplicated under
+  // each parent when multiple root members (e.g. Dad, Ma) share the same child.
+  const rendered = new Set<string>();
+
+  function buildNode(memberId: string, coParentId?: string): TreeMemberNode | null {
+    if (rendered.has(memberId)) return null;
+    rendered.add(memberId);
+
     const member = memberMap.get(memberId);
-    if (!member) return { member: members[0], spouse: null, children: [] };
-    const spouse = getSpouse(memberId);
-    const childIdsForThis = getChildIds(memberId);
-    if (spouse) {
-      const spouseChildIds = getChildIds(spouse.id);
-      const allChildIds = [...new Set([...childIdsForThis, ...spouseChildIds])];
-      const children = allChildIds
-        .map((id) => buildNode(id))
-        .filter((n) => n.member.id !== memberId && n.member.id !== spouse?.id);
-      return { member, spouse, children };
+    if (!member) return null;
+
+    // Prefer a formal spouse; fall back to a co-parent (shared child, no spouse rel).
+    const formalSpouse = getSpouse(memberId);
+    let resolvedSpouse: OurFamilyMember | null = null;
+
+    if (formalSpouse && !rendered.has(formalSpouse.id)) {
+      rendered.add(formalSpouse.id);
+      resolvedSpouse = formalSpouse;
+    } else if (!formalSpouse && coParentId && !rendered.has(coParentId)) {
+      rendered.add(coParentId);
+      resolvedSpouse = memberMap.get(coParentId) ?? null;
     }
-    const children = childIdsForThis.map((id) => buildNode(id));
-    return { member, spouse: null, children };
+
+    // Merge children from this member and their partner.
+    const myChildIds = getChildIds(memberId);
+    const partnerChildIds = resolvedSpouse ? getChildIds(resolvedSpouse.id) : [];
+    const allChildIds = [...new Set([...myChildIds, ...partnerChildIds])];
+
+    const children = allChildIds
+      .filter((id) => !rendered.has(id))
+      .map((id) => buildNode(id))
+      .filter((n): n is TreeMemberNode => n !== null);
+
+    return { member, spouse: resolvedSpouse, children };
   }
 
   const roots = members.filter((m) => !childIds.has(m.id));
+
+  // Detect co-parents: two roots that share at least one child but have no formal
+  // spouse relationship. Pair them so they appear side-by-side at the same level
+  // instead of spawning duplicate subtrees.
+  function findCoParent(rootId: string): OurFamilyMember | null {
+    if (getSpouse(rootId)) return null; // already has a formal spouse
+    const myChildren = new Set(getChildIds(rootId));
+    if (myChildren.size === 0) return null;
+    for (const other of roots) {
+      if (other.id === rootId || rendered.has(other.id)) continue;
+      if (getSpouse(other.id)) continue; // other has their own formal spouse
+      if (getChildIds(other.id).some((c) => myChildren.has(c))) return other;
+    }
+    return null;
+  }
+
+  // Fallback when the whole family is one circular group (no true roots).
   if (roots.length === 0) {
-    const seen = new Set<string>();
     const rootNodes: TreeMemberNode[] = [];
     for (const m of members) {
-      if (seen.has(m.id)) continue;
-      const spouse = getSpouse(m.id);
-      if (spouse) seen.add(spouse.id);
-      seen.add(m.id);
-      rootNodes.push({ member: m, spouse, children: [] });
+      if (rendered.has(m.id)) continue;
+      const node = buildNode(m.id);
+      if (node) rootNodes.push(node);
     }
     return rootNodes;
   }
 
-  const seen = new Set<string>();
   const rootNodes: TreeMemberNode[] = [];
   for (const r of roots) {
-    if (seen.has(r.id)) continue;
-    const spouse = getSpouse(r.id);
-    if (spouse) seen.add(spouse.id);
-    seen.add(r.id);
-    rootNodes.push(buildNode(r.id));
+    if (rendered.has(r.id)) continue;
+    const coParent = findCoParent(r.id);
+    const node = buildNode(r.id, coParent?.id);
+    if (node) rootNodes.push(node);
   }
   return rootNodes;
 }
