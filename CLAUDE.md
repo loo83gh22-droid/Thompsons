@@ -162,3 +162,49 @@ To check deployment status:
 - Verify `CRON_SECRET` is set in Vercel
 - Check `vercel.json` has correct cron schedule
 - View Functions logs in Vercel dashboard
+
+## Local Verification Workflow (Windows)
+
+### Starting the dev server
+
+Use `preview_start` with the name `"dev"`. The `.claude/launch.json` is configured
+to use `node` directly with the full npm-cli.js path — this is required on Windows
+because `npm` is a `.cmd` file that Node's `spawn()` cannot execute directly.
+
+**Never** start the dev server via `mcp__Desktop_Commander__start_process` — its
+PowerShell shell does not have Node/npm in PATH.
+
+**Always** use the Bash tool for `npm run build`, `git` commands, and other CLI work.
+
+### Verifying UI changes (screenshots)
+
+`/dashboard/*` routes are auth-protected and redirect to `/login`, which crashes the
+`preview_*` browser context. Follow this split workflow:
+
+| Page type | Tool to use |
+|---|---|
+| Public pages (`/`, `/login`, `/pricing`) | `preview_screenshot` / `preview_snapshot` |
+| Auth-protected pages (`/dashboard/*`) | Chrome MCP (`mcp__Claude_in_Chrome__computer`) |
+
+**Chrome MCP workflow for dashboard pages:**
+1. `mcp__Claude_in_Chrome__tabs_context_mcp` — get tab ID
+2. `mcp__Claude_in_Chrome__navigate` — go to `http://localhost:3000/dashboard/...`
+3. Ask user to log in if redirected, then `mcp__Claude_in_Chrome__computer` screenshot
+
+### Freeing port 3000 (orphaned processes)
+
+If `preview_start` fails with "port already in use":
+
+```bash
+# In Bash tool — get the PID
+netstat -ano | grep ":3000 "
+```
+
+Then kill it with the Desktop Commander tool (NOT taskkill in Bash — Git Bash
+converts `/PID` to a Unix path and breaks the command):
+
+```
+mcp__Desktop_Commander__kill_process(pid: <PID>)
+```
+
+After killing, call `preview_start` again.
