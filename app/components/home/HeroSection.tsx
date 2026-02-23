@@ -29,7 +29,7 @@ export function HeroSection() {
                 className="max-w-lg text-lg leading-relaxed"
                 style={{ color: "var(--muted)" }}
               >
-                A private, beautiful space where grandparents, parents, aunts, uncles, teens,
+                A private, beautiful space where grandparents, parents, teens,
                 and kids all come together. Journals, photos, videos, voice memos, recipes,
                 and so much more. Join your daughter&apos;s nest, your son&apos;s nest, or start
                 your own — all from one account.

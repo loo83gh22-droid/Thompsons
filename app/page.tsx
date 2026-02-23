@@ -38,7 +38,7 @@ const faqStructuredData = {
       name: "Can I be in more than one family?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes! If your son starts a Nest and your daughter starts a different one, you can be a member of both. You only need one account — no matter how many families you belong to.",
+        text: "Yes! This is one of the most popular features for grandparents. If your son starts a Nest and your daughter starts a different one, you can be a member of both. You only need one account — no matter how many families you belong to.",
       },
     },
     {

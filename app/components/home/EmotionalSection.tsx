@@ -47,7 +47,7 @@ export function EmotionalSection() {
             </p>
             <p>
               Family Nest brings it all together. It&apos;s private, it&apos;s permanent,
-              and everyone in the family can jump in. Parents, grandparents, aunts, uncles,
+              and everyone in the family can jump in. Parents, grandparents,
               teens, and yes, even the little ones.
             </p>
             <p>

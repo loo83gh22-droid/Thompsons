@@ -36,7 +36,7 @@ export function Testimonials() {
       icon: Smartphone,
       scenario: "Private Instagram — Minus Everything Bad",
       story:
-        "All the sharing. None of the ads, algorithms, or strangers. Just the cousins in Ohio, the aunt in Florida, the teens who actually check it, and Grandpa who just learned how to tap.",
+        "All the sharing. None of the ads, algorithms, or strangers. Just your parents in Ohio, the kids at college, the teens who actually check it, and Grandpa who just learned how to tap.",
     },
   ];
 

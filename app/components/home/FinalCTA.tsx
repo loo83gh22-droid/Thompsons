@@ -20,8 +20,8 @@ export function FinalCTA() {
             className="mb-10 text-lg leading-relaxed"
             style={{ color: "var(--muted)" }}
           >
-            It takes 30 seconds to set up. Invite grandma, the cousins, your siblings, everyone.
-            Start building something the whole family will love. Already been invited? Just sign
+            It takes 30 seconds to set up. Invite your parents, the grandparents, the kids — everyone
+            under your family tree. Already been invited? Just sign
             up and you&apos;ll find your family&apos;s Nest waiting for you.
           </p>
 

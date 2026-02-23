@@ -12,7 +12,7 @@ const faqs = [
   {
     question: "Can I be in more than one family?",
     answer:
-      "Yes! This is one of the most popular features for grandparents and extended family. If your son starts a Nest and your daughter starts a different one, you can be a member of both. You'll see all your families when you log in and can switch between them with one click. You only need one account — no matter how many families you belong to.",
+      "Yes! This is one of the most popular features for grandparents. If your son starts a Nest and your daughter starts a different one, you can be a member of both. You'll see all your families when you log in and can switch between them with one click. You only need one account — no matter how many families you belong to.",
   },
   {
     question: "What happens if I stop paying?",
