@@ -191,7 +191,7 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
           journal_entry_id: entry.id,
           location_cluster_id: locationClusterId,
           location_type:
-            input.location_type === "vacation" || input.location_type === "memorable" ? input.location_type : null,
+            input.location_type === "vacation" ? "vacation" : input.location_type === "memorable_event" ? "memorable" : null,
         }).select("id").single();
 
         // Insert junction table rows for travel location members
@@ -441,7 +441,7 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
           journal_entry_id: entryId,
           location_cluster_id: locationClusterId,
           location_type:
-            input.location_type === "vacation" || input.location_type === "memorable" ? input.location_type : null,
+            input.location_type === "vacation" ? "vacation" : input.location_type === "memorable_event" ? "memorable" : null,
         }).select("id").single();
 
         // Insert junction table rows for travel location members

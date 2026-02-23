@@ -39,7 +39,7 @@ export const createJournalEntrySchema = z
         return num;
       }),
     location_type: z
-      .enum(["vacation", "memorable", "home"])
+      .enum(["visit", "vacation", "memorable_event"])
       .optional()
       .nullable(),
   })
