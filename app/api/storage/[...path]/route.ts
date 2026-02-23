@@ -7,15 +7,12 @@ import { NextResponse } from "next/server";
  * URL pattern: /api/storage/<bucket>/<...path>
  *
  * 1. Verifies the caller has an active Supabase session.
- * 2. Fetches the object from private Supabase storage using the service-role key.
- * 3. Streams the file back with appropriate caching headers.
+ * 2. Creates a short-lived signed URL using the user's own session.
+ * 3. Fetches the file server-side via the signed URL and streams it back.
  *
- * This lets all storage buckets be private while still serving files to
- * authenticated users via a simple relative URL.
+ * The signed URL is never exposed to the browser — only the /api/storage URL
+ * is ever seen by the client. Requires storage SELECT policy on each bucket.
  */
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function GET(
   _request: Request,
@@ -40,29 +37,30 @@ export async function GET(
   const bucket = segments[0];
   const objectPath = segments.slice(1).join("/");
 
-  // 3. Fetch from Supabase storage using service-role key (bypasses bucket public setting)
-  const storageUrl = `${SUPABASE_URL}/storage/v1/object/${bucket}/${objectPath}`;
+  // 3. Generate a short-lived signed URL using the user's own session.
+  //    60 seconds is enough — it's only used for the server-side fetch below.
+  const { data: signedData, error: signError } = await supabase.storage
+    .from(bucket)
+    .createSignedUrl(objectPath, 60);
 
-  const upstream = await fetch(storageUrl, {
-    headers: {
-      Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
-      apikey: SERVICE_ROLE_KEY,
-    },
-  });
+  if (signError || !signedData?.signedUrl) {
+    return new NextResponse("Not Found", { status: 404 });
+  }
 
+  // 4. Fetch the file server-side using the signed URL — never exposed to browser
+  const upstream = await fetch(signedData.signedUrl);
   if (!upstream.ok) {
     return new NextResponse("Not Found", { status: upstream.status });
   }
 
-  // 4. Stream back with safe cache headers
-  // Cache for 1 hour on the browser — files are immutable once stored
+  // 5. Stream back with safe cache headers
   const contentType = upstream.headers.get("content-type") ?? "application/octet-stream";
   const contentLength = upstream.headers.get("content-length");
 
   const headers = new Headers({
     "Content-Type": contentType,
+    // Cache for 1 hour on the browser — files are immutable once stored
     "Cache-Control": "private, max-age=3600",
-    // Prevent the Next.js image optimizer from re-processing these responses
     "X-Content-Type-Options": "nosniff",
   });
 
