@@ -11,6 +11,8 @@ export async function addRelationship(
   relationshipType: "spouse" | "child"
 ): Promise<{ error?: string }> {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return { error: "No family" };
 
@@ -55,6 +57,8 @@ export async function removeRelationship(
   relationshipType: "spouse" | "child"
 ): Promise<{ error?: string }> {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return { error: "No family" };
 

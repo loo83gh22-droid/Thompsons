@@ -564,10 +564,14 @@ export async function deleteJournalPhoto(photoId: string, entryId?: string) {
 
   if (!user) throw new Error("Not authenticated");
 
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
   const { error } = await supabase
     .from("journal_photos")
     .delete()
-    .eq("id", photoId);
+    .eq("id", photoId)
+    .eq("family_id", activeFamilyId);
 
   if (error) throw error;
   revalidatePath("/dashboard/journal");
@@ -784,10 +788,14 @@ export async function deleteJournalVideo(videoId: string, entryId?: string) {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
   const { error } = await supabase
     .from("journal_videos")
     .delete()
-    .eq("id", videoId);
+    .eq("id", videoId)
+    .eq("family_id", activeFamilyId);
 
   if (error) throw error;
   revalidatePath("/dashboard/journal");

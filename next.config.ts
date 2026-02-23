@@ -27,6 +27,28 @@ const nextConfig: NextConfig = {
       }
     : {},
   async headers() {
+    const supabaseOrigin = supabaseHost ? `https://${supabaseHost}` : "";
+    const csp = [
+      "default-src 'self'",
+      // Next.js requires unsafe-inline for hydration scripts; unsafe-eval for Turbopack dev HMR
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com",
+      // Tailwind and Next.js inject inline styles
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      // Images: own origin, Supabase storage, Google Maps tiles, data URIs, blobs
+      `img-src 'self' data: blob: ${supabaseOrigin} https://maps.googleapis.com https://maps.gstatic.com`,
+      // API / WebSocket connections
+      `connect-src 'self' ${supabaseOrigin} wss://${supabaseHost ?? ""} https://maps.googleapis.com`,
+      // Audio / video from Supabase storage
+      `media-src 'self' blob: ${supabaseOrigin}`,
+      "font-src 'self' https://fonts.gstatic.com",
+      // Service workers and audio worklets need blob:
+      "worker-src 'self' blob:",
+      "frame-src 'none'",
+      "object-src 'none'",
+    ]
+      .filter(Boolean)
+      .join("; ");
+
     return [
       {
         source: "/(.*)",
@@ -42,10 +64,8 @@ const nextConfig: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           },
-          {
-            key: "X-DNS-Prefetch-Control",
-            value: "on",
-          },
+          { key: "X-DNS-Prefetch-Control", value: "on" },
+          { key: "Content-Security-Policy", value: csp },
         ],
       },
     ];
