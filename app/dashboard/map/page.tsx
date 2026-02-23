@@ -28,11 +28,12 @@ const DEFAULT_FILTER: MapFilter = {
 };
 
 const LEGEND = [
-  { color: "#22c55e", label: "Huck", symbols: ["balloons", "house", "pin", "vacation", "memorable_event"] },
-  { color: "#ef4444", label: "Maui", symbols: ["balloons", "house", "pin", "vacation", "memorable_event"] },
-  { color: "#f97316", label: "Dad", symbols: ["balloons", "house", "pin", "vacation", "memorable_event"] },
-  { color: "#d4a853", label: "Mom", symbols: ["balloons", "house", "pin", "vacation", "memorable_event"] },
-  { color: "#3b82f6", label: "Family", symbols: ["star", "vacation", "memorable_event"] },
+  { color: "#ec4899", label: "Birth place", symbol: "balloons" },
+  { color: "#22c55e", label: "Home", symbol: "house" },
+  { color: "#f97316", label: "Vacation", symbol: "vacation" },
+  { color: "#ef4444", label: "Memorable event", symbol: "memorable_event" },
+  { color: "#3b82f6", label: "Visit / trip", symbol: "pin" },
+  { color: "#6b7280", label: "Other", symbol: "circle" },
 ];
 
 export default function MapPage() {
@@ -112,81 +113,34 @@ export default function MapPage() {
       <div className="mt-4 flex flex-wrap gap-4">
         {LEGEND.map((item) => (
           <div key={item.label} className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              {item.symbols?.map((sym) =>
-                sym === "balloons" ? (
-                  <div key={sym} className="flex flex-col items-center">
-                    <div className="flex gap-0.5 items-end">
-                      <div
-                        className="h-3 w-2 rounded-full border border-white/30"
-                        style={{ backgroundColor: item.color }}
-                      />
-                      <div
-                        className="h-3 w-2 rounded-full border border-white/30"
-                        style={{ backgroundColor: item.color }}
-                      />
-                    </div>
-                    <div
-                      className="w-px h-1 mt-0.5 opacity-60"
-                      style={{ backgroundColor: item.color }}
-                    />
-                  </div>
-                ) : sym === "pin" ? (
-                  <div key={sym} className="flex flex-col items-center">
-                    <div
-                      className="h-2 w-2 rounded-full border border-white/30"
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <div
-                      className="mt-0.5"
-                      style={{
-                        width: 0,
-                        height: 0,
-                        borderLeft: "4px solid transparent",
-                        borderRight: "4px solid transparent",
-                        borderTop: `6px solid ${item.color}`,
-                      }}
-                    />
-                  </div>
-                ) : sym === "star" ? (
-                  <div
-                    key={sym}
-                    className="h-4 w-4 border border-white/30"
-                    style={{
-                      backgroundColor: item.color,
-                      clipPath:
-                        "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)",
-                    }}
-                  />
-                ) : sym === "house" ? (
-                  <div
-                    key={sym}
-                    className="h-4 w-4 border border-white/30"
-                    style={{
-                      backgroundColor: item.color,
-                      clipPath: "polygon(50% 0%, 100% 50%, 80% 100%, 20% 100%, 0% 50%)",
-                    }}
-                  />
-                ) : sym === "vacation" ? (
-                  <div
-                    key={sym}
-                    className="flex h-4 w-4 items-center justify-center rounded-full border border-white/30"
-                    style={{ backgroundColor: item.color }}
-                  >
-                    <span className="text-[8px] leading-none">☀</span>
-                  </div>
-                ) : sym === "memorable_event" ? (
-                  <span key={sym} className="text-sm leading-none" style={{ color: item.color }} aria-hidden>♥</span>
-                ) : null
-              )}
-            </div>
+            {item.symbol === "balloons" ? (
+              <div className="flex flex-col items-center">
+                <div className="flex gap-0.5 items-end">
+                  <div className="h-3 w-2 rounded-full border border-white/30" style={{ backgroundColor: item.color }} />
+                  <div className="h-3 w-2 rounded-full border border-white/30" style={{ backgroundColor: item.color }} />
+                </div>
+                <div className="w-px h-1 mt-0.5 opacity-60" style={{ backgroundColor: item.color }} />
+              </div>
+            ) : item.symbol === "house" ? (
+              <div className="h-4 w-4" style={{ backgroundColor: item.color, clipPath: "polygon(50% 0%, 100% 50%, 80% 100%, 20% 100%, 0% 50%)" }} />
+            ) : item.symbol === "vacation" ? (
+              <div className="flex h-4 w-4 items-center justify-center rounded-full" style={{ backgroundColor: item.color }}>
+                <span className="text-[8px] leading-none text-white">☀</span>
+              </div>
+            ) : item.symbol === "memorable_event" ? (
+              <span className="text-sm leading-none" style={{ color: item.color }} aria-hidden>♥</span>
+            ) : item.symbol === "pin" ? (
+              <div className="flex flex-col items-center">
+                <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
+                <div className="mt-0.5" style={{ width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent", borderTop: `6px solid ${item.color}` }} />
+              </div>
+            ) : item.symbol === "circle" ? (
+              <div className="h-3.5 w-3.5 rounded-full" style={{ backgroundColor: item.color }} />
+            ) : null}
             <span className="text-sm text-[var(--muted)]">{item.label}</span>
           </div>
         ))}
       </div>
-      <p className="mt-2 text-xs text-[var(--muted)]">
-        Balloons = birth place · House = homes (lived) · Pin = visit · Star = family trip · Sun = vacation · Heart = memorable event · Circle = other
-      </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <span className="text-sm font-medium text-[var(--muted)]">Show on map:</span>

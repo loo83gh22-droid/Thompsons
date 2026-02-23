@@ -51,6 +51,17 @@ const NUMERIC_TO_ALPHA2: Record<string, string> = {
   "076": "BR", "156": "CN", "356": "IN",
 };
 
+/** Color palette keyed by pin type — consistent across all users */
+const PIN_TYPE_COLORS: Record<string, string> = {
+  balloons: "#ec4899",       // pink — birth places
+  house: "#22c55e",          // green — homes
+  vacation: "#f97316",       // orange — vacations
+  memorable_event: "#ef4444",// red — memorable events
+  pin: "#3b82f6",            // blue — visits / trips
+  star: "#3b82f6",           // blue — family trips
+  circle: "#6b7280",         // gray — other
+};
+
 function applyFilter(locations: TravelLocation[], filter: MapFilter | undefined): TravelLocation[] {
   if (!filter) return locations;
   return locations.filter((loc) => {
@@ -386,7 +397,6 @@ export default function MapComponent({ filter }: { filter?: MapFilter } = {}) {
           const member = Array.isArray(loc.family_members)
             ? loc.family_members[0]
             : loc.family_members;
-          const color = member?.color || "#3b82f6";
           const isFamily = member?.name === "Family";
           const isBirthPlace = loc.is_birth_place === true;
           const isPlaceLived = loc.is_place_lived === true;
@@ -398,6 +408,7 @@ export default function MapComponent({ filter }: { filter?: MapFilter } = {}) {
                   : locationType === "vacation" ? "vacation"
                     : locationType === "other" ? "circle"
                       : isFamily ? "star" : "pin";
+          const color = PIN_TYPE_COLORS[symbol] || "#3b82f6";
           const dateLabel =
             loc.trip_date
               ? new Date(loc.trip_date + "T12:00:00").getFullYear().toString()
