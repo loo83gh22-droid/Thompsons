@@ -71,8 +71,7 @@ export function StoryForm({
       const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
       const { error: uploadError } = await supabase.storage.from("story-covers").upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("story-covers").getPublicUrl(path);
-      setCoverUrl(urlData.publicUrl);
+      setCoverUrl(`/api/storage/story-covers/${path}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Cover upload failed");
     } finally {
@@ -152,7 +151,7 @@ export function StoryForm({
           {coverUploading && <span className="text-sm text-[var(--muted)]">Uploading…</span>}
           {coverUrl && (
             <div className="relative h-24 w-40 overflow-hidden rounded-lg border border-[var(--border)]">
-              <Image src={coverUrl} alt="Story cover preview" fill className="object-cover" sizes="160px" />
+              <Image src={coverUrl} alt="Story cover preview" fill unoptimized className="object-cover" sizes="160px" />
               <button
                 type="button"
                 onClick={() => setCoverUrl(null)}

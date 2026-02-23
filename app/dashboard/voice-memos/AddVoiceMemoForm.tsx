@@ -196,9 +196,6 @@ export function AddVoiceMemoForm({
       if (uploadError) throw uploadError;
 
       setUploadProgress(70);
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("voice-memos").getPublicUrl(path);
 
       await insertVoiceMemo({
         title: title.trim().slice(0, 100),
@@ -207,7 +204,7 @@ export function AddVoiceMemoForm({
         memberIds: recordedForIds,
         recordedDate,
         description: description.trim().slice(0, 500) || null,
-        audioUrl: publicUrl,
+        audioUrl: `/api/storage/voice-memos/${path}`,
         durationSeconds: durationSeconds,
       });
 

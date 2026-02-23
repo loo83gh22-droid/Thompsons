@@ -96,10 +96,7 @@ export function FeedbackForm() {
             .from("feedback-screenshots")
             .upload(path, screenshot, { upsert: true });
           if (!uploadError) {
-            const { data: { publicUrl } } = supabase.storage
-              .from("feedback-screenshots")
-              .getPublicUrl(path);
-            screenshotUrl = publicUrl;
+            screenshotUrl = `/api/storage/feedback-screenshots/${path}`;
           }
         }
       }

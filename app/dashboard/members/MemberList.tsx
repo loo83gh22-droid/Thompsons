@@ -103,8 +103,7 @@ function MemberCard({ member, index, alias }: { member: Member; index: number; a
           .from("member-photos")
           .upload(path, photoFile, { upsert: true });
         if (uploadError) throw uploadError;
-        const { data: { publicUrl } } = supabase.storage.from("member-photos").getPublicUrl(path);
-        finalAvatarUrl = publicUrl;
+        finalAvatarUrl = `/api/storage/member-photos/${path}`;
       }
 
       const result = await updateFamilyMember(

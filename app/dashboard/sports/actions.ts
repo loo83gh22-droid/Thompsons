@@ -20,10 +20,6 @@ export async function addSportsPhoto(
 
   if (uploadError) throw uploadError;
 
-  const { data: urlData } = supabase.storage
-    .from("sports-photos")
-    .getPublicUrl(path);
-
   const { data: photos } = await supabase
     .from("sports_photos")
     .select("sort_order")
@@ -33,7 +29,7 @@ export async function addSportsPhoto(
   const nextOrder = (photos?.[0]?.sort_order ?? -1) + 1;
 
   const { error: insertError } = await supabase.from("sports_photos").insert({
-    url: urlData.publicUrl,
+    url: `/api/storage/sports-photos/${path}`,
     title: data?.title || null,
     caption: data?.caption || null,
     sport: data?.sport || null,

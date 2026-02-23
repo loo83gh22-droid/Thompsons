@@ -85,7 +85,7 @@ function TimelineItemRow({
       >
         {item.thumbnailUrl ? (
           <div className="relative h-32 w-full flex-shrink-0 overflow-hidden rounded-lg sm:h-20 sm:w-20">
-            <Image src={item.thumbnailUrl} alt={item.title || `${TYPE_LABELS[item.type]} thumbnail`} fill className="object-cover" sizes="(max-width: 640px) 100vw, 80px" />
+            <Image src={item.thumbnailUrl} alt={item.title || `${TYPE_LABELS[item.type]} thumbnail`} fill unoptimized className="object-cover" sizes="(max-width: 640px) 100vw, 80px" />
           </div>
         ) : (
           <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--surface-hover)] text-3xl">
@@ -187,7 +187,7 @@ export function TimelineClient({
                 >
                   {item.thumbnailUrl && (
                     <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded">
-                      <Image src={item.thumbnailUrl} alt={item.title || `${TYPE_ICONS[item.type]} thumbnail`} fill className="object-cover" sizes="48px" />
+                      <Image src={item.thumbnailUrl} alt={item.title || `${TYPE_ICONS[item.type]} thumbnail`} fill unoptimized className="object-cover" sizes="48px" />
                     </div>
                   )}
                   {!item.thumbnailUrl && <span className="text-2xl">{TYPE_ICONS[item.type]}</span>}

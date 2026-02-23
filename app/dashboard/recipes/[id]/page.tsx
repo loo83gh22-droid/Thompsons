@@ -123,6 +123,7 @@ export default async function RecipePage({
                         src={photo.url}
                         alt={photo.caption || entry?.title || "Recipe photo"}
                         fill
+                        unoptimized
                         className="object-cover"
                         sizes="160px"
                       />

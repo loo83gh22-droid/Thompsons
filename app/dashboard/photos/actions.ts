@@ -29,10 +29,6 @@ export async function addPhoto(file: File) {
   // Track storage usage
   await addStorageUsage(supabase, activeFamilyId, file.size);
 
-  const { data: urlData } = supabase.storage
-    .from("home-mosaic")
-    .getPublicUrl(path);
-
   const { data: photos } = await supabase
     .from("home_mosaic_photos")
     .select("sort_order")
@@ -54,7 +50,7 @@ export async function addPhoto(file: File) {
     .from("home_mosaic_photos")
     .insert({
       family_id: activeFamilyId,
-      url: urlData.publicUrl,
+      url: `/api/storage/home-mosaic/${path}`,
       sort_order: nextOrder,
       uploaded_by: myMember?.id || null,
     })

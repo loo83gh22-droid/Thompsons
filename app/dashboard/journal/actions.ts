@@ -240,21 +240,19 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
       // Track storage
       await addStorageUsage(supabase, activeFamilyId, file.size);
 
-      const { data: urlData } = supabase.storage
-        .from("journal-photos")
-        .getPublicUrl(path);
+      const photoUrl = `/api/storage/journal-photos/${path}`;
 
       const { error: photoErr } = await supabase.from("journal_photos").insert({
         family_id: activeFamilyId,
         entry_id: entry.id,
-        url: urlData.publicUrl,
+        url: photoUrl,
         sort_order: i,
       });
       if (photoErr) continue;
 
       await supabase.from("home_mosaic_photos").insert({
         family_id: activeFamilyId,
-        url: urlData.publicUrl,
+        url: photoUrl,
         sort_order: mosaicOrder++,
       });
     } catch {
@@ -286,14 +284,10 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
       // Track storage
       await addStorageUsage(supabase, activeFamilyId, file.size);
 
-      const { data: urlData } = supabase.storage
-        .from("journal-videos")
-        .getPublicUrl(path);
-
       await supabase.from("journal_videos").insert({
         family_id: activeFamilyId,
         entry_id: entry.id,
-        url: urlData.publicUrl,
+        url: `/api/storage/journal-videos/${path}`,
         file_size_bytes: file.size,
         sort_order: i,
         uploaded_by: myMember?.id || null,
@@ -530,21 +524,19 @@ export async function addJournalPhotos(entryId: string, formData: FormData) {
     if (!uploadError) {
       await addStorageUsage(supabase, activeFamilyId, file.size);
 
-      const { data: urlData } = supabase.storage
-        .from("journal-photos")
-        .getPublicUrl(path);
+      const photoUrl = `/api/storage/journal-photos/${path}`;
 
       await supabase.from("journal_photos").insert({
         family_id: activeFamilyId,
         entry_id: entryId,
-        url: urlData.publicUrl,
+        url: photoUrl,
         sort_order: startOrder + i,
       });
 
       // Also add to Photos (background mosaic)
       await supabase.from("home_mosaic_photos").insert({
         family_id: activeFamilyId,
-        url: urlData.publicUrl,
+        url: photoUrl,
         sort_order: mosaicOrder++,
       });
     }
@@ -700,14 +692,10 @@ export async function addJournalVideos(entryId: string, formData: FormData) {
     if (!uploadError) {
       await addStorageUsage(supabase, activeFamilyId, file.size);
 
-      const { data: urlData } = supabase.storage
-        .from("journal-videos")
-        .getPublicUrl(path);
-
       await supabase.from("journal_videos").insert({
         family_id: activeFamilyId,
         entry_id: entryId,
-        url: urlData.publicUrl,
+        url: `/api/storage/journal-videos/${path}`,
         file_size_bytes: file.size,
         sort_order: startOrder + i,
         uploaded_by: myMember?.id || null,

@@ -238,14 +238,10 @@ export default function EditJournalPage() {
           continue;
         }
 
-        const { data: urlData } = supabase.storage
-          .from("journal-videos")
-          .getPublicUrl(storagePath);
-
         // Register the video in the DB via server action (metadata only, no file)
         await registerJournalVideo(
           entryId,
-          urlData.publicUrl,
+          `/api/storage/journal-videos/${storagePath}`,
           storagePath,
           file.size,
           null, // duration — not critical for registration
@@ -495,6 +491,7 @@ export default function EditJournalPage() {
                   src={photo.url}
                   alt={photo.caption || "Photo"}
                   fill
+                  unoptimized
                   className="object-cover"
                   sizes="160px"
                 />

@@ -51,7 +51,7 @@ export function StoryCard({ story }: { story: Story }) {
     >
       {story.cover_url ? (
         <div className="relative aspect-video w-full overflow-hidden bg-[var(--surface-hover)]">
-          <Image src={story.cover_url} alt={`Cover image for ${story.title}`} fill className="object-cover transition-transform duration-200 group-hover:scale-105" sizes="(max-width:600px) 100vw, (max-width:900px) 50vw, 33vw" />
+          <Image src={story.cover_url} alt={`Cover image for ${story.title}`} fill unoptimized className="object-cover transition-transform duration-200 group-hover:scale-105" sizes="(max-width:600px) 100vw, (max-width:900px) 50vw, 33vw" />
         </div>
       ) : (
         <div className="flex aspect-video w-full items-center justify-center bg-[var(--surface-hover)] text-4xl text-[var(--muted)]" aria-hidden>

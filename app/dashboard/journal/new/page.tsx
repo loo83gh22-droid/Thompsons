@@ -119,10 +119,7 @@ export default function NewJournalPage() {
               .from("journal-videos")
               .upload(storagePath, file, { upsert: true });
             if (uploadError) continue;
-            const { data: urlData } = supabase.storage
-              .from("journal-videos")
-              .getPublicUrl(storagePath);
-            await registerJournalVideo(result.id, urlData.publicUrl, storagePath, file.size, null);
+            await registerJournalVideo(result.id, `/api/storage/journal-videos/${storagePath}`, storagePath, file.size, null);
           }
         }
         const hadLocation = !!(location.name?.trim() || (location.latitude && location.longitude));

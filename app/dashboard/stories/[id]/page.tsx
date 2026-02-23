@@ -87,7 +87,7 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
       </Link>
       {story.cover_url && (
         <div className="relative mt-4 aspect-video w-full overflow-hidden rounded-xl">
-          <Image src={story.cover_url} alt={`Cover image for ${story.title}`} fill className="object-cover" sizes="(max-width: 768px) 100vw, 800px" priority />
+          <Image src={story.cover_url} alt={`Cover image for ${story.title}`} fill unoptimized className="object-cover" sizes="(max-width: 768px) 100vw, 800px" priority />
         </div>
       )}
       <h1 className="mt-6 font-display text-2xl font-bold text-[var(--foreground)] sm:text-3xl">{story.title}</h1>

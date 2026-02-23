@@ -34,6 +34,7 @@ export function RecipeCard({ recipe }: { recipe: Recipe }) {
               src={photoUrl}
               alt={`Photo for ${recipe.title}`}
               fill
+              unoptimized
               className="object-cover"
               sizes="128px"
             />

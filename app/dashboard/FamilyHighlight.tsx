@@ -53,6 +53,7 @@ export function FamilyHighlight({ item }: { item: HighlightItem | null }) {
               src={item.imageUrl}
               alt={item.title || "Family memory"}
               fill
+              unoptimized
               className="object-cover"
               sizes="80px"
             />

@@ -104,8 +104,7 @@ export function AddMemberForm({
           .from("member-photos")
           .upload(path, photoFile, { upsert: true });
         if (uploadError) throw uploadError;
-        const { data: { publicUrl } } = supabase.storage.from("member-photos").getPublicUrl(path);
-        avatarUrl = publicUrl;
+        avatarUrl = `/api/storage/member-photos/${path}`;
       }
 
       const result = await addFamilyMember(

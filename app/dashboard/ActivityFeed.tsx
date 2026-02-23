@@ -66,6 +66,7 @@ function ActivityCard({ item }: { item: ActivityItem }) {
             src={item.thumbnailUrl}
             alt={item.title || `Photo shared by ${item.memberName || "a family member"}`}
             fill
+            unoptimized
             className="object-cover"
             sizes="56px"
           />

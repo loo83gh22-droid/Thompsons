@@ -197,6 +197,7 @@ export default async function JournalPage() {
                           src={photo.url}
                           alt={photo.caption || `Photo ${i + 1}`}
                           fill
+                          unoptimized
                           className="object-cover"
                           sizes="192px"
                         />

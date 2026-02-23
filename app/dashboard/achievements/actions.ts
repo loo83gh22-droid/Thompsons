@@ -34,10 +34,7 @@ export async function addAchievement(
 
     if (uploadError) throw uploadError;
 
-    const { data: urlData } = supabase.storage
-      .from("achievements")
-      .getPublicUrl(path);
-    attachmentUrl = urlData.publicUrl;
+    attachmentUrl = `/api/storage/achievements/${path}`;
   }
 
   const { data: last } = await supabase

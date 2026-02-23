@@ -86,6 +86,7 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
               src={photo.url}
               alt="Family photo"
               fill
+              unoptimized
               className="object-cover"
               sizes="150px"
             />

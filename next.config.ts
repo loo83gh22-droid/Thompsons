@@ -15,17 +15,9 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "50MB",
     },
   },
-  images: supabaseHost
-    ? {
-        remotePatterns: [
-          {
-            protocol: "https",
-            hostname: supabaseHost,
-            pathname: "/storage/v1/object/public/**",
-          },
-        ],
-      }
-    : {},
+  // No remotePatterns needed — storage media is served through the /api/storage proxy
+  // (which enforces Supabase auth before fetching from private buckets).
+  images: {},
   async headers() {
     const supabaseOrigin = supabaseHost ? `https://${supabaseHost}` : "";
     const csp = [
@@ -34,12 +26,12 @@ const nextConfig: NextConfig = {
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com",
       // Tailwind and Next.js inject inline styles
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      // Images: own origin, Supabase storage, Google Maps tiles, data URIs, blobs
-      `img-src 'self' data: blob: ${supabaseOrigin} https://maps.googleapis.com https://maps.gstatic.com`,
-      // API / WebSocket connections
+      // Images: own origin (storage proxy), Google Maps tiles, data URIs, blobs
+      `img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com`,
+      // API / WebSocket connections (Supabase for auth/db, not storage)
       `connect-src 'self' ${supabaseOrigin} wss://${supabaseHost ?? ""} https://maps.googleapis.com`,
-      // Audio / video from Supabase storage
-      `media-src 'self' blob: ${supabaseOrigin}`,
+      // Audio / video now served via /api/storage proxy (same origin)
+      `media-src 'self' blob:`,
       "font-src 'self' https://fonts.gstatic.com",
       // Service workers and audio worklets need blob:
       "worker-src 'self' blob:",
