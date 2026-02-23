@@ -6,12 +6,25 @@ import { getActiveFamilyId } from "@/src/lib/family";
 
 export type FavouriteCategory = "books" | "movies" | "shows" | "music" | "podcasts" | "games" | "recipes";
 
+const ALL_CATEGORIES: FavouriteCategory[] = ["books", "movies", "shows", "music", "podcasts", "games", "recipes"];
+
+function revalidateAll(category?: FavouriteCategory) {
+  revalidatePath("/dashboard/favourites");
+  if (category) {
+    revalidatePath(`/dashboard/favourites/${category}`);
+  } else {
+    for (const cat of ALL_CATEGORIES) {
+      revalidatePath(`/dashboard/favourites/${cat}`);
+    }
+  }
+}
+
 export async function addFavourite(
   category: FavouriteCategory,
   title: string,
+  memberId: string,
   description?: string,
   notes?: string,
-  familyMemberId?: string
 ) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -19,33 +32,23 @@ export async function addFavourite(
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
-  const { data: maxOrder } = await supabase
-    .from("favourites")
-    .select("sort_order")
-    .eq("family_id", activeFamilyId)
-    .eq("category", category)
-    .order("sort_order", { ascending: false })
-    .limit(1)
-    .single();
-
   const { error } = await supabase.from("favourites").insert({
     family_id: activeFamilyId,
     category,
     title,
     description: description || null,
     notes: notes || null,
-    added_by: familyMemberId || null,
-    sort_order: (maxOrder?.sort_order ?? -1) + 1,
+    added_by: memberId,
+    member_id: memberId,
   });
 
   if (error) throw error;
-  revalidatePath("/dashboard/favourites");
-  revalidatePath(`/dashboard/favourites/${category}`);
+  revalidateAll(category);
 }
 
 export async function updateFavourite(
   id: string,
-  data: { title: string; description?: string; notes?: string; familyMemberId?: string }
+  data: { title: string; description?: string; notes?: string }
 ) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -57,19 +60,11 @@ export async function updateFavourite(
       title: data.title,
       description: data.description || null,
       notes: data.notes || null,
-      added_by: data.familyMemberId || null,
     })
     .eq("id", id);
 
   if (error) throw error;
-  revalidatePath("/dashboard/favourites");
-  revalidatePath("/dashboard/favourites/books");
-  revalidatePath("/dashboard/favourites/movies");
-  revalidatePath("/dashboard/favourites/shows");
-  revalidatePath("/dashboard/favourites/music");
-  revalidatePath("/dashboard/favourites/podcasts");
-  revalidatePath("/dashboard/favourites/games");
-  revalidatePath("/dashboard/favourites/recipes");
+  revalidateAll();
 }
 
 export async function removeFavourite(id: string) {
@@ -77,14 +72,25 @@ export async function removeFavourite(id: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  const { error } = await supabase.from("favourites").delete().eq("id", id);
+  const { error } = await supabase
+    .from("favourites")
+    .update({ removed_at: new Date().toISOString() })
+    .eq("id", id);
+
   if (error) throw error;
-  revalidatePath("/dashboard/favourites");
-  revalidatePath("/dashboard/favourites/books");
-  revalidatePath("/dashboard/favourites/movies");
-  revalidatePath("/dashboard/favourites/shows");
-  revalidatePath("/dashboard/favourites/music");
-  revalidatePath("/dashboard/favourites/podcasts");
-  revalidatePath("/dashboard/favourites/games");
-  revalidatePath("/dashboard/favourites/recipes");
+  revalidateAll();
+}
+
+export async function restoreFavourite(id: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("favourites")
+    .update({ removed_at: null })
+    .eq("id", id);
+
+  if (error) throw error;
+  revalidateAll();
 }
