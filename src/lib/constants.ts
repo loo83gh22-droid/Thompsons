@@ -27,14 +27,14 @@ export const PLAN_LIMITS = {
   },
   annual: {
     journalEntries: null, // unlimited
-    storageLimitBytes: 2097152000, // 2000 MB = 2 GB
+    storageLimitBytes: 10737418240, // 10 GB
     videoUploads: true,
     mapEditing: true,
     publicSharing: true,
   },
   legacy: {
     journalEntries: null, // unlimited
-    storageLimitBytes: 5242880000, // 5000 MB = 5 GB
+    storageLimitBytes: 53687091200, // 50 GB
     videoUploads: true,
     mapEditing: true,
     publicSharing: true,
