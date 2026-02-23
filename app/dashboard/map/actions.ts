@@ -5,6 +5,19 @@ import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { findOrCreateLocationCluster } from "@/src/lib/locationClustering";
 
+/**
+ * Resolve the family ID to use: prefer the explicit parameter from the client,
+ * fall back to the cookie-based value if not provided.
+ */
+async function resolveFamilyId(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  explicitFamilyId?: string
+): Promise<string | null> {
+  if (explicitFamilyId) return explicitFamilyId;
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  return activeFamilyId;
+}
+
 /** Get number of map pins for the active family (for first-time banner). */
 export async function getMapPinCount(): Promise<number> {
   const supabase = await createClient();
@@ -20,13 +33,13 @@ export async function getMapPinCount(): Promise<number> {
 }
 
 /** Re-run clustering for all pins so same-place entries share one cluster (fixes split pins e.g. Uvita). */
-export async function rebuildLocationClusters(): Promise<{ updated: number; error?: string }> {
+export async function rebuildLocationClusters(familyId?: string): Promise<{ updated: number; error?: string }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { updated: 0, error: "Not authenticated" };
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  const activeFamilyId = await resolveFamilyId(supabase, familyId);
   if (!activeFamilyId) return { updated: 0, error: "No active family" };
 
   const { data: rows, error: fetchError } = await supabase
@@ -70,13 +83,13 @@ export async function rebuildLocationClusters(): Promise<{ updated: number; erro
 }
 
 /** Create map pins for any family member who has a birth place set but no birth-place pin yet. */
-export async function syncBirthPlacesToMap(): Promise<{ added: number; error?: string }> {
+export async function syncBirthPlacesToMap(familyId?: string): Promise<{ added: number; error?: string }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { added: 0, error: "Not authenticated" };
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  const activeFamilyId = await resolveFamilyId(supabase, familyId);
   if (!activeFamilyId) return { added: 0, error: "No active family" };
 
   const { data: members, error: membersError } = await supabase
@@ -130,7 +143,10 @@ export async function syncBirthPlacesToMap(): Promise<{ added: number; error?: s
           );
           countryCode = countryComp?.short_name?.toUpperCase() ?? null;
         }
-      } else {
+      }
+
+      // Fallback to Nominatim if Google didn't return results or no API key
+      if (!lat || !lng) {
         const res = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(birthPlace)}&limit=1`,
           { headers: { "User-Agent": "FamilyNest/1.0" } }

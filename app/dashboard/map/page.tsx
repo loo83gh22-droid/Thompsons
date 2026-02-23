@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { AddLocationForm } from "./AddLocationForm";
 import { MapFirstVisitBanner } from "./MapFirstVisitBanner";
 import { rebuildLocationClusters, syncBirthPlacesToMap } from "./actions";
+import { useFamily } from "@/app/dashboard/FamilyContext";
 import type { MapFilter } from "./MapComponent";
 
 // Leaflet map loads client-side only (no SSR)
@@ -35,6 +36,7 @@ const LEGEND = [
 ];
 
 export default function MapPage() {
+  const { activeFamilyId } = useFamily();
   const [rebuilding, setRebuilding] = useState(false);
   const [rebuildMessage, setRebuildMessage] = useState<string | null>(null);
   const [syncingBirth, setSyncingBirth] = useState(false);
@@ -49,7 +51,7 @@ export default function MapPage() {
     setRebuilding(true);
     setRebuildMessage(null);
     try {
-      const { updated, error } = await rebuildLocationClusters();
+      const { updated, error } = await rebuildLocationClusters(activeFamilyId ?? undefined);
       if (error) setRebuildMessage(`Error: ${error}`);
       else setRebuildMessage(updated > 0 ? `Re-clustered ${updated} pin(s). Map refreshed.` : "No pins to cluster.");
       window.dispatchEvent(new Event("map-refresh"));
@@ -62,7 +64,7 @@ export default function MapPage() {
     setSyncingBirth(true);
     setSyncBirthMessage(null);
     try {
-      const { added, error } = await syncBirthPlacesToMap();
+      const { added, error } = await syncBirthPlacesToMap(activeFamilyId ?? undefined);
       if (error) setSyncBirthMessage(`Error: ${error}`);
       else setSyncBirthMessage(added > 0 ? `Added ${added} birth place(s) to the map.` : "All birth places already on map.");
       window.dispatchEvent(new Event("map-refresh"));
