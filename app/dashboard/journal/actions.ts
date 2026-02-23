@@ -325,6 +325,16 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
+  // Verify the entry belongs to the active family before allowing updates
+  const { data: existingEntry } = await supabase
+    .from("journal_entries")
+    .select("family_id")
+    .eq("id", entryId)
+    .single();
+  if (!existingEntry || existingEntry.family_id !== activeFamilyId) {
+    throw new Error("Entry not found or access denied.");
+  }
+
   // Extract and validate FormData
   const memberIds = formData.getAll("member_ids").map(String).filter(Boolean);
   const rawData = {

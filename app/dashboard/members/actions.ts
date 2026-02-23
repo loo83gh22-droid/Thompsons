@@ -504,13 +504,29 @@ export async function revokeKidLink(memberId: string): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
+  // Only owners and adults can revoke kid links
+  const { data: currentMember } = await supabase
+    .from("family_members")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+  if (!currentMember || !["owner", "adult"].includes(currentMember.role)) {
+    throw new Error("Only adults can revoke kid links.");
+  }
+
+  // Ensure the target member belongs to the active family
   const { error } = await supabase
     .from("family_members")
     .update({
       kid_access_token: null,
       kid_token_expires_at: null,
     })
-    .eq("id", memberId);
+    .eq("id", memberId)
+    .eq("family_id", activeFamilyId);
 
   if (error) throw error;
   revalidatePath("/dashboard/our-family");

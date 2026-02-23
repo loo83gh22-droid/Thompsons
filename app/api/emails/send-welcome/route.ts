@@ -14,8 +14,13 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient();
 
-    // Get family member and family name
+    // Require authenticated user
     const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    // Get family member and family name
     const { data: member } = await supabase
       .from('family_members')
       .select('id, family_id, families(name)')
