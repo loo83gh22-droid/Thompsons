@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import { BookOpen, MapPin, GitBranch, Mic, Lock, UtensilsCrossed } from "lucide-react";
+import { WorldMapSVG, WorldPin } from "./WorldMapSVG";
 
 /* ── Mini UI previews for each feature card ──────────────────── */
 
@@ -40,70 +42,24 @@ function JournalPreview() {
   );
 }
 
+const BENTO_MAP_PINS: WorldPin[] = [
+  { lat: 43.65,  lng: -79.38, color: "#3d6b5e", r: 3.5 }, // Toronto
+  { lat: 40.71,  lng: -74.01, color: "#3d6b5e", r: 3.5 }, // New York
+  { lat: 17.99,  lng: -66.61, color: "#d97706", r: 3.5 }, // Puerto Rico
+  { lat: 38.72,  lng:  -9.14, color: "#3d6b5e", r: 3.5 }, // Lisbon
+  { lat: 19.08,  lng:  72.88, color: "#3d6b5e", r: 3.5 }, // Mumbai
+  { lat: -33.87, lng: 151.21, color: "#3d6b5e", r: 3.5 }, // Sydney
+];
+
 function MapPreview() {
-  // Positions in SVG viewBox 0 0 360 180 (lon+180, 90-lat)
-  const pins = [
-    { cx: 100.6, cy: 46.4 }, // Toronto
-    { cx: 106.0, cy: 49.3 }, // New York
-    { cx: 113.4, cy: 72.0 }, // Puerto Rico
-    { cx: 170.9, cy: 51.3 }, // Lisbon
-    { cx: 252.9, cy: 70.9 }, // Mumbai
-    { cx: 331.2, cy: 123.9 }, // Sydney
-  ];
-
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      <svg
-        viewBox="0 0 360 180"
-        className="absolute inset-0 h-full w-full"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        {/* Ocean */}
-        <rect width="360" height="180" fill="#cde5f2" />
-
-        {/* Grid lines */}
-        <line x1="0" y1="60" x2="360" y2="60" stroke="#9ec5db" strokeWidth="0.4" strokeDasharray="5,5" />
-        <line x1="0" y1="90" x2="360" y2="90" stroke="#9ec5db" strokeWidth="0.6" />
-        <line x1="0" y1="120" x2="360" y2="120" stroke="#9ec5db" strokeWidth="0.4" strokeDasharray="5,5" />
-        <line x1="90" y1="0" x2="90" y2="180" stroke="#9ec5db" strokeWidth="0.4" strokeDasharray="5,5" />
-        <line x1="180" y1="0" x2="180" y2="180" stroke="#9ec5db" strokeWidth="0.6" />
-        <line x1="270" y1="0" x2="270" y2="180" stroke="#9ec5db" strokeWidth="0.4" strokeDasharray="5,5" />
-
-        {/* North America */}
-        <path d="M55,16 L102,12 L135,18 L150,28 L158,46 L150,62 L140,76 L118,80 L100,92 L84,100 L70,82 L56,60 L48,38 Z" fill="#b6ccaf" stroke="#9db895" strokeWidth="0.5" />
-        {/* Greenland */}
-        <path d="M118,5 L140,4 L148,12 L138,20 L120,18 Z" fill="#b6ccaf" stroke="#9db895" strokeWidth="0.5" />
-        {/* South America */}
-        <path d="M96,96 L128,90 L148,102 L150,125 L140,152 L118,166 L98,156 L88,132 L90,108 Z" fill="#b6ccaf" stroke="#9db895" strokeWidth="0.5" />
-        {/* Europe */}
-        <path d="M160,17 L196,14 L202,26 L194,38 L175,42 L162,36 L156,25 Z" fill="#b6ccaf" stroke="#9db895" strokeWidth="0.5" />
-        {/* Africa */}
-        <path d="M155,44 L200,38 L218,62 L212,108 L192,150 L168,160 L148,135 L144,82 L150,55 Z" fill="#b6ccaf" stroke="#9db895" strokeWidth="0.5" />
-        {/* Asia */}
-        <path d="M198,10 L296,7 L338,18 L342,46 L312,66 L272,76 L232,74 L208,64 L196,48 L194,26 Z" fill="#b6ccaf" stroke="#9db895" strokeWidth="0.5" />
-        {/* Japan */}
-        <path d="M315,30 L322,28 L324,38 L317,40 Z" fill="#b6ccaf" stroke="#9db895" strokeWidth="0.5" />
-        {/* Australia */}
-        <path d="M272,108 L322,104 L340,118 L334,148 L305,155 L276,142 L266,124 Z" fill="#b6ccaf" stroke="#9db895" strokeWidth="0.5" />
-        {/* New Zealand */}
-        <path d="M346,135 L352,130 L354,142 L348,146 Z" fill="#b6ccaf" stroke="#9db895" strokeWidth="0.5" />
-
-        {/* Pins */}
-        {pins.map((pin, i) => (
-          <g key={i}>
-            <circle cx={pin.cx} cy={pin.cy} r="5" fill="#d97706" opacity="0.9" />
-            <circle cx={pin.cx} cy={pin.cy} r="2.2" fill="white" />
-          </g>
-        ))}
-      </svg>
-
-      <div
-        className="absolute bottom-2 right-2 rounded-lg px-1.5 py-0.5 text-[8px] font-medium"
-        style={{ backgroundColor: "rgba(255,255,255,0.9)", color: "var(--foreground)", border: "1px solid var(--border)" }}
-      >
-        6 pins · worldwide
-      </div>
-    </div>
+    <Suspense
+      fallback={
+        <div className="h-full w-full" style={{ background: "#c8dff0" }} />
+      }
+    >
+      <WorldMapSVG pins={BENTO_MAP_PINS} badge="6 pins · worldwide" />
+    </Suspense>
   );
 }
 

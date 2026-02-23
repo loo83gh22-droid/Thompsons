@@ -1,18 +1,23 @@
-/* ── WorldMapSection ─────────────────────────────────────────────────────────
-   Uses the Google Maps Static API to render a real world map with pins.
-   The image URL is built server-side from the env key — no client JS needed.
-   ─────────────────────────────────────────────────────────────────────────── */
+import { Suspense } from "react";
+import { WorldMapSVG, WorldPin } from "./WorldMapSVG";
 
 const LOCATIONS = [
-  { lat: 43.65, lng: -79.38,  label: "Toronto, Canada" },
-  { lat: 37.77, lng: -122.42, label: "San Francisco" },
-  { lat: 40.71, lng: -74.01,  label: "New York" },
-  { lat: 17.99, lng: -66.61,  label: "Puerto Rico" },  // Caribbean wedding
-  { lat: 38.72, lng: -9.14,   label: "Lisbon, Portugal" },
-  { lat: 51.51, lng: -0.13,   label: "London" },
-  { lat: 19.08, lng: 72.88,   label: "Mumbai, India" },
-  { lat: -33.87, lng: 151.21, label: "Sydney, Australia" },
+  { lat: 43.65,  lng: -79.38,  label: "Toronto, Canada" },
+  { lat: 37.77,  lng: -122.42, label: "San Francisco" },
+  { lat: 40.71,  lng: -74.01,  label: "New York" },
+  { lat: 17.99,  lng: -66.61,  label: "Puerto Rico" },   // Caribbean wedding
+  { lat: 38.72,  lng:  -9.14,  label: "Lisbon, Portugal" },
+  { lat: 51.51,  lng:  -0.13,  label: "London" },
+  { lat: 19.08,  lng:  72.88,  label: "Mumbai, India" },
+  { lat: -33.87, lng: 151.21,  label: "Sydney, Australia" },
 ];
+
+const MAP_PINS: WorldPin[] = LOCATIONS.map((loc, i) => ({
+  lat: loc.lat,
+  lng: loc.lng,
+  color: i === 3 ? "#d97706" : "#3d6b5e",
+  r: 5,
+}));
 
 const CALLOUTS = [
   {
@@ -29,35 +34,7 @@ const CALLOUTS = [
   },
 ];
 
-function buildStaticMapUrl(apiKey: string): string {
-  const base = "https://maps.googleapis.com/maps/api/staticmap";
-  const params = new URLSearchParams({
-    size: "900x420",
-    scale: "2",
-    maptype: "roadmap",
-    // Subtle, desaturated style so pins pop
-    style: "feature:all|element:labels|visibility:simplified",
-    key: apiKey,
-  });
-
-  // Add all pins as markers
-  const pinColor = "0x3d6b5e"; // matches --primary
-  const weddingColor = "0xd97706"; // highlight for Caribbean
-  LOCATIONS.forEach(({ lat, lng }, i) => {
-    const color = i === 3 ? weddingColor : pinColor;
-    params.append("markers", `color:${color}|size:mid|${lat},${lng}`);
-  });
-
-  // Center & zoom to show the whole world
-  params.set("center", "20,10");
-  params.set("zoom", "2");
-
-  return `${base}?${params.toString()}`;
-}
-
 export function WorldMapSection() {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
   return (
     <section
       className="py-20 md:py-32 overflow-hidden"
@@ -88,39 +65,25 @@ export function WorldMapSection() {
           </p>
         </div>
 
-        {/* Map image */}
+        {/* Map */}
         <div
           className="relative mx-auto overflow-hidden rounded-3xl shadow-2xl"
           style={{
             border: "1px solid var(--border)",
             maxWidth: "900px",
-            backgroundColor: "hsl(210,40%,88%)",
             aspectRatio: "900 / 420",
           }}
         >
-          {apiKey ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={buildStaticMapUrl(apiKey)}
-              alt="World map showing Thompson family locations across Canada, USA, Caribbean, Portugal, UK, India, and Australia"
-              className="h-full w-full object-cover"
-              width={900}
-              height={420}
-            />
-          ) : (
-            /* Fallback when no API key — clean placeholder */
-            <div
-              className="flex h-full w-full items-center justify-center"
-              style={{
-                background: "linear-gradient(160deg, hsl(205,55%,88%) 0%, hsl(210,50%,82%) 100%)",
-                minHeight: "320px",
-              }}
-            >
-              <p className="text-sm" style={{ color: "var(--muted)" }}>
-                Map preview requires a Google Maps API key
-              </p>
-            </div>
-          )}
+          <Suspense
+            fallback={
+              <div
+                className="h-full w-full rounded-3xl"
+                style={{ background: "hsl(210,40%,88%)" }}
+              />
+            }
+          >
+            <WorldMapSVG pins={MAP_PINS} defaultPinR={5} />
+          </Suspense>
 
           {/* Pin count badge */}
           <div
