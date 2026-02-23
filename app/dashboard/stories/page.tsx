@@ -28,21 +28,23 @@ export default async function StoriesPage() {
 
   return (
     <div>
-      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-            Family Stories
-          </h1>
-          <p className="mt-2 text-[var(--muted)]">
-            Longer-form family history, advice, and memorable moments
-          </p>
+      <div className="mb-8 rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-5 sm:px-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
+              Family Stories
+            </h1>
+            <p className="mt-2 text-[var(--muted)]">
+              Longer-form family history, advice, and memorable moments
+            </p>
+          </div>
+          <Link
+            href="/dashboard/stories/new"
+            className="min-h-[44px] shrink-0 rounded-full bg-[var(--primary)] px-5 py-2 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
+          >
+            + Write a story
+          </Link>
         </div>
-        <Link
-          href="/dashboard/stories/new"
-          className="min-h-[44px] shrink-0 rounded-full bg-[var(--primary)] px-5 py-2 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
-        >
-          + Write a story
-        </Link>
       </div>
 
       {!stories?.length ? (

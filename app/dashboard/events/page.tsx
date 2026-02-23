@@ -76,16 +76,18 @@ export default async function EventsPage() {
   return (
     <div>
       <BirthdaySync />
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-            Family Events
-          </h1>
-          <p className="mt-2 text-[var(--muted)]">
-            Never miss a birthday, anniversary, or family celebration
-          </p>
+      <div className="mb-8 rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-5 sm:px-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
+              Family Events
+            </h1>
+            <p className="mt-2 text-[var(--muted)]">
+              Never miss a birthday, anniversary, or family celebration
+            </p>
+          </div>
+          <AddEventForm members={members} />
         </div>
-        <AddEventForm members={members} />
       </div>
 
       {!events?.length ? (

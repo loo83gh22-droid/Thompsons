@@ -83,21 +83,23 @@ export default async function JournalPage() {
       <Suspense fallback={null}>
         <AddedToMapBanner />
       </Suspense>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-            Journal
-          </h1>
-          <p className="mt-2 text-[var(--muted)]">
-            Stories and photos from trips, birthdays, celebrations. Anyone can add their perspective to an entry.
-          </p>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-5 sm:px-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
+              Journal
+            </h1>
+            <p className="mt-2 text-[var(--muted)]">
+              Stories and photos from trips, birthdays, celebrations. Anyone can add their perspective to an entry.
+            </p>
+          </div>
+          <Link
+            href="/dashboard/journal/new"
+            className="inline-flex min-h-[44px] w-full shrink-0 items-center justify-center rounded-full bg-[var(--primary)] px-4 py-3 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] sm:w-auto sm:py-2"
+          >
+            New entry
+          </Link>
         </div>
-        <Link
-          href="/dashboard/journal/new"
-          className="inline-flex min-h-[44px] w-full shrink-0 items-center justify-center rounded-full bg-[var(--primary)] px-4 py-3 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] sm:w-auto sm:py-2"
-        >
-          New entry
-        </Link>
       </div>
 
       <div className="mt-12 space-y-8">

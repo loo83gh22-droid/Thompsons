@@ -31,12 +31,14 @@ export default async function SendMessagePage() {
 
   return (
     <div>
-      <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-        Send a message
-      </h1>
-      <p className="mt-2 text-[var(--muted)]">
-        Your message will pop up the next time recipients log in. Optionally set a date (e.g. Valentine&apos;s Day) for it to appear on that day.
-      </p>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-5 sm:px-6">
+        <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
+          Send a message
+        </h1>
+        <p className="mt-2 text-[var(--muted)]">
+          Your message will pop up the next time recipients log in. Optionally set a date (e.g. Valentine&apos;s Day) for it to appear on that day.
+        </p>
+      </div>
 
       {!hasMessages && (
         <div className="mt-6 rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)]/50 px-6 py-8 text-center">

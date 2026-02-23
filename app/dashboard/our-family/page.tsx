@@ -103,19 +103,21 @@ export default async function OurFamilyPage() {
 
   return (
     <div>
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-            Our Family
-          </h1>
-          <p className="mt-2 text-[var(--muted)]">
-            See your family connections and manage members
-          </p>
+      <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-5 sm:px-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
+              Our Family
+            </h1>
+            <p className="mt-2 text-[var(--muted)]">
+              See your family connections and manage members
+            </p>
+          </div>
+          <AddMemberForm
+            triggerClassName="min-h-[44px] shrink-0 rounded-full bg-[var(--primary)] px-5 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
+            linkMembers={members ?? []}
+          />
         </div>
-        <AddMemberForm
-          triggerClassName="min-h-[44px] shrink-0 rounded-full bg-[var(--primary)] px-5 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
-          linkMembers={members ?? []}
-        />
       </div>
 
       {/* Personalize prompt — shown once until the user sets their names */}

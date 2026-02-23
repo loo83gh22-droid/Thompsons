@@ -167,12 +167,14 @@ export default async function TimelinePage({
 
   return (
     <div>
-      <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-        Timeline
-      </h1>
-      <p className="mt-2 text-[var(--muted)]">
-        All family memories in one chronological view
-      </p>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-5 sm:px-6">
+        <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
+          Timeline
+        </h1>
+        <p className="mt-2 text-[var(--muted)]">
+          All family memories in one chronological view
+        </p>
+      </div>
 
       <TimelineClient
         initialItems={items}

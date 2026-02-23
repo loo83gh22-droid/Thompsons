@@ -77,41 +77,42 @@ export default function MapPage() {
   return (
     <div>
       <MapFirstVisitBanner />
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-            Family Map
-          </h1>
-          <p className="mt-2 text-[var(--muted)]">
-            Birth places, homes, vacations, and memorable events. Add locations in journal entries or below. Use &quot;Sync birth places to map&quot; if member birth places don&apos;t appear.
-          </p>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-5 sm:px-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
+              Family Map
+            </h1>
+            <p className="mt-2 text-[var(--muted)]">
+              Birth places, homes, vacations, and memorable events. Add locations in journal entries or below. Use &quot;Sync birth places to map&quot; if member birth places don&apos;t appear.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <AddLocationForm />
+            <button
+              type="button"
+              onClick={handleSyncBirthPlaces}
+              disabled={syncingBirth}
+              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] disabled:opacity-50"
+            >
+              {syncingBirth ? "Syncing…" : "Sync birth places to map"}
+            </button>
+            <button
+              type="button"
+              onClick={handleRebuildClusters}
+              disabled={rebuilding}
+              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] disabled:opacity-50"
+            >
+              {rebuilding ? "Rebuilding…" : "Rebuild clusters"}
+            </button>
+            {(rebuildMessage || syncBirthMessage) && (
+              <span className="text-sm text-[var(--muted)]">{syncBirthMessage ?? rebuildMessage}</span>
+            )}
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <AddLocationForm />
-          <button
-            type="button"
-            onClick={handleSyncBirthPlaces}
-            disabled={syncingBirth}
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] disabled:opacity-50"
-          >
-            {syncingBirth ? "Syncing…" : "Sync birth places to map"}
-          </button>
-          <button
-            type="button"
-            onClick={handleRebuildClusters}
-            disabled={rebuilding}
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] disabled:opacity-50"
-          >
-            {rebuilding ? "Rebuilding…" : "Rebuild clusters"}
-          </button>
-          {(rebuildMessage || syncBirthMessage) && (
-            <span className="text-sm text-[var(--muted)]">{syncBirthMessage ?? rebuildMessage}</span>
-          )}
-        </div>
-      </div>
 
-      <div className="mt-4 flex flex-wrap gap-4">
-        {LEGEND.map((item) => (
+        <div className="mt-4 flex flex-wrap gap-4">
+          {LEGEND.map((item) => (
           <div key={item.label} className="flex items-center gap-2">
             {item.symbol === "balloons" ? (
               <div className="flex flex-col items-center">
@@ -140,30 +141,31 @@ export default function MapPage() {
             <span className="text-sm text-[var(--muted)]">{item.label}</span>
           </div>
         ))}
-      </div>
+        </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <span className="text-sm font-medium text-[var(--muted)]">Show on map:</span>
-        {(
-          [
-            { key: "birth" as const, label: "Birth places" },
-            { key: "homes" as const, label: "Homes" },
-            { key: "vacation" as const, label: "Vacations" },
-            { key: "memorableEvent" as const, label: "Memorable events" },
-            { key: "other" as const, label: "Other" },
-            { key: "visits" as const, label: "Visits / trips" },
-          ] as const
-        ).map(({ key, label }) => (
-          <label key={key} className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={filter[key] !== false}
-              onChange={() => toggleFilter(key)}
-              className="rounded border-[var(--border)] text-[var(--accent)]"
-            />
-            <span className="text-sm text-[var(--foreground)]">{label}</span>
-          </label>
-        ))}
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <span className="text-sm font-medium text-[var(--muted)]">Show on map:</span>
+          {(
+            [
+              { key: "birth" as const, label: "Birth places" },
+              { key: "homes" as const, label: "Homes" },
+              { key: "vacation" as const, label: "Vacations" },
+              { key: "memorableEvent" as const, label: "Memorable events" },
+              { key: "other" as const, label: "Other" },
+              { key: "visits" as const, label: "Visits / trips" },
+            ] as const
+          ).map(({ key, label }) => (
+            <label key={key} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filter[key] !== false}
+                onChange={() => toggleFilter(key)}
+                className="rounded border-[var(--border)] text-[var(--accent)]"
+              />
+              <span className="text-sm text-[var(--foreground)]">{label}</span>
+            </label>
+          ))}
+        </div>
       </div>
 
       <div className="mt-6">
