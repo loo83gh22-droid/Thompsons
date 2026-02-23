@@ -23,18 +23,23 @@ export async function PUT(request: Request) {
 
     const trimmed = name.trim().slice(0, 50);
 
-    // Verify user belongs to this family
+    // Verify user is the family owner — only owners can rename the family
     const { data: membership } = await supabase
       .from("family_members")
-      .select("id")
+      .select("role")
       .eq("family_id", familyId)
       .eq("user_id", user.id)
-      .limit(1)
       .maybeSingle();
 
     if (!membership) {
       return NextResponse.json(
         { error: "You don't have access to this family" },
+        { status: 403 }
+      );
+    }
+    if (membership.role !== "owner") {
+      return NextResponse.json(
+        { error: "Only the family owner can rename the family" },
         { status: 403 }
       );
     }

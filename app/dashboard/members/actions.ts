@@ -263,6 +263,20 @@ export async function updateFamilyMember(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
+  // Only owners and adults can edit member profiles
+  const { data: caller } = await supabase
+    .from("family_members")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+  if (!caller || !["owner", "adult"].includes(caller.role)) {
+    throw new Error("Only adults and owners can edit member profiles.");
+  }
+
   const { error } = await supabase
     .from("family_members")
     .update({
@@ -274,7 +288,8 @@ export async function updateFamilyMember(
       nickname: nickname?.trim() || null,
       avatar_url: avatarUrl?.trim() || null,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("family_id", activeFamilyId);
 
   if (error) {
     const msg = error.message || "";

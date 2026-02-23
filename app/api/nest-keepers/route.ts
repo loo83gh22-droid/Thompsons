@@ -58,6 +58,16 @@ export async function POST(request: Request) {
     if (!canManageNestKeepers(plan.planType))
       return NextResponse.json({ error: "Nest Keepers requires the Legacy plan." }, { status: 403 });
 
+    // Only the family owner can add Nest Keepers
+    const { data: callerMember } = await supabase
+      .from("family_members")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("family_id", activeFamilyId)
+      .single();
+    if (callerMember?.role !== "owner")
+      return NextResponse.json({ error: "Only the family owner can manage Nest Keepers." }, { status: 403 });
+
     // Check current count
     const { count } = await supabase
       .from("nest_keepers")
@@ -135,6 +145,16 @@ export async function PUT(request: Request) {
     const { activeFamilyId } = await getActiveFamilyId(supabase);
     if (!activeFamilyId)
       return NextResponse.json({ error: "No active family" }, { status: 400 });
+
+    // Only the family owner can update Nest Keepers
+    const { data: callerMember } = await supabase
+      .from("family_members")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("family_id", activeFamilyId)
+      .single();
+    if (callerMember?.role !== "owner")
+      return NextResponse.json({ error: "Only the family owner can manage Nest Keepers." }, { status: 403 });
 
     const body = await request.json();
     const { id, name, email, relationship, priority } = body as {
@@ -241,6 +261,16 @@ export async function DELETE(request: Request) {
     const { activeFamilyId } = await getActiveFamilyId(supabase);
     if (!activeFamilyId)
       return NextResponse.json({ error: "No active family" }, { status: 400 });
+
+    // Only the family owner can delete Nest Keepers
+    const { data: callerMember } = await supabase
+      .from("family_members")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("family_id", activeFamilyId)
+      .single();
+    if (callerMember?.role !== "owner")
+      return NextResponse.json({ error: "Only the family owner can manage Nest Keepers." }, { status: 403 });
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

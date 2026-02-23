@@ -46,10 +46,14 @@ interface FamilyWithMembers {
 }
 
 export async function GET(request: Request) {
-  // Auth check — always require CRON_SECRET
+  // Auth check — Vercel Cron sends Authorization: Bearer <CRON_SECRET> automatically.
+  // Fall back to ?key= query param for local testing.
+  const authHeader = request.headers.get("authorization");
   const { searchParams } = new URL(request.url);
-  const key = searchParams.get("key");
-  if (!cronSecret || key !== cronSecret) {
+  const queryKey = searchParams.get("key");
+  const validBearer = cronSecret && authHeader === `Bearer ${cronSecret}`;
+  const validQuery = cronSecret && queryKey === cronSecret;
+  if (!validBearer && !validQuery) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
