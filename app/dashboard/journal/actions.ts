@@ -84,7 +84,7 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
       .from("journal_entries")
       .insert({
         family_id: activeFamilyId,
-        author_id: input.member_ids[0],
+        author_id: myMember?.id || input.member_ids[0],
         created_by: myMember?.id || null,
         title: input.title,
         content: input.content,
@@ -191,7 +191,7 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
           journal_entry_id: entry.id,
           location_cluster_id: locationClusterId,
           location_type:
-            input.location_type === "vacation" ? "vacation" : input.location_type === "memorable_event" ? "memorable" : null,
+            input.location_type === "vacation" || input.location_type === "memorable_event" ? input.location_type : null,
         }).select("id").single();
 
         // Insert junction table rows for travel location members
@@ -356,7 +356,6 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
   const { error: updateError } = await supabase
     .from("journal_entries")
     .update({
-      author_id: input.member_ids[0],
       title: input.title,
       content: input.content,
       location: input.location,
@@ -444,7 +443,7 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
           journal_entry_id: entryId,
           location_cluster_id: locationClusterId,
           location_type:
-            input.location_type === "vacation" ? "vacation" : input.location_type === "memorable_event" ? "memorable" : null,
+            input.location_type === "vacation" || input.location_type === "memorable_event" ? input.location_type : null,
         }).select("id").single();
 
         // Insert junction table rows for travel location members

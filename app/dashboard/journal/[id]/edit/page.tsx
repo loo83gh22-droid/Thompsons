@@ -297,8 +297,8 @@ export default function EditJournalPage() {
           members={members}
           selectedIds={selectedMemberIds}
           onChange={setSelectedMemberIds}
-          label="Who is this about?"
-          hint="Select everyone involved, or use Select All for the whole family."
+          label="Who's in this story?"
+          hint="Select everyone involved."
           required
           name="member_ids"
         />

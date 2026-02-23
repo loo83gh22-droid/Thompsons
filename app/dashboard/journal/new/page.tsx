@@ -17,10 +17,12 @@ type FamilyMember = { id: string; name: string; color: string | null; symbol: st
 type DateValue = Date | DateRange;
 
 export default function NewJournalPage() {
-  const { activeFamilyId, planType } = useFamily();
+  const { activeFamilyId, planType, currentMemberId } = useFamily();
   const videosAllowed = canUploadVideos(planType);
   const [members, setMembers] = useState<FamilyMember[]>([]);
-  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>(
+    currentMemberId ? [currentMemberId] : []
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [prompts, setPrompts] = useState<string[]>([]);
@@ -159,8 +161,8 @@ export default function NewJournalPage() {
           members={members}
           selectedIds={selectedMemberIds}
           onChange={setSelectedMemberIds}
-          label="Who is this about?"
-          hint="Select everyone involved, or use Select All for the whole family."
+          label="Who's in this story?"
+          hint="Select everyone involved. You're included by default as the author."
           required
           name="member_ids"
         />
