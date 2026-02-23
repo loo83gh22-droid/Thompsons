@@ -184,7 +184,7 @@ export default function PhotoUpload({
   const videos = items.filter((i) => i.type === "video");
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
