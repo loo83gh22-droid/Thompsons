@@ -258,6 +258,9 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
   }
 
   // Upload videos (max 2 per journal entry, 300 MB each) — paid plans only
+  // NOTE: Videos are now uploaded client-side via registerJournalVideo() to avoid
+  // Vercel payload limits. This block is kept for backward compatibility but will
+  // typically receive an empty array.
   const allVideos = formData.getAll("videos") as File[];
   const validVideos = canUploadVideos(plan.planType)
     ? allVideos.filter((f) => f.size > 0 && f.size <= VIDEO_LIMITS.maxSizeBytes).slice(0, VIDEO_LIMITS.maxVideosPerJournalEntry)
@@ -688,6 +691,68 @@ export async function addJournalVideos(entryId: string, formData: FormData) {
       });
     }
   }
+
+  revalidatePath("/dashboard/journal");
+  revalidatePath(`/dashboard/journal/${entryId}`);
+}
+
+/**
+ * Register a video that was uploaded directly to Supabase Storage from the client.
+ * This avoids sending large video files through server actions (Vercel payload limit).
+ */
+export async function registerJournalVideo(
+  entryId: string,
+  url: string,
+  storagePath: string,
+  fileSizeBytes: number,
+  durationSeconds: number | null,
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
+  // Plan check
+  const plan = await getFamilyPlan(supabase, activeFamilyId);
+  if (!canUploadVideos(plan.planType)) {
+    throw new Error("Video uploads require the Full Nest or Legacy plan.");
+  }
+
+  // Get member record
+  const { data: myMember } = await supabase
+    .from("family_members")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+
+  // Count existing videos
+  const { count } = await supabase
+    .from("journal_videos")
+    .select("id", { count: "exact", head: true })
+    .eq("entry_id", entryId);
+
+  const existingCount = count ?? 0;
+  if (existingCount >= VIDEO_LIMITS.maxVideosPerJournalEntry) {
+    throw new Error(`Each journal entry can have up to ${VIDEO_LIMITS.maxVideosPerJournalEntry} videos.`);
+  }
+
+  // Track storage
+  await addStorageUsage(supabase, activeFamilyId, fileSizeBytes);
+
+  // Insert DB record
+  await supabase.from("journal_videos").insert({
+    family_id: activeFamilyId,
+    entry_id: entryId,
+    url,
+    file_size_bytes: fileSizeBytes,
+    duration_seconds: durationSeconds,
+    sort_order: existingCount,
+    uploaded_by: myMember?.id || null,
+  });
 
   revalidatePath("/dashboard/journal");
   revalidatePath(`/dashboard/journal/${entryId}`);

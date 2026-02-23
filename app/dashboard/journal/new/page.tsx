@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
-import { createJournalEntry } from "../actions";
+import { createJournalEntry, registerJournalVideo } from "../actions";
 import { generateJournalPrompts } from "../prompts";
 import DatePicker, { type DateRange } from "@/app/components/DatePicker";
 import LocationInput from "@/app/components/LocationInput";
@@ -99,10 +99,27 @@ export default function NewJournalPage() {
                 ...photoFiles.slice(coverPhotoIndex + 1),
               ];
       orderedPhotos.forEach((file) => formData.append("photos", file));
-      videoFiles.forEach((file) => formData.append("videos", file));
+      // Videos are NOT sent through the server action (too large for Vercel payload limit).
+      // They are uploaded directly to Supabase Storage client-side after entry creation.
 
       const result = await createJournalEntry(formData);
       if (result?.success) {
+        // Upload videos client-side if any
+        if (videoFiles.length > 0) {
+          const supabase = createClient();
+          for (const file of videoFiles) {
+            const ext = file.name.split(".").pop() || "mp4";
+            const storagePath = `${result.id}/${crypto.randomUUID()}.${ext}`;
+            const { error: uploadError } = await supabase.storage
+              .from("journal-videos")
+              .upload(storagePath, file, { upsert: true });
+            if (uploadError) continue;
+            const { data: urlData } = supabase.storage
+              .from("journal-videos")
+              .getPublicUrl(storagePath);
+            await registerJournalVideo(result.id, urlData.publicUrl, storagePath, file.size, null);
+          }
+        }
         const hadLocation = !!(location.name?.trim() || (location.latitude && location.longitude));
         window.location.href = hadLocation ? "/dashboard/journal?addedToMap=1" : "/dashboard/journal";
         return;

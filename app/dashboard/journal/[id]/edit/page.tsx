@@ -11,7 +11,7 @@ import {
   updateJournalEntry,
   addJournalPhotos,
   deleteJournalPhoto,
-  addJournalVideos,
+  registerJournalVideo,
   deleteJournalVideo,
 } from "../../actions";
 import { DeleteJournalEntryButton } from "../../DeleteJournalEntryButton";
@@ -203,7 +203,7 @@ export default function EditJournalPage() {
       setAddingVideos(false);
       return;
     }
-    const validFiles = files.filter((f) => f.size > 0);
+    const validFiles = files.filter((f) => f.size > 0 && f.size <= VIDEO_LIMITS.maxSizeBytes);
     const totalAfter = videos.length + validFiles.length;
     if (totalAfter > VIDEO_LIMITS.maxVideosPerJournalEntry) {
       setError(`Each journal entry can have up to ${VIDEO_LIMITS.maxVideosPerJournalEntry} videos. You have ${videos.length} and tried to add ${validFiles.length}.`);
@@ -211,8 +211,37 @@ export default function EditJournalPage() {
     }
     setError(null);
     try {
-      await addJournalVideos(entryId, formData);
       const supabase = createClient();
+
+      // Upload each video directly to Supabase Storage from the client
+      for (const file of validFiles) {
+        const ext = file.name.split(".").pop() || "mp4";
+        const storagePath = `${entryId}/${crypto.randomUUID()}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("journal-videos")
+          .upload(storagePath, file, { upsert: true });
+
+        if (uploadError) {
+          setError(`Upload failed for "${file.name}": ${uploadError.message}`);
+          continue;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from("journal-videos")
+          .getPublicUrl(storagePath);
+
+        // Register the video in the DB via server action (metadata only, no file)
+        await registerJournalVideo(
+          entryId,
+          urlData.publicUrl,
+          storagePath,
+          file.size,
+          null, // duration — not critical for registration
+        );
+      }
+
+      // Refresh video list
       const { data } = await supabase
         .from("journal_videos")
         .select("id, url, duration_seconds, file_size_bytes")
