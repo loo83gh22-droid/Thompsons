@@ -46,6 +46,8 @@ export default function EditJournalPage() {
   const [addingPhotos, setAddingPhotos] = useState(false);
   const [addingVideos, setAddingVideos] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [authorOverride, setAuthorOverride] = useState<string | null>(null);
+  const [showAuthorPicker, setShowAuthorPicker] = useState(false);
 
   useEffect(() => {
     if (!activeFamilyId) {
@@ -58,7 +60,7 @@ export default function EditJournalPage() {
         supabase.from("family_members").select("id, name, color, symbol").eq("family_id", activeFamilyId).order("name"),
         supabase
           .from("journal_entries")
-          .select("title, content, location, trip_date, trip_date_end, author_id")
+          .select("title, content, location, trip_date, trip_date_end, author_id, created_by")
           .eq("id", entryId)
           .single(),
         supabase
@@ -112,6 +114,14 @@ export default function EditJournalPage() {
         const e = entryRes.data as { author_id?: string };
         if (e.author_id) setSelectedMemberIds([e.author_id]);
       }
+      // Pre-set author override if author differs from who typed it
+      if (entryRes.data) {
+        const e = entryRes.data as { author_id?: string; created_by?: string };
+        if (e.author_id && e.created_by && e.author_id !== e.created_by) {
+          setAuthorOverride(e.author_id);
+          setShowAuthorPicker(true);
+        }
+      }
       const pin = pinRes.data as { location_type?: string } | null;
       if (pin?.location_type === "vacation" || pin?.location_type === "memorable_event") {
         setLocationType(pin.location_type);
@@ -136,6 +146,7 @@ export default function EditJournalPage() {
       formData.set("trip_date", entry.trip_date);
       formData.set("location_type", locationType);
       if (entry.trip_date_end) formData.set("trip_date_end", entry.trip_date_end);
+      if (authorOverride) formData.set("author_override", authorOverride);
       await updateJournalEntry(entryId, formData);
       const hadLocation = !!(entry.location?.trim());
       router.push(hadLocation ? "/dashboard/journal?addedToMap=1" : "/dashboard/journal");
@@ -302,6 +313,44 @@ export default function EditJournalPage() {
           required
           name="member_ids"
         />
+
+        {/* Author override */}
+        <div className="flex items-center gap-2 -mt-3">
+          {!showAuthorPicker ? (
+            <button
+              type="button"
+              onClick={() => setShowAuthorPicker(true)}
+              className="text-xs text-[var(--muted)] hover:text-[var(--foreground)] hover:underline transition-colors"
+            >
+              Writing on behalf of someone? Change author
+            </button>
+          ) : (
+            <div className="flex items-center gap-3">
+              <label className="text-xs font-medium text-[var(--muted)]">Author:</label>
+              <select
+                value={authorOverride || ""}
+                onChange={(e) => setAuthorOverride(e.target.value || null)}
+                className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+              >
+                <option value="">Me (default)</option>
+                {members.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+              {authorOverride && (
+                <button
+                  type="button"
+                  onClick={() => { setAuthorOverride(null); setShowAuthorPicker(false); }}
+                  className="text-xs text-[var(--muted)] hover:underline"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+          )}
+        </div>
 
         <div>
           <label className="block text-sm font-medium text-[var(--muted)]">

@@ -38,6 +38,8 @@ export default function NewJournalPage() {
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [coverPhotoIndex, setCoverPhotoIndex] = useState(0);
+  const [authorOverride, setAuthorOverride] = useState<string | null>(null);
+  const [showAuthorPicker, setShowAuthorPicker] = useState(false);
 
   useEffect(() => {
     if (!activeFamilyId) return;
@@ -89,6 +91,7 @@ export default function NewJournalPage() {
         formData.set("location_lat", String(location.latitude));
         formData.set("location_lng", String(location.longitude));
       }
+      if (authorOverride) formData.set("author_override", authorOverride);
 
       const orderedPhotos =
         photoFiles.length === 0
@@ -166,6 +169,44 @@ export default function NewJournalPage() {
           required
           name="member_ids"
         />
+
+        {/* Author override — hidden by default, revealed via link */}
+        <div className="flex items-center gap-2 -mt-3">
+          {!showAuthorPicker ? (
+            <button
+              type="button"
+              onClick={() => setShowAuthorPicker(true)}
+              className="text-xs text-[var(--muted)] hover:text-[var(--foreground)] hover:underline transition-colors"
+            >
+              Writing on behalf of someone? Change author
+            </button>
+          ) : (
+            <div className="flex items-center gap-3">
+              <label className="text-xs font-medium text-[var(--muted)]">Author:</label>
+              <select
+                value={authorOverride || ""}
+                onChange={(e) => setAuthorOverride(e.target.value || null)}
+                className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+              >
+                <option value="">Me (default)</option>
+                {members.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+              {authorOverride && (
+                <button
+                  type="button"
+                  onClick={() => { setAuthorOverride(null); setShowAuthorPicker(false); }}
+                  className="text-xs text-[var(--muted)] hover:underline"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+          )}
+        </div>
 
         <div>
           <label className="block text-sm font-medium text-[var(--muted)]">

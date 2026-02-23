@@ -25,7 +25,10 @@
       "Bash(node --version:*)",
       "Bash(netstat:*)",
       "Bash(findstr:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "mcp__Claude_in_Chrome__*"
     ]
   }
 }

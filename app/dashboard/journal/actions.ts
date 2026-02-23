@@ -80,11 +80,16 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
       .eq("family_id", activeFamilyId)
       .single();
 
+    // author_override lets a user attribute the entry to another family member
+    // (e.g., writing on behalf of a grandparent who doesn't have an account)
+    const authorOverrideId = getFormString(formData, "author_override") || null;
+    const authorId = authorOverrideId || myMember?.id || input.member_ids[0];
+
     const { data: entry, error: entryError } = await supabase
       .from("journal_entries")
       .insert({
         family_id: activeFamilyId,
-        author_id: myMember?.id || input.member_ids[0],
+        author_id: authorId,
         created_by: myMember?.id || null,
         title: input.title,
         content: input.content,
@@ -353,16 +358,21 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
     );
   }
 
+  // Allow author override (writing on behalf of someone)
+  const authorOverrideId = getFormString(formData, "author_override") || null;
+  const updateFields: Record<string, unknown> = {
+    title: input.title,
+    content: input.content,
+    location: input.location,
+    trip_date: input.trip_date,
+    trip_date_end: input.trip_date_end,
+    updated_at: new Date().toISOString(),
+  };
+  if (authorOverrideId) updateFields.author_id = authorOverrideId;
+
   const { error: updateError } = await supabase
     .from("journal_entries")
-    .update({
-      title: input.title,
-      content: input.content,
-      location: input.location,
-      trip_date: input.trip_date,
-      trip_date_end: input.trip_date_end,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updateFields)
     .eq("id", entryId);
 
   if (updateError) throw updateError;
