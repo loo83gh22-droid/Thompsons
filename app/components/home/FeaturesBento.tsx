@@ -3,29 +3,38 @@ import { BookOpen, MapPin, GitBranch, Mic, Lock, UtensilsCrossed } from "lucide-
 /* ── Mini UI previews for each feature card ──────────────────── */
 
 function JournalPreview() {
+  // IMPORTANT: Only Thompson family photos may be used here (owner-approved for marketing).
+  // Never replace these with photos from any other user or family.
+  const photos = [
+    "https://tstbngohenxrbqroejth.supabase.co/storage/v1/object/public/journal-photos/69a1b499-0026-46f9-9c77-04fcafcb8538/d372f50b-bd74-4cdb-b93f-edda628a7c6b.jpeg",
+    "https://tstbngohenxrbqroejth.supabase.co/storage/v1/object/public/journal-photos/69a1b499-0026-46f9-9c77-04fcafcb8538/d1036ff2-19f9-4a97-98c3-0d0f3f339260.jpeg",
+    "https://tstbngohenxrbqroejth.supabase.co/storage/v1/object/public/journal-photos/69a1b499-0026-46f9-9c77-04fcafcb8538/b59ba60b-8f32-40d6-a8ec-ffff5d505f05.jpeg",
+  ];
+
   return (
     <div className="flex h-full w-full flex-col gap-2 p-4">
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-semibold" style={{ color: "var(--foreground)" }}>
-          June 14, 2025
+          Feb 20, 2026
         </span>
         <span className="rounded-full px-1.5 py-0.5 text-[8px]" style={{ backgroundColor: "var(--accent)", color: "#fff" }}>
           New
         </span>
       </div>
       <p className="text-[11px] font-medium" style={{ color: "var(--foreground)" }}>
-        Beach day with the whole crew
+        Huck&apos;s 1st Catch!
       </p>
-      <div className="flex gap-1.5">
-        <div className="h-10 w-10 rounded" style={{ background: "linear-gradient(135deg, hsl(200,60%,70%), hsl(200,50%,55%))" }} />
-        <div className="h-10 w-10 rounded" style={{ background: "linear-gradient(135deg, hsl(35,60%,70%), hsl(35,50%,55%))" }} />
-        <div className="h-10 w-10 rounded flex items-center justify-center" style={{ backgroundColor: "var(--border)" }}>
-          <span className="text-[8px] font-semibold" style={{ color: "var(--muted)" }}>+4</span>
+      <p className="text-[9px] leading-snug line-clamp-2" style={{ color: "var(--muted)" }}>
+        Costa Rica fishing trip — 5 photos &amp; a video from the boat
+      </p>
+      <div className="flex gap-1.5 mt-auto">
+        {photos.map((url, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={i} src={url} alt="" className="h-12 w-12 rounded object-cover" />
+        ))}
+        <div className="h-12 w-12 rounded flex items-center justify-center" style={{ backgroundColor: "var(--border)" }}>
+          <span className="text-[8px] font-semibold" style={{ color: "var(--muted)" }}>+3</span>
         </div>
-      </div>
-      <div className="mt-auto flex gap-1">
-        <div className="h-1.5 rounded-full flex-[3]" style={{ backgroundColor: "var(--border)" }} />
-        <div className="h-1.5 rounded-full flex-[2]" style={{ backgroundColor: "var(--border)" }} />
       </div>
     </div>
   );
