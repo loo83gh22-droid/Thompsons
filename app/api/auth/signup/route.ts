@@ -91,6 +91,15 @@ export async function POST(request: NextRequest) {
           message: "Account created but confirmation email failed. Please try resending.",
         });
       }
+
+      // Notify admin of new signup (fire-and-forget — don't block the response)
+      resend.emails.send({
+        from: fromEmail,
+        to: "waterloo1983hawk22@gmail.com",
+        subject: `🏠 New Family Nest signup: ${safeFamilyName}`,
+        html: buildAdminNotificationEmail(safeName, safeFamilyName, email.trim()),
+      }).catch((err: unknown) => console.error("Admin notification failed:", err));
+
     } else {
       console.warn("RESEND_API_KEY not configured — confirmation email not sent");
       return NextResponse.json({
@@ -108,6 +117,54 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+function buildAdminNotificationEmail(name: string, familyName: string, email: string): string {
+  const now = new Date().toLocaleString("en-CA", { timeZone: "America/Toronto", dateStyle: "full", timeStyle: "short" });
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#0a0e1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#0a0e1a;">
+<tr><td align="center" style="padding:40px 16px;">
+<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:480px;">
+
+  <tr><td style="text-align:center;padding-bottom:24px;">
+    <p style="margin:0;font-size:22px;font-weight:700;color:#D4A843;">&#127969; Family Nest</p>
+    <p style="margin:4px 0 0;font-size:12px;color:#5a6278;text-transform:uppercase;letter-spacing:1px;">Admin Notification</p>
+  </td></tr>
+
+  <tr><td style="background:#141927;border-radius:16px;border:1px solid #1e2640;overflow:hidden;">
+    <div style="height:4px;background:linear-gradient(90deg,#D4A843,#e8c56d,#D4A843);"></div>
+    <div style="padding:28px 32px;">
+      <h2 style="margin:0 0 4px;font-size:20px;font-weight:700;color:#f0f2f8;">New family just signed up!</h2>
+      <p style="margin:0 0 24px;font-size:14px;color:#8b93a8;">${now}</p>
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#0d111e;border-radius:10px;border:1px solid #1a2038;">
+        <tr><td style="padding:14px 20px;border-bottom:1px solid #1a2038;">
+          <span style="font-size:12px;color:#5a6278;text-transform:uppercase;letter-spacing:0.8px;">Family Name</span><br>
+          <span style="font-size:16px;font-weight:600;color:#D4A843;">${familyName}</span>
+        </td></tr>
+        <tr><td style="padding:14px 20px;border-bottom:1px solid #1a2038;">
+          <span style="font-size:12px;color:#5a6278;text-transform:uppercase;letter-spacing:0.8px;">Owner Name</span><br>
+          <span style="font-size:15px;color:#f0f2f8;">${name}</span>
+        </td></tr>
+        <tr><td style="padding:14px 20px;">
+          <span style="font-size:12px;color:#5a6278;text-transform:uppercase;letter-spacing:0.8px;">Email</span><br>
+          <span style="font-size:15px;color:#f0f2f8;">${email}</span>
+        </td></tr>
+      </table>
+    </div>
+  </td></tr>
+
+  <tr><td style="padding:20px;text-align:center;">
+    <p style="margin:0;color:#3d4560;font-size:11px;">Family Nest &mdash; Admin Alerts</p>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
 }
 
 function buildConfirmationEmail(name: string, familyName: string, confirmUrl: string): string {
