@@ -1,4 +1,4 @@
-import { createClient } from "@/src/lib/supabase/server";
+import { createAdminClient } from "@/src/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -16,7 +16,7 @@ const MEDIUM_LABELS: Record<string, string> = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { token } = await params;
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data: piece } = await supabase
     .from("artwork_pieces")
     .select("title, description")
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PublicArtworkPage({ params }: Props) {
   const { token } = await params;
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const { data: piece } = await supabase
     .from("artwork_pieces")
