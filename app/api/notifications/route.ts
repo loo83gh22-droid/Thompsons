@@ -46,13 +46,19 @@ interface FamilyWithMembers {
 }
 
 export async function GET(request: Request) {
+  // Fail loudly if CRON_SECRET is not configured — prevents silent cron failures.
+  if (!cronSecret) {
+    console.error("CRON_SECRET is not set. Notification cron is disabled.");
+    return NextResponse.json({ error: "Cron not configured" }, { status: 503 });
+  }
+
   // Auth check — Vercel Cron sends Authorization: Bearer <CRON_SECRET> automatically.
   // Fall back to ?key= query param for local testing.
   const authHeader = request.headers.get("authorization");
   const { searchParams } = new URL(request.url);
   const queryKey = searchParams.get("key");
-  const validBearer = cronSecret && authHeader === `Bearer ${cronSecret}`;
-  const validQuery = cronSecret && queryKey === cronSecret;
+  const validBearer = authHeader === `Bearer ${cronSecret}`;
+  const validQuery = queryKey === cronSecret;
   if (!validBearer && !validQuery) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
