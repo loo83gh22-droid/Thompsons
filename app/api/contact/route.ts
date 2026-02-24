@@ -3,11 +3,11 @@ import { Resend } from "resend";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-const ADMIN_EMAIL = process.env.NEXT_PUBLIC_FEEDBACK_EMAIL || "waterloo1983hawk22@gmail.com";
+const ADMIN_EMAIL = process.env.FEEDBACK_ADMIN_EMAIL;
 const FROM_EMAIL = "Family Nest <noreply@familynest.io>";
 
 export async function POST(request: NextRequest) {
-  if (!resend) {
+  if (!resend || !ADMIN_EMAIL) {
     return NextResponse.json({ error: "Email service not configured" }, { status: 500 });
   }
 

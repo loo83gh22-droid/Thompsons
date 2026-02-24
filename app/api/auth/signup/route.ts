@@ -93,9 +93,9 @@ export async function POST(request: NextRequest) {
       }
 
       // Notify admin of new signup (fire-and-forget — don't block the response)
-      resend.emails.send({
+      if (process.env.ADMIN_NOTIFICATION_EMAIL) resend.emails.send({
         from: fromEmail,
-        to: "waterloo1983hawk22@gmail.com",
+        to: process.env.ADMIN_NOTIFICATION_EMAIL,
         subject: `🏠 New Family Nest signup: ${safeFamilyName}`,
         html: buildAdminNotificationEmail(safeName, safeFamilyName, email.trim()),
       }).catch((err: unknown) => console.error("Admin notification failed:", err));
