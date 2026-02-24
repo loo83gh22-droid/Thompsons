@@ -19,12 +19,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const description = story.content?.slice(0, 160) || "A family story shared from Family Nest.";
 
+  const pageUrl = `https://familynest.io/share/story/${token}`;
+
   return {
     title: `${story.title} — Family Nest`,
     description,
+    alternates: {
+      canonical: pageUrl,
+    },
     openGraph: {
       title: story.title,
       description,
+      url: pageUrl,
       siteName: "Family Nest",
       type: "article",
     },
