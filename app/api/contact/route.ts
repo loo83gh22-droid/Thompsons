@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { checkHttpRateLimit, strictLimiter } from "@/src/lib/httpRateLimit";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -7,6 +8,9 @@ const ADMIN_EMAIL = process.env.FEEDBACK_ADMIN_EMAIL;
 const FROM_EMAIL = "Family Nest <noreply@familynest.io>";
 
 export async function POST(request: NextRequest) {
+  const rateLimitResponse = await checkHttpRateLimit(request, strictLimiter);
+  if (rateLimitResponse) return rateLimitResponse;
+
   if (!resend || !ADMIN_EMAIL) {
     return NextResponse.json({ error: "Email service not configured" }, { status: 500 });
   }
