@@ -49,9 +49,7 @@ export function HeroSection() {
                   Start Your Family Nest
                   <ArrowRight className="h-4 w-4" />
                 </Link>
-                <p className="text-sm" style={{ color: "var(--muted)" }}>
-                  Free forever &middot; No credit card needed
-                </p>
+
               </div>
               <p className="text-sm" style={{ color: "var(--muted)" }}>
                 Someone invited you?{" "}

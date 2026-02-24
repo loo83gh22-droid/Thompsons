@@ -37,9 +37,7 @@ export function FinalCTA() {
               Start Your Family Nest
               <ArrowRight className="h-4 w-4" />
             </Link>
-            <p className="text-sm" style={{ color: "var(--muted)" }}>
-              Free forever &middot; No credit card needed
-            </p>
+
             <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>
               Already have an account?{" "}
               <Link
