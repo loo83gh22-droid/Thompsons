@@ -109,26 +109,26 @@ export default async function OGImage({ params }: Props) {
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
-            padding: "52px 48px",
-            flex: photoUrl ? "0 0 52%" : "1",
+            padding: "40px 32px",
+            flex: photoUrl ? "0 0 35%" : "1",
           }}
         >
           {/* Top: brand */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 20, fontWeight: 700, color: "#c47c3a" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#c47c3a" }}>
               Family Nest
             </span>
-            <span style={{ fontSize: 16, color: "#9c8f7a" }}>· Artwork</span>
+            <span style={{ fontSize: 13, color: "#9c8f7a" }}>· Artwork</span>
           </div>
 
           {/* Middle: title + meta */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: "#c47c3a" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "#c47c3a" }}>
               From the {familyName} Family
             </span>
             <span
               style={{
-                fontSize: piece.title.length > 30 ? 38 : 46,
+                fontSize: piece.title.length > 20 ? 28 : 34,
                 fontWeight: 800,
                 color: "#2c2a25",
                 lineHeight: 1.15,
@@ -137,7 +137,7 @@ export default async function OGImage({ params }: Props) {
               {piece.title}
             </span>
             {subtitle && (
-              <span style={{ fontSize: 18, color: "#7a7567" }}>{subtitle}</span>
+              <span style={{ fontSize: 14, color: "#7a7567" }}>{subtitle}</span>
             )}
           </div>
 
@@ -147,16 +147,16 @@ export default async function OGImage({ params }: Props) {
               display: "flex",
               flexDirection: "column",
               backgroundColor: "#ebe6de",
-              borderRadius: 14,
-              padding: "16px 24px",
-              gap: 4,
+              borderRadius: 12,
+              padding: "12px 16px",
+              gap: 3,
             }}
           >
-            <span style={{ fontSize: 15, fontWeight: 700, color: "#2c2a25" }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#2c2a25" }}>
               Every family has art worth preserving.
             </span>
-            <span style={{ fontSize: 13, color: "#7a7567" }}>
-              familynest.io — Save drawings, paintings & creations for generations.
+            <span style={{ fontSize: 11, color: "#7a7567" }}>
+              familynest.io
             </span>
           </div>
         </div>
@@ -165,7 +165,7 @@ export default async function OGImage({ params }: Props) {
         {photoUrl && (
           <div
             style={{
-              flex: "0 0 48%",
+              flex: "0 0 65%",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
