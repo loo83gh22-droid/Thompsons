@@ -6,6 +6,7 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import { enforceStorageLimit, addStorageUsage, getFamilyPlan, canSharePublicly } from "@/src/lib/plans";
 import crypto from "crypto";
 import { Resend } from "resend";
+import { createAdminClient } from "@/src/lib/supabase/admin";
 
 export type ArtworkPieceResult = { success: true; id: string } | { success: false; error: string };
 
@@ -284,14 +285,28 @@ export async function sendArtworkShareEmail(
     return { success: false, error: err instanceof Error ? err.message : "Could not create share link." };
   }
 
-  // Fetch piece details
+  // Fetch piece + first photo in one query
   const { data: piece } = await supabase
     .from("artwork_pieces")
-    .select("title, medium, age_when_created, family_member_id, family_id")
+    .select("title, medium, age_when_created, family_member_id, family_id, artwork_photos(url, sort_order)")
     .eq("id", pieceId)
     .single();
 
   if (!piece) return { success: false, error: "Artwork not found." };
+
+  // Get a publicly accessible signed URL for the first photo (7 day expiry — long enough for email)
+  const admin = createAdminClient();
+  let photoEmailUrl: string | null = null;
+  const photos = [...((piece.artwork_photos as { url: string; sort_order: number }[]) ?? [])].sort(
+    (a, b) => a.sort_order - b.sort_order
+  );
+  if (photos[0]) {
+    const storagePath = photos[0].url.replace("/api/storage/artwork-photos/", "");
+    const { data: signed } = await admin.storage
+      .from("artwork-photos")
+      .createSignedUrl(storagePath, 60 * 60 * 24 * 7); // 7 days
+    photoEmailUrl = signed?.signedUrl ?? null;
+  }
 
   // Get artist name
   let artistName = "";
@@ -315,17 +330,17 @@ export async function sendArtworkShareEmail(
     if (family?.name) familyName = family.name;
   }
 
-  // Get sender name (current user's family member name)
-  let senderName = familyName;
+  // Get sender name — use actual name (not nickname) so it reads naturally in email
+  let senderName = `The ${familyName} Family`;
   if (activeFamilyId) {
     const { data: senderMember } = await supabase
       .from("family_members")
-      .select("name, nickname")
+      .select("name")
       .eq("family_id", activeFamilyId)
       .eq("user_id", user.id)
       .maybeSingle();
-    if (senderMember) {
-      senderName = senderMember.nickname?.trim() || senderMember.name || familyName;
+    if (senderMember?.name?.trim()) {
+      senderName = senderMember.name.trim();
     }
   }
 
@@ -355,6 +370,14 @@ export async function sendArtworkShareEmail(
 
   const eName = (s: string) => s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+  const photoBlock = photoEmailUrl
+    ? `<tr><td style="padding:0;">
+        <a href="${shareUrl}" target="_blank" style="display:block;">
+          <img src="${photoEmailUrl}" alt="${eName(piece.title)}" width="520" style="width:100%;max-width:520px;display:block;border:0;border-radius:0;" />
+        </a>
+      </td></tr>`
+    : "";
+
   try {
     const resend = new Resend(apiKey);
     await resend.emails.send({
@@ -381,7 +404,10 @@ export async function sendArtworkShareEmail(
 
     <div style="height:4px;background:linear-gradient(90deg,#c47c3a,#e8a855,#c47c3a);"></div>
 
-    <div style="padding:32px 32px 36px;">
+    <!-- Artwork photo -->
+    ${photoBlock}
+
+    <div style="padding:28px 32px 36px;">
 
       <p style="margin:0 0 4px;font-size:14px;font-weight:600;color:#c47c3a;">
         From the ${eName(familyName)} Family
@@ -389,10 +415,10 @@ export async function sendArtworkShareEmail(
       <h1 style="margin:0 0 6px;font-size:26px;font-weight:800;color:#2c2a25;line-height:1.2;">
         ${eName(piece.title)}
       </h1>
-      ${subtitle ? `<p style="margin:0 0 28px;font-size:14px;color:#7a7567;">${eName(subtitle)}</p>` : '<div style="margin-bottom:28px;"></div>'}
+      ${subtitle ? `<p style="margin:0 0 24px;font-size:14px;color:#7a7567;">${eName(subtitle)}</p>` : '<div style="margin-bottom:24px;"></div>'}
 
       <p style="margin:0 0 28px;font-size:15px;color:#5a5248;line-height:1.6;">
-        ${eName(senderName)} wanted to share this piece of artwork with you from Family Nest.
+        ${eName(senderName)} wanted to share this piece of artwork with you.
       </p>
 
       <!-- CTA button -->
