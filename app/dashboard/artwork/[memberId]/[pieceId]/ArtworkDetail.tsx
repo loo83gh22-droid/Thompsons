@@ -4,9 +4,8 @@ import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { deleteArtworkPiece, deleteArtworkPhoto, toggleArtworkShare } from "../../actions";
+import { deleteArtworkPiece, deleteArtworkPhoto, getOrCreateArtworkShareToken } from "../../actions";
 import { ArtworkForm } from "../ArtworkForm";
-import { ShareButton } from "@/app/components/ShareButton";
 
 const MEDIUM_LABELS: Record<string, string> = {
   drawing: "Drawing",
@@ -36,10 +35,139 @@ type Piece = {
   date_created: string | null;
   age_when_created: number | null;
   created_at: string;
-  is_public: boolean;
   share_token: string | null;
   artwork_photos: Photo[] | null;
 };
+
+/* ── Simple share sheet ── */
+function ArtworkShareButton({
+  pieceId,
+  title,
+  initialShareToken,
+}: {
+  pieceId: string;
+  title: string;
+  initialShareToken: string | null;
+}) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(
+    initialShareToken
+      ? `${typeof window !== "undefined" ? window.location.origin : ""}/share/artwork/${initialShareToken}`
+      : null
+  );
+  const [copied, setCopied] = useState(false);
+
+  async function handleOpen() {
+    if (shareUrl) { setOpen(true); return; }
+    setLoading(true);
+    try {
+      const { shareToken } = await getOrCreateArtworkShareToken(pieceId);
+      setShareUrl(`${window.location.origin}/share/artwork/${shareToken}`);
+      setOpen(true);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to create share link");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleCopy() {
+    if (!shareUrl) return;
+    navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  }
+
+  function handleFacebook() {
+    if (!shareUrl) return;
+    window.open(
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+      "_blank",
+      "noopener,noreferrer,width=600,height=400"
+    );
+  }
+
+  function handleEmail() {
+    if (!shareUrl) return;
+    const subject = encodeURIComponent(`Check out ${title}`);
+    const body = encodeURIComponent(`I wanted to share this artwork with you:\n\n${shareUrl}`);
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  }
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={handleOpen}
+        disabled={loading}
+        className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] disabled:opacity-50 transition-colors"
+      >
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+          <polyline points="16 6 12 2 8 6" />
+          <line x1="12" y1="2" x2="12" y2="15" />
+        </svg>
+        {loading ? "Creating link…" : "Share"}
+      </button>
+
+      {open && shareUrl && (
+        <div className="absolute left-0 top-full z-20 mt-2 w-64 rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-lg space-y-3 animate-in fade-in slide-in-from-top-1 duration-150">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-[var(--foreground)]">Share this artwork</span>
+            <button
+              onClick={() => setOpen(false)}
+              className="text-[var(--muted)] hover:text-[var(--foreground)] text-lg leading-none"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            {/* Facebook */}
+            <button
+              type="button"
+              onClick={handleFacebook}
+              className="inline-flex items-center gap-2.5 rounded-lg bg-[#1877F2]/10 px-3.5 py-2 text-sm font-medium text-[#1877F2] hover:bg-[#1877F2]/20 transition-colors"
+            >
+              <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12z" />
+              </svg>
+              Post to Facebook
+            </button>
+
+            {/* Email */}
+            <button
+              type="button"
+              onClick={handleEmail}
+              className="inline-flex items-center gap-2.5 rounded-lg border border-[var(--border)] px-3.5 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-colors"
+            >
+              <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+              </svg>
+              Send via email
+            </button>
+
+            {/* Copy link */}
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="inline-flex items-center gap-2.5 rounded-lg border border-[var(--border)] px-3.5 py-2 text-sm font-medium text-[var(--muted)] hover:bg-[var(--surface-hover)] transition-colors"
+            >
+              <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              </svg>
+              {copied ? "Copied!" : "Copy link"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function ArtworkDetail({
   piece,
@@ -203,12 +331,10 @@ export function ArtworkDetail({
         )}
 
         <div className="mt-5">
-          <ShareButton
-            isPublic={piece.is_public}
-            shareToken={piece.share_token}
-            shareType="artwork"
+          <ArtworkShareButton
+            pieceId={piece.id}
             title={piece.title}
-            onToggle={() => toggleArtworkShare(piece.id)}
+            initialShareToken={piece.share_token}
           />
         </div>
 

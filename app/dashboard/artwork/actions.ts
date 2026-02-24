@@ -186,6 +186,38 @@ export async function deleteArtworkPiece(pieceId: string, memberId: string): Pro
   revalidatePath(`/dashboard/artwork/${memberId}`);
 }
 
+export async function getOrCreateArtworkShareToken(pieceId: string): Promise<{ shareToken: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (activeFamilyId) {
+    const plan = await getFamilyPlan(supabase, activeFamilyId);
+    if (!canSharePublicly(plan.planType)) {
+      throw new Error("Public sharing requires the Full Nest or Legacy plan.");
+    }
+  }
+
+  const { data: piece } = await supabase
+    .from("artwork_pieces")
+    .select("id, share_token, family_member_id")
+    .eq("id", pieceId)
+    .single();
+
+  if (!piece) throw new Error("Artwork not found");
+
+  if (piece.share_token) return { shareToken: piece.share_token };
+
+  const token = crypto.randomBytes(16).toString("hex");
+  await supabase
+    .from("artwork_pieces")
+    .update({ is_public: true, share_token: token })
+    .eq("id", pieceId);
+
+  return { shareToken: token };
+}
+
 export async function toggleArtworkShare(pieceId: string): Promise<{ shareToken: string | null; isPublic: boolean }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

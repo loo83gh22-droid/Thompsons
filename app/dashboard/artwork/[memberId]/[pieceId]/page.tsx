@@ -33,7 +33,6 @@ export default async function ArtworkPiecePage({
       date_created,
       age_when_created,
       created_at,
-      is_public,
       share_token,
       artwork_photos(id, url, sort_order)
     `)
