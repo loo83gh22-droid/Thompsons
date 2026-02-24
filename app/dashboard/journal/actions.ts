@@ -136,30 +136,36 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
             countryCode = countryComp?.short_name?.toUpperCase() ?? null;
           }
         }
-      } else if (apiKey) {
-        const geocodeRes = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(input.location.trim())}&key=${apiKey}`
-        );
-        const geocode = await geocodeRes.json();
-        if (geocode.status === "OK" && geocode.results?.[0]) {
-          const result = geocode.results[0];
-          lat = result.geometry.location.lat;
-          lng = result.geometry.location.lng;
-          const countryComp = result.address_components?.find((c: { types: string[] }) =>
-            c.types.includes("country")
-          );
-          countryCode = countryComp?.short_name?.toUpperCase() ?? null;
-        }
       } else {
-        const geocodeRes = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(input.location.trim())}&limit=1`,
-          { headers: { "User-Agent": "FamilyNest/1.0" } }
-        );
-        const geocode = await geocodeRes.json();
-        const result = geocode[0];
-        lat = result?.lat ? parseFloat(result.lat) : 0;
-        lng = result?.lon ? parseFloat(result.lon) : 0;
-        countryCode = result?.address?.country_code?.toUpperCase() ?? null;
+        // Try Google first; fall back to Nominatim if key absent or API returns non-OK
+        let googleSucceeded = false;
+        if (apiKey) {
+          const geocodeRes = await fetch(
+            `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(input.location.trim())}&key=${apiKey}`
+          );
+          const geocode = await geocodeRes.json();
+          if (geocode.status === "OK" && geocode.results?.[0]) {
+            const result = geocode.results[0];
+            lat = result.geometry.location.lat;
+            lng = result.geometry.location.lng;
+            const countryComp = result.address_components?.find((c: { types: string[] }) =>
+              c.types.includes("country")
+            );
+            countryCode = countryComp?.short_name?.toUpperCase() ?? null;
+            googleSucceeded = true;
+          }
+        }
+        if (!googleSucceeded) {
+          const geocodeRes = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(input.location.trim())}&limit=1`,
+            { headers: { "User-Agent": "FamilyNest/1.0" } }
+          );
+          const geocode = await geocodeRes.json();
+          const result = geocode[0];
+          lat = result?.lat ? parseFloat(result.lat) : 0;
+          lng = result?.lon ? parseFloat(result.lon) : 0;
+          countryCode = result?.address?.country_code?.toUpperCase() ?? null;
+        }
       }
 
       if (lat && lng) {
@@ -409,30 +415,36 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
             countryCode = countryComp?.short_name?.toUpperCase() ?? null;
           }
         }
-      } else if (apiKey) {
-        const geocodeRes = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(input.location.trim())}&key=${apiKey}`
-        );
-        const geocode = await geocodeRes.json();
-        if (geocode.status === "OK" && geocode.results?.[0]) {
-          const result = geocode.results[0];
-          lat = result.geometry.location.lat;
-          lng = result.geometry.location.lng;
-          const countryComp = result.address_components?.find((c: { types: string[] }) =>
-            c.types.includes("country")
-          );
-          countryCode = countryComp?.short_name?.toUpperCase() ?? null;
-        }
       } else {
-        const geocodeRes = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(input.location.trim())}&limit=1`,
-          { headers: { "User-Agent": "FamilyNest/1.0" } }
-        );
-        const geocode = await geocodeRes.json();
-        const result = geocode[0];
-        lat = result?.lat ? parseFloat(result.lat) : 0;
-        lng = result?.lon ? parseFloat(result.lon) : 0;
-        countryCode = result?.address?.country_code?.toUpperCase() ?? null;
+        // Try Google first; fall back to Nominatim if key absent or API returns non-OK
+        let googleSucceeded = false;
+        if (apiKey) {
+          const geocodeRes = await fetch(
+            `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(input.location.trim())}&key=${apiKey}`
+          );
+          const geocode = await geocodeRes.json();
+          if (geocode.status === "OK" && geocode.results?.[0]) {
+            const result = geocode.results[0];
+            lat = result.geometry.location.lat;
+            lng = result.geometry.location.lng;
+            const countryComp = result.address_components?.find((c: { types: string[] }) =>
+              c.types.includes("country")
+            );
+            countryCode = countryComp?.short_name?.toUpperCase() ?? null;
+            googleSucceeded = true;
+          }
+        }
+        if (!googleSucceeded) {
+          const geocodeRes = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(input.location.trim())}&limit=1`,
+            { headers: { "User-Agent": "FamilyNest/1.0" } }
+          );
+          const geocode = await geocodeRes.json();
+          const result = geocode[0];
+          lat = result?.lat ? parseFloat(result.lat) : 0;
+          lng = result?.lon ? parseFloat(result.lon) : 0;
+          countryCode = result?.address?.country_code?.toUpperCase() ?? null;
+        }
       }
 
       if (lat && lng) {

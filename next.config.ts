@@ -28,8 +28,8 @@ const nextConfig: NextConfig = {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Images: own origin (storage proxy), Google Maps tiles, OpenStreetMap tiles, data URIs, blobs
       `img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com https://*.tile.openstreetmap.org`,
-      // API / WebSocket connections (Supabase for auth/db, not storage); CDN for world-atlas GeoJSON
-      `connect-src 'self' ${supabaseOrigin} wss://${supabaseHost ?? ""} https://maps.googleapis.com https://*.tile.openstreetmap.org https://cdn.jsdelivr.net`,
+      // API / WebSocket connections (Supabase for auth/db, not storage); CDN for world-atlas GeoJSON; Nominatim for location suggestions
+      `connect-src 'self' ${supabaseOrigin} wss://${supabaseHost ?? ""} https://maps.googleapis.com https://*.tile.openstreetmap.org https://nominatim.openstreetmap.org https://cdn.jsdelivr.net`,
       // Audio / video now served via /api/storage proxy (same origin)
       `media-src 'self' blob:`,
       "font-src 'self' https://fonts.gstatic.com",
