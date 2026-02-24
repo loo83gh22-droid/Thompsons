@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { deleteArtworkPiece, deleteArtworkPhoto, getOrCreateArtworkShareToken } from "../../actions";
+import { deleteArtworkPiece, deleteArtworkPhoto, getOrCreateArtworkShareToken, sendArtworkShareEmail } from "../../actions";
 import { ArtworkForm } from "../ArtworkForm";
 
 const MEDIUM_LABELS: Record<string, string> = {
@@ -58,6 +58,13 @@ function ArtworkShareButton({
   );
   const [copied, setCopied] = useState(false);
 
+  // Email sub-form state
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [emailValue, setEmailValue] = useState("");
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<"idle" | "sent" | "error">("idle");
+  const [emailError, setEmailError] = useState("");
+
   async function handleOpen() {
     if (shareUrl) { setOpen(true); return; }
     setLoading(true);
@@ -88,11 +95,42 @@ function ArtworkShareButton({
     );
   }
 
-  function handleEmail() {
-    if (!shareUrl) return;
-    const subject = encodeURIComponent(`Check out ${title}`);
-    const body = encodeURIComponent(`I wanted to share this artwork with you:\n\n${shareUrl}`);
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  function handleEmailToggle() {
+    setEmailOpen((v) => !v);
+    setEmailStatus("idle");
+    setEmailError("");
+  }
+
+  async function handleEmailSend(e: React.FormEvent) {
+    e.preventDefault();
+    if (!emailValue.trim()) return;
+    setEmailSending(true);
+    setEmailStatus("idle");
+    setEmailError("");
+    try {
+      const result = await sendArtworkShareEmail(pieceId, emailValue.trim());
+      if (result.success) {
+        setEmailStatus("sent");
+        setEmailValue("");
+        setTimeout(() => setEmailStatus("idle"), 4000);
+      } else {
+        setEmailStatus("error");
+        setEmailError(result.error ?? "Failed to send.");
+      }
+    } catch (err) {
+      setEmailStatus("error");
+      setEmailError(err instanceof Error ? err.message : "Failed to send.");
+    } finally {
+      setEmailSending(false);
+    }
+  }
+
+  function handleClose() {
+    setOpen(false);
+    setEmailOpen(false);
+    setEmailStatus("idle");
+    setEmailError("");
+    setEmailValue("");
   }
 
   return (
@@ -112,11 +150,11 @@ function ArtworkShareButton({
       </button>
 
       {open && shareUrl && (
-        <div className="absolute left-0 top-full z-20 mt-2 w-64 rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-lg space-y-3 animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="absolute left-0 top-full z-20 mt-2 w-72 rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-lg space-y-3 animate-in fade-in slide-in-from-top-1 duration-150">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-[var(--foreground)]">Share this artwork</span>
             <button
-              onClick={() => setOpen(false)}
+              onClick={handleClose}
               className="text-[var(--muted)] hover:text-[var(--foreground)] text-lg leading-none"
               aria-label="Close"
             >
@@ -137,11 +175,15 @@ function ArtworkShareButton({
               Post to Facebook
             </button>
 
-            {/* Email */}
+            {/* Email — toggle inline form */}
             <button
               type="button"
-              onClick={handleEmail}
-              className="inline-flex items-center gap-2.5 rounded-lg border border-[var(--border)] px-3.5 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-colors"
+              onClick={handleEmailToggle}
+              className={`inline-flex items-center gap-2.5 rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors ${
+                emailOpen
+                  ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                  : "border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
+              }`}
             >
               <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <rect x="2" y="4" width="20" height="16" rx="2" />
@@ -149,6 +191,34 @@ function ArtworkShareButton({
               </svg>
               Send via email
             </button>
+
+            {/* Inline email form */}
+            {emailOpen && (
+              <form onSubmit={handleEmailSend} className="flex flex-col gap-2 pt-1">
+                <input
+                  type="email"
+                  required
+                  placeholder="recipient@email.com"
+                  value={emailValue}
+                  onChange={(e) => setEmailValue(e.target.value)}
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:outline-none"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  disabled={emailSending || !emailValue.trim()}
+                  className="w-full rounded-lg bg-[var(--primary)] px-3 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 transition-opacity"
+                >
+                  {emailSending ? "Sending…" : "Send"}
+                </button>
+                {emailStatus === "sent" && (
+                  <p className="text-xs text-green-600 text-center">✓ Email sent!</p>
+                )}
+                {emailStatus === "error" && (
+                  <p className="text-xs text-red-500 text-center">{emailError || "Failed to send."}</p>
+                )}
+              </form>
+            )}
 
             {/* Copy link */}
             <button
