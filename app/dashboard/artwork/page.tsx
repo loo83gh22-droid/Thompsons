@@ -101,6 +101,25 @@ export default async function ArtworkPage() {
         </div>
       ) : (
         <div className="space-y-8">
+          {membersWithoutPieces.length > 0 && (
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
+              <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-[var(--muted)]">
+                Start a portfolio for
+              </h2>
+              <div className="flex flex-wrap gap-3">
+                {membersWithoutPieces.map((member) => (
+                  <Link
+                    key={member.id}
+                    href={`/dashboard/artwork/${member.id}/new`}
+                    className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                  >
+                    + {member.nickname || member.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3">
             {membersWithPieces.map((member) => {
               const count = countByMember[member.id] ?? 0;
@@ -137,25 +156,6 @@ export default async function ArtworkPage() {
               );
             })}
           </div>
-
-          {membersWithoutPieces.length > 0 && (
-            <div>
-              <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-[var(--muted)]">
-                Start a portfolio for
-              </h2>
-              <div className="flex flex-wrap gap-3">
-                {membersWithoutPieces.map((member) => (
-                  <Link
-                    key={member.id}
-                    href={`/dashboard/artwork/${member.id}/new`}
-                    className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
-                  >
-                    + {member.nickname || member.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>
