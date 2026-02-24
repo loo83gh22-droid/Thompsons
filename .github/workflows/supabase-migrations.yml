@@ -1,12 +1,14 @@
-# Use this when your GitHub repo root is family-site. If repo root is Thompsons (parent), use ../.github/workflows/supabase-migrations.yml instead.
+# Migrations are applied via the Supabase MCP tool before each deployment.
+# This workflow is intentionally disabled — running supabase db push from CI
+# fails because MCP-applied migrations use timestamp versions that have no
+# corresponding local files (version mismatch error).
+#
+# To re-enable: restore the 'on:' trigger below and fix the migration history
+# mismatch using: supabase migration repair --status applied <version>
 name: Supabase Migrations
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "supabase/migrations/**"
-  workflow_dispatch:
+  workflow_dispatch: # manual only — auto-push disabled, see comment above
 
 jobs:
   migrate:
