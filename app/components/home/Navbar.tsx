@@ -1,14 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-[var(--background)]/80 backdrop-blur-md border-b border-[var(--border)]">
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 bg-[var(--background)]/80 backdrop-blur-md border-b border-[var(--border)] transition-shadow duration-200${scrolled ? " shadow-md" : ""}`}
+    >
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-2">
           <NestIcon className="h-8 w-8 text-[var(--primary)]" />
@@ -37,6 +46,12 @@ export function Navbar() {
             Pricing
           </Link>
           <Link
+            href="/contact"
+            className="text-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+          >
+            Contact
+          </Link>
+          <Link
             href="/login"
             className="text-sm font-medium text-[var(--foreground)] transition-colors hover:text-[var(--accent)]"
           >
@@ -50,13 +65,22 @@ export function Navbar() {
           </Link>
         </div>
 
-        <button
-          className="md:hidden text-[var(--foreground)]"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
-        >
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        <div className="flex items-center gap-3 md:hidden">
+          <Link
+            href="/login?mode=signup"
+            className="rounded-full px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:brightness-110"
+            style={{ backgroundColor: "var(--accent)" }}
+          >
+            Start Free
+          </Link>
+          <button
+            className="text-[var(--foreground)]"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          >
+            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
       </nav>
 
       {mobileOpen && (
@@ -82,6 +106,13 @@ export function Navbar() {
               onClick={() => setMobileOpen(false)}
             >
               Pricing
+            </Link>
+            <Link
+              href="/contact"
+              className="text-sm text-[var(--muted)]"
+              onClick={() => setMobileOpen(false)}
+            >
+              Contact
             </Link>
             <Link
               href="/login"

@@ -10,6 +10,7 @@ const plans = [
     features: ["10 journal entries", "500 MB storage", "Family tree", "Map view"],
     cta: "Get Started Free",
     featured: false,
+    ctaStyle: "muted" as "muted" | "accent" | "primary",
     note: null as string | null,
   },
   {
@@ -25,6 +26,7 @@ const plans = [
     ],
     cta: "Start Your Family Nest",
     featured: false,
+    ctaStyle: "accent" as "muted" | "accent" | "primary",
     note: null as string | null,
   },
   {
@@ -41,6 +43,7 @@ const plans = [
     ],
     cta: "Give Your Family a Legacy",
     featured: true,
+    ctaStyle: "primary" as "muted" | "accent" | "primary",
     note: "Makes a perfect holiday or Mother\u2019s Day gift",
   },
 ];
@@ -157,13 +160,12 @@ export function PricingCards() {
 
               <Link
                 href="/login?mode=signup"
-                className="block w-full rounded-full py-3 text-center text-sm font-medium transition-colors"
+                className="block w-full rounded-full py-3 text-center text-sm font-medium transition-all duration-200 hover:brightness-110 hover:shadow-md"
                 style={
-                  plan.featured
-                    ? {
-                        backgroundColor: "var(--primary)",
-                        color: "var(--primary-foreground)",
-                      }
+                  plan.ctaStyle === "primary"
+                    ? { backgroundColor: "var(--primary)", color: "var(--primary-foreground)" }
+                    : plan.ctaStyle === "accent"
+                    ? { backgroundColor: "var(--accent)", color: "#fff" }
                     : {
                         backgroundColor: "var(--secondary)",
                         color: "var(--foreground)",

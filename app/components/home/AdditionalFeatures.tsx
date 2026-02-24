@@ -1,14 +1,27 @@
+import {
+  Users,
+  MessageCircle,
+  Trophy,
+  Star,
+  Gift,
+  Search,
+  Link2,
+  Smile,
+  Music,
+  Smartphone,
+} from "lucide-react";
+
 const additionalFeatures = [
-  "Multi-Family Support",
-  "Family Messages",
-  "Sports & Activities",
-  "Family Traditions",
-  "Birthday Reminders",
-  "Global Search",
-  "Shareable Links",
-  "Kid Accounts",
-  "Family Spotify",
-  "Works on Any Device",
+  { label: "Multi-Family Support", icon: Users },
+  { label: "Family Messages", icon: MessageCircle },
+  { label: "Sports & Activities", icon: Trophy },
+  { label: "Family Traditions", icon: Star },
+  { label: "Birthday Reminders", icon: Gift },
+  { label: "Global Search", icon: Search },
+  { label: "Shareable Links", icon: Link2 },
+  { label: "Kid Accounts", icon: Smile },
+  { label: "Family Spotify", icon: Music },
+  { label: "Works on Any Device", icon: Smartphone },
 ];
 
 export function AdditionalFeatures() {
@@ -29,7 +42,7 @@ export function AdditionalFeatures() {
             And so much more
           </p>
           <h3
-            className="mb-8 text-2xl md:text-3xl"
+            className="mb-3 text-2xl md:text-3xl"
             style={{
               fontFamily: "var(--font-display-serif)",
               color: "var(--foreground)",
@@ -37,18 +50,22 @@ export function AdditionalFeatures() {
           >
             Plus all the little things that make it feel like home
           </h3>
+          <p className="mb-8 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
+            From birthday reminders to a family playlist — every detail is here because a real family asked for it.
+          </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
-            {additionalFeatures.map((feature) => (
+            {additionalFeatures.map(({ label, icon: Icon }) => (
               <span
-                key={feature}
-                className="rounded-full px-4 py-2 text-sm font-normal"
+                key={label}
+                className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-normal"
                 style={{
                   backgroundColor: "var(--secondary)",
                   color: "var(--foreground)",
                   border: "1px solid var(--border)",
                 }}
               >
-                {feature}
+                <Icon className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--primary)" }} />
+                {label}
               </span>
             ))}
           </div>

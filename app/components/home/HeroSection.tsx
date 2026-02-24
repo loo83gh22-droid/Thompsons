@@ -152,19 +152,19 @@ export function HeroSection() {
                 </div>
 
                 {/* Main content area — journal entries */}
-                <div className="flex-1 p-4">
-                  <div className="mb-3 flex items-center justify-between">
+                <div className="min-w-0 flex-1 p-4 pr-5">
+                  <div className="mb-3 flex items-center justify-between gap-2">
                     <p
-                      className="text-sm font-semibold"
+                      className="min-w-0 truncate text-sm font-semibold"
                       style={{ color: "var(--foreground)", fontFamily: "var(--font-display-serif)" }}
                     >
                       Family Journal
                     </p>
                     <span
-                      className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+                      className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium"
                       style={{ backgroundColor: "var(--accent)", color: "#fff" }}
                     >
-                      + New Entry
+                      + New
                     </span>
                   </div>
 
