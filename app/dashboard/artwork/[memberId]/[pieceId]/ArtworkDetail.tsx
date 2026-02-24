@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { deleteArtworkPiece, deleteArtworkPhoto, getOrCreateArtworkShareToken, sendArtworkShareEmail } from "../../actions";
+import { deleteArtworkPiece, deleteArtworkPhoto, getOrCreateArtworkShareToken, sendArtworkShareEmail, revokeArtworkShare } from "../../actions";
 import { ArtworkForm } from "../ArtworkForm";
 
 const MEDIUM_LABELS: Record<string, string> = {
@@ -57,6 +57,23 @@ function ArtworkShareButton({
       : null
   );
   const [copied, setCopied] = useState(false);
+
+  // Revoke state
+  const [revoking, setRevoking] = useState(false);
+
+  async function handleRevoke() {
+    if (!confirm("Stop sharing this artwork? Anyone with the link will no longer be able to view it.")) return;
+    setRevoking(true);
+    try {
+      await revokeArtworkShare(pieceId);
+      setShareUrl(null);
+      setOpen(false);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to stop sharing.");
+    } finally {
+      setRevoking(false);
+    }
+  }
 
   // Email sub-form state
   const [emailOpen, setEmailOpen] = useState(false);
@@ -231,6 +248,18 @@ function ArtworkShareButton({
                 <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
               </svg>
               {copied ? "Copied!" : "Copy link"}
+            </button>
+          </div>
+
+          {/* Divider + stop sharing */}
+          <div className="border-t border-[var(--border)] pt-2">
+            <button
+              type="button"
+              onClick={handleRevoke}
+              disabled={revoking}
+              className="w-full text-left text-xs text-red-400 hover:text-red-500 disabled:opacity-50 transition-colors py-1"
+            >
+              {revoking ? "Stopping…" : "✕ Stop sharing this artwork"}
             </button>
           </div>
         </div>

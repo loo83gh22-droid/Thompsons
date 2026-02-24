@@ -220,6 +220,32 @@ export async function getOrCreateArtworkShareToken(pieceId: string): Promise<{ s
   return { shareToken: token };
 }
 
+export async function revokeArtworkShare(pieceId: string): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
+  const { data: piece } = await supabase
+    .from("artwork_pieces")
+    .select("family_member_id")
+    .eq("id", pieceId)
+    .eq("family_id", activeFamilyId)
+    .single();
+
+  if (!piece) throw new Error("Artwork not found");
+
+  await supabase
+    .from("artwork_pieces")
+    .update({ is_public: false, share_token: null })
+    .eq("id", pieceId)
+    .eq("family_id", activeFamilyId);
+
+  revalidatePath(`/dashboard/artwork/${piece.family_member_id}/${pieceId}`);
+}
+
 export async function toggleArtworkShare(pieceId: string): Promise<{ shareToken: string | null; isPublic: boolean }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -294,7 +320,18 @@ export async function sendArtworkShareEmail(
 
   if (!piece) return { success: false, error: "Artwork not found." };
 
-  // Get a publicly accessible signed URL for the first photo (7 day expiry — long enough for email)
+  // Rate limit: max 20 share emails per user per 24 hours
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { count: recentSends } = await supabase
+    .from("artwork_share_email_log")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .gte("sent_at", since);
+  if ((recentSends ?? 0) >= 20) {
+    return { success: false, error: "You've reached the daily email limit (20 per day). Try again tomorrow." };
+  }
+
+  // Get a publicly accessible signed URL for the first photo (30 day expiry)
   const admin = createAdminClient();
   let photoEmailUrl: string | null = null;
   const photos = [...((piece.artwork_photos as { url: string; sort_order: number }[]) ?? [])].sort(
@@ -304,7 +341,7 @@ export async function sendArtworkShareEmail(
     const storagePath = photos[0].url.replace("/api/storage/artwork-photos/", "");
     const { data: signed } = await admin.storage
       .from("artwork-photos")
-      .createSignedUrl(storagePath, 60 * 60 * 24 * 7); // 7 days
+      .createSignedUrl(storagePath, 60 * 60 * 24 * 30); // 30 days
     photoEmailUrl = signed?.signedUrl ?? null;
   }
 
@@ -380,6 +417,9 @@ export async function sendArtworkShareEmail(
 
   try {
     const resend = new Resend(apiKey);
+    // Log the send before dispatching (counts against rate limit even on Resend failure)
+    await supabase.from("artwork_share_email_log").insert({ user_id: user.id });
+
     await resend.emails.send({
       from,
       to: recipientEmail.trim(),
