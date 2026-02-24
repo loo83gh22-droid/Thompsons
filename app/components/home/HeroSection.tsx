@@ -9,13 +9,7 @@ export function HeroSection() {
           {/* Text Content */}
           <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-6">
-              <p
-                className="text-sm font-medium uppercase tracking-widest"
-                style={{ color: "var(--accent)" }}
-              >
-                For every generation, under one roof
-              </p>
-              <h1
+<h1
                 className="text-4xl font-bold leading-tight md:text-5xl lg:text-6xl"
                 style={{
                   fontFamily: "var(--font-display-serif)",
