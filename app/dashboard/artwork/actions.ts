@@ -3,7 +3,8 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
-import { enforceStorageLimit, addStorageUsage } from "@/src/lib/plans";
+import { enforceStorageLimit, addStorageUsage, getFamilyPlan, canSharePublicly } from "@/src/lib/plans";
+import crypto from "crypto";
 
 export type ArtworkPieceResult = { success: true; id: string } | { success: false; error: string };
 
@@ -183,6 +184,47 @@ export async function deleteArtworkPiece(pieceId: string, memberId: string): Pro
 
   revalidatePath("/dashboard/artwork");
   revalidatePath(`/dashboard/artwork/${memberId}`);
+}
+
+export async function toggleArtworkShare(pieceId: string): Promise<{ shareToken: string | null; isPublic: boolean }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (activeFamilyId) {
+    const plan = await getFamilyPlan(supabase, activeFamilyId);
+    if (!canSharePublicly(plan.planType)) {
+      throw new Error("Public sharing requires the Full Nest or Legacy plan.");
+    }
+  }
+
+  const { data: piece } = await supabase
+    .from("artwork_pieces")
+    .select("id, is_public, share_token, family_member_id")
+    .eq("id", pieceId)
+    .single();
+
+  if (!piece) throw new Error("Artwork not found");
+
+  if (piece.is_public) {
+    await supabase
+      .from("artwork_pieces")
+      .update({ is_public: false, share_token: null })
+      .eq("id", pieceId);
+
+    revalidatePath(`/dashboard/artwork/${piece.family_member_id}/${pieceId}`);
+    return { shareToken: null, isPublic: false };
+  } else {
+    const token = crypto.randomBytes(16).toString("hex");
+    await supabase
+      .from("artwork_pieces")
+      .update({ is_public: true, share_token: token })
+      .eq("id", pieceId);
+
+    revalidatePath(`/dashboard/artwork/${piece.family_member_id}/${pieceId}`);
+    return { shareToken: token, isPublic: true };
+  }
 }
 
 export async function deleteArtworkPhoto(photoId: string, pieceId: string, memberId: string): Promise<void> {

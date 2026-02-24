@@ -4,8 +4,9 @@ import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { deleteArtworkPiece, deleteArtworkPhoto } from "../../actions";
+import { deleteArtworkPiece, deleteArtworkPhoto, toggleArtworkShare } from "../../actions";
 import { ArtworkForm } from "../ArtworkForm";
+import { ShareButton } from "@/app/components/ShareButton";
 
 const MEDIUM_LABELS: Record<string, string> = {
   drawing: "Drawing",
@@ -35,6 +36,8 @@ type Piece = {
   date_created: string | null;
   age_when_created: number | null;
   created_at: string;
+  is_public: boolean;
+  share_token: string | null;
   artwork_photos: Photo[] | null;
 };
 
@@ -198,6 +201,16 @@ export function ArtworkDetail({
             {piece.description}
           </p>
         )}
+
+        <div className="mt-5">
+          <ShareButton
+            isPublic={piece.is_public}
+            shareToken={piece.share_token}
+            shareType="artwork"
+            title={piece.title}
+            onToggle={() => toggleArtworkShare(piece.id)}
+          />
+        </div>
 
         <div className="mt-4 border-t border-[var(--border)] pt-3 text-xs text-[var(--muted)]">
           <Link href={`/dashboard/artwork/${memberId}`} className="hover:text-[var(--foreground)]">

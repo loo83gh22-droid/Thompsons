@@ -51,7 +51,7 @@ export function ShareButton({
 }: {
   isPublic: boolean;
   shareToken: string | null;
-  shareType: "story" | "recipe";
+  shareType: "story" | "recipe" | "artwork";
   title?: string;
   onToggle: () => Promise<{ shareToken: string | null; isPublic: boolean }>;
 }) {
