@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 
 export default function Error({
@@ -9,6 +10,10 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    console.error("[Root Error]", error);
+  }, [error]);
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-6">
       <div className="w-full max-w-md text-center">
@@ -34,7 +39,7 @@ export default function Error({
             Home
           </Link>
           <a
-            href={`mailto:${process.env.NEXT_PUBLIC_FEEDBACK_EMAIL || "feedback@example.com"}?subject=Family%20Nest%20Error%20Report`}
+            href="/contact?category=Bug+Report"
             className="rounded-lg border border-[var(--border)] px-6 py-2 font-medium hover:bg-[var(--surface)] min-h-[44px] flex items-center"
           >
             Report issue
