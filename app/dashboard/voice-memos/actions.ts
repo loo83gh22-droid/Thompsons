@@ -72,6 +72,8 @@ export async function updateVoiceMemo(id: string, data: VoiceMemoUpdate) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
 
   const { error } = await supabase
     .from("voice_memos")
@@ -83,7 +85,8 @@ export async function updateVoiceMemo(id: string, data: VoiceMemoUpdate) {
       recorded_date: data.recordedDate,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("family_id", activeFamilyId);
 
   if (error) throw error;
   revalidatePath("/dashboard/voice-memos");
@@ -105,11 +108,14 @@ export async function removeVoiceMemo(id: string) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
 
   const { data: row } = await supabase
     .from("voice_memos")
     .select("audio_url")
     .eq("id", id)
+    .eq("family_id", activeFamilyId)
     .single();
 
   if (row?.audio_url) {
@@ -119,7 +125,7 @@ export async function removeVoiceMemo(id: string) {
     }
   }
 
-  const { error } = await supabase.from("voice_memos").delete().eq("id", id);
+  const { error } = await supabase.from("voice_memos").delete().eq("id", id).eq("family_id", activeFamilyId);
   if (error) throw error;
   revalidatePath("/dashboard/voice-memos");
 }

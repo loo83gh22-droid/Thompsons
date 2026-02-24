@@ -74,8 +74,10 @@ export async function removeAchievement(id: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
 
-  const { error } = await supabase.from("achievements").delete().eq("id", id);
+  const { error } = await supabase.from("achievements").delete().eq("id", id).eq("family_id", activeFamilyId);
   if (error) throw error;
   revalidatePath("/dashboard/achievements");
 }

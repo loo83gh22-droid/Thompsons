@@ -70,11 +70,14 @@ export async function removePhoto(id: string) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
 
   const { error } = await supabase
     .from("home_mosaic_photos")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("family_id", activeFamilyId);
 
   if (error) throw error;
 

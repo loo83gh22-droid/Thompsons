@@ -53,6 +53,8 @@ export async function updateFavourite(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
 
   const { error } = await supabase
     .from("favourites")
@@ -61,7 +63,8 @@ export async function updateFavourite(
       description: data.description || null,
       notes: data.notes || null,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("family_id", activeFamilyId);
 
   if (error) throw error;
   revalidateAll();
@@ -71,11 +74,14 @@ export async function removeFavourite(id: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
 
   const { error } = await supabase
     .from("favourites")
     .update({ removed_at: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("family_id", activeFamilyId);
 
   if (error) throw error;
   revalidateAll();
@@ -85,11 +91,14 @@ export async function restoreFavourite(id: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
 
   const { error } = await supabase
     .from("favourites")
     .update({ removed_at: null })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("family_id", activeFamilyId);
 
   if (error) throw error;
   revalidateAll();

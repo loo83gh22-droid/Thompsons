@@ -114,6 +114,8 @@ export async function updateRecipe(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
 
   const update: Record<string, unknown> = {};
   if (input.title !== undefined) update.title = input.title;
@@ -125,7 +127,7 @@ export async function updateRecipe(
   if (input.added_by_id !== undefined) update.added_by = input.added_by_id;
 
   if (Object.keys(update).length > 0) {
-    const { error } = await supabase.from("recipes").update(update).eq("id", id);
+    const { error } = await supabase.from("recipes").update(update).eq("id", id).eq("family_id", activeFamilyId);
     if (error) throw error;
   }
 
@@ -149,8 +151,10 @@ export async function removeRecipe(id: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
 
-  const { error } = await supabase.from("recipes").delete().eq("id", id);
+  const { error } = await supabase.from("recipes").delete().eq("id", id).eq("family_id", activeFamilyId);
   if (error) throw error;
   revalidatePath("/dashboard/recipes");
 }

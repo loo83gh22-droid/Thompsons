@@ -45,6 +45,8 @@ export async function updateTradition(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
 
   const { error } = await supabase
     .from("family_traditions")
@@ -53,7 +55,8 @@ export async function updateTradition(
       description: data.description?.trim(),
       when_it_happens: data.whenItHappens?.trim() || null,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("family_id", activeFamilyId);
 
   if (error) throw error;
   revalidatePath("/dashboard/traditions");
@@ -63,8 +66,10 @@ export async function removeTradition(id: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
 
-  const { error } = await supabase.from("family_traditions").delete().eq("id", id);
+  const { error } = await supabase.from("family_traditions").delete().eq("id", id).eq("family_id", activeFamilyId);
   if (error) throw error;
   revalidatePath("/dashboard/traditions");
 }
