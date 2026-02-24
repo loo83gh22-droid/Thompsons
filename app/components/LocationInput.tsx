@@ -33,15 +33,19 @@ export default function LocationInput({
     setInputValue(value);
   }, [value]);
 
-  // Close suggestions on outside click
+  // Close suggestions on outside click or touch
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
+    function handleOutside(e: MouseEvent | TouchEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setShowSuggestions(false);
       }
     }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("touchstart", handleOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("touchstart", handleOutside);
+    };
   }, []);
 
   function handleInput(val: string) {
@@ -173,7 +177,7 @@ export default function LocationInput({
                 tabIndex={0}
                 onClick={() => selectSuggestion(s)}
                 onKeyDown={(e) => { if (e.key === "Enter") selectSuggestion(s); }}
-                className="cursor-pointer px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
+                className="cursor-pointer px-4 py-3 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
               >
                 {s.display_name}
               </li>

@@ -129,6 +129,7 @@ function SortableMedia({
         </>
       )}
 
+      {/* Cover badge (always visible) */}
       {media.isCover && media.type === "photo" && (
         <div className="absolute left-2 top-2 flex items-center gap-1 rounded-md bg-[var(--accent)] px-2 py-1 text-xs font-medium text-[var(--background)]">
           <Star className="h-3 w-3 fill-current" />
@@ -136,34 +137,36 @@ function SortableMedia({
         </div>
       )}
 
-      <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/0 transition-all group-hover:bg-black/50 group-hover:opacity-100 opacity-0">
-        {media.type === "photo" && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSetCover();
-            }}
-            className="rounded-full bg-[var(--surface)] p-2 hover:bg-[var(--surface-hover)] transition-colors"
-            title="Set as cover photo"
-          >
-            <Star
-              className={`h-4 w-4 ${media.isCover ? "fill-[var(--accent)] text-[var(--accent)]" : "text-[var(--foreground)]"}`}
-            />
-          </button>
-        )}
+      {/* Remove button — always visible in top-right corner */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+        className="absolute right-1.5 top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-red-600"
+        title="Remove"
+        aria-label="Remove"
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+
+      {/* Set cover button — always visible in bottom-left, only for non-cover photos */}
+      {media.type === "photo" && !media.isCover && (
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            onRemove();
+            onSetCover();
           }}
-          className="rounded-full bg-red-600 p-2 hover:bg-red-500 transition-colors"
-          title="Remove"
+          className="absolute bottom-1.5 left-1.5 z-10 flex items-center gap-1 rounded-md bg-black/60 px-2 py-1 text-xs font-medium text-white transition-colors hover:bg-[var(--accent)]"
+          title="Set as cover photo"
+          aria-label="Set as cover photo"
         >
-          <X className="h-4 w-4 text-white" />
+          <Star className="h-3 w-3" />
+          Cover
         </button>
-      </div>
+      )}
     </div>
   );
 }
@@ -344,8 +347,8 @@ export default function PhotoUpload({
             <div>
               <p className="text-[var(--foreground)] mb-1">
                 {allowVideos
-                  ? "Drag photos or videos here, or click to browse"
-                  : "Drag photos here or click to browse"}
+                  ? "Tap to add photos or videos"
+                  : "Tap to add photos"}
               </p>
               <p className="text-sm text-[var(--muted)]">
                 {allowVideos

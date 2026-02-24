@@ -342,13 +342,13 @@ export default function NewJournalPage() {
           <button
             type="submit"
             disabled={loading || members.length === 0 || selectedMemberIds.length === 0}
-            className="rounded-full bg-[var(--primary)] px-6 py-3 font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
+            className="min-h-[44px] rounded-full bg-[var(--primary)] px-6 py-3 font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
           >
             {loading ? "Saving..." : "Save entry"}
           </button>
           <Link
             href="/dashboard/journal"
-            className="rounded-lg border border-[var(--border)] px-6 py-3 font-medium hover:bg-[var(--surface)]"
+            className="inline-flex min-h-[44px] items-center rounded-lg border border-[var(--border)] px-6 py-3 font-medium hover:bg-[var(--surface)]"
           >
             Cancel
           </Link>
