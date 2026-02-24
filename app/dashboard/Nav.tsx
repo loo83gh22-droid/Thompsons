@@ -26,6 +26,7 @@ const memoriesItems: { href: string; label: string }[] = [
   { href: "/dashboard/timeline", label: "Timeline" },
   { href: "/dashboard/journal", label: "Journal" },
   { href: "/dashboard/photos", label: "Photos" },
+  { href: "/dashboard/artwork", label: "Artwork" },
   { href: "/dashboard/stories", label: "Stories" },
   { href: "/dashboard/recipes", label: "Recipes" },
   { href: "/dashboard/voice-memos", label: "Voice Memos" },
