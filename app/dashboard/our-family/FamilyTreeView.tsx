@@ -113,6 +113,21 @@ function buildTree(
   return rootNodes;
 }
 
+// Deterministic pastel accent colour from a member's id
+const MEMBER_COLORS = [
+  "#3d6b5e", // forest green  (primary)
+  "#c47c3a", // warm amber    (accent)
+  "#6b5ea8", // soft purple
+  "#2e7da6", // ocean blue
+  "#a85e6b", // dusty rose
+  "#5e8c3a", // olive
+];
+function memberColor(id: string): string {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return MEMBER_COLORS[h % MEMBER_COLORS.length];
+}
+
 function initials(name: string): string {
   return name
     .trim()
@@ -161,20 +176,27 @@ function MemberCard({
   selected: boolean;
   onClick: () => void;
 }) {
+  const accentColor = memberColor(member.id);
   return (
     <button
       type="button"
       onClick={onClick}
       title={member.relationship ?? undefined}
-      className={`flex flex-col items-center rounded-xl border-2 bg-[var(--surface)] p-3 transition-all hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
-        selected ? "shadow-md ring-2 ring-[var(--accent)]/30" : "shadow-sm hover:border-[var(--accent)]/50"
+      className={`group flex flex-col items-center rounded-xl border bg-[var(--surface)] p-3 transition-all duration-150 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+        selected ? "shadow-lg scale-[1.03]" : "shadow-sm hover:scale-[1.02]"
       }`}
       style={{
-        borderColor: selected ? "var(--accent)" : "var(--border)",
+        borderColor: selected ? accentColor : "var(--border)",
+        borderWidth: selected ? 2 : 1,
         minWidth: "104px",
+        boxShadow: selected ? `0 0 0 3px ${accentColor}22, 0 4px 12px rgba(0,0,0,0.1)` : undefined,
       }}
     >
-      <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full">
+      {/* Avatar */}
+      <div
+        className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full transition-all"
+        style={{ outline: `2px solid ${accentColor}44`, outlineOffset: 2 }}
+      >
         {member.avatar_url ? (
           <img
             src={member.avatar_url}
@@ -183,17 +205,27 @@ function MemberCard({
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-[var(--accent)]/20 text-lg font-semibold text-[var(--accent)]">
+          <div
+            className="flex h-full w-full items-center justify-center text-lg font-bold"
+            style={{ backgroundColor: accentColor + "28", color: accentColor }}
+          >
             {initials(member.name)}
           </div>
         )}
         <StatusDot member={member} />
       </div>
+
+      {/* Name */}
       <span className="mt-2 max-w-[100px] truncate text-center text-sm font-semibold text-[var(--foreground)]">
         {member.nickname?.trim() || member.name}
       </span>
+
+      {/* Relationship label */}
       {member.relationship && (
-        <span className="mt-0.5 max-w-[100px] truncate text-center text-[11px] text-[var(--muted)]">
+        <span
+          className="mt-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+          style={{ backgroundColor: accentColor + "18", color: accentColor }}
+        >
           {member.relationship}
         </span>
       )}
@@ -225,7 +257,9 @@ function FamilyNode({
         />
         {node.spouse && (
           <>
-            <div className="ftv-spouse-line" aria-hidden />
+            <div className="ftv-spouse-line" aria-hidden>
+              <span className="ftv-heart" aria-hidden>♥</span>
+            </div>
             <MemberCard
               member={node.spouse}
               selected={selectedId === node.spouse.id}
@@ -290,6 +324,9 @@ export function FamilyTreeView({
   return (
     <>
       <style>{`
+        /* ── Tree connector colour (slightly warmer/more visible than --border) ── */
+        :root { --ftv-line: color-mix(in srgb, var(--foreground) 22%, transparent); }
+
         /* Tree layout */
         .ftv-node {
           display: flex;
@@ -303,19 +340,33 @@ export function FamilyTreeView({
           align-items: center;
         }
 
-        /* Horizontal line between spouses */
+        /* Horizontal line + heart between spouses */
         .ftv-spouse-line {
-          width: 36px;
+          position: relative;
+          width: 44px;
           height: 2px;
-          background: var(--border);
+          background: var(--ftv-line);
           flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .ftv-heart {
+          position: absolute;
+          font-size: 10px;
+          line-height: 1;
+          color: var(--accent);
+          background: var(--surface);
+          padding: 0 2px;
+          user-select: none;
         }
 
         /* Vertical stem from couple down to children branch */
         .ftv-stem {
           width: 2px;
-          height: 36px;
-          background: var(--border);
+          height: 40px;
+          background: var(--ftv-line);
           flex-shrink: 0;
         }
 
@@ -331,7 +382,7 @@ export function FamilyTreeView({
           flex-direction: column;
           align-items: center;
           position: relative;
-          padding: 0 24px;
+          padding: 0 20px;
         }
 
         /* Horizontal branch line drawn above each child */
@@ -340,7 +391,7 @@ export function FamilyTreeView({
           position: absolute;
           top: 0;
           height: 2px;
-          background: var(--border);
+          background: var(--ftv-line);
         }
 
         /* First child: branch goes from center → right */
@@ -359,12 +410,14 @@ export function FamilyTreeView({
         .ftv-tendril {
           width: 2px;
           height: 36px;
-          background: var(--border);
+          background: var(--ftv-line);
           flex-shrink: 0;
         }
       `}</style>
 
-      <div className="overflow-auto rounded-xl border border-[var(--border)] bg-[var(--background)] p-10">
+      <div className="overflow-auto rounded-xl border border-[var(--border)] bg-[var(--background)] p-10"
+        style={{ backgroundImage: "radial-gradient(var(--border) 1px, transparent 1px)", backgroundSize: "24px 24px" }}
+      >
         <div className="flex justify-center">
           <div className="flex flex-col items-center gap-10">
             {rootNodes.map((node) => (

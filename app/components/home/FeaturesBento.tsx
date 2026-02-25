@@ -64,32 +64,61 @@ function MapPreview() {
   );
 }
 
-function TreePreview() {
+function TreeAvatar({ initials, bg, color, size = 9 }: { initials: string; bg: string; color: string; size?: number }) {
+  const px = size * 4;
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-4">
-      {/* Grandparents row */}
-      <div className="flex gap-3">
-        {["G", "G"].map((letter, i) => (
-          <div key={i} className="flex h-8 w-8 items-center justify-center rounded-full text-[9px] font-semibold" style={{ backgroundColor: "var(--primary)", color: "var(--primary-foreground)" }}>
-            {letter}
-          </div>
-        ))}
+    <div
+      className="flex flex-shrink-0 items-center justify-center rounded-full font-semibold shadow-sm"
+      style={{ width: px, height: px, backgroundColor: bg, color, fontSize: size < 8 ? 8 : 10 }}
+    >
+      {initials}
+    </div>
+  );
+}
+
+function TreePreview() {
+  const LINE = "rgba(100,100,90,0.25)";
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center gap-0 p-3 pt-4">
+
+      {/* Generation label */}
+      <span className="mb-2 rounded-full px-2 py-0.5 text-[8px] font-semibold uppercase tracking-wider" style={{ backgroundColor: "var(--primary)", color: "var(--primary-foreground)", opacity: 0.85 }}>
+        3 generations
+      </span>
+
+      {/* Grandparents */}
+      <div className="flex items-center gap-0">
+        <TreeAvatar initials="Gma" bg="#3d6b5e" color="#fff" size={9} />
+        <div style={{ width: 20, height: 2, background: LINE }} />
+        <TreeAvatar initials="Gpa" bg="#3d6b5e" color="#fff" size={9} />
       </div>
-      <div className="h-3 w-px" style={{ backgroundColor: "var(--border)" }} />
-      {/* Parents row */}
-      <div className="flex gap-3">
-        {["M", "D"].map((letter, i) => (
-          <div key={i} className="flex h-8 w-8 items-center justify-center rounded-full text-[9px] font-semibold" style={{ backgroundColor: "var(--accent)", color: "#fff" }}>
-            {letter}
-          </div>
-        ))}
+
+      {/* Stem down to parents */}
+      <div style={{ width: 2, height: 14, background: LINE }} />
+
+      {/* Parents */}
+      <div className="flex items-center gap-0">
+        <TreeAvatar initials="Mom" bg="#c47c3a" color="#fff" size={9} />
+        <div className="flex items-center justify-center" style={{ width: 20, height: 2, background: LINE }}>
+          <span style={{ fontSize: 8, lineHeight: 1, color: "#c47c3a", marginTop: -1 }}>♥</span>
+        </div>
+        <TreeAvatar initials="Dad" bg="#c47c3a" color="#fff" size={9} />
       </div>
-      <div className="h-3 w-px" style={{ backgroundColor: "var(--border)" }} />
-      {/* Kids row */}
-      <div className="flex gap-2">
-        {["E", "J", "S"].map((letter, i) => (
-          <div key={i} className="flex h-7 w-7 items-center justify-center rounded-full text-[8px] font-semibold" style={{ backgroundColor: "var(--secondary)", color: "var(--foreground)", border: "1px solid var(--border)" }}>
-            {letter}
+
+      {/* Branch down to kids */}
+      <div style={{ width: 2, height: 12, background: LINE }} />
+      <div style={{ width: 80, height: 2, background: LINE }} />
+
+      {/* Kids */}
+      <div className="flex items-end gap-0">
+        {[
+          { initials: "Em", offset: 0 },
+          { initials: "Jak", offset: 0 },
+          { initials: "Sam", offset: 0 },
+        ].map(({ initials }) => (
+          <div key={initials} className="flex flex-col items-center">
+            <div style={{ width: 2, height: 12, background: LINE }} />
+            <TreeAvatar initials={initials} bg="var(--secondary)" color="var(--foreground)" size={8} />
           </div>
         ))}
       </div>
