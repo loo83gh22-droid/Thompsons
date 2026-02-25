@@ -1,38 +1,19 @@
 import { Suspense } from "react";
 import { BookOpen, MapPin, GitBranch, Mic, Lock, UtensilsCrossed } from "lucide-react";
 import { WorldMapSVG, WorldPin } from "./WorldMapSVG";
-import { createAdminClient } from "@/src/lib/supabase/admin";
 
 /* ── Mini UI previews for each feature card ──────────────────── */
 
 // IMPORTANT: Only Thompson family photos approved for marketing use.
+// Files live in public/marketing/ — served as static assets, no auth needed.
 // Never replace these with photos from any other user or family.
-const MARKETING_PHOTO_PATHS = [
-  "69a1b499-0026-46f9-9c77-04fcafcb8538/d372f50b-bd74-4cdb-b93f-edda628a7c6b.jpeg",
-  "69a1b499-0026-46f9-9c77-04fcafcb8538/d1036ff2-19f9-4a97-98c3-0d0f3f339260.jpeg",
-  "69a1b499-0026-46f9-9c77-04fcafcb8538/b59ba60b-8f32-40d6-a8ec-ffff5d505f05.jpeg",
+const MARKETING_PHOTOS = [
+  "/marketing/journal-1.jpeg",
+  "/marketing/journal-2.jpeg",
+  "/marketing/journal-3.jpeg",
 ];
 
-async function getMarketingPhotoUrls(): Promise<string[]> {
-  try {
-    const supabase = createAdminClient();
-    const { data } = await supabase.storage
-      .from("journal-photos")
-      .createSignedUrls(MARKETING_PHOTO_PATHS, 31536000); // 1 year
-    return (data ?? []).map((d) => d.signedUrl).filter(Boolean);
-  } catch {
-    return [];
-  }
-}
-
-// Fallback gradient swatches used if signed URLs are unavailable
-const FALLBACK_SWATCHES = [
-  "linear-gradient(135deg, #4a9b8e 0%, #2d7a6e 100%)",
-  "linear-gradient(135deg, #e8a87c 0%, #d4855a 100%)",
-  "linear-gradient(135deg, #6ba3be 0%, #4a8aab 100%)",
-];
-
-function JournalPreview({ photoUrls }: { photoUrls: string[] }) {
+function JournalPreview() {
   return (
     <div className="flex h-full w-full flex-col gap-2 p-4">
       <div className="flex items-center justify-between">
@@ -50,15 +31,10 @@ function JournalPreview({ photoUrls }: { photoUrls: string[] }) {
         Costa Rica fishing trip — 5 photos &amp; a video from the boat
       </p>
       <div className="flex gap-1.5 mt-auto">
-        {FALLBACK_SWATCHES.map((bg, i) => {
-          const url = photoUrls[i];
-          return url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={i} src={url} alt="" className="h-12 w-12 rounded object-cover" />
-          ) : (
-            <div key={i} className="h-12 w-12 rounded" style={{ background: bg }} />
-          );
-        })}
+        {MARKETING_PHOTOS.map((src, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={i} src={src} alt="" className="h-12 w-12 rounded object-cover" />
+        ))}
         <div className="h-12 w-12 rounded flex items-center justify-center" style={{ backgroundColor: "var(--border)" }}>
           <span className="text-[8px] font-semibold" style={{ color: "var(--muted)" }}>+3</span>
         </div>
@@ -191,16 +167,14 @@ function RecipePreview() {
 
 /* ── Component ───────────────────────────────────────────────── */
 
-export async function FeaturesBento() {
-  const photoUrls = await getMarketingPhotoUrls();
-
+export function FeaturesBento() {
   const features = [
     {
       icon: BookOpen,
       title: "Journal with Photos & Video",
       description:
         "Write about trips, milestones, and the everyday chaos. Attach photos and short videos of the gems, not everything.",
-      Preview: () => <JournalPreview photoUrls={photoUrls} />,
+      Preview: JournalPreview,
     },
     {
       icon: MapPin,
