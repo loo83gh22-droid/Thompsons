@@ -159,7 +159,21 @@ export default async function DashboardLayout({
         </div>
       </FamilyProvider>
     );
-  } catch {
-    redirect("/login");
+  } catch (err) {
+    // Only redirect to login for auth-related failures. Re-throw everything
+    // else so the nearest error.tsx boundary can handle it gracefully without
+    // kicking authenticated users back to the login page.
+    const message = err instanceof Error ? err.message : String(err);
+    if (
+      message.includes("Auth") ||
+      message.includes("JWT") ||
+      message.includes("session") ||
+      message.includes("token") ||
+      message.includes("unauthorized") ||
+      message.includes("unauthenticated")
+    ) {
+      redirect("/login");
+    }
+    throw err;
   }
 }

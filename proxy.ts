@@ -8,69 +8,46 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
-  const supabaseResponse = NextResponse.next({ request });
+  // Must be `let` so the setAll handler can reassign it with updated cookies
+  let supabaseResponse = NextResponse.next({ request });
 
-  // Track cookies we set so we can forward them to the layout (same-request fix for stale session)
-  const cookiesSetBySupabase: { name: string; value: string }[] = [];
-
-  const supabase = createServerClient(
-    url,
-    key,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            supabaseResponse.cookies.set(name, value, options);
-            cookiesSetBySupabase.push({ name, value });
-          });
-        },
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
       },
-    }
-  );
+      setAll(cookiesToSet) {
+        // Forward new cookies onto the request so Server Components see the
+        // refreshed session within the same request cycle, then rebuild the
+        // response so the browser receives the updated Set-Cookie headers.
+        cookiesToSet.forEach(({ name, value }) =>
+          request.cookies.set(name, value)
+        );
+        supabaseResponse = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          supabaseResponse.cookies.set(name, value, options)
+        );
+      },
+    },
+  });
 
-  // Refresh session if needed (Server Components can't write cookies, so we must do it here)
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (session?.refresh_token) {
-    await supabase.auth.refreshSession({ refresh_token: session.refresh_token });
-  }
+  // IMPORTANT: Never call getSession() + refreshSession() manually — refresh
+  // tokens are single-use and calling refreshSession() on every request causes
+  // a race condition when multiple parallel requests consume the same token,
+  // invalidating the others and forcing users back to the login page.
+  //
+  // getUser() validates with the Supabase auth server and automatically
+  // triggers a token refresh (via setAll) only when the access token is
+  // actually expired.
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protect dashboard: redirect to login if no user
+  // Protect dashboard: redirect to login if no authenticated user
   if (!user && request.nextUrl.pathname.startsWith("/dashboard")) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", request.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
-  }
-
-  // So layout sees refreshed session in the same request (Next.js #57655 workaround)
-  if (cookiesSetBySupabase.length > 0) {
-    const existing = Object.fromEntries(
-      request.cookies.getAll().map((c) => [c.name, c.value])
-    );
-    cookiesSetBySupabase.forEach(({ name, value }) => {
-      existing[name] = value;
-    });
-    const cookieHeader = Object.entries(existing)
-      .map(([n, v]) => `${n}=${v}`)
-      .join("; ");
-    const newHeaders = new Headers(request.headers);
-    newHeaders.set("cookie", cookieHeader);
-    const newRequest = new NextRequest(request.url, {
-      headers: newHeaders,
-    });
-    const response = NextResponse.next({ request: newRequest });
-    // Keep Set-Cookie on response so the browser gets refreshed session
-    supabaseResponse.cookies.getAll().forEach((c) => {
-      response.cookies.set(c.name, c.value);
-    });
-    return response;
   }
 
   return supabaseResponse;
