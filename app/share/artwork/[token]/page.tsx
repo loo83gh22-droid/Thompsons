@@ -67,8 +67,19 @@ export default async function PublicArtworkPage({ params }: Props) {
 
   if (!piece) return notFound();
 
-  const photos = [...(piece.artwork_photos ?? [])].sort(
+  const rawPhotos = [...(piece.artwork_photos ?? [])].sort(
     (a, b) => a.sort_order - b.sort_order
+  );
+
+  // Generate signed URLs for each photo (photo.url is an internal auth-required path)
+  const photos = await Promise.all(
+    rawPhotos.map(async (photo) => {
+      const storagePath = photo.url.replace("/api/storage/artwork-photos/", "");
+      const { data: signed } = await supabase.storage
+        .from("artwork-photos")
+        .createSignedUrl(storagePath, 3600);
+      return { ...photo, signedUrl: signed?.signedUrl ?? photo.url };
+    })
   );
 
   // Get child name
@@ -122,7 +133,7 @@ export default async function PublicArtworkPage({ params }: Props) {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 key={photo.id}
-                src={photo.url}
+                src={photo.signedUrl}
                 alt={piece.title}
                 loading="lazy"
                 className={`w-full rounded-xl object-contain shadow-md ${

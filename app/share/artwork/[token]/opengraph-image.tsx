@@ -70,7 +70,7 @@ export default async function OGImage({ params }: Props) {
     const storagePath = (photos[0] as { url: string }).url.replace("/api/storage/artwork-photos/", "");
     const { data: signed } = await supabase.storage
       .from("artwork-photos")
-      .createSignedUrl(storagePath, 300);
+      .createSignedUrl(storagePath, 3600);
     photoUrl = signed?.signedUrl ?? null;
   }
 
