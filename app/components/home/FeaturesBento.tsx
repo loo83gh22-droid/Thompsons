@@ -5,12 +5,12 @@ import { WorldMapSVG, WorldPin } from "./WorldMapSVG";
 /* ── Mini UI previews for each feature card ──────────────────── */
 
 function JournalPreview() {
-  // IMPORTANT: Only Thompson family photos may be used here (owner-approved for marketing).
-  // Never replace these with photos from any other user or family.
-  const photos = [
-    "https://tstbngohenxrbqroejth.supabase.co/storage/v1/object/public/journal-photos/69a1b499-0026-46f9-9c77-04fcafcb8538/d372f50b-bd74-4cdb-b93f-edda628a7c6b.jpeg",
-    "https://tstbngohenxrbqroejth.supabase.co/storage/v1/object/public/journal-photos/69a1b499-0026-46f9-9c77-04fcafcb8538/d1036ff2-19f9-4a97-98c3-0d0f3f339260.jpeg",
-    "https://tstbngohenxrbqroejth.supabase.co/storage/v1/object/public/journal-photos/69a1b499-0026-46f9-9c77-04fcafcb8538/b59ba60b-8f32-40d6-a8ec-ffff5d505f05.jpeg",
+  // Photo swatches — warm coastal tones to evoke the fishing trip scene.
+  // Using CSS gradients avoids any dependency on private storage buckets.
+  const swatches = [
+    "linear-gradient(135deg, #4a9b8e 0%, #2d7a6e 100%)",
+    "linear-gradient(135deg, #e8a87c 0%, #d4855a 100%)",
+    "linear-gradient(135deg, #6ba3be 0%, #4a8aab 100%)",
   ];
 
   return (
@@ -30,9 +30,14 @@ function JournalPreview() {
         Costa Rica fishing trip — 5 photos &amp; a video from the boat
       </p>
       <div className="flex gap-1.5 mt-auto">
-        {photos.map((url, i) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img key={i} src={url} alt="" className="h-12 w-12 rounded object-cover" />
+        {swatches.map((bg, i) => (
+          <div
+            key={i}
+            className="h-12 w-12 rounded flex items-center justify-center text-[14px]"
+            style={{ background: bg }}
+          >
+            {i === 0 ? "🎣" : i === 1 ? "🌊" : "🐟"}
+          </div>
         ))}
         <div className="h-12 w-12 rounded flex items-center justify-center" style={{ backgroundColor: "var(--border)" }}>
           <span className="text-[8px] font-semibold" style={{ color: "var(--muted)" }}>+3</span>
