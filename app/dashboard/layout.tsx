@@ -9,6 +9,7 @@ import { WelcomeModal } from "@/app/dashboard/WelcomeModal";
 import { AgeTransitionBanner } from "@/app/dashboard/AgeTransitionBanner";
 import { BirthdayPrompt } from "@/app/dashboard/BirthdayPrompt";
 import { FeedbackPromptModal } from "@/app/dashboard/FeedbackPromptModal";
+import { QuickEntryWidget } from "@/app/dashboard/QuickEntryWidget";
 
 export default async function DashboardLayout({
   children,
@@ -143,6 +144,7 @@ export default async function DashboardLayout({
         <WelcomeModal familyName={familyName} />
         <BirthdayPrompt />
         <FeedbackPromptModal />
+        <QuickEntryWidget />
         <div className="min-h-screen">
           <Nav
             user={user}
