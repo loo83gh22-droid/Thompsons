@@ -7,7 +7,7 @@ export function HeroSection() {
       <div className="mx-auto max-w-6xl px-6">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           {/* Text Content */}
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-8 min-w-0">
             <div className="flex flex-col gap-6">
 <h1
                 className="text-4xl font-bold leading-tight md:text-5xl lg:text-6xl"
@@ -66,7 +66,7 @@ export function HeroSection() {
           </div>
 
           {/* Hero Product Preview — App UI mockup */}
-          <div className="relative">
+          <div className="relative min-w-0">
             <div
               className="relative overflow-hidden rounded-2xl shadow-2xl"
               style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)" }}
