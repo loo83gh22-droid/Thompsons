@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="py-12" style={{ borderTop: "1px solid var(--border)" }}>
+    <footer className="py-12 bg-[var(--surface)]" style={{ borderTop: "1px solid var(--border)" }}>
       <div className="mx-auto max-w-6xl px-6">
         <div className="flex flex-col items-center gap-8 md:flex-row md:justify-between">
           <div className="flex flex-col items-center gap-1 md:items-start">
@@ -46,6 +46,13 @@ export function Footer() {
               style={{ color: "var(--muted)" }}
             >
               Privacy
+            </Link>
+            <Link
+              href="/contact"
+              className="text-sm transition-colors hover:opacity-75"
+              style={{ color: "var(--muted)" }}
+            >
+              Contact
             </Link>
             <Link
               href="/login"

@@ -151,7 +151,7 @@ export function Nav({
   return (
     <>
       <SkipLink />
-      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur">
+      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur shadow-[0_1px_12px_rgba(0,0,0,0.07)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
           {/* Logo / family name - always visible, left */}
           <div className="relative flex min-h-[44px] min-w-0 flex-1 items-center gap-2 md:flex-initial" ref={familySwitcherRef}>
@@ -174,7 +174,7 @@ export function Nav({
                   <span className={`block transition-transform ${familyMenuOpen ? "rotate-180" : ""}`}>▼</span>
                 </button>
                 {familyMenuOpen && (
-                  <div className="absolute left-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-lg" role="menu">
+                  <div className="absolute left-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]" role="menu">
                     {families.map((f) => (
                       <button
                         key={f.id}
@@ -220,7 +220,7 @@ export function Nav({
               </button>
               {familyOpen && (
                 <div
-                  className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-lg"
+                  className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]"
                   role="menu"
                 >
                   {familyItems.map((item) => (
@@ -257,7 +257,7 @@ export function Nav({
               </button>
               {memoriesOpen && (
                 <div
-                  className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-lg"
+                  className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]"
                   role="menu"
                 >
                   {memoriesItems.map((item) => (
@@ -292,7 +292,7 @@ export function Nav({
               </button>
               {favouritesOpen && (
                 <div
-                  className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-lg"
+                  className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]"
                   role="menu"
                 >
                   {favouritesItems.map((item) => (
@@ -343,7 +343,7 @@ export function Nav({
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
               </button>
               {menuOpen && (
-                <div className="absolute right-0 top-full z-50 mt-1 min-w-[200px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2 shadow-lg" role="menu">
+                <div className="absolute right-0 top-full z-50 mt-1 min-w-[200px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2 shadow-[0_8px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]" role="menu">
                   <div className="border-b border-[var(--border)] px-4 py-2">
                     <span className="text-sm text-[var(--muted)]">{user.email}</span>
                   </div>

@@ -369,7 +369,7 @@ export default async function DashboardPage() {
 
           <section className="mt-8" aria-labelledby="activity-heading">
             <div className="flex flex-col gap-2 min-[768px]:flex-row min-[768px]:items-center min-[768px]:justify-between">
-              <div>
+              <div className="border-l-[3px] border-[var(--accent)] pl-3">
                 <h2 id="activity-heading" className="font-display text-xl font-semibold text-[var(--foreground)]">
                   Recent Activity
                 </h2>
