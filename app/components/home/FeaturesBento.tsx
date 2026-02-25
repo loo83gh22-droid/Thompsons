@@ -1,18 +1,38 @@
 import { Suspense } from "react";
 import { BookOpen, MapPin, GitBranch, Mic, Lock, UtensilsCrossed } from "lucide-react";
 import { WorldMapSVG, WorldPin } from "./WorldMapSVG";
+import { createAdminClient } from "@/src/lib/supabase/admin";
 
 /* ── Mini UI previews for each feature card ──────────────────── */
 
-function JournalPreview() {
-  // Photo swatches — warm coastal tones to evoke the fishing trip scene.
-  // Using CSS gradients avoids any dependency on private storage buckets.
-  const swatches = [
-    "linear-gradient(135deg, #4a9b8e 0%, #2d7a6e 100%)",
-    "linear-gradient(135deg, #e8a87c 0%, #d4855a 100%)",
-    "linear-gradient(135deg, #6ba3be 0%, #4a8aab 100%)",
-  ];
+// IMPORTANT: Only Thompson family photos approved for marketing use.
+// Never replace these with photos from any other user or family.
+const MARKETING_PHOTO_PATHS = [
+  "69a1b499-0026-46f9-9c77-04fcafcb8538/d372f50b-bd74-4cdb-b93f-edda628a7c6b.jpeg",
+  "69a1b499-0026-46f9-9c77-04fcafcb8538/d1036ff2-19f9-4a97-98c3-0d0f3f339260.jpeg",
+  "69a1b499-0026-46f9-9c77-04fcafcb8538/b59ba60b-8f32-40d6-a8ec-ffff5d505f05.jpeg",
+];
 
+async function getMarketingPhotoUrls(): Promise<string[]> {
+  try {
+    const supabase = createAdminClient();
+    const { data } = await supabase.storage
+      .from("journal-photos")
+      .createSignedUrls(MARKETING_PHOTO_PATHS, 31536000); // 1 year
+    return (data ?? []).map((d) => d.signedUrl).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+// Fallback gradient swatches used if signed URLs are unavailable
+const FALLBACK_SWATCHES = [
+  "linear-gradient(135deg, #4a9b8e 0%, #2d7a6e 100%)",
+  "linear-gradient(135deg, #e8a87c 0%, #d4855a 100%)",
+  "linear-gradient(135deg, #6ba3be 0%, #4a8aab 100%)",
+];
+
+function JournalPreview({ photoUrls }: { photoUrls: string[] }) {
   return (
     <div className="flex h-full w-full flex-col gap-2 p-4">
       <div className="flex items-center justify-between">
@@ -30,15 +50,15 @@ function JournalPreview() {
         Costa Rica fishing trip — 5 photos &amp; a video from the boat
       </p>
       <div className="flex gap-1.5 mt-auto">
-        {swatches.map((bg, i) => (
-          <div
-            key={i}
-            className="h-12 w-12 rounded flex items-center justify-center text-[14px]"
-            style={{ background: bg }}
-          >
-            {i === 0 ? "🎣" : i === 1 ? "🌊" : "🐟"}
-          </div>
-        ))}
+        {FALLBACK_SWATCHES.map((bg, i) => {
+          const url = photoUrls[i];
+          return url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={i} src={url} alt="" className="h-12 w-12 rounded object-cover" />
+          ) : (
+            <div key={i} className="h-12 w-12 rounded" style={{ background: bg }} />
+          );
+        })}
         <div className="h-12 w-12 rounded flex items-center justify-center" style={{ backgroundColor: "var(--border)" }}>
           <span className="text-[8px] font-semibold" style={{ color: "var(--muted)" }}>+3</span>
         </div>
@@ -169,56 +189,56 @@ function RecipePreview() {
   );
 }
 
-/* ── Feature data ────────────────────────────────────────────── */
-
-const features = [
-  {
-    icon: BookOpen,
-    title: "Journal with Photos & Video",
-    description:
-      "Write about trips, milestones, and the everyday chaos. Attach photos and short videos of the gems, not everything.",
-    Preview: JournalPreview,
-  },
-  {
-    icon: MapPin,
-    title: "Family Travel Map",
-    description:
-      "Pin everywhere your family has been. Vacations, birthplaces, that roadside diner everyone still talks about. Watch your map fill up over the years.",
-    Preview: MapPreview,
-  },
-  {
-    icon: GitBranch,
-    title: "Family Tree",
-    description:
-      "Map your whole crew. Every member gets a profile with photos, birthdays, and their place in the family story. Yes, even Uncle Steve.",
-    Preview: TreePreview,
-  },
-  {
-    icon: Mic,
-    title: "Voice Memos",
-    description:
-      "Record grandma's stories, a toddler's first words, or that bedtime song everyone knows by heart. These voices stick around forever.",
-    Preview: VoiceMemoPreview,
-  },
-  {
-    icon: Lock,
-    title: "Time Capsules",
-    description:
-      "Write a letter to your future self or your kids. Seal it, set an unlock date, and try not to peek.",
-    Preview: TimeCapsulePreview,
-  },
-  {
-    icon: UtensilsCrossed,
-    title: "Stories & Recipes",
-    description:
-      "Save the family stories that only get told at holidays. Keep grandma's secret recipes (with the actual story behind them).",
-    Preview: RecipePreview,
-  },
-];
-
 /* ── Component ───────────────────────────────────────────────── */
 
-export function FeaturesBento() {
+export async function FeaturesBento() {
+  const photoUrls = await getMarketingPhotoUrls();
+
+  const features = [
+    {
+      icon: BookOpen,
+      title: "Journal with Photos & Video",
+      description:
+        "Write about trips, milestones, and the everyday chaos. Attach photos and short videos of the gems, not everything.",
+      Preview: () => <JournalPreview photoUrls={photoUrls} />,
+    },
+    {
+      icon: MapPin,
+      title: "Family Travel Map",
+      description:
+        "Pin everywhere your family has been. Vacations, birthplaces, that roadside diner everyone still talks about. Watch your map fill up over the years.",
+      Preview: MapPreview,
+    },
+    {
+      icon: GitBranch,
+      title: "Family Tree",
+      description:
+        "Map your whole crew. Every member gets a profile with photos, birthdays, and their place in the family story. Yes, even Uncle Steve.",
+      Preview: TreePreview,
+    },
+    {
+      icon: Mic,
+      title: "Voice Memos",
+      description:
+        "Record grandma's stories, a toddler's first words, or that bedtime song everyone knows by heart. These voices stick around forever.",
+      Preview: VoiceMemoPreview,
+    },
+    {
+      icon: Lock,
+      title: "Time Capsules",
+      description:
+        "Write a letter to your future self or your kids. Seal it, set an unlock date, and try not to peek.",
+      Preview: TimeCapsulePreview,
+    },
+    {
+      icon: UtensilsCrossed,
+      title: "Stories & Recipes",
+      description:
+        "Save the family stories that only get told at holidays. Keep grandma's secret recipes (with the actual story behind them).",
+      Preview: RecipePreview,
+    },
+  ];
+
   return (
     <section id="features" className="py-20 md:py-32">
       <div className="mx-auto max-w-6xl px-6">
