@@ -72,24 +72,24 @@ export function QuickEntryWidget() {
 
   return (
     <div
-      className={`fixed bottom-6 right-4 z-40 w-72 sm:right-6 transition-all duration-300 ease-out ${
+      className={`fixed bottom-6 right-4 z-40 w-72 sm:right-6 transition-all duration-300 ease-out [filter:drop-shadow(0_8px_32px_rgba(99,102,241,0.40))] ${
         visible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
       }`}
       role="complementary"
       aria-label="Quick entry shortcuts"
     >
-      <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)]">
-          <span className="text-sm font-semibold text-[var(--foreground)]">
-            Quick Entry
+      <div className="overflow-hidden rounded-2xl ring-1 ring-indigo-500/25 bg-[var(--surface)] shadow-2xl">
+        {/* Header — gradient */}
+        <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-indigo-600 to-violet-600">
+          <span className="text-sm font-semibold text-white tracking-wide">
+            ✨ Quick Entry
           </span>
           <div className="flex items-center gap-1">
             {/* Collapse / expand */}
             <button
               type="button"
               onClick={handleCollapse}
-              className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] transition-colors"
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-white/70 hover:bg-white/20 hover:text-white transition-colors"
               aria-label={collapsed ? "Expand quick entry" : "Collapse quick entry"}
             >
               <svg
@@ -109,7 +109,7 @@ export function QuickEntryWidget() {
             <button
               type="button"
               onClick={handleDismiss}
-              className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] transition-colors"
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-white/70 hover:bg-white/20 hover:text-white transition-colors"
               aria-label="Dismiss quick entry"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -131,9 +131,9 @@ export function QuickEntryWidget() {
                 key={action.href}
                 href={action.href}
                 onClick={handleActionClick}
-                className="flex items-center gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-[var(--surface-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                className="flex items-center gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-indigo-50 dark:hover:bg-indigo-950/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--background)] text-lg" aria-hidden="true">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-lg" aria-hidden="true">
                   {action.icon}
                 </span>
                 <div className="min-w-0">
