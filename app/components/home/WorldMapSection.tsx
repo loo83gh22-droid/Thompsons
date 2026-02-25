@@ -104,7 +104,7 @@ export function WorldMapSection() {
             }}
           >
             <p className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: "var(--muted)" }}>
-              The Thompson Family
+              The Smith Family
             </p>
             {[
               { color: "#3d6b5e", label: "7 locations" },
