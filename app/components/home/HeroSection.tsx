@@ -3,7 +3,7 @@ import { ArrowRight, BookOpen, MapPin, Camera, Mic, Heart, Users, Shield, Chevro
 
 export function HeroSection() {
   return (
-    <section className="relative pt-32 pb-20 md:pt-44 md:pb-32 overflow-hidden">
+    <section className="relative pt-32 pb-20 md:pt-44 md:pb-32 overflow-hidden w-full">
       <div className="mx-auto max-w-6xl px-6">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           {/* Text Content */}
