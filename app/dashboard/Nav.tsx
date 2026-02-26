@@ -7,6 +7,7 @@ import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/src/lib/supabase/client";
 import { setActiveFamily } from "./actions/family";
 import { SkipLink } from "./components/SkipLink";
+import { LogoMark } from "@/app/components/LogoMark";
 import { GlobalSearch } from "./GlobalSearch";
 
 type Family = { id: string; name: string };
@@ -157,9 +158,10 @@ export function Nav({
           <div className="relative flex min-h-[44px] min-w-0 flex-1 items-center gap-2 md:flex-initial" ref={familySwitcherRef}>
             <Link
               href="/dashboard"
-              className="font-display text-xl font-semibold transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:text-2xl min-[768px]:text-3xl truncate"
+              className="flex items-center gap-2 font-display text-xl font-semibold transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:text-2xl min-[768px]:text-3xl truncate"
               aria-label={`${familyName} Nest - Go to home`}
             >
+              <LogoMark size={28} className="shrink-0" />
               {familyName} Nest
             </Link>
             {families.length > 1 && (

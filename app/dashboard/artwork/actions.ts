@@ -436,7 +436,8 @@ export async function sendArtworkShareEmail(
 
   <!-- Logo -->
   <tr><td style="text-align:center;padding-bottom:28px;">
-    <p style="margin:0;font-size:22px;font-weight:700;color:#c47c3a;letter-spacing:-0.3px;">🏡 Family Nest</p>
+    <img src="https://familynest.io/logo-m4.svg" width="56" height="56" alt="Family Nest" style="display:block;margin:0 auto;border-radius:13px;" />
+    <p style="margin:10px 0 0;font-size:22px;font-weight:700;color:#c47c3a;letter-spacing:-0.3px;">Family Nest</p>
   </td></tr>
 
   <!-- Main card -->

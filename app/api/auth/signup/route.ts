@@ -134,7 +134,8 @@ function buildAdminNotificationEmail(name: string, familyName: string, email: st
 <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:480px;">
 
   <tr><td style="text-align:center;padding-bottom:24px;">
-    <p style="margin:0;font-size:22px;font-weight:700;color:#D4A843;">&#127969; Family Nest</p>
+    <img src="https://familynest.io/logo-m4.svg" width="48" height="48" alt="Family Nest" style="display:block;margin:0 auto 8px;border-radius:12px;" />
+    <p style="margin:0;font-size:22px;font-weight:700;color:#D4A843;">Family Nest</p>
     <p style="margin:4px 0 0;font-size:12px;color:#5a6278;text-transform:uppercase;letter-spacing:1px;">Admin Notification</p>
   </td></tr>
 
@@ -189,7 +190,7 @@ function buildConfirmationEmail(name: string, familyName: string, confirmUrl: st
 
   <!-- Logo & Header -->
   <tr><td style="text-align:center;padding-bottom:32px;">
-    <div style="display:inline-block;background:linear-gradient(135deg,#D4A843,#b8912e);width:56px;height:56px;border-radius:16px;line-height:56px;font-size:28px;text-align:center;">&#127969;</div>
+    <img src="https://familynest.io/logo-m4.svg" width="64" height="64" alt="Family Nest" style="display:block;margin:0 auto;border-radius:14px;" />
     <p style="margin:12px 0 0;font-size:24px;font-weight:700;color:#D4A843;letter-spacing:-0.5px;">Family Nest</p>
   </td></tr>
 

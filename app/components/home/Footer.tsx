@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LogoMark } from "@/app/components/LogoMark";
 
 export function Footer() {
   return (
@@ -7,7 +8,7 @@ export function Footer() {
         <div className="flex flex-col items-center gap-8 md:flex-row md:justify-between">
           <div className="flex flex-col items-center gap-1 md:items-start">
             <div className="flex items-center gap-2">
-              <NestIcon className="h-6 w-6" style={{ color: "var(--primary)" }} />
+              <LogoMark size={24} />
               <span
                 style={{
                   fontFamily: "var(--font-display-serif)",
@@ -74,25 +75,3 @@ export function Footer() {
   );
 }
 
-function NestIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return (
-    <svg viewBox="0 0 32 32" fill="none" className={className} style={style} aria-hidden="true">
-      <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="2" />
-      <path
-        d="M10 20c0-3.3 2.7-6 6-6s6 2.7 6 6"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <circle cx="13" cy="14" r="1.5" fill="currentColor" />
-      <circle cx="19" cy="14" r="1.5" fill="currentColor" />
-      <path
-        d="M8 22c1-4 4.5-7 8-7s7 3 8 7"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeDasharray="2 3"
-      />
-    </svg>
-  );
-}

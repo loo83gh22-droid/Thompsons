@@ -104,7 +104,7 @@ function buildWelcomeEmail(name: string, familyName: string, appUrl: string): st
 
   <!-- Logo -->
   <tr><td style="text-align:center;padding-bottom:32px;">
-    <div style="display:inline-block;background:linear-gradient(135deg,#D4A843,#b8912e);width:56px;height:56px;border-radius:16px;line-height:56px;font-size:28px;text-align:center;">&#127969;</div>
+    <img src="https://familynest.io/logo-m4.svg" width="64" height="64" alt="Family Nest" style="display:block;margin:0 auto;border-radius:14px;" />
     <p style="margin:12px 0 0;font-size:24px;font-weight:700;color:#D4A843;letter-spacing:-0.5px;">Family Nest</p>
   </td></tr>
 

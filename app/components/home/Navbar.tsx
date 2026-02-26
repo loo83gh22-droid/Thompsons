@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
+import { LogoMark } from "@/app/components/LogoMark";
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -20,7 +21,7 @@ export function Navbar() {
     >
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-2">
-          <NestIcon className="h-8 w-8 text-[var(--primary)]" />
+          <LogoMark size={32} />
           <span className="text-lg font-semibold text-[var(--foreground)]" style={{ fontFamily: "var(--font-display-serif)" }}>
             Family Nest
           </span>
@@ -135,25 +136,3 @@ export function Navbar() {
   );
 }
 
-function NestIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" fill="none" className={className} aria-hidden="true">
-      <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="2" />
-      <path
-        d="M10 20c0-3.3 2.7-6 6-6s6 2.7 6 6"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <circle cx="13" cy="14" r="1.5" fill="currentColor" />
-      <circle cx="19" cy="14" r="1.5" fill="currentColor" />
-      <path
-        d="M8 22c1-4 4.5-7 8-7s7 3 8 7"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeDasharray="2 3"
-      />
-    </svg>
-  );
-}

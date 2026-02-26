@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { LogoMark } from "@/app/components/LogoMark";
 import { createClient } from "@/src/lib/supabase/client";
 import { RELATIONSHIP_OPTIONS } from "@/app/dashboard/members/constants";
 
@@ -95,7 +96,7 @@ function LoginForm() {
             href="/"
             className="mb-8 inline-flex items-center gap-2 text-[var(--muted)] hover:text-[var(--foreground)]"
           >
-            <span>←</span>
+            <LogoMark size={32} />
             <span className="font-display text-2xl font-semibold">Family Nest</span>
           </Link>
 
