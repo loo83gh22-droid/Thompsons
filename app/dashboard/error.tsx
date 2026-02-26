@@ -66,7 +66,7 @@ export default function DashboardError({
         <p className="mt-6 text-xs text-[var(--muted)]">
           If this keeps happening,{" "}
           <a
-            href={`mailto:${typeof process.env.NEXT_PUBLIC_FEEDBACK_EMAIL === "string" ? process.env.NEXT_PUBLIC_FEEDBACK_EMAIL : "feedback@example.com"}?subject=Family%20Nest%20Error%20Report&body=Error%20ID:%20${error.digest ?? "unknown"}%0A%0AWhat%20I%20was%20doing:%20`}
+            href={`/contact?category=Bug+Report${error.digest ? `&errorId=${encodeURIComponent(error.digest)}` : ""}`}
             className="text-[var(--accent)] hover:underline"
           >
             let us know
