@@ -19,6 +19,16 @@ function revalidateAll(category?: FavouriteCategory) {
   }
 }
 
+async function uploadFavouritePhoto(supabase: Awaited<ReturnType<typeof createClient>>, photo: File): Promise<string> {
+  const ext = photo.name.split(".").pop() || "jpg";
+  const path = `${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage
+    .from("favourite-photos")
+    .upload(path, photo, { upsert: true });
+  if (error) throw error;
+  return `/api/storage/favourite-photos/${path}`;
+}
+
 export async function addFavourite(
   category: FavouriteCategory,
   title: string,
@@ -26,12 +36,18 @@ export async function addFavourite(
   description?: string,
   notes?: string,
   age?: number,
+  photo?: File | null,
 ) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
+
+  let photoUrl: string | null = null;
+  if (photo && photo.size > 0) {
+    photoUrl = await uploadFavouritePhoto(supabase, photo);
+  }
 
   const { error } = await supabase.from("favourites").insert({
     family_id: activeFamilyId,
@@ -40,6 +56,7 @@ export async function addFavourite(
     description: description || null,
     notes: notes || null,
     age: age ?? null,
+    photo_url: photoUrl,
     added_by: memberId,
     member_id: memberId,
   });
@@ -50,7 +67,7 @@ export async function addFavourite(
 
 export async function updateFavourite(
   id: string,
-  data: { title: string; description?: string; notes?: string; age?: number }
+  data: { title: string; description?: string; notes?: string; age?: number; photo?: File | null; clearPhoto?: boolean }
 ) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -58,14 +75,26 @@ export async function updateFavourite(
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
+  let photoUrl: string | undefined = undefined;
+  if (data.clearPhoto) {
+    photoUrl = null as unknown as undefined;
+  } else if (data.photo && data.photo.size > 0) {
+    photoUrl = await uploadFavouritePhoto(supabase, data.photo);
+  }
+
+  const update: Record<string, unknown> = {
+    title: data.title,
+    description: data.description || null,
+    notes: data.notes || null,
+    age: data.age ?? null,
+  };
+  if (photoUrl !== undefined || data.clearPhoto) {
+    update.photo_url = data.clearPhoto ? null : photoUrl;
+  }
+
   const { error } = await supabase
     .from("favourites")
-    .update({
-      title: data.title,
-      description: data.description || null,
-      notes: data.notes || null,
-      age: data.age ?? null,
-    })
+    .update(update)
     .eq("id", id)
     .eq("family_id", activeFamilyId);
 

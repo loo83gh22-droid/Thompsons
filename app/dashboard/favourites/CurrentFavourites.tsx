@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { removeFavourite, updateFavourite } from "./actions";
 
@@ -10,6 +10,7 @@ type Item = {
   description: string | null;
   notes: string | null;
   age: number | null;
+  photo_url: string | null;
   created_at: string;
 };
 
@@ -28,8 +29,12 @@ export function CurrentFavourites({
   const [editDescription, setEditDescription] = useState("");
   const [editNotes, setEditNotes] = useState("");
   const [editAge, setEditAge] = useState("");
+  const [editPhoto, setEditPhoto] = useState<File | null>(null);
+  const [editPhotoPreview, setEditPhotoPreview] = useState<string | null>(null);
+  const [clearPhoto, setClearPhoto] = useState(false);
   const [saving, setSaving] = useState(false);
   const [removing, setRemoving] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleRemove(id: string) {
     setRemoving(id);
@@ -47,6 +52,20 @@ export function CurrentFavourites({
     setEditDescription(item.description || "");
     setEditNotes(item.notes || "");
     setEditAge(item.age != null ? String(item.age) : "");
+    setEditPhoto(null);
+    setEditPhotoPreview(null);
+    setClearPhoto(false);
+  }
+
+  function handleEditPhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    setEditPhoto(file);
+    setClearPhoto(false);
+    if (file) {
+      setEditPhotoPreview(URL.createObjectURL(file));
+    } else {
+      setEditPhotoPreview(null);
+    }
   }
 
   async function handleSave() {
@@ -59,6 +78,8 @@ export function CurrentFavourites({
         description: editDescription.trim() || undefined,
         notes: editNotes.trim() || undefined,
         age: Number.isFinite(parsedAge) ? parsedAge : undefined,
+        photo: editPhoto,
+        clearPhoto,
       });
       setEditingId(null);
       router.refresh();
@@ -85,6 +106,7 @@ export function CurrentFavourites({
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((item) => {
         if (editingId === item.id) {
+          const currentPhoto = clearPhoto ? null : (editPhotoPreview ?? item.photo_url);
           return (
             <div
               key={item.id}
@@ -126,6 +148,43 @@ export function CurrentFavourites({
                   className="w-20 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)]/60 focus:border-[var(--accent)] focus:outline-none"
                 />
               </div>
+
+              {/* Photo edit */}
+              <div className="mt-3">
+                {currentPhoto ? (
+                  <div className="relative w-20 h-20">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={currentPhoto}
+                      alt="Photo"
+                      className="w-20 h-20 rounded-lg object-cover border border-[var(--border)]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { setClearPhoto(true); setEditPhoto(null); setEditPhotoPreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                      className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--foreground)] text-[var(--background)] text-xs leading-none"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-1.5 rounded-lg border border-dashed border-[var(--border)] px-3 py-1.5 text-xs text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                  >
+                    <span>📷</span> Add photo
+                  </button>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleEditPhotoChange}
+                  className="hidden"
+                />
+              </div>
+
               <div className="mt-3 flex gap-2">
                 <button
                   type="button"
@@ -150,42 +209,52 @@ export function CurrentFavourites({
         return (
           <div
             key={item.id}
-            className="group relative rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 transition-all hover:border-[var(--accent)]/40 hover:shadow-sm"
+            className="group relative rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden transition-all hover:border-[var(--accent)]/40 hover:shadow-sm"
           >
-            <h3 className="font-medium leading-snug text-[var(--foreground)]">
-              {item.title}
-            </h3>
-            {item.description && (
-              <p className="mt-1 line-clamp-2 text-sm text-[var(--muted)]">
-                {item.description}
-              </p>
+            {item.photo_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={item.photo_url}
+                alt={item.title}
+                className="w-full h-36 object-cover"
+              />
             )}
-            {item.notes && (
-              <p className="mt-1.5 text-xs italic text-[var(--muted)]">
-                {item.notes}
-              </p>
-            )}
-            {item.age != null && (
-              <p className="mt-2 text-xs font-medium text-[var(--accent)]">
-                Age {item.age}
-              </p>
-            )}
-            <div className="mt-3 flex gap-3 opacity-0 transition-opacity group-hover:opacity-100">
-              <button
-                type="button"
-                onClick={() => startEdit(item)}
-                className="text-xs text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
-              >
-                Edit
-              </button>
-              <button
-                type="button"
-                onClick={() => handleRemove(item.id)}
-                disabled={removing === item.id}
-                className="text-xs text-[var(--muted)] transition-colors hover:text-red-500 disabled:opacity-50"
-              >
-                {removing === item.id ? "Removing…" : "Remove"}
-              </button>
+            <div className="p-4">
+              <h3 className="font-medium leading-snug text-[var(--foreground)]">
+                {item.title}
+              </h3>
+              {item.description && (
+                <p className="mt-1 line-clamp-2 text-sm text-[var(--muted)]">
+                  {item.description}
+                </p>
+              )}
+              {item.notes && (
+                <p className="mt-1.5 text-xs italic text-[var(--muted)]">
+                  {item.notes}
+                </p>
+              )}
+              {item.age != null && (
+                <p className="mt-2 text-xs font-medium text-[var(--accent)]">
+                  Age {item.age}
+                </p>
+              )}
+              <div className="mt-3 flex gap-3 opacity-0 transition-opacity group-hover:opacity-100">
+                <button
+                  type="button"
+                  onClick={() => startEdit(item)}
+                  className="text-xs text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleRemove(item.id)}
+                  disabled={removing === item.id}
+                  className="text-xs text-[var(--muted)] transition-colors hover:text-red-500 disabled:opacity-50"
+                >
+                  {removing === item.id ? "Removing…" : "Remove"}
+                </button>
+              </div>
             </div>
           </div>
         );

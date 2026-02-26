@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { addFavourite } from "./actions";
 import type { FavouriteCategory } from "./actions";
@@ -23,6 +23,9 @@ export function AddFavouriteForm({
   const [description, setDescription] = useState("");
   const [notes, setNotes] = useState("");
   const [age, setAge] = useState("");
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const singular = categoryLabel.toLowerCase().replace(/s$/, "");
 
@@ -32,6 +35,19 @@ export function AddFavouriteForm({
     setDescription("");
     setNotes("");
     setAge("");
+    setPhoto(null);
+    setPhotoPreview(null);
+  }
+
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    setPhoto(file);
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setPhotoPreview(url);
+    } else {
+      setPhotoPreview(null);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -47,6 +63,7 @@ export function AddFavouriteForm({
         description.trim() || undefined,
         notes.trim() || undefined,
         Number.isFinite(parsedAge) ? parsedAge : undefined,
+        photo,
       );
       handleClose();
       router.refresh();
@@ -117,6 +134,43 @@ export function AddFavouriteForm({
               className="w-24 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
+
+          {/* Photo picker */}
+          <div className="mt-3">
+            {photoPreview ? (
+              <div className="relative w-24 h-24">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={photoPreview}
+                  alt="Preview"
+                  className="w-24 h-24 rounded-lg object-cover border border-[var(--border)]"
+                />
+                <button
+                  type="button"
+                  onClick={() => { setPhoto(null); setPhotoPreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                  className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--foreground)] text-[var(--background)] text-xs leading-none"
+                >
+                  ×
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-1.5 rounded-lg border border-dashed border-[var(--border)] px-3 py-2 text-sm text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              >
+                <span>📷</span> Add photo (optional)
+              </button>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              className="hidden"
+            />
+          </div>
+
           <div className="mt-3 flex gap-2">
             <button
               type="submit"
