@@ -7,7 +7,7 @@ const CATEGORIES = [
   { id: "movies", label: "Movies", icon: "🎬" },
   { id: "shows", label: "Shows", icon: "📺" },
   { id: "music", label: "Music", icon: "🎵" },
-  { id: "podcasts", label: "Podcasts", icon: "🎙️" },
+  { id: "toys", label: "Toys", icon: "🧸" },
   { id: "games", label: "Games", icon: "🎮" },
 ] as const;
 

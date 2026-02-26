@@ -42,7 +42,7 @@ const favouritesItems: { href: string; label: string }[] = [
   { href: "/dashboard/favourites/movies", label: "Movies" },
   { href: "/dashboard/favourites/shows", label: "Shows" },
   { href: "/dashboard/favourites/music", label: "Music" },
-  { href: "/dashboard/favourites/podcasts", label: "Podcasts" },
+  { href: "/dashboard/favourites/toys", label: "Toys" },
   { href: "/dashboard/favourites/games", label: "Games" },
 ];
 

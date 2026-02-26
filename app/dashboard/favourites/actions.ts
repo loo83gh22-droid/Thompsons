@@ -4,9 +4,9 @@ import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
 
-export type FavouriteCategory = "books" | "movies" | "shows" | "music" | "podcasts" | "games" | "recipes";
+export type FavouriteCategory = "books" | "movies" | "shows" | "music" | "toys" | "games" | "recipes";
 
-const ALL_CATEGORIES: FavouriteCategory[] = ["books", "movies", "shows", "music", "podcasts", "games", "recipes"];
+const ALL_CATEGORIES: FavouriteCategory[] = ["books", "movies", "shows", "music", "toys", "games", "recipes"];
 
 function revalidateAll(category?: FavouriteCategory) {
   revalidatePath("/dashboard/favourites");

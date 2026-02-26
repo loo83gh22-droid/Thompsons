@@ -13,7 +13,7 @@ const CATEGORIES: Record<string, { label: string; icon: string }> = {
   movies: { label: "Movies", icon: "🎬" },
   shows: { label: "Shows", icon: "📺" },
   music: { label: "Music", icon: "🎵" },
-  podcasts: { label: "Podcasts", icon: "🎙️" },
+  toys: { label: "Toys", icon: "🧸" },
   games: { label: "Games", icon: "🎮" },
 };
 
