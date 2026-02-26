@@ -9,6 +9,7 @@ type Item = {
   title: string;
   description: string | null;
   notes: string | null;
+  age: number | null;
   created_at: string;
 };
 
@@ -26,6 +27,7 @@ export function CurrentFavourites({
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editNotes, setEditNotes] = useState("");
+  const [editAge, setEditAge] = useState("");
   const [saving, setSaving] = useState(false);
   const [removing, setRemoving] = useState<string | null>(null);
 
@@ -44,16 +46,19 @@ export function CurrentFavourites({
     setEditTitle(item.title);
     setEditDescription(item.description || "");
     setEditNotes(item.notes || "");
+    setEditAge(item.age != null ? String(item.age) : "");
   }
 
   async function handleSave() {
     if (!editingId || !editTitle.trim()) return;
     setSaving(true);
+    const parsedAge = editAge.trim() ? parseInt(editAge.trim(), 10) : undefined;
     try {
       await updateFavourite(editingId, {
         title: editTitle.trim(),
         description: editDescription.trim() || undefined,
         notes: editNotes.trim() || undefined,
+        age: Number.isFinite(parsedAge) ? parsedAge : undefined,
       });
       setEditingId(null);
       router.refresh();
@@ -107,6 +112,20 @@ export function CurrentFavourites({
                 placeholder="Notes (optional)"
                 className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--muted)] placeholder:text-[var(--muted)]/60 focus:border-[var(--accent)] focus:outline-none"
               />
+              <div className="mt-2 flex items-center gap-2">
+                <label className="text-sm text-[var(--muted)] whitespace-nowrap">
+                  Age at the time
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  max={120}
+                  placeholder="e.g. 5"
+                  value={editAge}
+                  onChange={(e) => setEditAge(e.target.value)}
+                  className="w-20 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)]/60 focus:border-[var(--accent)] focus:outline-none"
+                />
+              </div>
               <div className="mt-3 flex gap-2">
                 <button
                   type="button"
@@ -144,6 +163,11 @@ export function CurrentFavourites({
             {item.notes && (
               <p className="mt-1.5 text-xs italic text-[var(--muted)]">
                 {item.notes}
+              </p>
+            )}
+            {item.age != null && (
+              <p className="mt-2 text-xs font-medium text-[var(--accent)]">
+                Age {item.age}
               </p>
             )}
             <div className="mt-3 flex gap-3 opacity-0 transition-opacity group-hover:opacity-100">

@@ -70,7 +70,7 @@ export default async function FavouriteCategoryPage({
   // Active favourites for selected member
   const { data: activeItems } = await supabase
     .from("favourites")
-    .select("id, title, description, notes, created_at")
+    .select("id, title, description, notes, age, created_at")
     .eq("family_id", activeFamilyId)
     .eq("category", category)
     .eq("member_id", selectedMember.id)

@@ -25,6 +25,7 @@ export async function addFavourite(
   memberId: string,
   description?: string,
   notes?: string,
+  age?: number,
 ) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -38,6 +39,7 @@ export async function addFavourite(
     title,
     description: description || null,
     notes: notes || null,
+    age: age ?? null,
     added_by: memberId,
     member_id: memberId,
   });
@@ -48,7 +50,7 @@ export async function addFavourite(
 
 export async function updateFavourite(
   id: string,
-  data: { title: string; description?: string; notes?: string }
+  data: { title: string; description?: string; notes?: string; age?: number }
 ) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -62,6 +64,7 @@ export async function updateFavourite(
       title: data.title,
       description: data.description || null,
       notes: data.notes || null,
+      age: data.age ?? null,
     })
     .eq("id", id)
     .eq("family_id", activeFamilyId);
