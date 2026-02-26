@@ -45,6 +45,7 @@ function LoginForm() {
             email: email.trim(),
             password,
             name: inviteName.trim() || undefined,
+            isInvited: true, // tells signup route to skip the "new family" admin notification
             // No familyName — dashboard layout will link them to the existing family member row
             redirectTo: typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined,
           }),

@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   if (rateLimitResponse) return rateLimitResponse;
 
   try {
-    const { email, password, name, familyName, relationship, redirectTo } = await request.json();
+    const { email, password, name, familyName, relationship, redirectTo, isInvited } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
@@ -96,8 +96,8 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Notify admin of new signup (fire-and-forget — don't block the response)
-      if (process.env.ADMIN_NOTIFICATION_EMAIL) resend.emails.send({
+      // Notify admin of new signup — skip for invited users (they're joining an existing family)
+      if (!isInvited && process.env.ADMIN_NOTIFICATION_EMAIL) resend.emails.send({
         from: fromEmail,
         to: process.env.ADMIN_NOTIFICATION_EMAIL,
         subject: `🏠 New Family Nest signup: ${safeFamilyName}`,
