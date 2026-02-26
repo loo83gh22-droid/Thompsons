@@ -32,6 +32,19 @@ export async function POST(request: NextRequest) {
     const familyRecord = member?.families as any;
     const familyName: string = familyRecord?.name || 'Your Family';
 
+    // Deduplicate: skip if welcome was already sent for this member
+    if (member) {
+      const { data: existing } = await supabase
+        .from('email_campaigns')
+        .select('id')
+        .eq('family_member_id', member.id)
+        .eq('campaign_type', 'welcome')
+        .maybeSingle();
+      if (existing) {
+        return NextResponse.json({ success: true, skipped: true });
+      }
+    }
+
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://familynest.io';
     const safeName = esc(name || 'there');
     const safeFamilyName = esc(familyName);

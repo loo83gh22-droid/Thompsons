@@ -18,7 +18,9 @@ export async function GET(request: Request) {
           // Check if this is a new signup (user created recently)
           const userCreatedAt = new Date(user.created_at);
           const timeSinceCreation = Date.now() - userCreatedAt.getTime();
-          const isNewUser = timeSinceCreation < 60000; // Within last minute
+          // 72-hour window: covers anyone who signs up but takes time to check email.
+          // The send-welcome route deduplicates via email_campaigns so double-sends are safe.
+          const isNewUser = timeSinceCreation < 72 * 60 * 60 * 1000;
 
           if (isNewUser) {
             // Get family member details

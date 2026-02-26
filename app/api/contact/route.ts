@@ -5,7 +5,7 @@ import { checkHttpRateLimit, strictLimiter } from "@/src/lib/httpRateLimit";
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 const ADMIN_EMAIL = process.env.FEEDBACK_ADMIN_EMAIL;
-const FROM_EMAIL = "Family Nest <noreply@familynest.io>";
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "Family Nest <noreply@familynest.io>";
 
 export async function POST(request: NextRequest) {
   const rateLimitResponse = await checkHttpRateLimit(request, strictLimiter);

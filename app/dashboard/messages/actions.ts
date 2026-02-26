@@ -70,11 +70,7 @@ export async function sendFamilyMessage(
       const safeTitle = title.replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const safeContent = content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const safeSender = sender?.name?.replace(/</g, "&lt;").replace(/>/g, "&gt;") || "";
-      resend.emails.send({
-        from,
-        to: emails,
-        subject: `New family message: ${title}`,
-        html: `
+      const html = `
 <!DOCTYPE html><html><body style="margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;padding:32px 20px;">
 <tr><td style="text-align:center;padding-bottom:24px;">
@@ -92,8 +88,13 @@ export async function sendFamilyMessage(
   <p style="color:#64748b;font-size:12px;margin:0;">Family Nest &middot; <a href="${appUrl}/dashboard/settings" style="color:#64748b;">Manage notifications</a></p>
 </td></tr>
 </table>
-</body></html>`,
-      }).catch(() => {});
+</body></html>`;
+      // Send individually so recipients cannot see each other's addresses
+      Promise.allSettled(
+        emails.map((to) =>
+          resend.emails.send({ from, to, subject: `New family message: ${title}`, html })
+        )
+      ).catch(() => {});
     }
   }
 
