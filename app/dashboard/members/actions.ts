@@ -126,6 +126,37 @@ async function sendInviteEmail(to: string, name: string, familyName: string): Pr
   });
 }
 
+/** Resend an invitation email to a pending member. Returns { success, error? }. */
+export async function resendInviteEmail(
+  memberId: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return { success: false, error: "No active family" };
+
+  const { data: member } = await supabase
+    .from("family_members")
+    .select("name, contact_email, user_id")
+    .eq("id", memberId)
+    .eq("family_id", activeFamilyId)
+    .single();
+
+  if (!member) return { success: false, error: "Member not found" };
+  if (member.user_id) return { success: false, error: "This member has already joined." };
+  if (!member.contact_email?.trim()) return { success: false, error: "No email address on file for this member." };
+
+  try {
+    const familyName = await getActiveFamilyName(supabase);
+    await sendInviteEmail(member.contact_email.trim(), member.name, familyName);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to send email." };
+  }
+}
+
 export async function addFamilyMember(
   name: string,
   relationship: string,
@@ -359,15 +390,17 @@ export async function updateFamilyMember(
     }
   }
 
-  // Send invite email when adding/updating email on a member who hasn't signed up yet
+  // Send invite email ONLY when a new email is being added to a member who hasn't signed up yet
+  // (i.e., the email field is changing from blank/different to a new value)
   const trimmedEmail = email?.trim();
   if (trimmedEmail) {
     const { data: memberRow } = await supabase
       .from("family_members")
-      .select("user_id")
+      .select("user_id, contact_email")
       .eq("id", id)
       .single();
-    if (memberRow && !memberRow.user_id) {
+    const emailChanged = memberRow && memberRow.contact_email?.trim() !== trimmedEmail;
+    if (emailChanged && !memberRow.user_id) {
       try {
         const familyName = await getActiveFamilyName(supabase);
         await sendInviteEmail(trimmedEmail, name.trim(), familyName);

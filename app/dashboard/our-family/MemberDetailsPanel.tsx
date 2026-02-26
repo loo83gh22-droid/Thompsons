@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
-import { deleteFamilyMember, changeMemberRole, generateKidLink, revokeKidLink } from "../members/actions";
+import { deleteFamilyMember, changeMemberRole, generateKidLink, revokeKidLink, resendInviteEmail } from "../members/actions";
 import { setMemberRelationships } from "./actions";
 import type { OurFamilyMember } from "./page";
 import type { OurFamilyRelationship } from "./page";
@@ -69,6 +69,8 @@ export function MemberDetailsPanel({
   const [changingRole, setChangingRole] = useState(false);
   const [kidLinkLoading, setKidLinkLoading] = useState(false);
   const [kidLinkUrl, setKidLinkUrl] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const [resendResult, setResendResult] = useState<"sent" | "error" | null>(null);
   const current = useMemberTreeRels(member.id, relationships);
   const [spouseId, setSpouseId] = useState<string>(current.spouseId ?? "");
   const [parentIds, setParentIds] = useState<string[]>(current.parentIds);
@@ -385,12 +387,27 @@ export function MemberDetailsPanel({
             Send Message
           </Link>
           {status === "pending_invitation" && (
-            <Link
-              href={`/dashboard/members/${member.id}`}
-              className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-center text-sm font-medium text-amber-700 hover:bg-amber-100"
+            <button
+              type="button"
+              disabled={resending}
+              onClick={async () => {
+                setResending(true);
+                setResendResult(null);
+                const result = await resendInviteEmail(member.id);
+                setResendResult(result.success ? "sent" : "error");
+                setResending(false);
+                setTimeout(() => setResendResult(null), 4000);
+              }}
+              className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100 disabled:opacity-50"
             >
-              Resend Invitation
-            </Link>
+              {resending
+                ? "Sending…"
+                : resendResult === "sent"
+                ? "✓ Invite sent!"
+                : resendResult === "error"
+                ? "Failed — try again"
+                : "Resend Invitation"}
+            </button>
           )}
           <button
             type="button"
