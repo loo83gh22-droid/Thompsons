@@ -56,6 +56,19 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  icons: {
+    // Browser favicon
+    icon: [
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/logo-m4.svg",    type: "image/svg+xml" },
+    ],
+    // iOS "Add to Home Screen"
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    // Android / PWA shortcut icon
+    other: [
+      { rel: "manifest", url: "/manifest.json" },
+    ],
+  },
   openGraph: {
     title: "Family Nest",
     description:
@@ -102,6 +115,12 @@ export default function RootLayout({
           rel="dns-prefetch"
           href="https://tstbngohenxrbqroejth.supabase.co"
         />
+        {/* PWA / home-screen */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#2D6B52" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Family Nest" />
       </head>
       <body className="antialiased">
         <MosaicBackground />
