@@ -15,7 +15,7 @@ const plans = [
   },
   {
     name: "The Full Nest",
-    price: "$49",
+    price: "$79",
     period: "/yr",
     description: "For families ready to go all in",
     features: [

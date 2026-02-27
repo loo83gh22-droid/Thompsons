@@ -293,7 +293,7 @@ export default async function AdminPage() {
                 color="bg-slate-400"
               />
               <PlanBar
-                label="Annual — $49 / yr"
+                label="Annual — $79 / yr"
                 count={planBreakdown.annual}
                 total={totalFamilies}
                 color="bg-indigo-500"

@@ -307,7 +307,7 @@ export default function GiftPage() {
                 className="underline underline-offset-4"
                 style={{ color: "var(--primary)" }}
               >
-                The Full Nest at $49/year
+                The Full Nest at $79/year
               </Link>
               . Upgrade anytime.
             </p>

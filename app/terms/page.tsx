@@ -64,7 +64,7 @@ export default function TermsPage() {
               <strong>Free plan:</strong> Available at no cost with feature limitations as described on our pricing page.
             </p>
             <p className="mt-2">
-              <strong>Annual plan ($49/year):</strong> Billed annually via Stripe. Your subscription will automatically renew unless cancelled before the renewal date. You may cancel at any time through the billing portal in your account settings.
+              <strong>Annual plan ($79/year):</strong> Billed annually via Stripe. Your subscription will automatically renew unless cancelled before the renewal date. You may cancel at any time through the billing portal in your account settings.
             </p>
             <p className="mt-2">
               <strong>Legacy plan ($349 one-time):</strong> A single payment for lifetime access. Includes all current and future features, data export, and Nest Keeper designation.

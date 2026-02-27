@@ -36,9 +36,9 @@ const tiers = [
   {
     name: "The Full Nest",
     plan: "annual" as const,
-    price: "$49",
+    price: "$79",
     priceSub: "/year",
-    priceBreakdown: "Just $4.08/month or 13¢/day",
+    priceBreakdown: "Just $6.58/month or 22¢/day",
     description: "Unlock every feature for your family.",
     badge: "Most Popular",
     features: [
@@ -87,7 +87,7 @@ const faqs = [
   {
     question: "Which plan is right for me?",
     answer:
-      "Start with The Nest (Free) to try the platform with your family. Once you're uploading videos, recording voice memos, or approaching the storage limit, upgrade to The Full Nest ($49/year). If you're committed to preserving your family's memories for decades and want to pass ownership to future generations, The Legacy ($349 one-time) offers lifetime access and the best long-term value.",
+      "Start with The Nest (Free) to try the platform with your family. Once you're uploading videos, recording voice memos, or approaching the storage limit, upgrade to The Full Nest ($79/year). If you're committed to preserving your family's memories for decades and want to pass ownership to future generations, The Legacy ($349 one-time) offers lifetime access and the best long-term value.",
   },
   {
     question: "What happens if the platform shuts down?",

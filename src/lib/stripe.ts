@@ -24,7 +24,7 @@ export const stripe = new Proxy({} as Stripe, {
  * Stripe Price IDs — set these in your Vercel environment variables.
  * Create products + prices in the Stripe Dashboard first, then paste the IDs.
  *
- * STRIPE_PRICE_ANNUAL  -> $49/year recurring price
+ * STRIPE_PRICE_ANNUAL  -> $79/year recurring price
  * STRIPE_PRICE_LEGACY  -> $349 one-time price
  */
 export const STRIPE_PRICES = {

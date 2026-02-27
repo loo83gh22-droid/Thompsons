@@ -176,7 +176,7 @@ export function adminReportEmailHtml(stats: AdminReportStats): string {
         <td style="padding:6px 0;">
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
-              <td style="color:#93c5fd;font-size:12px;">Annual — $49/yr</td>
+              <td style="color:#93c5fd;font-size:12px;">Annual — $79/yr</td>
               <td style="text-align:right;color:#e2e8f0;font-size:12px;font-weight:600;">${stats.annualFamilies}</td>
             </tr>
           </table>

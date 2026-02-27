@@ -19,7 +19,7 @@ const PLAN_DISPLAY: Record<
   annual: {
     name: "The Full Nest",
     color: "text-blue-600",
-    badge: "$49/year",
+    badge: "$79/year",
   },
   legacy: {
     name: "The Legacy",
