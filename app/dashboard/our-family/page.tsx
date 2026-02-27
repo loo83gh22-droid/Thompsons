@@ -120,11 +120,18 @@ export default async function OurFamilyPage() {
         </div>
       </div>
 
+      <OurFamilyClient
+        members={(members ?? []) as OurFamilyMember[]}
+        relationships={(relationships ?? []) as OurFamilyRelationship[]}
+        activityByMember={activityByMember}
+        aliasMap={aliasMap}
+      />
+
       {/* Personalize prompt — shown once until the user sets their names */}
       {!hasPersonalized && (members ?? []).length > 1 && (
         <Link
           href="/dashboard/personalize"
-          className="mb-6 flex items-center justify-between gap-4 rounded-2xl border border-[var(--accent)]/30 bg-[var(--accent)]/5 px-5 py-4 transition-colors hover:bg-[var(--accent)]/10"
+          className="mt-8 flex items-center justify-between gap-4 rounded-2xl border border-[var(--accent)]/30 bg-[var(--accent)]/5 px-5 py-4 transition-colors hover:bg-[var(--accent)]/10"
         >
           <div className="flex items-center gap-3">
             <span className="text-2xl">✨</span>
@@ -136,13 +143,6 @@ export default async function OurFamilyPage() {
           <span className="shrink-0 text-sm font-medium text-[var(--accent)]">Personalize →</span>
         </Link>
       )}
-
-      <OurFamilyClient
-        members={(members ?? []) as OurFamilyMember[]}
-        relationships={(relationships ?? []) as OurFamilyRelationship[]}
-        activityByMember={activityByMember}
-        aliasMap={aliasMap}
-      />
     </div>
   );
 }

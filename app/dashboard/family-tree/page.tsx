@@ -10,6 +10,7 @@ type FamilyMember = {
   nickname: string | null;
   color: string;
   avatar_url: string | null;
+  relationship: string | null;
 };
 
 type Relationship = {
@@ -27,7 +28,7 @@ export default async function FamilyTreePage() {
 
   const { data: members } = await supabase
     .from("family_members")
-    .select("id, name, nickname, color, avatar_url")
+    .select("id, name, nickname, color, avatar_url, relationship")
     .eq("family_id", activeFamilyId)
     .not("name", "eq", "Family")
     .order("name");
@@ -96,6 +97,24 @@ export default async function FamilyTreePage() {
     if (!generationOf.has(id)) generationOf.set(id, 0);
   });
 
+  // Spouse leveling: ensure both partners share the same (higher) generation.
+  // Without this, a spouse with no parents (gen 0) won't be paired in the
+  // same row as their partner who has parents (e.g. gen 1).
+  let leveled = true;
+  while (leveled) {
+    leveled = false;
+    spouseRels.forEach((r) => {
+      const gA = generationOf.get(r.member_id) ?? 0;
+      const gB = generationOf.get(r.related_id) ?? 0;
+      if (gA !== gB) {
+        const max = Math.max(gA, gB);
+        generationOf.set(r.member_id, max);
+        generationOf.set(r.related_id, max);
+        leveled = true;
+      }
+    });
+  }
+
   // Group members by generation
   const maxGen = Math.max(0, ...Array.from(generationOf.values()));
   const byGeneration: FamilyMember[][] = Array.from(
@@ -143,14 +162,22 @@ export default async function FamilyTreePage() {
         {noTree ? (
           <EmptyState />
         ) : (
-          <div className="flex flex-col items-center">
+          <div
+            className="flex flex-col items-center rounded-2xl px-6 py-10"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle, rgba(0,0,0,0.07) 1px, transparent 1px)",
+              backgroundSize: "18px 18px",
+              backgroundColor: "var(--secondary)",
+            }}
+          >
             {byGeneration.map((gen, i) => {
               if (gen.length === 0) return null;
               const units = buildUnits(gen);
               return (
                 <div key={i} className="flex flex-col items-center">
                   {i > 0 && (
-                    <div className="my-4 h-8 w-px bg-[var(--border)]" />
+                    <div className="my-6 h-10 w-px bg-[var(--border)]" />
                   )}
                   <div className="flex flex-wrap justify-center gap-6">
                     {units.map((u) => (
@@ -158,7 +185,10 @@ export default async function FamilyTreePage() {
                         <PersonCard member={u.person} />
                         {u.spouse && (
                           <>
-                            <div className="hidden h-px w-8 bg-[var(--border)] sm:block" />
+                            <div className="flex flex-col items-center gap-1">
+                              <div className="hidden h-px w-8 bg-[var(--border)] sm:block" />
+                              <span className="text-sm text-[var(--accent)]">♥</span>
+                            </div>
                             <PersonCard member={u.spouse} />
                           </>
                         )}
@@ -236,37 +266,49 @@ function EmptyState() {
 function PersonCard({ member }: { member: FamilyMember }) {
   const displayName =
     member.nickname || member.name.split("(")[0].trim();
-  const showFullName =
-    displayName !== member.name.split("(")[0].trim() ||
-    (member.nickname && member.nickname !== member.name.split("(")[0].trim());
+  const fullName = member.name.split("(")[0].trim();
+  const showFullName = displayName !== fullName;
 
   return (
     <div
-      className="flex flex-col items-center rounded-xl border-2 bg-[var(--surface)] p-6 transition-colors hover:border-[var(--accent)]/50"
+      className="flex flex-col items-center rounded-xl border-2 bg-[var(--surface)] px-5 py-5 shadow-sm transition-colors hover:border-[var(--accent)]/50"
       style={{ borderColor: `${member.color}40` }}
     >
       <div
-        className="mb-3 h-14 w-14 overflow-hidden rounded-full flex-shrink-0"
+        className="mb-3 h-16 w-16 flex-shrink-0 overflow-hidden rounded-full"
         style={{ backgroundColor: member.color }}
       >
-        {member.avatar_url && (
+        {member.avatar_url ? (
           <Image
             src={member.avatar_url}
             alt={displayName}
-            width={56}
-            height={56}
+            width={64}
+            height={64}
             unoptimized
             className="h-full w-full object-cover"
           />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center text-xl font-bold text-white">
+            {displayName.charAt(0).toUpperCase()}
+          </span>
         )}
       </div>
       <p className="font-display text-lg font-semibold text-[var(--foreground)]">
         {displayName}
       </p>
       {showFullName && (
-        <p className="mt-1 text-xs text-[var(--muted)]">
-          {member.name.split("(")[0].trim()}
-        </p>
+        <p className="mt-0.5 text-xs text-[var(--muted)]">{fullName}</p>
+      )}
+      {member.relationship && (
+        <span
+          className="mt-2 rounded-full px-2.5 py-0.5 text-xs font-medium"
+          style={{
+            backgroundColor: `${member.color}18`,
+            color: member.color,
+          }}
+        >
+          {member.relationship}
+        </span>
       )}
     </div>
   );

@@ -68,11 +68,23 @@ function buildTree(
 
   const roots = members
     .filter((m) => !childIds.has(m.id))
-    // Sort so members with direct child relationships (real parents/grandparents)
-    // are processed before members who only appear as someone else's spouse.
-    // This prevents a spouse (e.g. Peach) whose name sorts first alphabetically
-    // from being claimed as the root before the grandparent generation is built.
+    // Sort so TRUE ancestors (members whose children also have children, i.e. they
+    // have grandchildren in the tree) are processed BEFORE their child's spouse who
+    // is also a root.  Without this, Peach (2 direct children, but no grandchildren)
+    // sorts first and claims ME! as her spouse — locking Dad & Ma out of ME!'s
+    // subtree and leaving them as disconnected floating nodes at the bottom.
+    //
+    // Priority 1: roots with grandchildren (real grandparents / ancestors)
+    // Priority 2: roots with more direct children
+    // Priority 3: alphabetical tie-break
     .sort((a, b) => {
+      const aHasGrandkids = getChildIds(a.id).some(
+        (cId) => getChildIds(cId).length > 0
+      );
+      const bHasGrandkids = getChildIds(b.id).some(
+        (cId) => getChildIds(cId).length > 0
+      );
+      if (aHasGrandkids !== bHasGrandkids) return aHasGrandkids ? -1 : 1;
       const diff = getChildIds(b.id).length - getChildIds(a.id).length;
       return diff !== 0 ? diff : a.name.localeCompare(b.name);
     });

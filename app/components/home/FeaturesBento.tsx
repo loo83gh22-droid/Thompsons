@@ -106,48 +106,89 @@ function TreeAvatar({ initials, bg, color, size = 9 }: { initials: string; bg: s
 }
 
 function TreePreview() {
-  const LINE = "rgba(100,100,90,0.25)";
-  return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-0 p-3 pt-4">
+  const LINE = "rgba(100,100,90,0.22)";
 
-      {/* Generation label */}
-      <span className="mb-2 rounded-full px-2 py-0.5 text-[8px] font-semibold uppercase tracking-wider" style={{ backgroundColor: "var(--primary)", color: "var(--primary-foreground)", opacity: 0.85 }}>
-        3 generations
+  // Mini card node matching the real family-tree card style
+  const Node = ({
+    initials,
+    bg,
+    label,
+  }: {
+    initials: string;
+    bg: string;
+    label: string;
+  }) => (
+    <div
+      className="flex flex-col items-center rounded-xl bg-white px-2 py-1.5 shadow-sm"
+      style={{ border: `1.5px solid ${bg}55`, minWidth: 40 }}
+    >
+      <div
+        className="flex h-7 w-7 items-center justify-center rounded-full text-[8px] font-bold text-white"
+        style={{ backgroundColor: bg }}
+      >
+        {initials}
+      </div>
+      <p
+        className="mt-0.5 text-center text-[8px] font-semibold leading-tight"
+        style={{ color: "#2a2a2a" }}
+      >
+        {label}
+      </p>
+    </div>
+  );
+
+  return (
+    <div
+      className="flex h-full w-full flex-col items-center justify-center gap-0 px-2 py-3"
+      style={{
+        backgroundImage:
+          "radial-gradient(circle, rgba(0,0,0,0.09) 1px, transparent 1px)",
+        backgroundSize: "12px 12px",
+        backgroundColor: "#f8f6f0",
+      }}
+    >
+      {/* 3 GENERATIONS chip */}
+      <span
+        className="mb-2.5 rounded-full px-2 py-0.5 text-[7px] font-semibold uppercase tracking-widest"
+        style={{ backgroundColor: "#3d6b5e", color: "#fff", opacity: 0.9 }}
+      >
+        3 Generations
       </span>
 
-      {/* Grandparents */}
-      <div className="flex items-center gap-0">
-        <TreeAvatar initials="Gma" bg="#3d6b5e" color="#fff" size={9} />
-        <div style={{ width: 20, height: 2, background: LINE }} />
-        <TreeAvatar initials="Gpa" bg="#3d6b5e" color="#fff" size={9} />
+      {/* Gen 0 — Grandparents */}
+      <div className="flex items-center gap-0.5">
+        <Node initials="Gma" bg="#3d6b5e" label="Grandma" />
+        <div style={{ width: 10, height: 2, background: LINE }} />
+        <span style={{ fontSize: 9, color: "#c47c3a", lineHeight: 1 }}>♥</span>
+        <div style={{ width: 10, height: 2, background: LINE }} />
+        <Node initials="Gpa" bg="#3d6b5e" label="Grandpa" />
       </div>
 
-      {/* Stem down to parents */}
-      <div style={{ width: 2, height: 14, background: LINE }} />
+      <div style={{ width: 2, height: 11, background: LINE }} />
 
-      {/* Parents */}
-      <div className="flex items-center gap-0">
-        <TreeAvatar initials="Mom" bg="#c47c3a" color="#fff" size={9} />
-        <div className="flex items-center justify-center" style={{ width: 20, height: 2, background: LINE }}>
-          <span style={{ fontSize: 8, lineHeight: 1, color: "#c47c3a", marginTop: -1 }}>♥</span>
-        </div>
-        <TreeAvatar initials="Dad" bg="#c47c3a" color="#fff" size={9} />
+      {/* Gen 1 — Parents */}
+      <div className="flex items-center gap-0.5">
+        <Node initials="Mom" bg="#c47c3a" label="Mom" />
+        <div style={{ width: 10, height: 2, background: LINE }} />
+        <span style={{ fontSize: 9, color: "#c47c3a", lineHeight: 1 }}>♥</span>
+        <div style={{ width: 10, height: 2, background: LINE }} />
+        <Node initials="Dad" bg="#c47c3a" label="Dad" />
       </div>
 
-      {/* Branch down to kids */}
-      <div style={{ width: 2, height: 12, background: LINE }} />
+      {/* Branch to kids */}
+      <div style={{ width: 2, height: 11, background: LINE }} />
       <div style={{ width: 80, height: 2, background: LINE }} />
 
-      {/* Kids */}
-      <div className="flex items-end gap-0">
-        {[
-          { initials: "Em", offset: 0 },
-          { initials: "Jak", offset: 0 },
-          { initials: "Sam", offset: 0 },
-        ].map(({ initials }) => (
-          <div key={initials} className="flex flex-col items-center">
-            <div style={{ width: 2, height: 12, background: LINE }} />
-            <TreeAvatar initials={initials} bg="var(--secondary)" color="var(--foreground)" size={8} />
+      {/* Gen 2 — Kids */}
+      <div className="flex items-start">
+        {["Em", "Jak", "Sam"].map((n) => (
+          <div
+            key={n}
+            className="flex flex-col items-center"
+            style={{ margin: "0 5px" }}
+          >
+            <div style={{ width: 2, height: 10, background: LINE }} />
+            <Node initials={n} bg="#8ca89a" label={n} />
           </div>
         ))}
       </div>
