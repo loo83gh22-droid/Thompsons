@@ -23,10 +23,10 @@ export function HeroSection() {
                 className="max-w-lg text-lg leading-relaxed"
                 style={{ color: "var(--muted)" }}
               >
-                A private, beautiful space where grandparents, parents, teens,
-                and kids all come together. Journals, photos, videos, voice memos, recipes,
-                and so much more. Join your daughter&apos;s nest, your son&apos;s nest, or start
-                your own — all from one account.
+                Group chats get messy. Social media isn&apos;t private. FamilyNest gives
+                grandparents, parents, teens, and kids one beautiful, private space — for
+                journals, photos, voice memos, recipes, and more. Join or start a nest,
+                all from one account.
               </p>
             </div>
 
