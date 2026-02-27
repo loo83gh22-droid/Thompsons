@@ -33,7 +33,7 @@ export default async function JournalPage() {
     .order("trip_date", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
 
-  // Batch fetch photos, videos, and perspective counts (avoids N+1 queries)
+  // Batch fetch photos, videos, and perspective counts
   const photosByEntryId = new Map<string, { id: string; url: string; caption: string | null }[]>();
   const videosByEntryId = new Map<string, { id: string; url: string; duration_seconds: number | null }[]>();
   const perspectiveCountByEntryId = new Map<string, number>();
@@ -83,26 +83,24 @@ export default async function JournalPage() {
       <Suspense fallback={null}>
         <AddedToMapBanner />
       </Suspense>
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-5 sm:px-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-              Journal
-            </h1>
-            <p className="mt-2 text-[var(--muted)]">
-              Stories and photos from trips, birthdays, celebrations. Anyone can add their perspective to an entry.
-            </p>
-          </div>
-          <Link
-            href="/dashboard/journal/new"
-            className="inline-flex min-h-[44px] w-full shrink-0 items-center justify-center rounded-full bg-[var(--primary)] px-4 py-3 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] sm:w-auto sm:py-2"
-          >
-            New entry
-          </Link>
+
+      {/* Page header */}
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">Journal</h1>
+          <p className="mt-2 text-[var(--muted)]">
+            Stories and photos from trips, birthdays, celebrations. Anyone can add their perspective to an entry.
+          </p>
         </div>
+        <Link
+          href="/dashboard/journal/new"
+          className="shrink-0 inline-flex min-h-[44px] items-center justify-center rounded-full bg-[var(--primary)] px-5 py-2 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
+        >
+          + New entry
+        </Link>
       </div>
 
-      <div className="mt-12 space-y-8">
+      <div className="mt-4 space-y-6">
         {!entries?.length ? (
           <EmptyState
             icon="📔"
@@ -116,6 +114,8 @@ export default async function JournalPage() {
             const photos = photosByEntryId.get(entry.id) ?? [];
             const videos = videosByEntryId.get(entry.id) ?? [];
             const perspectiveCount = perspectiveCountByEntryId.get(entry.id) ?? 0;
+            const heroPhoto = photos[0] ?? null;
+            const extraPhotos = photos.slice(1);
 
             const date = entry.trip_date
               ? formatDateOnly(entry.trip_date)
@@ -125,56 +125,116 @@ export default async function JournalPage() {
                   day: "numeric",
                 });
 
+            const raw = entry.family_members as unknown;
+            const author = Array.isArray(raw) ? raw[0] : raw;
+            const displayName = author?.nickname?.trim() || author?.name;
+            const rel = author?.relationship?.trim();
+            const authorLabel = displayName ? (rel ? `${displayName} (${rel})` : displayName) : null;
+
             return (
               <article
                 key={entry.id}
-                className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden"
+                className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] transition-shadow hover:shadow-md"
               >
-                <div className="p-6">
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="flex-1">
-                  <div className="flex flex-wrap items-baseline gap-2 text-sm text-[var(--muted)]">
-                    <time dateTime={entry.trip_date || entry.created_at}>
+                {/* Photo hero — full-width banner when photos exist */}
+                {heroPhoto && (
+                  <div className="relative h-56 w-full overflow-hidden bg-[var(--secondary)]">
+                    <Image
+                      src={heroPhoto.url}
+                      alt={heroPhoto.caption || entry.title || "Photo"}
+                      fill
+                      unoptimized
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 800px"
+                    />
+                    {/* Gradient so bottom text is readable if needed */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+
+                    {/* Extra photo thumbnails — bottom right */}
+                    {extraPhotos.length > 0 && (
+                      <div className="absolute bottom-3 right-3 flex items-center gap-1.5">
+                        {extraPhotos.slice(0, 2).map((p) => (
+                          <div
+                            key={p.id}
+                            className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg"
+                            style={{ border: "2px solid rgba(255,255,255,0.7)" }}
+                          >
+                            <Image
+                              src={p.url}
+                              alt={p.caption || ""}
+                              fill
+                              unoptimized
+                              className="object-cover"
+                              sizes="48px"
+                            />
+                          </div>
+                        ))}
+                        {extraPhotos.length > 2 && (
+                          <div
+                            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white"
+                            style={{ backgroundColor: "rgba(0,0,0,0.45)", border: "2px solid rgba(255,255,255,0.5)" }}
+                          >
+                            +{extraPhotos.length - 2}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Video badge — top left */}
+                    {videos.length > 0 && (
+                      <div className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-medium text-white">
+                        ▶ {videos.length} video{videos.length !== 1 ? "s" : ""}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Card body */}
+                <div className="p-5 sm:p-6">
+                  {/* Metadata row */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <time className="text-sm text-[var(--muted)]" dateTime={entry.trip_date || entry.created_at}>
                       {date}
                     </time>
                     {entry.location && (
-                      <>
-                        <span>·</span>
-                        <span>{entry.location}</span>
-                      </>
+                      <span className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--secondary)] px-2 py-0.5 text-xs text-[var(--foreground)]">
+                        📍 {entry.location}
+                      </span>
                     )}
-                    {(() => {
-                      const raw = entry.family_members as unknown;
-                      const author = Array.isArray(raw) ? raw[0] : raw;
-                      const displayName = author?.nickname?.trim() || author?.name;
-                      const rel = author?.relationship?.trim();
-                      const label = displayName ? (rel ? `${displayName} (${rel})` : displayName) : null;
-                      return label ? (
-                        <>
-                          <span>·</span>
-                          <span>Written by {label}</span>
-                        </>
-                      ) : null;
-                    })()}
+                    {authorLabel && (
+                      <span className="text-sm text-[var(--muted)]">· by {authorLabel}</span>
+                    )}
                   </div>
+
+                  {/* Title */}
                   <h2 className="mt-2 font-display text-xl font-semibold text-[var(--foreground)]">
                     {entry.title}
                   </h2>
+
+                  {/* Content preview */}
                   {entry.content && (
-                    <div className="mt-4 whitespace-pre-wrap text-[var(--foreground)]/90">
+                    <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-[var(--foreground)]/80">
                       {entry.content}
-                    </div>
+                    </p>
                   )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {perspectiveCount > 0 && (
-                        <span className="rounded-full bg-[var(--accent)]/20 px-2 py-0.5 text-xs font-medium text-[var(--accent)]">
-                          {perspectiveCount} perspective{perspectiveCount !== 1 ? "s" : ""}
-                        </span>
-                      )}
+
+                  {/* Actions row */}
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    {perspectiveCount > 0 && (
+                      <span className="rounded-full bg-[var(--accent)]/15 px-2.5 py-0.5 text-xs font-medium text-[var(--accent)]">
+                        {perspectiveCount} perspective{perspectiveCount !== 1 ? "s" : ""}
+                      </span>
+                    )}
+                    {/* Video badge (no hero photo case) */}
+                    {!heroPhoto && videos.length > 0 && (
+                      <span className="rounded-full border border-[var(--border)] bg-[var(--secondary)] px-2.5 py-0.5 text-xs text-[var(--muted)]">
+                        ▶ {videos.length} video{videos.length !== 1 ? "s" : ""}
+                      </span>
+                    )}
+                    <div className="ml-auto flex items-center gap-2">
                       <Link
                         href={`/dashboard/journal/${entry.id}/edit`}
-                        className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-medium hover:bg-[var(--surface-hover)]"
+                        className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm font-medium hover:bg-[var(--surface-hover)]"
                       >
                         Edit
                       </Link>
@@ -186,23 +246,31 @@ export default async function JournalPage() {
                     </div>
                   </div>
                 </div>
-                {(photos.length > 0 || videos.length > 0) && (
-                  <div className="flex gap-2 overflow-x-auto p-4 pt-0">
-                    {photos.map((photo, i) => (
+
+                {/* Video players — shown below body when no hero photo */}
+                {!heroPhoto && videos.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto border-t border-[var(--border)] p-4">
+                    {videos.map((video) => (
                       <div
-                        key={photo.id ?? i}
-                        className="relative h-48 w-48 flex-shrink-0 overflow-hidden rounded-lg"
+                        key={video.id}
+                        className="relative h-48 w-72 flex-shrink-0 overflow-hidden rounded-lg bg-black"
                       >
-                        <Image
-                          src={photo.url}
-                          alt={photo.caption || `Photo ${i + 1}`}
-                          fill
-                          unoptimized
-                          className="object-cover"
-                          sizes="192px"
+                        {/* eslint-disable-next-line jsx-a11y/media-has-caption -- family home video, no captions */}
+                        <video
+                          src={video.url}
+                          controls
+                          preload="metadata"
+                          playsInline
+                          className="h-full w-full object-contain"
                         />
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {/* When there IS a hero photo, still show videos below */}
+                {heroPhoto && videos.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto border-t border-[var(--border)] p-4">
                     {videos.map((video) => (
                       <div
                         key={video.id}

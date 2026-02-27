@@ -15,28 +15,57 @@ const MARKETING_PHOTOS = [
 
 function JournalPreview() {
   return (
-    <div className="flex h-full w-full flex-col gap-2 p-4">
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] font-semibold" style={{ color: "var(--foreground)" }}>
-          Feb 20, 2026
-        </span>
-        <span className="rounded-full px-1.5 py-0.5 text-[8px]" style={{ backgroundColor: "var(--accent)", color: "#fff" }}>
+    <div className="relative h-full w-full overflow-hidden">
+      {/* Hero photo — fills the whole preview area */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={MARKETING_PHOTOS[2]} alt="" className="h-full w-full object-cover" />
+
+      {/* Gradient overlay — fades bottom to dark so text reads clearly */}
+      <div
+        className="absolute inset-0"
+        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.22) 55%, transparent 100%)" }}
+      />
+
+      {/* "New" badge — top right */}
+      <div className="absolute right-3 top-3">
+        <span
+          className="rounded-full px-2 py-0.5 text-[8px] font-semibold"
+          style={{ backgroundColor: "var(--accent)", color: "#fff" }}
+        >
           New
         </span>
       </div>
-      <p className="text-[11px] font-medium" style={{ color: "var(--foreground)" }}>
-        Huck&apos;s 1st Catch!
-      </p>
-      <p className="text-[9px] leading-snug line-clamp-2" style={{ color: "var(--muted)" }}>
-        Costa Rica fishing trip — 5 photos &amp; a video from the boat
-      </p>
-      <div className="flex gap-1.5 mt-auto">
-        {MARKETING_PHOTOS.map((src, i) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img key={i} src={src} alt="" className="h-12 w-12 rounded object-cover" />
-        ))}
-        <div className="h-12 w-12 rounded flex items-center justify-center" style={{ backgroundColor: "var(--border)" }}>
-          <span className="text-[8px] font-semibold" style={{ color: "var(--muted)" }}>+3</span>
+
+      {/* Bottom: date · location, title, thumbnail strip */}
+      <div className="absolute bottom-0 left-0 right-0 p-3">
+        <p className="text-[9px]" style={{ color: "rgba(255,255,255,0.6)" }}>
+          Feb 20, 2026 &middot; Costa Rica
+        </p>
+        <p
+          className="mt-0.5 text-[13px] font-bold leading-tight"
+          style={{ color: "#fff", fontFamily: "var(--font-display-serif)" }}
+        >
+          Huck&apos;s 1st Catch!
+        </p>
+
+        {/* Thumbnail strip */}
+        <div className="mt-2 flex items-center gap-1">
+          {MARKETING_PHOTOS.map((src, i) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={i}
+              src={src}
+              alt=""
+              className="h-9 w-9 rounded object-cover"
+              style={{ border: "1.5px solid rgba(255,255,255,0.5)" }}
+            />
+          ))}
+          <div
+            className="flex h-9 w-9 items-center justify-center rounded"
+            style={{ backgroundColor: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.3)" }}
+          >
+            <span className="text-[8px] font-bold" style={{ color: "#fff" }}>+3</span>
+          </div>
         </div>
       </div>
     </div>
