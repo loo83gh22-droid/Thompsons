@@ -127,28 +127,76 @@ function TreePreview() {
 }
 
 function VoiceMemoPreview() {
+  const memos = [
+    {
+      name: "Grandma's story",
+      duration: "3:42",
+      color: "#4d9e87",
+      played: 11,
+      bars: [2, 5, 8, 4, 9, 6, 3, 7, 5, 8, 4, 6, 7, 3, 8, 5, 4, 9, 6, 4],
+    },
+    {
+      name: "First words",
+      duration: "0:18",
+      color: "#c47c3a",
+      played: 5,
+      bars: [3, 7, 5, 9, 4, 8, 6, 3, 7, 5, 4, 8, 6, 4, 7, 3, 5, 8, 4, 6],
+    },
+  ];
+
   return (
-    <div className="flex h-full w-full flex-col justify-center gap-3 p-4">
-      {[
-        { name: "Grandma's story", duration: "3:42", color: "var(--primary)" },
-        { name: "First words", duration: "0:18", color: "var(--accent)" },
-      ].map((memo) => (
-        <div key={memo.name} className="flex items-center gap-2 rounded-lg p-2" style={{ backgroundColor: "var(--background)", border: "1px solid var(--border)" }}>
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: memo.color }}>
-            <span className="text-[8px]" style={{ color: "#fff" }}>&#9654;</span>
+    <div
+      className="flex h-full w-full flex-col justify-center gap-2.5 p-4"
+      style={{ background: "linear-gradient(160deg, #1a2e24 0%, #0e1c14 100%)" }}
+    >
+      {memos.map((memo) => (
+        <div
+          key={memo.name}
+          className="flex items-center gap-2.5 rounded-xl p-2.5"
+          style={{ backgroundColor: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)" }}
+        >
+          {/* Play button */}
+          <div
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+            style={{ backgroundColor: memo.color }}
+          >
+            <span style={{ color: "#fff", fontSize: 8, paddingLeft: 1 }}>▶</span>
           </div>
+
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-medium truncate" style={{ color: "var(--foreground)" }}>{memo.name}</p>
-            {/* Waveform bars */}
-            <div className="mt-1 flex items-end gap-[2px]">
-              {[3, 6, 4, 8, 5, 7, 3, 6, 8, 4, 5, 7, 3, 5, 6, 4].map((h, i) => (
-                <div key={i} className="w-[3px] rounded-full" style={{ height: `${h}px`, backgroundColor: memo.color, opacity: 0.5 }} />
+            <p className="text-[10px] font-semibold truncate" style={{ color: "#f0ebe3" }}>
+              {memo.name}
+            </p>
+            {/* Waveform with played/unplayed distinction */}
+            <div className="mt-1.5 flex items-end gap-[2px]">
+              {memo.bars.map((h, i) => (
+                <div
+                  key={i}
+                  className="rounded-full"
+                  style={{
+                    width: 2.5,
+                    height: `${h}px`,
+                    backgroundColor:
+                      i < memo.played ? memo.color : "rgba(255,255,255,0.18)",
+                  }}
+                />
               ))}
             </div>
           </div>
-          <span className="text-[9px] shrink-0" style={{ color: "var(--muted)" }}>{memo.duration}</span>
+
+          <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, flexShrink: 0 }}>
+            {memo.duration}
+          </span>
         </div>
       ))}
+
+      {/* Footer label */}
+      <p
+        className="mt-0.5 text-center text-[8px] font-medium uppercase tracking-wider"
+        style={{ color: "rgba(255,255,255,0.22)" }}
+      >
+        2 recordings · family archive
+      </p>
     </div>
   );
 }

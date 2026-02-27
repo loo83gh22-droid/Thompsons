@@ -54,17 +54,17 @@ export default async function VoiceMemosPage() {
 
   return (
     <div>
-      <div className="mb-8 rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-5 sm:px-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0">
-            <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-              Voice Memos
-            </h1>
-            <p className="mt-2 text-[var(--muted)]">
-              Record voices for the future—stories, songs, jokes. Imagine kids hearing their
-              great-grandmother&apos;s voice decades from now.
-            </p>
-          </div>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
+            Voice Memos
+          </h1>
+          <p className="mt-2 text-[var(--muted)]">
+            Record voices for the future — stories, songs, jokes. Imagine your kids hearing
+            their great-grandmother&apos;s voice decades from now.
+          </p>
+        </div>
+        <div className="shrink-0">
           <AddVoiceMemoForm members={members} />
         </div>
       </div>

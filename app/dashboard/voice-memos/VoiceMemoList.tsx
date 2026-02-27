@@ -43,6 +43,17 @@ function one<T>(x: T | T[] | null): T | null {
   return Array.isArray(x) ? x[0] ?? null : x;
 }
 
+function MicIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="9" y="2" width="6" height="11" rx="3" />
+      <path d="M5 10a7 7 0 0 0 14 0" />
+      <line x1="12" y1="19" x2="12" y2="22" />
+      <line x1="8" y1="22" x2="16" y2="22" />
+    </svg>
+  );
+}
+
 export function VoiceMemoList({
   memos,
   currentUserMemberId,
@@ -103,113 +114,130 @@ export function VoiceMemoList({
         return (
           <article
             key={memo.id}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6"
+            className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] transition-shadow hover:shadow-md"
           >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
-              <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-2xl" aria-hidden="true">
-                    🎙️
-                  </span>
-                  {isCreator && (
-                    <div className="flex items-center gap-1">
+            {/* Accent top strip */}
+            <div className="h-[3px] bg-gradient-to-r from-[var(--primary)] via-[var(--accent)] to-[var(--primary)]/40" />
+
+            <div className="p-4 sm:p-5">
+              {/* Header row */}
+              <div className="flex items-start gap-3">
+                {/* Mic icon */}
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
+                  <MicIcon />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="font-display text-lg font-semibold leading-tight text-[var(--foreground)]">
+                      {memo.title}
+                    </h2>
+                    {memo.duration_seconds != null && (
+                      <span className="shrink-0 rounded-full border border-[var(--border)] bg-[var(--secondary)] px-2 py-0.5 text-xs text-[var(--muted)]">
+                        {formatDuration(memo.duration_seconds)}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Metadata */}
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm text-[var(--muted)]">
+                    <span>🎙️ {byLabel}</span>
+                    {forLabel && <span>· for {forLabel}</span>}
+                    <span>· {dateStr}</span>
+                  </div>
+                </div>
+
+                {/* Action buttons */}
+                {isCreator && (
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setEditingId(memo.id)}
+                      className="flex min-h-[40px] min-w-[40px] items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]"
+                      aria-label="Edit"
+                    >
+                      ✏️
+                    </button>
+                    {deleteConfirmId === memo.id ? (
+                      <span className="flex items-center gap-1 text-sm">
+                        <button type="button" onClick={() => handleRemove(memo.id)} className="text-red-600 hover:underline">
+                          Confirm
+                        </button>
+                        <button type="button" onClick={() => setDeleteConfirmId(null)} className="text-[var(--muted)] hover:underline">
+                          Cancel
+                        </button>
+                      </span>
+                    ) : (
                       <button
                         type="button"
-                        onClick={() => setEditingId(memo.id)}
-                        className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]"
-                        aria-label="Edit"
+                        onClick={() => setDeleteConfirmId(memo.id)}
+                        className="flex min-h-[40px] min-w-[40px] items-center justify-center rounded-lg text-[var(--muted)] hover:bg-red-50 hover:text-red-600"
+                        aria-label="Delete"
                       >
-                        ✏️
+                        🗑️
                       </button>
-                      {deleteConfirmId === memo.id ? (
-                        <span className="flex items-center gap-1 text-sm">
-                          <button
-                            type="button"
-                            onClick={() => handleRemove(memo.id)}
-                            className="text-red-600 hover:underline"
-                          >
-                            Confirm
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeleteConfirmId(null)}
-                            className="text-[var(--muted)] hover:underline"
-                          >
-                            Cancel
-                          </button>
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setDeleteConfirmId(memo.id)}
-                          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-[var(--muted)] hover:bg-red-100 hover:text-red-600"
-                          aria-label="Delete"
-                        >
-                          🗑️
-                        </button>
-                      )}
-                    </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Description */}
+              {memo.description && (
+                <p className="mt-2.5 line-clamp-2 text-sm text-[var(--muted)]">{memo.description}</p>
+              )}
+
+              {/* Audio player */}
+              <div className="mt-3 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2">
+                <audio
+                  src={memo.audio_url}
+                  controls
+                  className="h-10 w-full"
+                  preload="metadata"
+                />
+              </div>
+
+              {/* Transcription */}
+              {memo.transcript ? (
+                <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--background)] p-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-[var(--foreground)]">Transcript</h4>
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText(memo.transcript!)}
+                      className="text-xs text-[var(--primary)] hover:underline"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--muted)]">{memo.transcript}</p>
+                  {memo.transcribed_at && (
+                    <p className="mt-2 text-xs text-[var(--muted)]">
+                      Transcribed on {new Date(memo.transcribed_at).toLocaleDateString()}
+                    </p>
                   )}
                 </div>
-                <h2 className="font-display text-xl font-semibold text-[var(--foreground)]">
-                  {memo.title}
-                </h2>
-                <p className="text-sm text-[var(--muted)]">
-                  Recorded by {byLabel} on {dateStr}
+              ) : memo.transcription_status === "processing" ? (
+                <p className="mt-3 flex items-center gap-2 text-sm text-[var(--muted)]">
+                  <span className="animate-spin inline-block">⏳</span> Transcribing audio…
                 </p>
-                {memo.duration_seconds != null && (
-                  <p className="text-sm text-[var(--muted)]">
-                    Duration: {formatDuration(memo.duration_seconds)}
-                  </p>
-                )}
-                {forMember && forLabel && (
-                  <p className="text-sm text-[var(--muted)]">
-                    For {forLabel}
-                  </p>
-                )}
-                {memo.description && (
-                  <p className="line-clamp-2 text-sm text-[var(--muted)]">{memo.description}</p>
-                )}
-              </div>
-              <div className="w-full min-w-0 flex-shrink-0 sm:w-auto">
-                <div className="rounded-lg border border-[var(--border)] bg-[var(--background)] p-2">
-                  <audio
-                    src={memo.audio_url}
-                    controls
-                    className="h-10 w-full max-w-full"
-                    preload="metadata"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Transcription UI */}
-            {memo.transcript ? (
-              <div className="mt-4 rounded-lg border border-[var(--border)] bg-[var(--background)] p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-medium text-[var(--foreground)]">Transcript</h4>
+              ) : memo.transcription_status === "failed" ? (
+                <div className="mt-3 flex items-center gap-2">
+                  <p className="text-sm text-red-500">Transcription failed.</p>
                   <button
                     type="button"
-                    onClick={() => navigator.clipboard.writeText(memo.transcript!)}
+                    onClick={async () => {
+                      setTranscribingId(memo.id);
+                      await transcribeVoiceMemo(memo.id);
+                      setTranscribingId(null);
+                      router.refresh();
+                    }}
+                    disabled={transcribingId === memo.id}
                     className="text-xs text-[var(--primary)] hover:underline"
                   >
-                    Copy
+                    Retry
                   </button>
                 </div>
-                <p className="text-sm text-[var(--muted)] whitespace-pre-wrap leading-relaxed">{memo.transcript}</p>
-                {memo.transcribed_at && (
-                  <p className="text-xs text-[var(--muted)] mt-2">
-                    Transcribed on {new Date(memo.transcribed_at).toLocaleDateString()}
-                  </p>
-                )}
-              </div>
-            ) : memo.transcription_status === 'processing' ? (
-              <p className="mt-3 text-sm text-[var(--muted)] flex items-center gap-2">
-                <span className="animate-spin inline-block">⏳</span> Transcribing audio...
-              </p>
-            ) : memo.transcription_status === 'failed' ? (
-              <div className="mt-3 flex items-center gap-2">
-                <p className="text-sm text-red-500">Transcription failed.</p>
+              ) : (
                 <button
                   type="button"
                   onClick={async () => {
@@ -219,26 +247,12 @@ export function VoiceMemoList({
                     router.refresh();
                   }}
                   disabled={transcribingId === memo.id}
-                  className="text-xs text-[var(--primary)] hover:underline"
+                  className="mt-3 text-sm font-medium text-[var(--primary)] hover:underline disabled:opacity-50"
                 >
-                  Retry
+                  {transcribingId === memo.id ? "Transcribing…" : "✨ Transcribe this memo"}
                 </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={async () => {
-                  setTranscribingId(memo.id);
-                  await transcribeVoiceMemo(memo.id);
-                  setTranscribingId(null);
-                  router.refresh();
-                }}
-                disabled={transcribingId === memo.id}
-                className="mt-3 text-sm font-medium text-[var(--primary)] hover:underline disabled:opacity-50"
-              >
-                {transcribingId === memo.id ? "Transcribing..." : "✨ Transcribe this memo"}
-              </button>
-            )}
+              )}
+            </div>
           </article>
         );
       })}
@@ -356,7 +370,7 @@ function EditVoiceMemoModal({
                 onChange={(e) => setRecordedById(e.target.value)}
                 className="input-base mt-1"
               >
-                <option value="">Select...</option>
+                <option value="">Select…</option>
                 {members.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.relationship ? `${m.name} (${m.relationship})` : m.name}
