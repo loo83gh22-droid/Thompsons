@@ -186,7 +186,7 @@ export default function LocationInput({
         )}
       </div>
       <p className="text-xs text-[var(--muted)]">
-        Adds a pin to the Travel Map for the person/family you selected.
+        Adds a pin to the Family Map for the person/family you selected.
       </p>
     </div>
   );

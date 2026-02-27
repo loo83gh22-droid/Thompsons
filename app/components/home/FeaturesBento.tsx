@@ -174,22 +174,66 @@ function TimeCapsulePreview() {
 
 function RecipePreview() {
   return (
-    <div className="flex h-full w-full flex-col gap-2 p-4">
-      <p className="text-[11px] font-semibold" style={{ color: "var(--foreground)" }}>
+    <div
+      className="flex h-full w-full flex-col gap-2.5 p-4"
+      style={{ background: "linear-gradient(160deg, #faf3e8 0%, #eddfc8 100%)" }}
+    >
+      {/* Header row: badge + big decorative quote */}
+      <div className="flex items-start justify-between">
+        <span
+          className="rounded-full px-2 py-0.5 text-[8px] font-semibold uppercase tracking-wider"
+          style={{ backgroundColor: "rgba(196,124,58,0.18)", color: "#b86d2a" }}
+        >
+          Family Recipe
+        </span>
+        <span
+          style={{
+            fontSize: 32,
+            lineHeight: 1,
+            color: "rgba(180,120,60,0.22)",
+            fontFamily: "Georgia, serif",
+          }}
+        >
+          &ldquo;
+        </span>
+      </div>
+
+      {/* Recipe name */}
+      <p
+        className="text-[13px] font-bold leading-tight"
+        style={{ fontFamily: "var(--font-display-serif)", color: "#2d1a0a" }}
+      >
         Nana&apos;s Banana Bread
       </p>
-      <p className="text-[9px] italic" style={{ color: "var(--muted)" }}>
-        &quot;She always said the secret was one extra banana...&quot;
+
+      {/* Italic quote */}
+      <p className="text-[9px] italic leading-snug" style={{ color: "#7a5a38" }}>
+        &ldquo;She always said the secret was one extra banana...&rdquo;
       </p>
-      <div className="flex flex-col gap-1 mt-1">
-        {["3 ripe bananas", "1 cup sugar", "1/3 cup butter"].map((item) => (
-          <div key={item} className="flex items-center gap-1.5">
-            <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--accent)" }} />
-            <span className="text-[9px]" style={{ color: "var(--foreground)" }}>{item}</span>
-          </div>
+
+      {/* Divider */}
+      <div style={{ height: 1, background: "rgba(180,120,60,0.2)" }} />
+
+      {/* Ingredient chips */}
+      <div className="flex flex-wrap gap-1">
+        {["🍌 3 bananas", "🧈 1/3 cup butter", "🍬 1 cup sugar"].map((item) => (
+          <span
+            key={item}
+            className="rounded-full px-2 py-0.5 text-[8px]"
+            style={{
+              background: "rgba(255,255,255,0.7)",
+              color: "#6b4422",
+              border: "1px solid rgba(180,120,60,0.25)",
+            }}
+          >
+            {item}
+          </span>
         ))}
-        <span className="text-[8px] mt-0.5" style={{ color: "var(--muted)" }}>+ 5 more ingredients</span>
       </div>
+
+      <span className="text-[8px]" style={{ color: "#9a7a58" }}>
+        + 5 more ingredients
+      </span>
     </div>
   );
 }
@@ -207,7 +251,7 @@ export function FeaturesBento() {
     },
     {
       icon: MapPin,
-      title: "Family Travel Map",
+      title: "Family Map",
       description:
         "Pin everywhere your family has been. Vacations, birthplaces, that roadside diner everyone still talks about. Watch your map fill up over the years.",
       Preview: MapPreview,
@@ -273,7 +317,7 @@ export function FeaturesBento() {
           {features.map((feature) => (
             <article
               key={feature.title}
-              className="group overflow-hidden rounded-2xl transition-shadow hover:shadow-lg"
+              className="group overflow-hidden rounded-2xl transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
               style={{
                 border: "1px solid var(--border)",
                 backgroundColor: "var(--card)",
@@ -281,15 +325,15 @@ export function FeaturesBento() {
             >
               {/* Mini UI preview */}
               <div
-                className="relative h-48 overflow-hidden"
+                className="relative h-48 overflow-hidden transition-transform duration-500 group-hover:scale-[1.04]"
                 style={{ backgroundColor: "var(--secondary)" }}
               >
                 <feature.Preview />
               </div>
               <div className="p-6">
                 <div
-                  className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg"
-                  style={{ backgroundColor: "rgba(61,107,94,0.1)" }}
+                  className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl shadow-sm"
+                  style={{ backgroundColor: "rgba(61,107,94,0.12)", border: "1px solid rgba(61,107,94,0.15)" }}
                 >
                   <feature.icon className="h-5 w-5" style={{ color: "var(--primary)" }} />
                 </div>

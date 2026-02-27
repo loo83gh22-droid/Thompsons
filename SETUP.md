@@ -125,7 +125,7 @@ See [RESEND_SETUP.md](RESEND_SETUP.md) for full step-by-step setup.
 
 ## Next Steps
 
-- **Travel Map**: Add rows to `travel_locations` to see pins on the map.
+- **Family Map**: Add rows to `travel_locations` to see pins on the map.
 - **Journal**: The new entry form will save to `journal_entries` once wired up.
 
 ---
