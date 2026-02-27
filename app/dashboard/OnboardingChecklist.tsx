@@ -14,9 +14,19 @@ type OnboardingStep = {
   done: boolean;
 };
 
-const ARCHIVED_KEY = "family-nest-onboarding-archived";
+const ARCHIVED_COOKIE = "fn_onboarding_archived";
 const HIDDEN_KEY = "family-nest-onboarding-hidden";
 const CELEBRATED_KEY = "family-nest-onboarding-celebrated";
+
+function getCookie(name: string): string | undefined {
+  if (typeof document === "undefined") return undefined;
+  return document.cookie.split("; ").find((row) => row.startsWith(name + "="))?.split("=")[1];
+}
+
+function setCookie(name: string, value: string, days: number) {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax`;
+}
 
 export function OnboardingChecklist({
   memberCount,
@@ -38,14 +48,16 @@ export function OnboardingChecklist({
 
   useEffect(() => {
     try {
-      // Migrate old dismissed key to new archived key
+      // Migrate old localStorage dismissed/archived flags to cookie
       const oldDismissed = localStorage.getItem("family-nest-onboarding-dismissed");
-      if (oldDismissed === "true") {
-        localStorage.setItem(ARCHIVED_KEY, "true");
+      const oldArchived = localStorage.getItem("family-nest-onboarding-archived");
+      if (oldDismissed === "true" || oldArchived === "true") {
+        setCookie(ARCHIVED_COOKIE, "true", 365);
         localStorage.removeItem("family-nest-onboarding-dismissed");
+        localStorage.removeItem("family-nest-onboarding-archived");
       }
 
-      const isArchived = localStorage.getItem(ARCHIVED_KEY) === "true";
+      const isArchived = getCookie(ARCHIVED_COOKIE) === "true";
       const isHidden = sessionStorage.getItem(HIDDEN_KEY) === "true";
       setArchived(isArchived);
       setSessionHidden(isHidden);
@@ -125,7 +137,7 @@ export function OnboardingChecklist({
           // Auto-hide confetti after 5 seconds
           setTimeout(() => setShowConfetti(false), 5000);
         }
-        localStorage.setItem(ARCHIVED_KEY, "true");
+        setCookie(ARCHIVED_COOKIE, "true", 365);
       } catch { /* ignore */ }
     }
   }, [allDone]);
@@ -147,7 +159,7 @@ export function OnboardingChecklist({
   function handleArchive() {
     setArchived(true);
     try {
-      localStorage.setItem(ARCHIVED_KEY, "true");
+      setCookie(ARCHIVED_COOKIE, "true", 365);
     } catch {
       // ignore
     }
