@@ -139,12 +139,12 @@ export default function GiftPage() {
                   textWrap: "balance",
                 }}
               >
-                &ldquo;I set up the Nest, uploaded 20 years of family photos, and wrapped the login
+                &ldquo;I set up the Nest, uploaded 20 years of our favourite family photos, and wrapped the login
                 on a card. My mum cried. My wife said it was the best gift I&apos;d ever given.
-                It cost less than a sweater.&rdquo;
+                It cost less than a large bouquet of flowers.&rdquo;
               </p>
               <p className="text-sm" style={{ color: "var(--muted)" }}>
-                Daniel R. &mdash; Portland, OR &middot; Dad &amp; Nest creator
+                Daniel R. Portland, OR &middot; Dad &amp; Nest creator
               </p>
             </div>
           </div>
