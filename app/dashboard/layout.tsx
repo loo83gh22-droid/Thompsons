@@ -10,6 +10,7 @@ import { AgeTransitionBanner } from "@/app/dashboard/AgeTransitionBanner";
 import { BirthdayPrompt } from "@/app/dashboard/BirthdayPrompt";
 import { FeedbackPromptModal } from "@/app/dashboard/FeedbackPromptModal";
 import { QuickEntryWidget } from "@/app/dashboard/QuickEntryWidget";
+import { PWAInstallBanner } from "@/app/dashboard/PWAInstallBanner";
 
 export default async function DashboardLayout({
   children,
@@ -152,6 +153,7 @@ export default async function DashboardLayout({
             families={families}
             activeFamilyId={activeFamilyId}
           />
+          <PWAInstallBanner />
           <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6">
             <AgeTransitionBanner />
           </div>
