@@ -2,7 +2,7 @@
   "name": "Family Nest",
   "short_name": "Family Nest",
   "description": "A private space for your family to document life together.",
-  "start_url": "/",
+  "start_url": "/login",
   "display": "standalone",
   "background_color": "#0a0e1a",
   "theme_color": "#2D6B52",

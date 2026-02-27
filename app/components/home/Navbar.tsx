@@ -76,11 +76,10 @@ export function Navbar() {
 
         <div className="flex items-center gap-3 md:hidden">
           <Link
-            href="/login?mode=signup"
-            className="rounded-full px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:brightness-110"
-            style={{ backgroundColor: "var(--accent)" }}
+            href="/login"
+            className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-1.5 text-xs font-semibold text-[var(--foreground)] shadow-sm transition-all duration-200 hover:bg-[var(--accent)] hover:text-white hover:border-[var(--accent)]"
           >
-            Start Free
+            Sign In
           </Link>
           <button
             className="text-[var(--foreground)]"
@@ -131,13 +130,6 @@ export function Navbar() {
               onClick={() => setMobileOpen(false)}
             >
               Contact
-            </Link>
-            <Link
-              href="/login"
-              className="text-sm font-medium text-[var(--foreground)]"
-              onClick={() => setMobileOpen(false)}
-            >
-              Log In
             </Link>
             <Link
               href="/login?mode=signup"

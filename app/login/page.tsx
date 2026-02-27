@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LogoMark } from "@/app/components/LogoMark";
@@ -30,6 +30,15 @@ function LoginForm() {
   const [signUpSuccess, setSignUpSuccess] = useState(false);
 
   const supabase = createClient();
+
+  // If already logged in, skip straight to dashboard
+  useEffect(() => {
+    if (isSignUp || isInvited) return;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) router.replace(next.startsWith("/") ? next : "/dashboard");
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -336,6 +345,8 @@ function LoginForm() {
             <input
               id="email"
               type="email"
+              inputMode="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -359,6 +370,7 @@ function LoginForm() {
             <input
               id="password"
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
