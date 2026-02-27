@@ -10,6 +10,20 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // Link auth user to any existing family_members record with matching contact_email
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email) {
+          await supabase
+            .from('family_members')
+            .update({ user_id: user.id })
+            .eq('contact_email', user.email)
+            .is('user_id', null);
+        }
+      } catch (err) {
+        console.error('Error linking user to family member:', err);
+      }
+
       // Send welcome email to new users
       try {
         const { data: { user } } = await supabase.auth.getUser();
