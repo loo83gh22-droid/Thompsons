@@ -21,7 +21,7 @@ const additionalFeatures = [
   { label: "Shareable Links", icon: Link2 },
   { label: "Kid Accounts", icon: Smile },
   { label: "Family Spotify", icon: Music },
-  { label: "Works on Any Device", icon: Smartphone },
+  { label: "Works on Any Device — iOS, Android & Web", icon: Smartphone },
 ];
 
 export function AdditionalFeatures() {
@@ -50,8 +50,11 @@ export function AdditionalFeatures() {
           >
             Plus all the little things that make it feel like home
           </h3>
-          <p className="mb-8 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
+          <p className="mb-2 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
             From birthday reminders to a family playlist — every detail is here because a real family asked for it.
+          </p>
+          <p className="mb-8 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
+            Family Nest is mobile-first and works in any browser. Add it to your home screen like an app — no App Store required.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             {additionalFeatures.map(({ label, icon: Icon }) => (

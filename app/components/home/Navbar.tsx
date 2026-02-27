@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Gift } from "lucide-react";
 import { LogoMark } from "@/app/components/LogoMark";
 
 export function Navbar() {
@@ -45,6 +45,14 @@ export function Navbar() {
             className="text-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
           >
             Pricing
+          </Link>
+          <Link
+            href="/gift"
+            className="flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-[var(--accent)]"
+            style={{ color: "var(--primary)" }}
+          >
+            <Gift className="h-3.5 w-3.5" />
+            Gift
           </Link>
           <Link
             href="/contact"
@@ -107,6 +115,15 @@ export function Navbar() {
               onClick={() => setMobileOpen(false)}
             >
               Pricing
+            </Link>
+            <Link
+              href="/gift"
+              className="flex items-center gap-1.5 text-sm font-medium"
+              style={{ color: "var(--primary)" }}
+              onClick={() => setMobileOpen(false)}
+            >
+              <Gift className="h-3.5 w-3.5" />
+              Gift
             </Link>
             <Link
               href="/contact"

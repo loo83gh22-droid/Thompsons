@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, Lock } from "lucide-react";
 
 const plans = [
   {
@@ -81,7 +81,7 @@ export function PricingCards() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid gap-8 md:grid-cols-3" id="pricing-grid">
           {plans.map((plan) => (
             <div
               key={plan.name}
@@ -185,6 +185,18 @@ export function PricingCards() {
               )}
             </div>
           ))}
+        </div>
+
+        {/* Data portability reassurance */}
+        <div className="mt-10 flex items-center justify-center gap-2 text-center">
+          <Lock className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--primary)" }} />
+          <p className="text-sm" style={{ color: "var(--muted)" }}>
+            Your memories are always yours.{" "}
+            <span style={{ color: "var(--foreground)", fontWeight: 500 }}>
+              Every plan includes full data export
+            </span>{" "}
+            — we never hold your family&apos;s history hostage.
+          </p>
         </div>
       </div>
     </section>

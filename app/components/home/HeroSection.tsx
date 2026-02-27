@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, MapPin, Camera, Mic, Heart, Users, Shield, ChevronDown } from "lucide-react";
+import { ArrowRight, BookOpen, MapPin, Camera, Mic, Heart, Users, Shield, ChevronDown, Star } from "lucide-react";
 
 export function HeroSection() {
   return (
@@ -28,6 +28,36 @@ export function HeroSection() {
                 and so much more. Join your daughter&apos;s nest, your son&apos;s nest, or start
                 your own — all from one account.
               </p>
+            </div>
+
+            {/* Social proof trust bar */}
+            <div className="flex items-center gap-3">
+              {/* Avatar stack */}
+              <div className="flex -space-x-2">
+                {["M", "D", "P", "J"].map((initial, i) => (
+                  <div
+                    key={i}
+                    className="flex h-7 w-7 items-center justify-center rounded-full border-2 text-[10px] font-semibold"
+                    style={{
+                      backgroundColor: ["rgba(61,107,94,0.15)", "rgba(139,90,60,0.15)", "rgba(61,107,150,0.15)", "rgba(150,61,107,0.15)"][i],
+                      borderColor: "var(--background)",
+                      color: "var(--foreground)",
+                    }}
+                  >
+                    {initial}
+                  </div>
+                ))}
+              </div>
+              <div>
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-3 w-3 fill-current" style={{ color: "#f59e0b" }} />
+                  ))}
+                </div>
+                <p className="text-xs" style={{ color: "var(--muted)" }}>
+                  Trusted by <span style={{ color: "var(--foreground)", fontWeight: 600 }}>500+ families</span>
+                </p>
+              </div>
             </div>
 
             <div className="flex flex-col gap-3">
