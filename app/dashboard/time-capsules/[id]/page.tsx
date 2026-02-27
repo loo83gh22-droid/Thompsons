@@ -127,97 +127,122 @@ export default async function TimeCapsulePage({
         ← Back to Time Capsules
       </Link>
 
-      <div className="mt-8 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-8">
+      <div className="mt-8">
         {unlocked && canSeeContent ? (
-          <>
-            <div className="mb-6 flex items-start justify-between">
-              <div>
-                <h1 className="font-display text-2xl font-bold text-[var(--foreground)]">
-                  {letter.title}
-                </h1>
-                <p className="mt-1 text-sm text-[var(--muted)]">
-                  {from?.name && `From ${from.name}`}
-                  {recipientNames.length > 0 && from?.name && " · "}
-                  {recipientNames.length > 0 && `For ${recipientNames.join(", ")}`}
-                  {letter.unlock_date && ` · Unlocked ${formatDateOnly(letter.unlock_date)}`}
-                  {passingUnlocked && !dateUnlocked && " · Unlocked in their memory"}
-                </p>
+          /* ── Opened letter ── */
+          <div className="overflow-hidden rounded-2xl border border-amber-200/60 shadow-md">
+            {/* Letter header bar */}
+            <div
+              className="flex items-center justify-between gap-4 border-b border-amber-200/60 px-6 py-4"
+              style={{ background: "linear-gradient(105deg, #fdf6e3 0%, #f5e8cc 100%)" }}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-2xl shrink-0">💌</span>
+                <div className="min-w-0">
+                  <h1 className="font-display text-xl font-bold text-[var(--foreground)] leading-tight">
+                    {letter.title}
+                  </h1>
+                  <p className="mt-0.5 text-sm text-[var(--muted)]">
+                    {from?.name && `From ${from.name}`}
+                    {recipientNames.length > 0 && from?.name && " · "}
+                    {recipientNames.length > 0 && `For ${recipientNames.join(", ")}`}
+                    {letter.unlock_date && ` · Unlocked ${formatDateOnly(letter.unlock_date)}`}
+                    {passingUnlocked && !dateUnlocked && " · Unlocked in their memory"}
+                  </p>
+                </div>
               </div>
               {isSender && <DeleteTimeCapsuleButton id={letter.id} />}
             </div>
-            <div className="whitespace-pre-wrap text-[var(--foreground)]">
-              {letter.content}
+
+            {/* Letter body — parchment paper feel */}
+            <div
+              className="px-8 py-8 md:px-12"
+              style={{ background: "linear-gradient(180deg, #fffdf5 0%, #fdf8ec 100%)" }}
+            >
+              <div
+                className="whitespace-pre-wrap leading-relaxed text-[var(--foreground)]"
+                style={{
+                  fontFamily: "Georgia, 'Times New Roman', serif",
+                  fontSize: "1.0625rem",
+                  lineHeight: "1.85",
+                  maxWidth: "68ch",
+                }}
+              >
+                {letter.content}
+              </div>
             </div>
-          </>
+          </div>
         ) : unlocked && !canSeeContent ? (
-          /* Owner/adult can see it exists but not read it */
-          <div className="flex flex-col items-center py-12 text-center">
-            <span className="text-5xl">🔐</span>
-            <h1 className="mt-6 font-display text-2xl font-bold text-[var(--foreground)]">
-              {letter.title}
-            </h1>
-            <p className="mt-2 text-[var(--muted)]">
-              This letter is private — only {recipientNames.length > 0 ? recipientNames.join(" and ") : "the recipient"} can read it.
-            </p>
-            <p className="mt-1 text-sm text-[var(--muted)]">
-              {from?.name && `From ${from.name}`}
-              {recipientNames.length > 0 && ` · For ${recipientNames.join(", ")}`}
-            </p>
+          /* ── Private — owner/adult can see it exists but not read it ── */
+          <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
+            <div className="flex flex-col items-center py-16 text-center px-6">
+              <span className="text-5xl">🔐</span>
+              <h1 className="mt-6 font-display text-2xl font-bold text-[var(--foreground)]">
+                {letter.title}
+              </h1>
+              <p className="mt-2 text-[var(--muted)]">
+                This letter is private — only {recipientNames.length > 0 ? recipientNames.join(" and ") : "the recipient"} can read it.
+              </p>
+              <p className="mt-1 text-sm text-[var(--muted)]">
+                {from?.name && `From ${from.name}`}
+                {recipientNames.length > 0 && ` · For ${recipientNames.join(", ")}`}
+              </p>
+            </div>
           </div>
         ) : (
-          /* Sealed — not yet unlocked */
-          <>
-            <div className="flex flex-col items-center py-12 text-center">
+          /* ── Sealed — not yet unlocked ── */
+          <div
+            className="overflow-hidden rounded-2xl border border-amber-200/70 shadow-md"
+            style={{ background: "linear-gradient(160deg, #fdf6e3 0%, #f0e4c8 100%)" }}
+          >
+            <div className="flex flex-col items-center px-6 py-14 text-center">
               {/* Large envelope with wax seal */}
               <div className="relative inline-block">
-                <svg width="120" height="90" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <rect x="2" y="2" width="116" height="86" rx="6" fill="#fef3c7" stroke="#d97706" strokeWidth="2"/>
-                  <path d="M2 8L60 52L118 8" stroke="#d97706" strokeWidth="2" strokeLinecap="round"/>
-                  <path d="M2 88L38 54" stroke="#d97706" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
-                  <path d="M118 88L82 54" stroke="#d97706" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+                <svg width="140" height="104" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <rect x="2" y="2" width="116" height="86" rx="6" fill="#fef9ee" stroke="#c49a4a" strokeWidth="2" />
+                  <path d="M2 8L60 54L118 8" stroke="#c49a4a" strokeWidth="2" strokeLinecap="round" />
+                  <path d="M2 88L40 56" stroke="#c49a4a" strokeWidth="1.5" strokeLinecap="round" opacity="0.4" />
+                  <path d="M118 88L80 56" stroke="#c49a4a" strokeWidth="1.5" strokeLinecap="round" opacity="0.4" />
                 </svg>
                 {/* Wax seal centred on the envelope */}
                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/3">
                   <WaxSeal
                     initials={from?.name ? nameToInitials(from.name) : "?"}
-                    size={64}
+                    size={72}
                   />
                 </div>
               </div>
 
-              <h1 className="mt-10 font-display text-2xl font-bold text-[var(--foreground)]">
+              <h1 className="mt-12 font-display text-2xl font-bold text-[var(--foreground)]">
                 {letter.title}
               </h1>
-              <p className="mt-2 text-[var(--muted)]">
-                {letter.unlock_on_passing ? (
-                  <>
-                    This letter is sealed and will unlock{" "}
-                    <span className="font-semibold text-amber-600">
-                      when {from?.name || "the sender"} passes
-                    </span>
-                    {letter.unlock_date && (
-                      <> or on <span className="font-semibold text-amber-600">{formatDateOnly(letter.unlock_date)}</span></>
-                    )}
-                    .
-                  </>
-                ) : (
-                  <>
-                    This letter is sealed until{" "}
-                    <span className="font-semibold text-amber-600">{formatDateOnly(letter.unlock_date)}</span>.
-                  </>
-                )}
-              </p>
-              {from?.name && (
-                <p className="mt-1 text-sm text-[var(--muted)]">
-                  Sealed with love by {from.name}
+
+              {/* From / for */}
+              {(from?.name || recipientNames.length > 0) && (
+                <p className="mt-2 text-sm text-[var(--muted)]">
+                  {from?.name && `From ${from.name}`}
+                  {recipientNames.length > 0 && from?.name && " · "}
+                  {recipientNames.length > 0 && `For ${recipientNames.join(", ")}`}
                 </p>
               )}
-              <p className="mt-6 max-w-xs text-sm text-[var(--muted)] italic leading-relaxed">
+
+              {/* Unlock condition badge */}
+              <div className="mt-4 rounded-full border border-amber-300/60 bg-amber-50 px-4 py-1.5 text-sm font-medium text-amber-700">
+                {letter.unlock_on_passing ? (
+                  <>🕊️ Opens when {from?.name || "the sender"} passes{letter.unlock_date && ` or on ${formatDateOnly(letter.unlock_date)}`}</>
+                ) : (
+                  <>🔒 Opens {formatDateOnly(letter.unlock_date)}</>
+                )}
+              </div>
+
+              {/* Flavour text */}
+              <p className="mt-6 max-w-xs text-sm italic leading-relaxed text-[var(--muted)]">
                 &ldquo;Some things are worth waiting for. Come back on that date and it will open for you.&rdquo;
               </p>
+
               {isSender && <DeleteTimeCapsuleButton id={letter.id} className="mt-8" />}
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

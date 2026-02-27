@@ -155,18 +155,62 @@ function VoiceMemoPreview() {
 
 function TimeCapsulePreview() {
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-xl" style={{ backgroundColor: "var(--accent)", opacity: 0.9 }}>
-        <Lock className="h-6 w-6" style={{ color: "#fff" }} />
+    <div
+      className="flex h-full w-full flex-col items-center justify-center gap-3 p-4 text-center"
+      style={{ background: "linear-gradient(160deg, #fdf6e3 0%, #eddfc8 100%)" }}
+    >
+      {/* Envelope with inline wax seal */}
+      <div className="relative" style={{ marginBottom: 6 }}>
+        <svg width="88" height="64" viewBox="0 0 80 58" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="1" y="1" width="78" height="56" rx="4" fill="#fef9ee" stroke="#c49a4a" strokeWidth="1.5" />
+          <path d="M1 5L40 32L79 5" stroke="#c49a4a" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M1 57L28 35" stroke="#c49a4a" strokeWidth="1" strokeLinecap="round" opacity="0.35" />
+          <path d="M79 57L52 35" stroke="#c49a4a" strokeWidth="1" strokeLinecap="round" opacity="0.35" />
+        </svg>
+        {/* Wax seal */}
+        <div style={{ position: "absolute", bottom: -14, left: "50%", transform: "translateX(-50%)" }}>
+          <svg width="32" height="32" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <radialGradient id="tc-wax" cx="38%" cy="32%" r="55%">
+                <stop offset="0%" stopColor="#f87171" stopOpacity="0.6" />
+                <stop offset="100%" stopColor="#991b1b" stopOpacity="0" />
+              </radialGradient>
+            </defs>
+            <circle cx="28" cy="28" r="27" fill="#b91c1c" />
+            {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => {
+              const rad = (angle * Math.PI) / 180;
+              const r = 25 + (i % 3 === 0 ? 3.5 : i % 2 === 0 ? 2 : 1.5);
+              return (
+                <circle
+                  key={angle}
+                  cx={28 + r * Math.cos(rad)}
+                  cy={28 + r * Math.sin(rad)}
+                  r={3 + (i % 2) * 1.5}
+                  fill="#b91c1c"
+                />
+              );
+            })}
+            <circle cx="28" cy="28" r="22" fill="#dc2626" />
+            <circle cx="28" cy="28" r="22" fill="url(#tc-wax)" />
+            <circle cx="28" cy="28" r="17" fill="none" stroke="#991b1b" strokeWidth="1.2" strokeDasharray="2 2" />
+            <text x="28" y="33" textAnchor="middle" fontFamily="Georgia, serif" fontWeight="700" fontSize="13" fill="#fff" style={{ letterSpacing: "0.05em" }}>ML</text>
+          </svg>
+        </div>
       </div>
-      <p className="text-[11px] font-semibold" style={{ color: "var(--foreground)" }}>
-        Letter to future Emma
-      </p>
-      <p className="text-[9px]" style={{ color: "var(--muted)" }}>
-        Sealed by Mom
-      </p>
-      <div className="rounded-full px-2.5 py-1 text-[9px] font-medium" style={{ backgroundColor: "var(--secondary)", color: "var(--foreground)", border: "1px solid var(--border)" }}>
-        Opens Dec 25, 2030
+
+      <div style={{ marginTop: 10 }}>
+        <p className="text-[12px] font-bold leading-tight" style={{ color: "#3d2800", fontFamily: "var(--font-display-serif)" }}>
+          Letter to future Emma
+        </p>
+        <p className="mt-0.5 text-[9px]" style={{ color: "#9a7040" }}>
+          from Mom · sealed with love
+        </p>
+      </div>
+      <div
+        className="rounded-full px-2.5 py-1 text-[9px] font-medium"
+        style={{ backgroundColor: "rgba(255,255,255,0.75)", color: "#b86d2a", border: "1px solid rgba(196,124,58,0.35)" }}
+      >
+        🔒 Opens Dec 25, 2030
       </div>
     </div>
   );

@@ -96,7 +96,8 @@ export default async function TimeCapsulesPage() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between">
+      {/* Page header */}
+      <div className="mb-8 flex items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
             Time Capsules
@@ -105,10 +106,13 @@ export default async function TimeCapsulesPage() {
             Write letters to future versions of family members. Seal them until a date — like &quot;Read this when you turn 18.&quot;
           </p>
         </div>
-        <AddTimeCapsuleForm />
+        <div className="shrink-0">
+          <AddTimeCapsuleForm />
+        </div>
       </div>
 
       <div className="space-y-12">
+        {/* ── Letters for you ── */}
         <section>
           <h2 className="font-display text-xl font-semibold text-[var(--foreground)]">
             Letters for you
@@ -132,66 +136,68 @@ export default async function TimeCapsulesPage() {
                   <Link
                     key={letter.id}
                     href={`/dashboard/time-capsules/${letter.id}`}
-                    className={`group block rounded-xl border p-4 transition-all duration-200 hover:shadow-md ${
+                    className={`group block overflow-hidden rounded-xl border transition-all duration-200 hover:shadow-md ${
                       unlocked
-                        ? "border-emerald-200 bg-emerald-50/50 hover:border-emerald-300 hover:bg-emerald-50"
-                        : "border-[var(--border)] bg-[var(--surface)] hover:border-[var(--accent)]/50 hover:bg-[var(--surface-hover)]"
+                        ? "border-emerald-200 bg-emerald-50/40 hover:border-emerald-300 hover:bg-emerald-50"
+                        : "border-amber-200/70 hover:border-amber-300 hover:shadow-amber-100/60"
                     }`}
+                    style={!unlocked ? { background: "linear-gradient(105deg, #fdf6e3 0%, #f5e8cc 100%)" } : undefined}
                   >
-                    <div className="flex items-center gap-4">
-                      {/* Wax seal or open envelope */}
+                    <div className="flex items-stretch gap-0">
+                      {/* Left visual panel */}
                       {unlocked ? (
-                        <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-3xl">
-                          💌
-                        </span>
+                        <div className="flex w-20 shrink-0 items-center justify-center bg-emerald-100/60 border-r border-emerald-200 py-5">
+                          <span className="text-3xl">💌</span>
+                        </div>
                       ) : (
-                        <div className="relative flex-shrink-0">
-                          {/* Envelope body */}
-                          <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-amber-50 border border-amber-200">
-                            <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                              {/* Envelope outline */}
-                              <rect x="1" y="1" width="30" height="22" rx="2" fill="#fef3c7" stroke="#d97706" strokeWidth="1.5"/>
-                              {/* Flap fold lines */}
-                              <path d="M1 3L16 14L31 3" stroke="#d97706" strokeWidth="1.5" strokeLinecap="round"/>
+                        <div className="flex w-20 shrink-0 flex-col items-center justify-center gap-0 border-r border-amber-200/60 py-5"
+                          style={{ background: "linear-gradient(160deg, #fef3c7 0%, #fde68a33 100%)" }}
+                        >
+                          <div className="relative">
+                            <svg width="44" height="32" viewBox="0 0 80 58" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                              <rect x="1" y="1" width="78" height="56" rx="4" fill="#fef9ee" stroke="#c49a4a" strokeWidth="2" />
+                              <path d="M1 5L40 32L79 5" stroke="#c49a4a" strokeWidth="2" strokeLinecap="round" />
+                              <path d="M1 57L28 35" stroke="#c49a4a" strokeWidth="1.5" strokeLinecap="round" opacity="0.35" />
+                              <path d="M79 57L52 35" stroke="#c49a4a" strokeWidth="1.5" strokeLinecap="round" opacity="0.35" />
                             </svg>
-                          </div>
-                          {/* Wax seal overlaid on envelope */}
-                          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
-                            <WaxSeal
-                              initials={from?.name ? nameToInitials(from.name) : "?"}
-                              size={32}
-                            />
+                            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
+                              <WaxSeal
+                                initials={from?.name ? nameToInitials(from.name) : "?"}
+                                size={28}
+                              />
+                            </div>
                           </div>
                         </div>
                       )}
 
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-start justify-between gap-2">
-                          <div>
-                            <span className="font-medium text-[var(--foreground)]">{letter.title}</span>
-                            {from?.name && (
-                              <span className="ml-2 text-sm text-[var(--muted)]">
-                                from {from.name}
-                              </span>
-                            )}
-                          </div>
-                          <span
-                            className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                              unlocked
-                                ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                                : "bg-amber-50 text-amber-700 border border-amber-200"
-                            }`}
-                          >
-                            {unlocked ? "✉️ Unlocked" : letter.unlock_on_passing ? "🕊️ Sealed until passing" : `🔒 Sealed until ${formatDateOnly(letter.unlock_date)}`}
-                          </span>
+                      {/* Content */}
+                      <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-2 px-4 py-3.5">
+                        <div className="min-w-0">
+                          <span className="font-semibold text-[var(--foreground)]">{letter.title}</span>
+                          {from?.name && (
+                            <span className="ml-2 text-sm text-[var(--muted)]">from {from.name}</span>
+                          )}
+                          {!unlocked && (
+                            <p className="mt-0.5 text-xs italic text-[var(--muted)]">
+                              {letter.unlock_on_passing
+                                ? "A letter kept safe, to be opened when the time comes…"
+                                : "A letter waits patiently for its day…"}
+                            </p>
+                          )}
                         </div>
-                        {!unlocked && (
-                          <p className="mt-1 text-xs text-[var(--muted)] italic">
-                            {letter.unlock_on_passing
-                              ? "A letter kept safe, to be opened when the time comes…"
-                              : "A letter waits patiently for its day…"}
-                          </p>
-                        )}
+                        <span
+                          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
+                            unlocked
+                              ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                              : "bg-amber-50 text-amber-700 border border-amber-200"
+                          }`}
+                        >
+                          {unlocked
+                            ? "✉️ Unlocked"
+                            : letter.unlock_on_passing
+                            ? "🕊️ Sealed until passing"
+                            : `🔒 Opens ${formatDateOnly(letter.unlock_date)}`}
+                        </span>
                       </div>
                     </div>
                   </Link>
@@ -201,6 +207,7 @@ export default async function TimeCapsulesPage() {
           </div>
         </section>
 
+        {/* ── Letters you've written ── */}
         <section>
           <h2 className="font-display text-xl font-semibold text-[var(--foreground)]">
             Letters you&apos;ve written
@@ -220,62 +227,68 @@ export default async function TimeCapsulesPage() {
                   <Link
                     key={letter.id}
                     href={`/dashboard/time-capsules/${letter.id}`}
-                    className={`group block rounded-xl border p-4 transition-all duration-200 hover:shadow-md ${
+                    className={`group block overflow-hidden rounded-xl border transition-all duration-200 hover:shadow-md ${
                       unlocked
-                        ? "border-emerald-200 bg-emerald-50/50 hover:border-emerald-300 hover:bg-emerald-50"
-                        : "border-[var(--border)] bg-[var(--surface)] hover:border-[var(--accent)]/50 hover:bg-[var(--surface-hover)]"
+                        ? "border-emerald-200 bg-emerald-50/40 hover:border-emerald-300 hover:bg-emerald-50"
+                        : "border-amber-200/70 hover:border-amber-300 hover:shadow-amber-100/60"
                     }`}
+                    style={!unlocked ? { background: "linear-gradient(105deg, #fdf6e3 0%, #f5e8cc 100%)" } : undefined}
                   >
-                    <div className="flex items-center gap-4">
-                      {/* Wax seal or open envelope */}
+                    <div className="flex items-stretch gap-0">
+                      {/* Left visual panel */}
                       {unlocked ? (
-                        <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-3xl">
-                          📬
-                        </span>
+                        <div className="flex w-20 shrink-0 items-center justify-center bg-emerald-100/60 border-r border-emerald-200 py-5">
+                          <span className="text-3xl">📬</span>
+                        </div>
                       ) : (
-                        <div className="relative flex-shrink-0">
-                          <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-amber-50 border border-amber-200">
-                            <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                              <rect x="1" y="1" width="30" height="22" rx="2" fill="#fef3c7" stroke="#d97706" strokeWidth="1.5"/>
-                              <path d="M1 3L16 14L31 3" stroke="#d97706" strokeWidth="1.5" strokeLinecap="round"/>
+                        <div className="flex w-20 shrink-0 flex-col items-center justify-center gap-0 border-r border-amber-200/60 py-5"
+                          style={{ background: "linear-gradient(160deg, #fef3c7 0%, #fde68a33 100%)" }}
+                        >
+                          <div className="relative">
+                            <svg width="44" height="32" viewBox="0 0 80 58" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                              <rect x="1" y="1" width="78" height="56" rx="4" fill="#fef9ee" stroke="#c49a4a" strokeWidth="2" />
+                              <path d="M1 5L40 32L79 5" stroke="#c49a4a" strokeWidth="2" strokeLinecap="round" />
+                              <path d="M1 57L28 35" stroke="#c49a4a" strokeWidth="1.5" strokeLinecap="round" opacity="0.35" />
+                              <path d="M79 57L52 35" stroke="#c49a4a" strokeWidth="1.5" strokeLinecap="round" opacity="0.35" />
                             </svg>
-                          </div>
-                          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
-                            <WaxSeal
-                              initials={myMember ? "ME" : "?"}
-                              size={32}
-                            />
+                            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
+                              <WaxSeal
+                                initials="ME"
+                                size={28}
+                              />
+                            </div>
                           </div>
                         </div>
                       )}
 
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-start justify-between gap-2">
-                          <div>
-                            <span className="font-medium text-[var(--foreground)]">{letter.title}</span>
-                            {to?.name && (
-                              <span className="ml-2 text-sm text-[var(--muted)]">
-                                for {to.name}
-                              </span>
-                            )}
-                          </div>
-                          <span
-                            className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                              unlocked
-                                ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                                : "bg-amber-50 text-amber-700 border border-amber-200"
-                            }`}
-                          >
-                            {unlocked ? "✉️ Unlocked" : letter.unlock_on_passing ? "🕊️ Opens when you pass" : `🔒 Sealed until ${formatDateOnly(letter.unlock_date)}`}
-                          </span>
+                      {/* Content */}
+                      <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-2 px-4 py-3.5">
+                        <div className="min-w-0">
+                          <span className="font-semibold text-[var(--foreground)]">{letter.title}</span>
+                          {to?.name && (
+                            <span className="ml-2 text-sm text-[var(--muted)]">for {to.name}</span>
+                          )}
+                          {!unlocked && (
+                            <p className="mt-0.5 text-xs italic text-[var(--muted)]">
+                              {letter.unlock_on_passing
+                                ? "Your words, kept safe for when the time comes."
+                                : `Your words, kept safe until ${formatDateOnly(letter.unlock_date)}.`}
+                            </p>
+                          )}
                         </div>
-                        {!unlocked && (
-                          <p className="mt-1 text-xs text-[var(--muted)] italic">
-                            {letter.unlock_on_passing
-                              ? "Your words, kept safe for when the time comes."
-                              : `Your words, kept safe until ${formatDateOnly(letter.unlock_date)}.`}
-                          </p>
-                        )}
+                        <span
+                          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
+                            unlocked
+                              ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                              : "bg-amber-50 text-amber-700 border border-amber-200"
+                          }`}
+                        >
+                          {unlocked
+                            ? "✉️ Unlocked"
+                            : letter.unlock_on_passing
+                            ? "🕊️ Opens when you pass"
+                            : `🔒 Opens ${formatDateOnly(letter.unlock_date)}`}
+                        </span>
                       </div>
                     </div>
                   </Link>
