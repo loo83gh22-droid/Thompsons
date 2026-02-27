@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { MapPin, Camera, TrendingUp } from "lucide-react";
 import { WorldMapSVG, WorldPin } from "./WorldMapSVG";
 
 const LOCATIONS = [
@@ -21,16 +22,19 @@ const MAP_PINS: WorldPin[] = LOCATIONS.map((loc, i) => ({
 
 const CALLOUTS = [
   {
+    icon: MapPin,
     heading: "Birthplaces",
     body: "Mark where every family member was born, no matter the continent.",
   },
   {
+    icon: Camera,
     heading: "Vacations & milestones",
     body: "That Caribbean wedding. The Lisbon trip. The roadside diner. All pinned.",
   },
   {
+    icon: TrendingUp,
     heading: "Grows over time",
-    body: "Every new trip, every family addition — your map fills in over generations.",
+    body: "Every new trip, every family addition — your map fills in as you use Family Nest.",
   },
 ];
 
@@ -121,7 +125,13 @@ export function WorldMapSection() {
         {/* Feature callouts */}
         <div className="mt-10 grid gap-6 sm:grid-cols-3 text-center">
           {CALLOUTS.map((item) => (
-            <div key={item.heading} className="flex flex-col gap-2">
+            <div key={item.heading} className="flex flex-col items-center gap-2">
+              <div
+                className="mb-1 flex h-9 w-9 items-center justify-center rounded-xl"
+                style={{ backgroundColor: "var(--primary-light, rgba(61,107,94,0.1))" }}
+              >
+                <item.icon size={18} style={{ color: "var(--primary)" }} />
+              </div>
               <p
                 className="text-sm font-semibold"
                 style={{ fontFamily: "var(--font-display-serif)", color: "var(--foreground)" }}

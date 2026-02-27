@@ -3,7 +3,6 @@ import { HeroSection } from "./components/home/HeroSection";
 import { HowItWorks } from "./components/home/HowItWorks";
 import { FeaturesBento } from "./components/home/FeaturesBento";
 import { AdditionalFeatures } from "./components/home/AdditionalFeatures";
-import { WorldMapSection } from "./components/home/WorldMapSection";
 import { Testimonials } from "./components/home/Testimonials";
 import { EmotionalSection } from "./components/home/EmotionalSection";
 import { HomepageFAQ } from "./components/home/HomepageFAQ";
@@ -171,7 +170,6 @@ export default function HomePage() {
         <HeroSection />
         <HowItWorks />
         <FeaturesBento />
-        <WorldMapSection />
         <AdditionalFeatures />
         <Testimonials />
         <EmotionalSection />

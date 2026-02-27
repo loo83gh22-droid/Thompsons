@@ -23,7 +23,7 @@ export function EmotionalSection() {
             className="mb-3 text-sm font-medium uppercase tracking-widest"
             style={{ color: "var(--primary-foreground)", opacity: 0.6 }}
           >
-            Why Family Nest
+            Our Story
           </p>
           <h2
             className="mb-8 text-3xl md:text-4xl lg:text-5xl"
@@ -33,7 +33,7 @@ export function EmotionalSection() {
               textWrap: "balance",
             }}
           >
-            More than a photo dump. A family heirloom.
+            Not a startup idea. A dad project that got out of hand.
           </h2>
 
           <div
@@ -41,27 +41,13 @@ export function EmotionalSection() {
             style={{ color: "var(--primary-foreground)", opacity: 0.8 }}
           >
             <p>
-              Right now, your family&apos;s moments are scattered across Instagram, iCloud,
-              WhatsApp, and a dozen other apps. Half your relatives never see any of it. The
-              other half scrolls right past it between ads and strangers&apos; content.
+              I started building Family Nest because I wanted a place for my own
+              family — somewhere without ads, without recommendations, without
+              strangers in the feed. Just a private corner of the internet that
+              belonged to us.
             </p>
             <p>
-              Family Nest brings it all together. It&apos;s private, it&apos;s permanent,
-              and everyone in the family can jump in. Parents, grandparents,
-              teens, and yes, even the little ones.
-            </p>
-            <p>
-              And one day, you hand it over. It becomes something better than stuff.{" "}
-              <span
-                style={{
-                  fontFamily: "var(--font-display-serif)",
-                  fontStyle: "italic",
-                  color: "var(--primary-foreground)",
-                  opacity: 1,
-                }}
-              >
-                The story of where they came from.
-              </span>
+              Turns out a lot of families wanted the same thing.
             </p>
           </div>
 
