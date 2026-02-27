@@ -13,10 +13,10 @@ const occasions = [
 ];
 
 const legacyFeatures = [
-  { icon: Infinity, text: "Lifetime access — pay once, keep it forever" },
+  { icon: Infinity, text: "Lifetime access. Pay once, keep it forever" },
   { icon: HardDrive, text: "50 GB storage for photos, videos, and voice memos" },
-  { icon: Gift, text: "Pass it down — transfer ownership to the next generation" },
-  { icon: Download, text: "Full data export — always own your family's memories" },
+  { icon: Gift, text: "Pass it down. Transfer ownership to the next generation" },
+  { icon: Download, text: "Full data export. Always own your family's memories" },
   { icon: Heart, text: "Everything in The Full Nest, forever" },
   { icon: Shield, text: "Bank-level encryption, private by default" },
 ];
