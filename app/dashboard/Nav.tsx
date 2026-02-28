@@ -18,6 +18,7 @@ const navItemsBeforeDropdowns: { href: string; label: string }[] = [
 
 const familyItems: { href: string; label: string; muted?: boolean }[] = [
   { href: "/dashboard/our-family", label: "Our Family" },
+  { href: "/dashboard/relationships", label: "Family Web" },
   { href: "/dashboard/map", label: "Family Map" },
   { href: "/dashboard/messages", label: "Messages" },
   { href: "/dashboard/events", label: "Events" },
@@ -29,6 +30,7 @@ const memoriesItems: { href: string; label: string }[] = [
   { href: "/dashboard/photos", label: "Photos" },
   { href: "/dashboard/artwork", label: "Artwork" },
   { href: "/dashboard/awards", label: "Awards" },
+  { href: "/dashboard/achievements", label: "Achievements" },
   { href: "/dashboard/stories", label: "Stories" },
   { href: "/dashboard/recipes", label: "Recipes" },
   { href: "/dashboard/voice-memos", label: "Voice Memos" },
