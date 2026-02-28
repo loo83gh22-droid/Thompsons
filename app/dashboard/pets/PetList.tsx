@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { removePet } from "./actions";
 import { EmptyStateGuide } from "@/app/components/EmptyStateGuide";
+import { EditPetForm, type EditablePet } from "./EditPetForm";
 
 const SPECIES_EMOJI: Record<string, string> = {
   dog:     "🐕",
@@ -18,7 +19,7 @@ const SPECIES_EMOJI: Record<string, string> = {
 };
 
 type PetPhoto = { id: string; url: string; sort_order: number };
-type PetOwner = { member: { name: string } | null };
+type PetOwner = { member_id: string; member: { name: string } | null };
 
 type Pet = {
   id: string;
@@ -66,8 +67,9 @@ function ownerLabel(owners: PetOwner[]): string {
 
 export function PetList({ pets }: { pets: Pet[] }) {
   const router = useRouter();
-  const [deletingId, setDeletingId]     = useState<string | null>(null);
+  const [deletingId,    setDeletingId]    = useState<string | null>(null);
   const [expandedPhoto, setExpandedPhoto] = useState<string | null>(null);
+  const [editingPet,    setEditingPet]    = useState<Pet | null>(null);
 
   async function handleDelete(id: string, name: string) {
     if (!confirm(`Remove ${name} from your pet profiles?`)) return;
@@ -103,6 +105,14 @@ export function PetList({ pets }: { pets: Pet[] }) {
 
   return (
     <>
+      {/* Edit modal */}
+      {editingPet && (
+        <EditPetForm
+          pet={editingPet as EditablePet}
+          onClose={() => setEditingPet(null)}
+        />
+      )}
+
       {/* Lightbox */}
       {expandedPhoto && (
         <div
@@ -140,6 +150,7 @@ export function PetList({ pets }: { pets: Pet[] }) {
                 pet={pet}
                 deletingId={deletingId}
                 onDelete={handleDelete}
+                onEdit={setEditingPet}
                 onPhotoClick={setExpandedPhoto}
               />
             ))}
@@ -159,6 +170,7 @@ export function PetList({ pets }: { pets: Pet[] }) {
                 pet={pet}
                 deletingId={deletingId}
                 onDelete={handleDelete}
+                onEdit={setEditingPet}
                 onPhotoClick={setExpandedPhoto}
                 inMemory
               />
@@ -174,12 +186,14 @@ function PetCard({
   pet,
   deletingId,
   onDelete,
+  onEdit,
   onPhotoClick,
   inMemory = false,
 }: {
   pet: Pet;
   deletingId: string | null;
   onDelete: (id: string, name: string) => void;
+  onEdit: (pet: Pet) => void;
   onPhotoClick: (url: string) => void;
   inMemory?: boolean;
 }) {
@@ -235,14 +249,24 @@ function PetCard({
               ].filter(Boolean).join(" · ")}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => onDelete(pet.id, pet.name)}
-            disabled={deletingId === pet.id}
-            className="flex-shrink-0 rounded-lg border border-red-200 px-2.5 py-1 text-xs text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors"
-          >
-            {deletingId === pet.id ? "..." : "Remove"}
-          </button>
+          {/* Actions */}
+          <div className="flex shrink-0 gap-1.5">
+            <button
+              type="button"
+              onClick={() => onEdit(pet)}
+              className="rounded-lg border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              onClick={() => onDelete(pet.id, pet.name)}
+              disabled={deletingId === pet.id}
+              className="rounded-lg border border-red-200 px-2.5 py-1 text-xs text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors"
+            >
+              {deletingId === pet.id ? "..." : "Remove"}
+            </button>
+          </div>
         </div>
 
         <div className="mt-3 space-y-1 text-xs text-[var(--muted)]">

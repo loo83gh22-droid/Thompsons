@@ -103,6 +103,108 @@ export async function addPet(formData: FormData): Promise<PetResult> {
   }
 }
 
+export async function updatePet(petId: string, formData: FormData): Promise<PetResult> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Not authenticated" };
+
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { success: false, error: "No active family" };
+
+    const name        = (formData.get("name") as string)?.trim();
+    const species     = (formData.get("species") as string) || "dog";
+    const breed       = (formData.get("breed") as string)?.trim() || null;
+    const birthday    = (formData.get("birthday") as string) || null;
+    const adoptedDate = (formData.get("adopted_date") as string) || null;
+    const passedDate  = (formData.get("passed_date") as string) || null;
+    const description = (formData.get("description") as string)?.trim() || null;
+    const ownerMemberIds = formData.getAll("owner_member_ids[]") as string[];
+    const photoIdsToDelete = formData.getAll("delete_photo_ids[]") as string[];
+
+    if (!name) return { success: false, error: "Pet name is required." };
+
+    // Update core fields
+    const { error: updateError } = await supabase
+      .from("family_pets")
+      .update({
+        name,
+        species,
+        breed,
+        birthday:     birthday || null,
+        adopted_date: adoptedDate || null,
+        passed_date:  passedDate || null,
+        description,
+      })
+      .eq("id", petId)
+      .eq("family_id", activeFamilyId);
+
+    if (updateError) return { success: false, error: updateError.message };
+
+    // Replace owners: delete all then re-insert
+    await supabase.from("pet_owners").delete().eq("pet_id", petId);
+    const validOwners = ownerMemberIds.filter(Boolean);
+    if (validOwners.length > 0) {
+      await supabase.from("pet_owners").insert(
+        validOwners.map((memberId) => ({
+          pet_id:    petId,
+          member_id: memberId,
+          family_id: activeFamilyId,
+        }))
+      );
+    }
+
+    // Delete marked photos
+    const validPhotoDeletes = photoIdsToDelete.filter(Boolean);
+    if (validPhotoDeletes.length > 0) {
+      await supabase
+        .from("pet_photos")
+        .delete()
+        .in("id", validPhotoDeletes)
+        .eq("family_id", activeFamilyId);
+    }
+
+    // Upload new photos (respecting 5-photo cap)
+    const { count: existingCount } = await supabase
+      .from("pet_photos")
+      .select("id", { count: "exact", head: true })
+      .eq("pet_id", petId);
+
+    const slots = Math.max(0, 5 - (existingCount ?? 0));
+    const allNewPhotos = formData.getAll("new_photos") as File[];
+    const newPhotos = allNewPhotos.filter((f) => f.size > 0).slice(0, slots);
+
+    const totalBytes = newPhotos.reduce((s, f) => s + f.size, 0);
+    if (totalBytes > 0) {
+      try { await enforceStorageLimit(supabase, activeFamilyId, totalBytes); } catch { /* skip */ }
+    }
+
+    for (let i = 0; i < newPhotos.length; i++) {
+      const file = newPhotos[i];
+      try {
+        const ext = file.name.split(".").pop() || "jpg";
+        const path = `${petId}/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("pet-photos")
+          .upload(path, file, { upsert: true });
+        if (uploadError) continue;
+        await addStorageUsage(supabase, activeFamilyId, file.size);
+        await supabase.from("pet_photos").insert({
+          family_id:  activeFamilyId,
+          pet_id:     petId,
+          url:        `/api/storage/pet-photos/${path}`,
+          sort_order: (existingCount ?? 0) + i,
+        });
+      } catch { /* skip */ }
+    }
+
+    revalidatePath("/dashboard/pets");
+    return { success: true, id: petId };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Something went wrong." };
+  }
+}
+
 export async function removePet(id: string): Promise<void> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
