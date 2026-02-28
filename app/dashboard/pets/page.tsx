@@ -18,6 +18,7 @@ export default async function PetsPage() {
       breed,
       birthday,
       adopted_date,
+      has_passed,
       passed_date,
       description,
       pet_owners(member_id, member:family_members(name)),

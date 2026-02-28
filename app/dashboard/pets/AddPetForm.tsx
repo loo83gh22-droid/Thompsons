@@ -89,6 +89,7 @@ export function AddPetForm() {
       fd.set("breed",        breed.trim());
       fd.set("birthday",     birthday);
       fd.set("adopted_date", adoptedDate);
+      fd.set("has_passed",   hasPassed ? "true" : "false");
       fd.set("passed_date",  hasPassed ? passedDate : "");
       fd.set("description",  description.trim());
       ownerIds.forEach((id) => fd.append("owner_member_ids[]", id));
@@ -207,19 +208,21 @@ export function AddPetForm() {
           <div>
             <label className="block text-sm font-medium text-[var(--muted)]">Birthday</label>
             <input
-              type="date"
+              type="text"
               value={birthday}
               onChange={(e) => setBirthday(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+              placeholder="e.g. 2019 or March 2019"
+              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--muted)]">Adopted / joined family</label>
             <input
-              type="date"
+              type="text"
               value={adoptedDate}
               onChange={(e) => setAdoptedDate(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+              placeholder="e.g. 2021 or June 2021"
+              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
         </div>
@@ -237,12 +240,15 @@ export function AddPetForm() {
           </label>
           {hasPassed && (
             <div className="mt-2">
-              <label className="block text-sm font-medium text-[var(--muted)]">Date passed</label>
+              <label className="block text-sm font-medium text-[var(--muted)]">
+                When did they pass? <span className="font-normal text-[var(--muted)]">(optional)</span>
+              </label>
               <input
-                type="date"
+                type="text"
                 value={passedDate}
                 onChange={(e) => setPassedDate(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+                placeholder="e.g. 2023 or April 2023"
+                className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none"
               />
             </div>
           )}

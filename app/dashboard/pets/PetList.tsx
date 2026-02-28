@@ -28,6 +28,7 @@ type Pet = {
   breed: string | null;
   birthday: string | null;
   adopted_date: string | null;
+  has_passed: boolean;
   passed_date: string | null;
   description: string | null;
   pet_owners: PetOwner[];
@@ -36,11 +37,20 @@ type Pet = {
 
 function formatDate(d: string | null) {
   if (!d) return null;
-  return new Date(d + "T00:00:00").toLocaleDateString("en-AU", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  // Full ISO date YYYY-MM-DD (from old date column or user input)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+    return new Date(d + "T00:00:00").toLocaleDateString("en-AU", {
+      day: "numeric", month: "long", year: "numeric",
+    });
+  }
+  // Year + month YYYY-MM
+  if (/^\d{4}-\d{2}$/.test(d)) {
+    return new Date(d + "-01T00:00:00").toLocaleDateString("en-AU", {
+      month: "long", year: "numeric",
+    });
+  }
+  // Anything else (year only, free text) — display as-is
+  return d;
 }
 
 function petAge(birthday: string | null, passedDate: string | null) {
@@ -100,8 +110,8 @@ export function PetList({ pets }: { pets: Pet[] }) {
     );
   }
 
-  const current    = pets.filter((p) => !p.passed_date);
-  const remembered = pets.filter((p) => !!p.passed_date);
+  const current    = pets.filter((p) => !p.has_passed);
+  const remembered = pets.filter((p) => p.has_passed);
 
   return (
     <>

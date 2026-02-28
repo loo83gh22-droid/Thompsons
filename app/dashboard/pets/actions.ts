@@ -20,11 +20,11 @@ export async function addPet(formData: FormData): Promise<PetResult> {
     const name        = (formData.get("name") as string)?.trim();
     const species     = (formData.get("species") as string) || "dog";
     const breed       = (formData.get("breed") as string)?.trim() || null;
-    const birthday    = (formData.get("birthday") as string) || null;
-    const adoptedDate = (formData.get("adopted_date") as string) || null;
-    const passedDate  = (formData.get("passed_date") as string) || null;
+    const birthday    = (formData.get("birthday") as string)?.trim() || null;
+    const adoptedDate = (formData.get("adopted_date") as string)?.trim() || null;
+    const hasPassed   = formData.get("has_passed") === "true";
+    const passedDate  = (formData.get("passed_date") as string)?.trim() || null;
     const description = (formData.get("description") as string)?.trim() || null;
-    // Multiple owners: FormData.getAll("owner_member_ids[]")
     const ownerMemberIds = formData.getAll("owner_member_ids[]") as string[];
 
     if (!name) return { success: false, error: "Pet name is required." };
@@ -47,7 +47,8 @@ export async function addPet(formData: FormData): Promise<PetResult> {
         breed,
         birthday:     birthday || null,
         adopted_date: adoptedDate || null,
-        passed_date:  passedDate || null,
+        has_passed:   hasPassed,
+        passed_date:  hasPassed ? (passedDate || null) : null,
         description,
         sort_order:   nextOrder,
       })
@@ -115,9 +116,10 @@ export async function updatePet(petId: string, formData: FormData): Promise<PetR
     const name        = (formData.get("name") as string)?.trim();
     const species     = (formData.get("species") as string) || "dog";
     const breed       = (formData.get("breed") as string)?.trim() || null;
-    const birthday    = (formData.get("birthday") as string) || null;
-    const adoptedDate = (formData.get("adopted_date") as string) || null;
-    const passedDate  = (formData.get("passed_date") as string) || null;
+    const birthday    = (formData.get("birthday") as string)?.trim() || null;
+    const adoptedDate = (formData.get("adopted_date") as string)?.trim() || null;
+    const hasPassed   = formData.get("has_passed") === "true";
+    const passedDate  = (formData.get("passed_date") as string)?.trim() || null;
     const description = (formData.get("description") as string)?.trim() || null;
     const ownerMemberIds = formData.getAll("owner_member_ids[]") as string[];
     const photoIdsToDelete = formData.getAll("delete_photo_ids[]") as string[];
@@ -133,7 +135,8 @@ export async function updatePet(petId: string, formData: FormData): Promise<PetR
         breed,
         birthday:     birthday || null,
         adopted_date: adoptedDate || null,
-        passed_date:  passedDate || null,
+        has_passed:   hasPassed,
+        passed_date:  hasPassed ? (passedDate || null) : null,
         description,
       })
       .eq("id", petId)
