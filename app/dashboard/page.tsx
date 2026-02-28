@@ -317,8 +317,8 @@ export default async function DashboardPage() {
       return false;
     });
 
-    // Build highlight candidates from filtered user-relevant activity
-    const highlightCandidates: HighlightItem[] = userRelevantActivity.map((item) => ({
+    // Build highlight candidates from filtered user-relevant activity (messages excluded)
+    const highlightCandidates: HighlightItem[] = userRelevantActivity.filter((item) => item.type !== "message").map((item) => ({
       type: item.type,
       id: item.id,
       title: item.title ?? null,
