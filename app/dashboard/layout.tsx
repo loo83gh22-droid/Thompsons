@@ -33,65 +33,68 @@ export default async function DashboardLayout({
       .select("id, family_id, contact_email, relationship")
       .eq("user_id", user.id);
 
-    if (!myMembers?.length) {
-      // Check if they were invited (family_member exists with their email, no user_id)
-      const { data: invited } = await supabase
+    // Always link any pending invites (family_member rows with matching email and no user_id).
+    // This runs whether the user is brand-new OR already has existing family memberships,
+    // so existing users who accept an invite after they already had an account get linked too.
+    if (user.email) {
+      const { data: pendingInvites } = await supabase
         .from("family_members")
         .select("id, family_id")
-        .eq("contact_email", user.email ?? "")
-        .is("user_id", null)
-        .limit(1)
-        .single();
+        .eq("contact_email", user.email)
+        .is("user_id", null);
 
-      if (invited) {
+      if (pendingInvites?.length) {
         await supabase
           .from("family_members")
           .update({ user_id: user.id })
-          .eq("id", invited.id);
-        const { data: linked } = await supabase
+          .in("id", pendingInvites.map((p) => p.id));
+
+        // Re-fetch the full member list now that new rows are linked
+        const { data: refreshed } = await supabase
           .from("family_members")
           .select("id, family_id, contact_email, relationship")
-          .eq("id", invited.id)
-          .single();
-        myMembers = linked ? [linked] : [];
-      } else {
-        // New signup: create family, then family_member
-        const meta = user.user_metadata as {
-          full_name?: string;
-          relationship?: string;
-          family_name?: string;
-        };
-        const familyName =
-          meta?.family_name?.trim() || user.email?.split("@")[0] || "Our Family";
+          .eq("user_id", user.id);
+        if (refreshed?.length) myMembers = refreshed;
+      }
+    }
 
-        const { data: newFamily } = await supabase
-          .from("families")
-          .insert({ name: familyName })
-          .select("id")
-          .single();
+    if (!myMembers?.length) {
+      // New signup with no matching invite: create their own family
+      const meta = user.user_metadata as {
+        full_name?: string;
+        relationship?: string;
+        family_name?: string;
+      };
+      const familyName =
+        meta?.family_name?.trim() || user.email?.split("@")[0] || "Our Family";
 
-        if (!newFamily) throw new Error("Failed to create family");
+      const { data: newFamily } = await supabase
+        .from("families")
+        .insert({ name: familyName })
+        .select("id")
+        .single();
 
-        const { data: created } = await supabase
-          .from("family_members")
-          .insert({
-            family_id: newFamily.id,
-            user_id: user.id,
-            name: meta?.full_name || user.email?.split("@")[0] || "Family Member",
-            relationship: meta?.relationship || null,
-            contact_email: user.email || null,
-            role: "owner",
-          })
-          .select("id, family_id, contact_email, relationship")
-          .single();
+      if (!newFamily) throw new Error("Failed to create family");
 
-        if (created) {
-          await supabase.from("family_settings").insert({
-            family_id: newFamily.id,
-            family_name: familyName,
-          });
-          myMembers = [created];
-        }
+      const { data: created } = await supabase
+        .from("family_members")
+        .insert({
+          family_id: newFamily.id,
+          user_id: user.id,
+          name: meta?.full_name || user.email?.split("@")[0] || "Family Member",
+          relationship: meta?.relationship || null,
+          contact_email: user.email || null,
+          role: "owner",
+        })
+        .select("id, family_id, contact_email, relationship")
+        .single();
+
+      if (created) {
+        await supabase.from("family_settings").insert({
+          family_id: newFamily.id,
+          family_name: familyName,
+        });
+        myMembers = [created];
       }
     }
 
