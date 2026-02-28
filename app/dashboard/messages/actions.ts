@@ -43,6 +43,13 @@ export async function sendFamilyMessage(
 
   revalidatePath("/dashboard");
 
+  // Skip immediate email if the message is scheduled for a future date.
+  // The nightly cron job (/api/notifications) will send it on show_on_date.
+  const todayStr = new Date().toISOString().slice(0, 10);
+  if (showOnDate && showOnDate > todayStr) {
+    return message.id;
+  }
+
   // Send email notifications (optional - requires RESEND_API_KEY)
   if (process.env.RESEND_API_KEY) {
     const { data: sender } = await supabase
@@ -64,6 +71,8 @@ export async function sendFamilyMessage(
 
     const emails = (members || []).map((m) => m.contact_email).filter(Boolean) as string[];
     if (emails.length > 0) {
+      // Mark email as sent before firing so the cron job never double-sends
+      await supabase.from("family_messages").update({ email_sent_at: new Date().toISOString() }).eq("id", message.id);
       const resend = new Resend(process.env.RESEND_API_KEY);
       const from = process.env.RESEND_FROM_EMAIL || "Family Nest <noreply@send.familynest.io>";
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://familynest.io");

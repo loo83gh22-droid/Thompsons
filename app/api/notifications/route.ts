@@ -81,6 +81,7 @@ export async function GET(request: Request) {
   const results = {
     birthdayReminders: 0,
     capsuleUnlocks: 0,
+    scheduledMessages: 0,
     weeklyDigests: 0,
     day1Nudges: 0,
     day3Discovery: 0,
@@ -185,7 +186,101 @@ export async function GET(request: Request) {
     results.errors.push(`Capsule check: ${err}`);
   }
 
-  // ── 3. Activation Drip Campaigns ──
+  // ── 3. Scheduled family message delivery ──
+  // Send email for messages whose show_on_date is today and haven't been emailed yet.
+  const scheduledMessagesSent = { count: 0 };
+  try {
+    const { data: scheduledMessages } = await supabase
+      .from("family_messages")
+      .select("id, title, content, sender_id, family_id")
+      .eq("show_on_date", todayStr)
+      .is("email_sent_at", null);
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://familynest.io";
+    const fromEmail2 = process.env.RESEND_FROM_EMAIL || fromEmail;
+
+    for (const msg of scheduledMessages ?? []) {
+      // Get sender name
+      let senderName = "";
+      if (msg.sender_id) {
+        const { data: sender } = await supabase
+          .from("family_members")
+          .select("name")
+          .eq("id", msg.sender_id)
+          .single();
+        if (sender) senderName = sender.name;
+      }
+
+      // Get recipient IDs (specific recipients, or all family members)
+      const { data: recipientRows } = await supabase
+        .from("family_message_recipients")
+        .select("family_member_id")
+        .eq("message_id", msg.id);
+
+      let memberIds: string[] = (recipientRows ?? []).map((r) => r.family_member_id);
+      if (memberIds.length === 0) {
+        const { data: all } = await supabase
+          .from("family_members")
+          .select("id")
+          .eq("family_id", msg.family_id);
+        memberIds = (all ?? []).map((m) => m.id);
+      }
+
+      const { data: members } = await supabase
+        .from("family_members")
+        .select("contact_email")
+        .in("id", memberIds);
+
+      const emails = (members ?? []).map((m) => m.contact_email).filter(Boolean) as string[];
+      if (emails.length === 0) {
+        // Mark sent anyway so cron doesn't keep retrying
+        await supabase.from("family_messages").update({ email_sent_at: todayStr }).eq("id", msg.id);
+        continue;
+      }
+
+      const safeTitle = esc(msg.title);
+      const safeContent = msg.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const safeSender = esc(senderName);
+      const html = `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;padding:32px 20px;">
+<tr><td style="text-align:center;padding-bottom:24px;">
+  <span style="font-size:28px;color:#D4A843;font-weight:700;">Family Nest</span>
+</td></tr>
+<tr><td style="background:#1e293b;border-radius:12px;padding:32px 24px;border:1px solid #334155;">
+  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">💬 ${safeTitle}</h1>
+  ${safeSender ? `<p style="margin:0 0 16px;color:#64748b;font-size:13px;">From ${safeSender}</p>` : ""}
+  <div style="margin:0 0 24px;color:#94a3b8;font-size:15px;line-height:1.6;white-space:pre-wrap;">${safeContent}</div>
+  <a href="${appUrl}/dashboard" style="display:inline-block;background:#D4A843;color:#0f172a;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">
+    View in Family Nest
+  </a>
+</td></tr>
+<tr><td style="text-align:center;padding-top:24px;">
+  <p style="color:#64748b;font-size:12px;margin:0;">Family Nest &middot; <a href="${appUrl}/dashboard/settings" style="color:#64748b;">Manage notifications</a></p>
+</td></tr>
+</table>
+</body></html>`;
+
+      let sent = 0;
+      for (const to of emails) {
+        try {
+          await resend.emails.send({ from: fromEmail2, to, subject: `Family message: ${msg.title}`, html });
+          sent++;
+          scheduledMessagesSent.count++;
+        } catch (err) {
+          results.errors.push(`Scheduled message email to ${to}: ${err}`);
+        }
+      }
+
+      if (sent > 0) {
+        await supabase.from("family_messages").update({ email_sent_at: new Date().toISOString() }).eq("id", msg.id);
+      }
+    }
+    results.scheduledMessages = scheduledMessagesSent.count;
+  } catch (err) {
+    results.errors.push(`Scheduled messages: ${err}`);
+  }
+
+  // ── 4. Activation Drip Campaigns ──
 
   // Day 1: Activation Nudge for users with 0 photos
   try {
@@ -416,7 +511,7 @@ export async function GET(request: Request) {
     results.errors.push(`Day 30 campaign: ${err}`);
   }
 
-  // ── 4. Weekly digest (Sundays only) ──
+  // ── 5. Weekly digest (Sundays only) ──
   if (dayOfWeek === 0) {
     try {
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
