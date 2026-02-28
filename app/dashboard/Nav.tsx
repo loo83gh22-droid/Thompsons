@@ -27,23 +27,23 @@ const memoriesItems: { href: string; label: string }[] = [
   { href: "/dashboard/timeline", label: "Timeline" },
   { href: "/dashboard/journal", label: "Journal" },
   { href: "/dashboard/photos", label: "Photos" },
-  { href: "/dashboard/artwork", label: "Artwork" },
-  { href: "/dashboard/trophy-case", label: "Trophy Case" },
   { href: "/dashboard/stories", label: "Stories" },
   { href: "/dashboard/recipes", label: "Recipes" },
+  { href: "/dashboard/artwork", label: "Artwork" },
+  { href: "/dashboard/trophy-case", label: "Trophy Case" },
+  { href: "/dashboard/traditions", label: "Traditions" },
   { href: "/dashboard/voice-memos", label: "Voice Memos" },
   { href: "/dashboard/time-capsules", label: "Time Capsules" },
-  { href: "/dashboard/traditions", label: "Traditions" },
 ];
 
 const favouritesItems: { href: string; label: string }[] = [
   { href: "/dashboard/favourites", label: "Favourites" },
   { href: "/dashboard/favourites/books", label: "Books" },
-  { href: "/dashboard/favourites/movies", label: "Movies" },
-  { href: "/dashboard/favourites/shows", label: "Shows" },
-  { href: "/dashboard/favourites/music", label: "Music" },
-  { href: "/dashboard/favourites/toys", label: "Toys" },
   { href: "/dashboard/favourites/games", label: "Games" },
+  { href: "/dashboard/favourites/movies", label: "Movies" },
+  { href: "/dashboard/favourites/music", label: "Music" },
+  { href: "/dashboard/favourites/shows", label: "Shows" },
+  { href: "/dashboard/favourites/toys", label: "Toys" },
 ];
 
 export function Nav({
