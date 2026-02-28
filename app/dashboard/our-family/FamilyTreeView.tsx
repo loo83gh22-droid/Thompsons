@@ -6,6 +6,8 @@ import type { OurFamilyMember, OurFamilyRelationship } from "./page";
 type TreeMemberNode = {
   member: OurFamilyMember;
   spouse: OurFamilyMember | null;
+  /** true when spouse is a co-parent (shared child) but not formally married */
+  isCoParent: boolean;
   children: TreeMemberNode[];
 };
 
@@ -44,6 +46,7 @@ function buildTree(
     // Prefer a formal spouse; fall back to a co-parent (shared child, no spouse rel).
     const formalSpouse = getSpouse(memberId);
     let resolvedSpouse: OurFamilyMember | null = null;
+    let isCoParent = false;
 
     if (formalSpouse && !rendered.has(formalSpouse.id)) {
       rendered.add(formalSpouse.id);
@@ -51,6 +54,7 @@ function buildTree(
     } else if (!formalSpouse && coParentId && !rendered.has(coParentId)) {
       rendered.add(coParentId);
       resolvedSpouse = memberMap.get(coParentId) ?? null;
+      isCoParent = true;
     }
 
     // Merge children from this member and their partner.
@@ -63,7 +67,7 @@ function buildTree(
       .map((id) => buildNode(id))
       .filter((n): n is TreeMemberNode => n !== null);
 
-    return { member, spouse: resolvedSpouse, children };
+    return { member, spouse: resolvedSpouse, isCoParent, children };
   }
 
   const roots = members
@@ -269,9 +273,14 @@ function FamilyNode({
         />
         {node.spouse && (
           <>
-            <div className="ftv-spouse-line" aria-hidden>
-              <span className="ftv-heart" aria-hidden>♥</span>
-            </div>
+            {node.isCoParent ? (
+              /* Co-parents share a child but are not married — no heart connector */
+              <div className="ftv-coparent-gap" aria-hidden />
+            ) : (
+              <div className="ftv-spouse-line" aria-hidden>
+                <span className="ftv-heart" aria-hidden>♥</span>
+              </div>
+            )}
             <MemberCard
               member={node.spouse}
               selected={selectedId === node.spouse.id}
@@ -350,6 +359,12 @@ export function FamilyTreeView({
         .ftv-couple {
           display: flex;
           align-items: center;
+        }
+
+        /* Plain gap between co-parents (no marriage indicator) */
+        .ftv-coparent-gap {
+          width: 24px;
+          flex-shrink: 0;
         }
 
         /* Horizontal line + heart between spouses */
