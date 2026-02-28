@@ -8,6 +8,12 @@ type TreeMemberNode = {
   spouse: OurFamilyMember | null;
   /** true when spouse is a co-parent (shared child) but not formally married */
   isCoParent: boolean;
+  /**
+   * A co-parent who shares a child with member but is NOT member's formal
+   * spouse. Rendered on the opposite side: [coParent]  [member ♥ spouse].
+   * Only set when member already has a formal spouse.
+   */
+  coParent: OurFamilyMember | null;
   children: TreeMemberNode[];
 };
 
@@ -47,27 +53,35 @@ function buildTree(
     const formalSpouse = getSpouse(memberId);
     let resolvedSpouse: OurFamilyMember | null = null;
     let isCoParent = false;
+    let coParent: OurFamilyMember | null = null;
 
     if (formalSpouse && !rendered.has(formalSpouse.id)) {
       rendered.add(formalSpouse.id);
       resolvedSpouse = formalSpouse;
+      // Also capture any co-parent (e.g. Ma when Dad has formal spouse Brenda).
+      // They are rendered on the opposite side: [coParent]  [member ♥ spouse]
+      if (coParentId && !rendered.has(coParentId)) {
+        rendered.add(coParentId);
+        coParent = memberMap.get(coParentId) ?? null;
+      }
     } else if (!formalSpouse && coParentId && !rendered.has(coParentId)) {
       rendered.add(coParentId);
       resolvedSpouse = memberMap.get(coParentId) ?? null;
       isCoParent = true;
     }
 
-    // Merge children from this member and their partner.
+    // Merge children from this member, their spouse, and any co-parent.
     const myChildIds = getChildIds(memberId);
     const partnerChildIds = resolvedSpouse ? getChildIds(resolvedSpouse.id) : [];
-    const allChildIds = [...new Set([...myChildIds, ...partnerChildIds])];
+    const coParentChildIds = coParent ? getChildIds(coParent.id) : [];
+    const allChildIds = [...new Set([...myChildIds, ...partnerChildIds, ...coParentChildIds])];
 
     const children = allChildIds
       .filter((id) => !rendered.has(id))
       .map((id) => buildNode(id))
       .filter((n): n is TreeMemberNode => n !== null);
 
-    return { member, spouse: resolvedSpouse, isCoParent, children };
+    return { member, spouse: resolvedSpouse, isCoParent, coParent, children };
   }
 
   const roots = members
@@ -97,7 +111,6 @@ function buildTree(
   // spouse relationship. Pair them so they appear side-by-side at the same level
   // instead of spawning duplicate subtrees.
   function findCoParent(rootId: string): OurFamilyMember | null {
-    if (getSpouse(rootId)) return null; // already has a formal spouse
     const myChildren = new Set(getChildIds(rootId));
     if (myChildren.size === 0) return null;
     for (const other of roots) {
@@ -262,8 +275,22 @@ function FamilyNode({
 
   return (
     <div className="ftv-node">
-      {/* Couple / single row */}
+      {/* Couple / single row.
+           Layout: [coParent?] [gap] [member] [♥/gap] [spouse?]
+           coParent = biological co-parent who is NOT member's formal spouse */}
       <div className="ftv-couple">
+        {node.coParent && (
+          <>
+            <MemberCard
+              member={node.coParent}
+              selected={selectedId === node.coParent.id}
+              onClick={() =>
+                onSelectMember(selectedId === node.coParent!.id ? null : node.coParent!.id)
+              }
+            />
+            <div className="ftv-coparent-gap" aria-hidden />
+          </>
+        )}
         <MemberCard
           member={node.member}
           selected={selectedId === node.member.id}
