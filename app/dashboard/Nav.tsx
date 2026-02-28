@@ -18,7 +18,6 @@ const navItemsBeforeDropdowns: { href: string; label: string }[] = [
 
 const familyItems: { href: string; label: string; muted?: boolean }[] = [
   { href: "/dashboard/our-family", label: "Our Family" },
-  { href: "/dashboard/relationships", label: "Family Web" },
   { href: "/dashboard/map", label: "Family Map" },
   { href: "/dashboard/messages", label: "Messages" },
   { href: "/dashboard/events", label: "Events" },
