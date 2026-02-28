@@ -309,7 +309,7 @@ export default async function KidViewPage({
       .from("family_events")
       .select("id, title, description, event_date, category, recurring")
       .eq("family_id", familyId)
-      .order("event_date", { ascending: true })
+      .order("event_date", { ascending: false })
       .limit(50);
     events = (data || []) as typeof events;
   } else if (section === "family") {
@@ -412,7 +412,10 @@ export default async function KidViewPage({
           </div>
 
           {/* Tab bar */}
-          <div className="-mx-4 flex gap-1 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="relative">
+            {/* Right-fade hint that more tabs exist */}
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-[var(--background)] to-transparent" />
+            <div className="-mx-4 flex gap-1 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {SECTIONS.map((s) => (
               <Link
                 key={s.key}
@@ -427,6 +430,7 @@ export default async function KidViewPage({
                 <span>{s.label}</span>
               </Link>
             ))}
+            </div>
           </div>
         </div>
       </header>
