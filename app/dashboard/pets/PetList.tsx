@@ -18,6 +18,7 @@ const SPECIES_EMOJI: Record<string, string> = {
 };
 
 type PetPhoto = { id: string; url: string; sort_order: number };
+type PetOwner = { member: { name: string } | null };
 
 type Pet = {
   id: string;
@@ -28,7 +29,7 @@ type Pet = {
   adopted_date: string | null;
   passed_date: string | null;
   description: string | null;
-  owner_member: { name: string } | { name: string }[] | null;
+  pet_owners: PetOwner[];
   pet_photos: PetPhoto[];
 };
 
@@ -53,9 +54,19 @@ function petAge(birthday: string | null, passedDate: string | null) {
   return `${years} year${years !== 1 ? "s" : ""} old`;
 }
 
+function ownerLabel(owners: PetOwner[]): string {
+  const names = owners
+    .map((o) => o.member?.name)
+    .filter((n): n is string => !!n);
+  if (names.length === 0) return "Everyone's pet";
+  if (names.length === 1) return `${names[0]}'s pet`;
+  if (names.length === 2) return `${names[0]} & ${names[1]}'s pet`;
+  return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}'s pet`;
+}
+
 export function PetList({ pets }: { pets: Pet[] }) {
   const router = useRouter();
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId]     = useState<string | null>(null);
   const [expandedPhoto, setExpandedPhoto] = useState<string | null>(null);
 
   async function handleDelete(id: string, name: string) {
@@ -74,7 +85,7 @@ export function PetList({ pets }: { pets: Pet[] }) {
       <EmptyStateGuide
         icon="🐾"
         title="Your pets deserve a place in the family story."
-        description="From loyal dogs to quirky goldfish — every pet leaves paw prints on our hearts. Create a profile for each one so they&apos;re never forgotten."
+        description="From loyal dogs to quirky goldfish — every pet leaves paw prints on our hearts. Create a profile for each one so they're never forgotten."
         inspiration={[
           "Your current dog, cat, rabbit, or any fur baby in the family",
           "Beloved pets who've passed — a tribute so they're never forgotten",
@@ -87,7 +98,7 @@ export function PetList({ pets }: { pets: Pet[] }) {
     );
   }
 
-  const current = pets.filter((p) => !p.passed_date);
+  const current    = pets.filter((p) => !p.passed_date);
   const remembered = pets.filter((p) => !!p.passed_date);
 
   return (
@@ -172,20 +183,18 @@ function PetCard({
   onPhotoClick: (url: string) => void;
   inMemory?: boolean;
 }) {
-  const owner = Array.isArray(pet.owner_member) ? pet.owner_member[0] : pet.owner_member;
-  const emoji = SPECIES_EMOJI[pet.species] ?? "🐾";
+  const emoji  = SPECIES_EMOJI[pet.species] ?? "🐾";
   const photos = [...pet.pet_photos].sort((a, b) => a.sort_order - b.sort_order);
-  const age = petAge(pet.birthday, pet.passed_date);
+  const age    = petAge(pet.birthday, pet.passed_date);
+  const label  = ownerLabel(pet.pet_owners);
 
   return (
     <article
       className={`rounded-xl border bg-[var(--surface)] overflow-hidden flex flex-col ${
-        inMemory
-          ? "border-[var(--border)] opacity-80"
-          : "border-[var(--border)]"
+        inMemory ? "border-[var(--border)] opacity-80" : "border-[var(--border)]"
       }`}
     >
-      {/* Photo strip */}
+      {/* Photo */}
       {photos.length > 0 ? (
         <div
           className="relative h-44 w-full cursor-pointer overflow-hidden bg-[var(--background)]"
@@ -203,9 +212,7 @@ function PetCard({
               +{photos.length - 1} more
             </span>
           )}
-          {inMemory && (
-            <div className="absolute inset-0 bg-black/20" />
-          )}
+          {inMemory && <div className="absolute inset-0 bg-black/20" />}
         </div>
       ) : (
         <div className="flex h-32 items-center justify-center bg-[var(--surface-hover)] text-5xl">
@@ -222,7 +229,10 @@ function PetCard({
               {pet.name}
             </h3>
             <p className="text-sm text-[var(--muted)]">
-              {[pet.breed, pet.species !== "other" ? pet.species.charAt(0).toUpperCase() + pet.species.slice(1) : "Other"].filter(Boolean).join(" · ")}
+              {[pet.breed, pet.species !== "other"
+                ? pet.species.charAt(0).toUpperCase() + pet.species.slice(1)
+                : "Other"
+              ].filter(Boolean).join(" · ")}
             </p>
           </div>
           <button
@@ -236,9 +246,7 @@ function PetCard({
         </div>
 
         <div className="mt-3 space-y-1 text-xs text-[var(--muted)]">
-          {owner?.name && (
-            <p>👤 {owner.name}&apos;s pet</p>
-          )}
+          <p>👤 {label}</p>
           {pet.birthday && (
             <p>🎂 Born {formatDate(pet.birthday)}{age ? ` (${age})` : ""}</p>
           )}
@@ -256,7 +264,7 @@ function PetCard({
           </p>
         )}
 
-        {/* Extra photos */}
+        {/* Extra photo thumbnails */}
         {photos.length > 1 && (
           <div className="mt-3 flex gap-1.5 flex-wrap">
             {photos.slice(1).map((ph) => (

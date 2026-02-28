@@ -24,7 +24,8 @@ export async function addPet(formData: FormData): Promise<PetResult> {
     const adoptedDate = (formData.get("adopted_date") as string) || null;
     const passedDate  = (formData.get("passed_date") as string) || null;
     const description = (formData.get("description") as string)?.trim() || null;
-    const ownerMemberId = (formData.get("owner_member_id") as string) || null;
+    // Multiple owners: FormData.getAll("owner_member_ids[]")
+    const ownerMemberIds = formData.getAll("owner_member_ids[]") as string[];
 
     if (!name) return { success: false, error: "Pet name is required." };
 
@@ -40,21 +41,32 @@ export async function addPet(formData: FormData): Promise<PetResult> {
     const { data: pet, error: petError } = await supabase
       .from("family_pets")
       .insert({
-        family_id:        activeFamilyId,
+        family_id:    activeFamilyId,
         name,
         species,
         breed,
-        birthday:         birthday || null,
-        adopted_date:     adoptedDate || null,
-        passed_date:      passedDate || null,
+        birthday:     birthday || null,
+        adopted_date: adoptedDate || null,
+        passed_date:  passedDate || null,
         description,
-        owner_member_id:  ownerMemberId || null,
-        sort_order:       nextOrder,
+        sort_order:   nextOrder,
       })
       .select("id")
       .single();
 
     if (petError || !pet) return { success: false, error: petError?.message ?? "Failed to save." };
+
+    // Insert owner rows (empty = everyone's pet)
+    const validOwners = ownerMemberIds.filter(Boolean);
+    if (validOwners.length > 0) {
+      await supabase.from("pet_owners").insert(
+        validOwners.map((memberId) => ({
+          pet_id:    pet.id,
+          member_id: memberId,
+          family_id: activeFamilyId,
+        }))
+      );
+    }
 
     // Upload photos (up to 5)
     const allPhotos = formData.getAll("photos") as File[];

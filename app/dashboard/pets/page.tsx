@@ -20,7 +20,7 @@ export default async function PetsPage() {
       adopted_date,
       passed_date,
       description,
-      owner_member:family_members!owner_member_id(name),
+      pet_owners(member:family_members(name)),
       pet_photos(id, url, sort_order)
     `)
     .eq("family_id", activeFamilyId)
@@ -46,7 +46,7 @@ export default async function PetsPage() {
         <AddPetForm />
       </div>
 
-      <PetList pets={(pets ?? []) as Parameters<typeof PetList>[0]["pets"]} />
+      <PetList pets={(pets ?? []) as unknown as Parameters<typeof PetList>[0]["pets"]} />
     </div>
   );
 }

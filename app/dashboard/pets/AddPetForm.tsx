@@ -27,17 +27,17 @@ export function AddPetForm() {
   const [error, setError]     = useState<string | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
 
-  const [name,          setName]          = useState("");
-  const [species,       setSpecies]       = useState("dog");
-  const [breed,         setBreed]         = useState("");
-  const [birthday,      setBirthday]      = useState("");
-  const [adoptedDate,   setAdoptedDate]   = useState("");
-  const [passedDate,    setPassedDate]    = useState("");
-  const [hasPassed,     setHasPassed]     = useState(false);
-  const [description,   setDescription]   = useState("");
-  const [ownerMemberId, setOwnerMemberId] = useState("");
-  const [photos,        setPhotos]        = useState<File[]>([]);
-  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [name,           setName]           = useState("");
+  const [species,        setSpecies]        = useState("dog");
+  const [breed,          setBreed]          = useState("");
+  const [birthday,       setBirthday]       = useState("");
+  const [adoptedDate,    setAdoptedDate]    = useState("");
+  const [passedDate,     setPassedDate]     = useState("");
+  const [hasPassed,      setHasPassed]      = useState(false);
+  const [description,    setDescription]    = useState("");
+  const [ownerIds,       setOwnerIds]       = useState<string[]>([]); // empty = everyone's pet
+  const [photos,         setPhotos]         = useState<File[]>([]);
+  const [photoPreviews,  setPhotoPreviews]  = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -50,6 +50,12 @@ export function AddPetForm() {
       .order("name")
       .then(({ data }) => { if (data) setMembers(data as Member[]); });
   }, [activeFamilyId]);
+
+  function toggleOwner(id: string) {
+    setOwnerIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []).slice(0, 5 - photos.length);
@@ -67,7 +73,7 @@ export function AddPetForm() {
   function resetForm() {
     setName(""); setSpecies("dog"); setBreed(""); setBirthday("");
     setAdoptedDate(""); setPassedDate(""); setHasPassed(false);
-    setDescription(""); setOwnerMemberId(""); setPhotos([]); setPhotoPreviews([]);
+    setDescription(""); setOwnerIds([]); setPhotos([]); setPhotoPreviews([]);
     setError(null);
   }
 
@@ -78,14 +84,14 @@ export function AddPetForm() {
     setError(null);
     try {
       const fd = new FormData();
-      fd.set("name",            name.trim());
-      fd.set("species",         species);
-      fd.set("breed",           breed.trim());
-      fd.set("birthday",        birthday);
-      fd.set("adopted_date",    adoptedDate);
-      fd.set("passed_date",     hasPassed ? passedDate : "");
-      fd.set("description",     description.trim());
-      fd.set("owner_member_id", ownerMemberId);
+      fd.set("name",         name.trim());
+      fd.set("species",      species);
+      fd.set("breed",        breed.trim());
+      fd.set("birthday",     birthday);
+      fd.set("adopted_date", adoptedDate);
+      fd.set("passed_date",  hasPassed ? passedDate : "");
+      fd.set("description",  description.trim());
+      ownerIds.forEach((id) => fd.append("owner_member_ids[]", id));
       photos.forEach((f) => fd.append("photos", f));
 
       const result = await addPet(fd);
@@ -162,19 +168,38 @@ export function AddPetForm() {
           </div>
         </div>
 
-        {/* Whose pet */}
+        {/* Whose pet — multi-select checkboxes */}
         <div>
           <label className="block text-sm font-medium text-[var(--muted)]">Whose pet is this?</label>
-          <select
-            value={ownerMemberId}
-            onChange={(e) => setOwnerMemberId(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
-          >
-            <option value="">Everyone&apos;s pet</option>
-            {members.map((m) => (
-              <option key={m.id} value={m.id}>{m.name}</option>
-            ))}
-          </select>
+          <p className="mt-0.5 text-xs text-[var(--muted)]">
+            Leave all unchecked for &quot;Everyone&apos;s pet&quot;, or select specific family members.
+          </p>
+          {members.length > 0 ? (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {members.map((m) => {
+                const checked = ownerIds.includes(m.id);
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => toggleOwner(m.id)}
+                    className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                      checked
+                        ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--background)] font-medium"
+                        : "border-[var(--border)] text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                    }`}
+                  >
+                    {checked ? "✓ " : ""}{m.name}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-[var(--muted)] italic">Loading family members…</p>
+          )}
+          {ownerIds.length === 0 && (
+            <p className="mt-2 text-xs text-[var(--accent)]">🐾 Everyone&apos;s pet</p>
+          )}
         </div>
 
         {/* Dates */}
