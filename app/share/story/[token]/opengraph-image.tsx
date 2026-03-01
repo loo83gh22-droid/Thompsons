@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
-import { createClient } from "@/src/lib/supabase/server";
+// Share pages use the admin (service-role) client — anon RLS policies for public shares were removed in migration 070. Token validation is enforced in app code via share_token + is_public filters (MED-1 fix).
+import { createAdminClient } from "@/src/lib/supabase/admin";
 
 export const alt = "Family Nest Story";
 export const size = { width: 1200, height: 630 };
@@ -11,7 +12,7 @@ export default async function OGImage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const { data: story } = await supabase
     .from("family_stories")
