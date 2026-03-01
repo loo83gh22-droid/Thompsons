@@ -1,4 +1,5 @@
 import { createClient } from "@/src/lib/supabase/server";
+import { createAdminClient } from "@/src/lib/supabase/admin";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -10,11 +11,14 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      // Link auth user to any existing family_members record with matching contact_email
+      // Link auth user to any existing family_members record with matching contact_email.
+      // Must use admin client — RLS blocks invited users from reading rows in families
+      // they aren't linked to yet, causing the update to silently find nothing.
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user?.email) {
-          await supabase
+          const adminClient = createAdminClient();
+          await adminClient
             .from('family_members')
             .update({ user_id: user.id })
             .eq('contact_email', user.email)

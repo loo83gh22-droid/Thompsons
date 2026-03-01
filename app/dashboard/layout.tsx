@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
+import { createAdminClient } from "@/src/lib/supabase/admin";
 import { getActiveFamilyId, getActiveFamilyName } from "@/src/lib/family";
 import { Nav } from "@/app/dashboard/Nav";
 import { MusicPlayer } from "@/app/dashboard/MusicPlayer";
@@ -37,15 +38,18 @@ export default async function DashboardLayout({
     // Always link any pending invites (family_member rows with matching email and no user_id).
     // This runs whether the user is brand-new OR already has existing family memberships,
     // so existing users who accept an invite after they already had an account get linked too.
+    // Uses the admin client to bypass RLS — invited users can't read rows they're not yet
+    // linked to, so the regular client silently returns nothing and "Our Family" gets created.
     if (user.email) {
-      const { data: pendingInvites } = await supabase
+      const adminClient = createAdminClient();
+      const { data: pendingInvites } = await adminClient
         .from("family_members")
         .select("id, family_id")
         .eq("contact_email", user.email)
         .is("user_id", null);
 
       if (pendingInvites?.length) {
-        await supabase
+        await adminClient
           .from("family_members")
           .update({ user_id: user.id })
           .in("id", pendingInvites.map((p) => p.id));
