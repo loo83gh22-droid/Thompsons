@@ -60,6 +60,51 @@ export default async function DashboardLayout({
           .select("id, family_id, contact_email, relationship")
           .eq("user_id", user.id);
         if (refreshed?.length) myMembers = refreshed;
+
+        // Belt-and-suspenders: clean up any "Our Family" that a DB trigger may have
+        // auto-created at signup time before this user confirmed their email.
+        // Safe to do here because we just confirmed the user has a real invited family.
+        if (myMembers && myMembers.length > 1 && user.created_at) {
+          const userCreatedAt = new Date(user.created_at).getTime();
+          const invitedFamilyIds = new Set(pendingInvites.map((p) => p.family_id));
+          const toClean: string[] = [];
+
+          for (const m of myMembers) {
+            if (invitedFamilyIds.has(m.family_id)) continue; // keep invited families
+            // Check if this family was created at the same time as the auth user
+            // (indicating it was auto-created by a trigger, not by the user's choice)
+            const { data: fam } = await adminClient
+              .from("families")
+              .select("id, created_at")
+              .eq("id", m.family_id)
+              .single();
+            if (!fam) continue;
+            const familyAge = Math.abs(new Date(fam.created_at).getTime() - userCreatedAt);
+            if (familyAge > 60_000) continue; // older than 1 min → user chose it, keep it
+            // Verify sole member before deleting
+            const { count } = await adminClient
+              .from("family_members")
+              .select("id", { count: "exact", head: true })
+              .eq("family_id", m.family_id);
+            if (count !== 1) continue; // other members exist → don't touch it
+            toClean.push(m.family_id);
+          }
+
+          for (const famId of toClean) {
+            await adminClient.from("family_settings").delete().eq("family_id", famId);
+            await adminClient.from("family_members").delete().eq("family_id", famId);
+            await adminClient.from("families").delete().eq("id", famId);
+          }
+
+          if (toClean.length) {
+            // Re-fetch after cleanup
+            const { data: cleaned } = await supabase
+              .from("family_members")
+              .select("id, family_id, contact_email, relationship")
+              .eq("user_id", user.id);
+            if (cleaned?.length) myMembers = cleaned;
+          }
+        }
       }
     }
 
