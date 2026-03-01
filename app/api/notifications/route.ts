@@ -53,13 +53,9 @@ export async function GET(request: Request) {
   }
 
   // Auth check — Vercel Cron sends Authorization: Bearer <CRON_SECRET> automatically.
-  // Fall back to ?key= query param for local testing.
+  // Never accept the secret via query params — they appear in server logs and Referer headers.
   const authHeader = request.headers.get("authorization");
-  const { searchParams } = new URL(request.url);
-  const queryKey = searchParams.get("key");
-  const validBearer = authHeader === `Bearer ${cronSecret}`;
-  const validQuery = queryKey === cronSecret;
-  if (!validBearer && !validQuery) {
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
