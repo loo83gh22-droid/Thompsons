@@ -34,9 +34,21 @@ function formatDate(d: string | null): string {
   }
 }
 
-/** Try to fetch a file from a URL. Returns ArrayBuffer or null. */
+/** Allowed storage hostnames for file downloads — prevents SSRF (HIGH-3). */
+const ALLOWED_STORAGE_HOSTS = new Set([
+  `${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace("https://", "")?.split("/")[0]}`,
+  "tstbngohenxrbqroejth.supabase.co",
+]);
+
+/** Try to fetch a file from a URL. Returns ArrayBuffer or null. Only fetches from allowed domains. */
 async function fetchFile(url: string): Promise<ArrayBuffer | null> {
   try {
+    const parsed = new URL(url);
+    // Only allow HTTPS requests to our Supabase storage domain (SSRF prevention)
+    if (parsed.protocol !== "https:" || !ALLOWED_STORAGE_HOSTS.has(parsed.hostname)) {
+      console.warn(`fetchFile blocked disallowed URL: ${parsed.hostname}`);
+      return null;
+    }
     const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
     if (!res.ok) return null;
     return await res.arrayBuffer();

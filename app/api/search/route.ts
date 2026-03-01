@@ -33,6 +33,16 @@ export async function GET(request: Request) {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return NextResponse.json({ results: [] });
 
+  // Determine caller's role to gate PII fields (MED-3)
+  const { data: callerMember } = await supabase
+    .from("family_members")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+  const callerRole = callerMember?.role ?? "child";
+  const canViewPII = callerRole === "owner" || callerRole === "adult";
+
   const pattern = `%${q}%`;
   const results: SearchResult[] = [];
 
@@ -167,7 +177,9 @@ export async function GET(request: Request) {
   for (const m of memberRes.data ?? []) {
     results.push({
       type: "member", id: m.id, title: m.nickname?.trim() || m.name,
-      snippet: [m.relationship, m.birth_place].filter(Boolean).join(" · "),
+      snippet: canViewPII
+        ? [m.relationship, m.birth_place].filter(Boolean).join(" · ")
+        : m.relationship ?? "",
       href: `/dashboard/members/${m.id}`,
       icon: "👤", date: null,
     });
