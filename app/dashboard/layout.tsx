@@ -11,6 +11,7 @@ import { BirthdayPrompt } from "@/app/dashboard/BirthdayPrompt";
 import { FeedbackPromptModal } from "@/app/dashboard/FeedbackPromptModal";
 import { QuickEntryWidget } from "@/app/dashboard/QuickEntryWidget";
 import { PWAInstallBanner } from "@/app/dashboard/PWAInstallBanner";
+import { MobileBottomNav } from "@/app/components/MobileBottomNav";
 
 export default async function DashboardLayout({
   children,
@@ -148,7 +149,11 @@ export default async function DashboardLayout({
         <WelcomeModal familyName={familyName} />
         <BirthdayPrompt />
         <FeedbackPromptModal />
-        <QuickEntryWidget />
+        {/* Quick entry widget: desktop only — mobile uses MobileBottomNav FAB instead */}
+        <div className="hidden min-[768px]:block">
+          <QuickEntryWidget />
+        </div>
+        <MobileBottomNav />
         <div className="min-h-screen">
           <Nav
             user={user}
@@ -160,7 +165,8 @@ export default async function DashboardLayout({
           <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6">
             <AgeTransitionBanner />
           </div>
-          <main id="main-content" className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8" tabIndex={-1}>{children}</main>
+          {/* pb-20 on mobile reserves space above the fixed bottom nav */}
+          <main id="main-content" className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-6 pb-24 sm:px-6 sm:py-8 min-[768px]:pb-8" tabIndex={-1}>{children}</main>
           {playlistId && <MusicPlayer playlistId={playlistId} />}
           <UnreadMessagesFetcher />
         </div>

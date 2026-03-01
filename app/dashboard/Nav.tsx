@@ -119,6 +119,13 @@ export function Nav({
     return () => document.removeEventListener("keydown", handleEscape);
   }, []);
 
+  // Allow MobileBottomNav "More" tab to open this drawer
+  useEffect(() => {
+    function handleOpenNav() { setMobileMenuOpen(true); }
+    window.addEventListener("open-mobile-nav", handleOpenNav);
+    return () => window.removeEventListener("open-mobile-nav", handleOpenNav);
+  }, []);
+
   async function handleSignOut() {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -320,11 +327,11 @@ export function Nav({
 
           {/* Right side: Hamburger (mobile only, opens drawer) + Account menu (desktop only) */}
           <div className="flex min-h-[44px] shrink-0 items-center gap-1" ref={menuRef}>
-            {/* Hamburger - mobile only: opens navigation drawer */}
+            {/* Hamburger - hidden on mobile (MobileBottomNav "More" tab opens the drawer instead) */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen((o) => !o)}
-              className="touch-target flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-1.5 rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] min-[768px]:hidden"
+              className="touch-target hidden min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-1.5 rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
               aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-nav-drawer"
