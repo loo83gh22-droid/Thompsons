@@ -1,4 +1,5 @@
-import { createClient } from "@/src/lib/supabase/server";
+// Share pages use the admin (service-role) client — anon RLS policies for public shares were removed in migration 070. Token validation is enforced in app code via share_token + is_public filters (MED-1 fix).
+import { createAdminClient } from "@/src/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -7,7 +8,7 @@ type Props = { params: Promise<{ token: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { token } = await params;
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data: story } = await supabase
     .from("family_stories")
     .select("title, content")
@@ -44,7 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PublicStoryPage({ params }: Props) {
   const { token } = await params;
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const { data: story } = await supabase
     .from("family_stories")

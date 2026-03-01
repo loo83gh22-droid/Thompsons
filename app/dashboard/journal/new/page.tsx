@@ -16,6 +16,11 @@ import { MemberSelect } from "@/app/components/MemberSelect";
 type FamilyMember = { id: string; name: string; color: string | null; symbol: string };
 type DateValue = Date | DateRange;
 
+function formatDateTitle(d: DateValue): string {
+  const date = d instanceof Date ? d : d.start;
+  return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+}
+
 export default function NewJournalPage() {
   const { activeFamilyId, planType, currentMemberId } = useFamily();
   const videosAllowed = canUploadVideos(planType);
@@ -27,6 +32,7 @@ export default function NewJournalPage() {
   const [error, setError] = useState<string | null>(null);
   const [prompts, setPrompts] = useState<string[]>([]);
   const [isGeneratingPrompts, setIsGeneratingPrompts] = useState(false);
+  const [showOptionals, setShowOptionals] = useState(false);
 
   const [date, setDate] = useState<DateValue>(() => new Date());
   const [location, setLocation] = useState<{ name: string; latitude: number; longitude: number }>({
@@ -77,9 +83,12 @@ export default function NewJournalPage() {
     try {
       const form = e.currentTarget;
       const formData = new FormData();
-      // member_ids are set via hidden inputs from MemberSelect
       selectedMemberIds.forEach((id) => formData.append("member_ids", id));
-      formData.set("title", (form.elements.namedItem("title") as HTMLInputElement).value);
+
+      // Title is optional — fall back to a date-based title
+      const rawTitle = (form.elements.namedItem("title") as HTMLInputElement).value.trim();
+      formData.set("title", rawTitle || formatDateTitle(date));
+
       formData.set("content", (form.elements.namedItem("content") as HTMLTextAreaElement).value);
       const startDate = date instanceof Date ? date : date.start;
       const endDate = date instanceof Date ? null : date.end;
@@ -104,12 +113,9 @@ export default function NewJournalPage() {
                 ...photoFiles.slice(coverPhotoIndex + 1),
               ];
       orderedPhotos.forEach((file) => formData.append("photos", file));
-      // Videos are NOT sent through the server action (too large for Vercel payload limit).
-      // They are uploaded directly to Supabase Storage client-side after entry creation.
 
       const result = await createJournalEntry(formData);
       if (result?.success) {
-        // Upload videos client-side if any
         if (videoFiles.length > 0) {
           const supabase = createClient();
           for (const file of videoFiles) {
@@ -149,115 +155,28 @@ export default function NewJournalPage() {
         ← Back to journal
       </Link>
 
-      <h1 className="mt-6 font-display text-3xl font-bold text-[var(--foreground)]">
+      <h1 className="mt-4 font-display text-2xl font-bold text-[var(--foreground)] sm:mt-6 sm:text-3xl">
         New journal entry
       </h1>
-      <p className="mt-2 text-[var(--muted)]">
-        Tell your story — trips, birthdays, celebrations. Add photos and a location to create a pin on the map.
+      <p className="mt-1 text-sm text-[var(--muted)] sm:mt-2">
+        Capture the moment. Title and location are optional.
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+      <form onSubmit={handleSubmit} className="mt-5 space-y-5 sm:mt-8 sm:space-y-6">
+        {/* Who */}
         <MemberSelect
           members={members}
           selectedIds={selectedMemberIds}
           onChange={setSelectedMemberIds}
           label="Who's in this story?"
-          hint="Select everyone involved. You're included by default as the author."
+          hint="You're included by default."
           required
           name="member_ids"
         />
 
-        {/* Author override — hidden by default, revealed via link */}
-        <div className="flex items-center gap-2 -mt-3">
-          {!showAuthorPicker ? (
-            <button
-              type="button"
-              onClick={() => setShowAuthorPicker(true)}
-              className="text-xs text-[var(--muted)] hover:text-[var(--foreground)] hover:underline transition-colors"
-            >
-              Writing on behalf of someone? Change author
-            </button>
-          ) : (
-            <div className="flex items-center gap-3">
-              <label className="text-xs font-medium text-[var(--muted)]">Author:</label>
-              <select
-                value={authorOverride || ""}
-                onChange={(e) => setAuthorOverride(e.target.value || null)}
-                className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
-              >
-                <option value="">Me (default)</option>
-                {members.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
-              {authorOverride && (
-                <button
-                  type="button"
-                  onClick={() => { setAuthorOverride(null); setShowAuthorPicker(false); }}
-                  className="text-xs text-[var(--muted)] hover:underline"
-                >
-                  Reset
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-
+        {/* Story — front and center */}
         <div>
-          <label className="block text-sm font-medium text-[var(--muted)]">
-            Title
-          </label>
-          <input
-            name="title"
-            type="text"
-            required
-            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
-            placeholder="Summer in the mountains"
-          />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <LocationInput
-              value={location.name}
-              onChange={setLocation}
-              label="Location"
-              required={false}
-            />
-            <p className="mt-1 text-xs text-[var(--muted)]">
-              Add a location to create a pin on the Family Map.
-            </p>
-          </div>
-          <DatePicker
-            value={date}
-            onChange={setDate}
-            label="Date"
-            required={false}
-            allowRange
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-[var(--muted)]">
-            Map pin type
-          </label>
-          <select
-            value={locationType}
-            onChange={(e) => setLocationType(e.target.value as "visit" | "vacation" | "memorable_event")}
-            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
-          >
-            <option value="visit">Just a visit</option>
-            <option value="vacation">Vacation</option>
-            <option value="memorable_event">Memorable event (wedding, sports, etc.)</option>
-          </select>
-          <p className="mt-1 text-xs text-[var(--muted)]">
-            Only used when you add a location. Changes the symbol on the family map.
-          </p>
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-1">
             <label className="block text-sm font-medium text-[var(--muted)]">
               Your story
             </label>
@@ -268,24 +187,21 @@ export default function NewJournalPage() {
                 const result = await generateJournalPrompts({
                   location: location.name || undefined,
                   date: date instanceof Date ? date.toISOString().slice(0, 10) : undefined,
-                  members: members.filter((_, i) => {
-                    const checkbox = document.querySelector<HTMLInputElement>(`input[value="${members[i]?.id}"]`);
-                    return checkbox?.checked;
-                  }).map(m => m.name),
+                  members: members
+                    .filter((m) => selectedMemberIds.includes(m.id))
+                    .map((m) => m.name),
                 });
                 setIsGeneratingPrompts(false);
-                if (result.success && result.prompts) {
-                  setPrompts(result.prompts);
-                }
+                if (result.success && result.prompts) setPrompts(result.prompts);
               }}
               disabled={isGeneratingPrompts}
               className="text-sm font-medium text-[var(--primary)] hover:underline disabled:opacity-50"
             >
-              {isGeneratingPrompts ? "Generating..." : "✨ Get writing ideas"}
+              {isGeneratingPrompts ? "Generating…" : "✨ Ideas"}
             </button>
           </div>
           {prompts.length > 0 && (
-            <div className="mt-2 mb-2 space-y-1">
+            <div className="mb-2 space-y-1">
               {prompts.map((prompt, i) => (
                 <button
                   key={i}
@@ -300,23 +216,20 @@ export default function NewJournalPage() {
                   {prompt}
                 </button>
               ))}
-              <button
-                type="button"
-                onClick={() => setPrompts([])}
-                className="text-xs text-[var(--muted)] hover:underline"
-              >
+              <button type="button" onClick={() => setPrompts([])} className="text-xs text-[var(--muted)] hover:underline">
                 Dismiss
               </button>
             </div>
           )}
           <textarea
             name="content"
-            rows={8}
-            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+            rows={6}
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none text-base"
             placeholder="What happened? What did you see? What will you remember?"
           />
         </div>
 
+        {/* Photos */}
         <div>
           <PhotoUpload
             onChange={handlePhotoChange}
@@ -327,8 +240,124 @@ export default function NewJournalPage() {
           />
           {!videosAllowed && (
             <p className="mt-2 text-xs text-[var(--muted)]">
-              <Link href="/pricing" className="text-[var(--accent)] hover:underline">Upgrade to Full Nest</Link> to add videos to your journal entries.
+              <Link href="/pricing" className="text-[var(--accent)] hover:underline">Upgrade to Full Nest</Link> to add videos.
             </p>
+          )}
+        </div>
+
+        {/* Optional details — collapsed on mobile by default */}
+        <div className="rounded-xl border border-[var(--border)]">
+          <button
+            type="button"
+            onClick={() => setShowOptionals((o) => !o)}
+            className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+            aria-expanded={showOptionals}
+          >
+            <span>+ Title, location &amp; date</span>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              className={`transition-transform duration-200 ${showOptionals ? "rotate-180" : ""}`}
+              aria-hidden
+            >
+              <path d="M3 6l5 5 5-5" />
+            </svg>
+          </button>
+
+          {showOptionals && (
+            <div className="border-t border-[var(--border)] px-4 pb-4 pt-4 space-y-4">
+              {/* Title */}
+              <div>
+                <label className="block text-sm font-medium text-[var(--muted)]">
+                  Title <span className="font-normal text-xs">(optional — defaults to today&apos;s date)</span>
+                </label>
+                <input
+                  name="title"
+                  type="text"
+                  className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+                  placeholder={formatDateTitle(date)}
+                />
+              </div>
+
+              {/* Location */}
+              <div>
+                <LocationInput
+                  value={location.name}
+                  onChange={setLocation}
+                  label="Location"
+                  required={false}
+                />
+                <p className="mt-1 text-xs text-[var(--muted)]">
+                  Add a location to create a pin on the Family Map.
+                </p>
+              </div>
+
+              {/* Date */}
+              <DatePicker
+                value={date}
+                onChange={setDate}
+                label="Date"
+                required={false}
+                allowRange
+              />
+
+              {/* Map pin type */}
+              <div>
+                <label className="block text-sm font-medium text-[var(--muted)]">
+                  Map pin type
+                </label>
+                <select
+                  value={locationType}
+                  onChange={(e) => setLocationType(e.target.value as "visit" | "vacation" | "memorable_event")}
+                  className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+                >
+                  <option value="visit">Just a visit</option>
+                  <option value="vacation">Vacation</option>
+                  <option value="memorable_event">Memorable event (wedding, sports, etc.)</option>
+                </select>
+              </div>
+
+              {/* Author override */}
+              <div>
+                {!showAuthorPicker ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowAuthorPicker(true)}
+                    className="text-xs text-[var(--muted)] hover:text-[var(--foreground)] hover:underline transition-colors"
+                  >
+                    Writing on behalf of someone? Change author
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <label className="text-xs font-medium text-[var(--muted)]">Author:</label>
+                    <select
+                      value={authorOverride || ""}
+                      onChange={(e) => setAuthorOverride(e.target.value || null)}
+                      className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+                    >
+                      <option value="">Me (default)</option>
+                      {members.map((m) => (
+                        <option key={m.id} value={m.id}>{m.name}</option>
+                      ))}
+                    </select>
+                    {authorOverride && (
+                      <button
+                        type="button"
+                        onClick={() => { setAuthorOverride(null); setShowAuthorPicker(false); }}
+                        className="text-xs text-[var(--muted)] hover:underline"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           )}
         </div>
 
@@ -338,17 +367,17 @@ export default function NewJournalPage() {
           </div>
         )}
 
-        <div className="flex gap-4">
+        <div className="flex gap-3">
           <button
             type="submit"
             disabled={loading || members.length === 0 || selectedMemberIds.length === 0}
-            className="min-h-[44px] rounded-full bg-[var(--primary)] px-6 py-3 font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
+            className="min-h-[48px] flex-1 rounded-full bg-[var(--primary)] px-6 py-3 font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 sm:flex-none"
           >
-            {loading ? "Saving..." : "Save entry"}
+            {loading ? "Saving…" : "Save entry"}
           </button>
           <Link
             href="/dashboard/journal"
-            className="inline-flex min-h-[44px] items-center rounded-lg border border-[var(--border)] px-6 py-3 font-medium hover:bg-[var(--surface)]"
+            className="inline-flex min-h-[48px] items-center justify-center rounded-lg border border-[var(--border)] px-6 py-3 font-medium hover:bg-[var(--surface)]"
           >
             Cancel
           </Link>

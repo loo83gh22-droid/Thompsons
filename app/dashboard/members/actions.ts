@@ -9,7 +9,7 @@ import { detectRoleFromBirthDate, type MemberRole } from "@/src/lib/roles";
 import crypto from "crypto";
 
 /** Send invite email (server-only; no public API). */
-async function sendInviteEmail(to: string, name: string, familyName: string): Promise<void> {
+async function sendInviteEmail(to: string, name: string, familyName: string, memberId?: string): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return;
   const resend = new Resend(apiKey);
@@ -21,10 +21,19 @@ async function sendInviteEmail(to: string, name: string, familyName: string): Pr
   const safeName = eName(name || "");
   const safeFamily = eName(familyName || "Our Family");
 
-  // Build invite URL with context so the login page shows a tailored "join" flow
-  const inviteUrl = baseUrl
-    ? `${baseUrl}/login?mode=invited&email=${encodeURIComponent(to.trim())}&family=${encodeURIComponent(familyName || "Our Family")}&name=${encodeURIComponent(name || "")}`
-    : null;
+  // Build invite URL — use opaque token when memberId is available to avoid PII in query params
+  let inviteUrl: string | null = null;
+  if (baseUrl) {
+    if (memberId) {
+      const inviteToken = crypto.randomUUID();
+      const supabase = await createClient();
+      await supabase.from("family_members").update({ invite_token: inviteToken }).eq("id", memberId);
+      inviteUrl = `${baseUrl}/login?mode=invited&token=${inviteToken}`;
+    } else {
+      // Fallback for backward compatibility (no memberId available)
+      inviteUrl = `${baseUrl}/login?mode=invited&email=${encodeURIComponent(to.trim())}&family=${encodeURIComponent(familyName || "Our Family")}&name=${encodeURIComponent(name || "")}`;
+    }
+  }
 
   await resend.emails.send({
     from,
@@ -150,7 +159,7 @@ export async function resendInviteEmail(
 
   try {
     const familyName = await getActiveFamilyName(supabase);
-    await sendInviteEmail(member.contact_email.trim(), member.name, familyName);
+    await sendInviteEmail(member.contact_email.trim(), member.name, familyName, memberId);
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "Failed to send email." };
@@ -257,7 +266,7 @@ export async function addFamilyMember(
   if (trimmedEmail) {
     try {
       const familyName = await getActiveFamilyName(supabase);
-      await sendInviteEmail(trimmedEmail, name.trim(), familyName);
+      await sendInviteEmail(trimmedEmail, name.trim(), familyName, member?.id);
     } catch {
       // Non-blocking
     }

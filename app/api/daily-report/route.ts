@@ -19,8 +19,8 @@ const cronSecret = process.env.CRON_SECRET;
 const fromEmail =
   process.env.RESEND_FROM_EMAIL || "Family Nest <notifications@resend.dev>";
 
-// Destination for the daily report — explicit env var or fall back to admin notification email.
-const REPORT_EMAIL = "waterloo1983hawk22@gmail.com";
+// Destination for the daily report — must be set via env var.
+const REPORT_EMAIL = process.env.ADMIN_REPORT_EMAIL || process.env.ADMIN_NOTIFICATION_EMAIL;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -52,15 +52,17 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Cron not configured" }, { status: 503 });
   }
 
+  // Auth check — Vercel Cron sends Authorization: Bearer <CRON_SECRET> automatically.
+  // Never accept the secret via query params — they appear in server logs and Referer headers.
   const authHeader = request.headers.get("authorization");
-  const { searchParams } = new URL(request.url);
-  const queryKey = searchParams.get("key");
-  const validBearer = authHeader === `Bearer ${cronSecret}`;
-  const validQuery = queryKey === cronSecret;
-  if (!validBearer && !validQuery) {
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (!REPORT_EMAIL) {
+    console.error("ADMIN_REPORT_EMAIL is not set. Daily report cron is disabled.");
+    return NextResponse.json({ error: "Report email not configured" }, { status: 503 });
+  }
   if (!resendKey) {
     return NextResponse.json(
       { error: "RESEND_API_KEY not configured" },
@@ -256,7 +258,6 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     success: true,
-    sentTo: REPORT_EMAIL,
     stats: {
       totalFamilies,
       paidFamilies,

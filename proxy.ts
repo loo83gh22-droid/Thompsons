@@ -50,6 +50,16 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // Protect /admin at the proxy layer with a hard 404 — do not rely solely on the
+  // Server Component redirect, which could be bypassed by a misconfigured env var.
+  // The service-role client used in /admin bypasses all RLS, so this gate must be hard.
+  if (request.nextUrl.pathname === "/admin" || request.nextUrl.pathname.startsWith("/admin/")) {
+    const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+    if (!adminEmail || !user || user.email !== adminEmail) {
+      return new NextResponse(null, { status: 404 });
+    }
+  }
+
   return supabaseResponse;
 }
 

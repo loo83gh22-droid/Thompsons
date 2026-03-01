@@ -15,21 +15,43 @@ function LoginForm() {
   const isInvited = mode === "invited";
   const next = searchParams.get("next") ?? "/dashboard";
 
-  // Pre-fill from invite link params
+  // Pre-fill from invite link params (legacy URL param approach — kept for backward compat)
   const inviteEmail = searchParams.get("email") ?? "";
   const inviteFamily = searchParams.get("family") ?? "";
   const inviteName = searchParams.get("name") ?? "";
 
-  const [familyName, setFamilyName] = useState("");
-  const [name, setName] = useState("");
+  // Opaque token approach — no PII in URL
+  const inviteToken = searchParams.get("token") ?? "";
+  const [tokenResolved, setTokenResolved] = useState(false);
+
+  const [familyName, setFamilyName] = useState(inviteFamily);
+  const [name, setName] = useState(inviteName);
   const [relationship, setRelationship] = useState("");
   const [email, setEmail] = useState(isInvited ? inviteEmail : "");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [signUpSuccess, setSignUpSuccess] = useState(false);
 
   const supabase = createClient();
+
+  // Resolve opaque invite token → {email, name, familyName}
+  useEffect(() => {
+    if (!isInvited || !inviteToken) {
+      setTokenResolved(true); // no token — use legacy URL params (or none)
+      return;
+    }
+    fetch(`/api/invite?token=${encodeURIComponent(inviteToken)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.email) setEmail(data.email);
+        if (data.name && !name) setName(data.name);
+        if (data.familyName) setFamilyName(data.familyName);
+      })
+      .catch(() => {}) // fail silently — user can fill manually
+      .finally(() => setTokenResolved(true));
+  }, [inviteToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // If already logged in, skip straight to dashboard
   useEffect(() => {
@@ -54,7 +76,7 @@ function LoginForm() {
           body: JSON.stringify({
             email: email.trim(),
             password,
-            name: inviteName.trim() || undefined,
+            name: name.trim() || undefined,
             isInvited: true, // tells signup route to skip the "new family" admin notification
             // No familyName — dashboard layout will link them to the existing family member row
             redirectTo: typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined,
@@ -119,8 +141,8 @@ function LoginForm() {
                 We sent a confirmation email to{" "}
                 <strong className="text-[var(--foreground)]">{email}</strong>.
                 Click the link inside to activate your account and access{" "}
-                {inviteFamily ? (
-                  <strong className="text-[var(--foreground)]">{inviteFamily}&apos;s Nest</strong>
+                {familyName ? (
+                  <strong className="text-[var(--foreground)]">{familyName}&apos;s Nest</strong>
                 ) : (
                   "your family&apos;s Nest"
                 )}
@@ -144,15 +166,15 @@ function LoginForm() {
                   You&apos;ve been invited
                 </p>
                 <p className="mt-1 text-base font-semibold text-[var(--foreground)]">
-                  {inviteFamily ? (
-                    <>Join <span className="text-[var(--accent)]">{inviteFamily}</span>&apos;s Family Nest</>
+                  {familyName ? (
+                    <>Join <span className="text-[var(--accent)]">{familyName}</span>&apos;s Family Nest</>
                   ) : (
                     "Join your Family Nest"
                   )}
                 </p>
-                {inviteName && (
+                {name && (
                   <p className="mt-0.5 text-sm text-[var(--muted)]">
-                    Welcome, <strong className="text-[var(--foreground)]">{inviteName}</strong> — your profile is already set up.
+                    Welcome, <strong className="text-[var(--foreground)]">{name}</strong> — your profile is already set up.
                   </p>
                 )}
               </div>
@@ -176,12 +198,12 @@ function LoginForm() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      readOnly={!!inviteEmail}
+                      readOnly={!!email && tokenResolved}
                       required
                       className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] read-only:opacity-70 read-only:cursor-default"
                       placeholder="you@example.com"
                     />
-                    {inviteEmail && (
+                    {email && tokenResolved && (
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--accent)]">
                         ✓ confirmed
                       </span>
@@ -194,16 +216,30 @@ function LoginForm() {
                   <label htmlFor="password" className="block text-sm font-medium text-[var(--muted)]">
                     Create a password
                   </label>
-                  <input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    autoFocus
-                    className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
-                    placeholder="Choose a secure password"
-                  />
+                  <div className="relative mt-1">
+                    <input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      autoFocus
+                      className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 pr-12 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+                      placeholder="Choose a secure password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--foreground)]"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 {message && (
@@ -223,7 +259,7 @@ function LoginForm() {
                   disabled={loading}
                   className="w-full rounded-full bg-[var(--primary)] py-3 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 disabled:opacity-50"
                 >
-                  {loading ? "Setting up your account…" : inviteFamily ? `Join ${inviteFamily}'s Nest →` : "Access my Family Nest →"}
+                  {loading ? "Setting up your account…" : familyName ? `Join ${familyName}'s Nest →` : "Access my Family Nest →"}
                 </button>
               </form>
 
@@ -367,16 +403,30 @@ function LoginForm() {
                 Forgot password?
               </Link>
             </div>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
-              placeholder="••••••••"
-            />
+            <div className="relative mt-1">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 pr-12 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--foreground)]"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                )}
+              </button>
+            </div>
           </div>
 
           {message && (

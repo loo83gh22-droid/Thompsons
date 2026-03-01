@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
+import { createAdminClient } from "@/src/lib/supabase/admin";
 import { getActiveFamilyId, getActiveFamilyName } from "@/src/lib/family";
 import { Nav } from "@/app/dashboard/Nav";
 import { MusicPlayer } from "@/app/dashboard/MusicPlayer";
@@ -11,6 +12,7 @@ import { BirthdayPrompt } from "@/app/dashboard/BirthdayPrompt";
 import { FeedbackPromptModal } from "@/app/dashboard/FeedbackPromptModal";
 import { QuickEntryWidget } from "@/app/dashboard/QuickEntryWidget";
 import { PWAInstallBanner } from "@/app/dashboard/PWAInstallBanner";
+import { MobileBottomNav } from "@/app/components/MobileBottomNav";
 
 export default async function DashboardLayout({
   children,
@@ -36,15 +38,18 @@ export default async function DashboardLayout({
     // Always link any pending invites (family_member rows with matching email and no user_id).
     // This runs whether the user is brand-new OR already has existing family memberships,
     // so existing users who accept an invite after they already had an account get linked too.
+    // Uses the admin client to bypass RLS — invited users can't read rows they're not yet
+    // linked to, so the regular client silently returns nothing and "Our Family" gets created.
     if (user.email) {
-      const { data: pendingInvites } = await supabase
+      const adminClient = createAdminClient();
+      const { data: pendingInvites } = await adminClient
         .from("family_members")
         .select("id, family_id")
         .eq("contact_email", user.email)
         .is("user_id", null);
 
       if (pendingInvites?.length) {
-        await supabase
+        await adminClient
           .from("family_members")
           .update({ user_id: user.id })
           .in("id", pendingInvites.map((p) => p.id));
@@ -148,7 +153,11 @@ export default async function DashboardLayout({
         <WelcomeModal familyName={familyName} />
         <BirthdayPrompt />
         <FeedbackPromptModal />
-        <QuickEntryWidget />
+        {/* Quick entry widget: desktop only — mobile uses MobileBottomNav FAB instead */}
+        <div className="hidden min-[768px]:block">
+          <QuickEntryWidget />
+        </div>
+        <MobileBottomNav />
         <div className="min-h-screen">
           <Nav
             user={user}
@@ -160,7 +169,8 @@ export default async function DashboardLayout({
           <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6">
             <AgeTransitionBanner />
           </div>
-          <main id="main-content" className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8" tabIndex={-1}>{children}</main>
+          {/* pb-20 on mobile reserves space above the fixed bottom nav */}
+          <main id="main-content" className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-6 pb-24 sm:px-6 sm:py-8 min-[768px]:pb-8" tabIndex={-1}>{children}</main>
           {playlistId && <MusicPlayer playlistId={playlistId} />}
           <UnreadMessagesFetcher />
         </div>
