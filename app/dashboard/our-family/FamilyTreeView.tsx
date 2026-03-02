@@ -17,10 +17,21 @@ type TreeMemberNode = {
   children: TreeMemberNode[];
 };
 
+type ParentCouple = { member: OurFamilyMember; spouse: OurFamilyMember | null };
+
+/**
+ * A root entry is either a single-root subtree or a "multi-parent" group —
+ * two or more parent couples who share the same child (blended-family pattern).
+ * Example: Dad+Brenda and Ma+Rick are both parents of ME!
+ */
+type RootEntry =
+  | { kind: "node"; node: TreeMemberNode }
+  | { kind: "multi-parent"; parentCouples: ParentCouple[]; child: TreeMemberNode };
+
 function buildTree(
   members: OurFamilyMember[],
   relationships: OurFamilyRelationship[]
-): TreeMemberNode[] {
+): RootEntry[] {
   const memberMap = new Map(members.map((m) => [m.id, m]));
   const childRels = relationships.filter((r) => r.relationship_type === "child");
   const spouseRels = relationships.filter((r) => r.relationship_type === "spouse");
@@ -38,8 +49,6 @@ function buildTree(
     childRels.filter((r) => r.related_id === parentId).map((r) => r.member_id);
 
   // Global rendered set: every member may only appear once in the entire tree.
-  // This prevents ME! (and their spouse + kids) from being duplicated under
-  // each parent when multiple root members (e.g. Dad, Ma) share the same child.
   const rendered = new Set<string>();
 
   function buildNode(memberId: string, coParentId?: string): TreeMemberNode | null {
@@ -49,7 +58,6 @@ function buildTree(
     const member = memberMap.get(memberId);
     if (!member) return null;
 
-    // Prefer a formal spouse; fall back to a co-parent (shared child, no spouse rel).
     const formalSpouse = getSpouse(memberId);
     let resolvedSpouse: OurFamilyMember | null = null;
     let isCoParent = false;
@@ -58,8 +66,6 @@ function buildTree(
     if (formalSpouse && !rendered.has(formalSpouse.id)) {
       rendered.add(formalSpouse.id);
       resolvedSpouse = formalSpouse;
-      // Also capture any co-parent (e.g. Ma when Dad has formal spouse Brenda).
-      // They are rendered on the opposite side: [coParent]  [member ♥ spouse]
       if (coParentId && !rendered.has(coParentId)) {
         rendered.add(coParentId);
         coParent = memberMap.get(coParentId) ?? null;
@@ -70,7 +76,6 @@ function buildTree(
       isCoParent = true;
     }
 
-    // Merge children from this member, their spouse, and any co-parent.
     const myChildIds = getChildIds(memberId);
     const partnerChildIds = resolvedSpouse ? getChildIds(resolvedSpouse.id) : [];
     const coParentChildIds = coParent ? getChildIds(coParent.id) : [];
@@ -86,15 +91,6 @@ function buildTree(
 
   const roots = members
     .filter((m) => !childIds.has(m.id))
-    // Sort so TRUE ancestors (members whose children also have children, i.e. they
-    // have grandchildren in the tree) are processed BEFORE their child's spouse who
-    // is also a root.  Without this, Peach (2 direct children, but no grandchildren)
-    // sorts first and claims ME! as her spouse — locking Dad & Ma out of ME!'s
-    // subtree and leaving them as disconnected floating nodes at the bottom.
-    //
-    // Priority 1: roots with grandchildren (real grandparents / ancestors)
-    // Priority 2: roots with more direct children
-    // Priority 3: alphabetical tie-break
     .sort((a, b) => {
       const aHasGrandkids = getChildIds(a.id).some(
         (cId) => getChildIds(cId).length > 0
@@ -107,31 +103,28 @@ function buildTree(
       return diff !== 0 ? diff : a.name.localeCompare(b.name);
     });
 
-  // Detect co-parents: two roots that share at least one child but have no formal
-  // spouse relationship. Pair them so they appear side-by-side at the same level
-  // instead of spawning duplicate subtrees.
   function findCoParent(rootId: string): OurFamilyMember | null {
     const myChildren = new Set(getChildIds(rootId));
     if (myChildren.size === 0) return null;
     for (const other of roots) {
       if (other.id === rootId || rendered.has(other.id)) continue;
-      if (getSpouse(other.id)) continue; // other has their own formal spouse
+      if (getSpouse(other.id)) continue;
       if (getChildIds(other.id).some((c) => myChildren.has(c))) return other;
     }
     return null;
   }
 
-  // Fallback when the whole family is one circular group (no true roots).
   if (roots.length === 0) {
-    const rootNodes: TreeMemberNode[] = [];
+    const result: RootEntry[] = [];
     for (const m of members) {
       if (rendered.has(m.id)) continue;
       const node = buildNode(m.id);
-      if (node) rootNodes.push(node);
+      if (node) result.push({ kind: "node", node });
     }
-    return rootNodes;
+    return result;
   }
 
+  // ── Phase 1: Build root nodes ──────────────────────────────────────────────
   const rootNodes: TreeMemberNode[] = [];
   for (const r of roots) {
     if (rendered.has(r.id)) continue;
@@ -139,10 +132,106 @@ function buildTree(
     const node = buildNode(r.id, coParent?.id);
     if (node) rootNodes.push(node);
   }
-  return rootNodes;
+
+  // ── Phase 2: Merge floating roots into multi-parent entries ────────────────
+  // A "floating root" has 0 rendered children because its expected children
+  // were already claimed by another root's subtree (blended family pattern).
+  // e.g. Ma+Rick both have ME! as a child, but ME! was claimed by Dad's subtree.
+  // Solution: group Dad+Brenda and Ma+Rick as parentCouples above ME!'s node.
+
+  function findNodeById(
+    node: TreeMemberNode,
+    targetId: string
+  ): TreeMemberNode | null {
+    if (node.member.id === targetId) return node;
+    for (const child of node.children) {
+      const found = findNodeById(child, targetId);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  function findParentNode(
+    node: TreeMemberNode,
+    childId: string
+  ): TreeMemberNode | null {
+    if (node.children.some((c) => c.member.id === childId)) return node;
+    for (const child of node.children) {
+      const found = findParentNode(child, childId);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  const mergedIds = new Set<string>();
+  const multiParentEntries: RootEntry[] = [];
+
+  for (const floatingRoot of rootNodes) {
+    if (mergedIds.has(floatingRoot.member.id)) continue;
+    if (floatingRoot.children.length > 0) continue; // not floating
+
+    // Collect all expected children of this root (primary + spouse)
+    const expectedChildIds = [
+      ...getChildIds(floatingRoot.member.id),
+      ...(floatingRoot.spouse ? getChildIds(floatingRoot.spouse.id) : []),
+    ];
+    if (expectedChildIds.length === 0) continue;
+
+    // Find which other root node already owns one of these children
+    const sharedChildId = expectedChildIds[0];
+    let ownerRoot: TreeMemberNode | null = null;
+    let sharedChildNode: TreeMemberNode | null = null;
+
+    for (const otherRoot of rootNodes) {
+      if (otherRoot.member.id === floatingRoot.member.id) continue;
+      if (mergedIds.has(otherRoot.member.id)) continue;
+      const found = findNodeById(otherRoot, sharedChildId);
+      if (found) {
+        ownerRoot = otherRoot;
+        sharedChildNode = found;
+        break;
+      }
+    }
+
+    if (!ownerRoot || !sharedChildNode) continue;
+
+    // Detach sharedChildNode from the owner's subtree
+    const parentOfShared = findParentNode(ownerRoot, sharedChildId);
+    if (parentOfShared) {
+      parentOfShared.children = parentOfShared.children.filter(
+        (c) => c.member.id !== sharedChildId
+      );
+    }
+
+    // Build the multi-parent entry: ownerRoot couple first, floatingRoot couple second
+    const parentCouples: ParentCouple[] = [
+      { member: ownerRoot.member, spouse: ownerRoot.spouse },
+      { member: floatingRoot.member, spouse: floatingRoot.spouse },
+    ];
+
+    multiParentEntries.push({
+      kind: "multi-parent",
+      parentCouples,
+      child: sharedChildNode,
+    });
+
+    mergedIds.add(ownerRoot.member.id);
+    mergedIds.add(floatingRoot.member.id);
+  }
+
+  // ── Phase 3: Collect final entries ────────────────────────────────────────
+  // Multi-parent groups first, then remaining single-root subtrees.
+  const finalEntries: RootEntry[] = [...multiParentEntries];
+  for (const rootNode of rootNodes) {
+    if (mergedIds.has(rootNode.member.id)) continue;
+    // Only include if it still has children (or is a leaf that wasn't merged)
+    finalEntries.push({ kind: "node", node: rootNode });
+  }
+
+  return finalEntries;
 }
 
-// Deterministic pastel accent colour from a member's id
+// ── Deterministic pastel accent colour from a member's id ─────────────────
 const MEMBER_COLORS = [
   "#3d6b5e", // forest green  (primary)
   "#c47c3a", // warm amber    (accent)
@@ -262,6 +351,109 @@ function MemberCard({
   );
 }
 
+/** Renders a couple pair (member + optional spouse/co-parent line) */
+function CoupleRow({
+  couple,
+  selectedId,
+  onSelectMember,
+}: {
+  couple: ParentCouple;
+  selectedId: string | null;
+  onSelectMember: (id: string | null) => void;
+}) {
+  return (
+    <div className="ftv-couple">
+      <MemberCard
+        member={couple.member}
+        selected={selectedId === couple.member.id}
+        onClick={() =>
+          onSelectMember(selectedId === couple.member.id ? null : couple.member.id)
+        }
+      />
+      {couple.spouse && (
+        <>
+          <div className="ftv-spouse-line" aria-hidden>
+            <span className="ftv-heart" aria-hidden>♥</span>
+          </div>
+          <MemberCard
+            member={couple.spouse}
+            selected={selectedId === couple.spouse.id}
+            onClick={() =>
+              onSelectMember(selectedId === couple.spouse!.id ? null : couple.spouse!.id)
+            }
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Renders a multi-parent group: two or more parent couples side-by-side
+ * above their shared child, with convergence lines connecting them.
+ *
+ *   [Dad ♥ Brenda]    [Ma ♥ Rick]
+ *         |                |
+ *         └────────┬────────┘
+ *                  |
+ *           [ME! ♥ Jodi]
+ *            /          \
+ *        [Huck]        [Maui]
+ */
+function MultiParentView({
+  entry,
+  selectedId,
+  onSelectMember,
+}: {
+  entry: { kind: "multi-parent"; parentCouples: ParentCouple[]; child: TreeMemberNode };
+  selectedId: string | null;
+  onSelectMember: (id: string | null) => void;
+}) {
+  const { parentCouples, child } = entry;
+  const count = parentCouples.length;
+
+  return (
+    <div className="ftv-node">
+      {/* Parent couples row with convergence lines below */}
+      <div className="ftv-multi-parents">
+        {parentCouples.map((pc, idx) => {
+          const isOnly = count === 1;
+          const isFirst = idx === 0;
+          const isLast = idx === count - 1;
+          const pos = isOnly
+            ? "ftv-punit-only"
+            : isFirst
+              ? "ftv-punit-first"
+              : isLast
+                ? "ftv-punit-last"
+                : "ftv-punit-middle";
+          return (
+            <div key={pc.member.id} className={`ftv-punit-wrapper ${pos}`}>
+              <CoupleRow
+                couple={pc}
+                selectedId={selectedId}
+                onSelectMember={onSelectMember}
+              />
+              {/* Vertical tendril from couple down to the horizontal convergence bar */}
+              <div className="ftv-punit-tendril" aria-hidden />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Center vertical drop from convergence point down to shared child */}
+      <div className="ftv-stem" aria-hidden />
+
+      {/* Shared child subtree */}
+      <FamilyNode
+        node={child}
+        selectedId={selectedId}
+        onSelectMember={onSelectMember}
+      />
+    </div>
+  );
+}
+
 function FamilyNode({
   node,
   selectedId,
@@ -364,7 +556,7 @@ export function FamilyTreeView({
   onSelectMember: (id: string | null) => void;
   selectedId: string | null;
 }) {
-  const rootNodes = useMemo(
+  const rootEntries = useMemo(
     () => buildTree(members, relationships),
     [members, relationships]
   );
@@ -372,7 +564,7 @@ export function FamilyTreeView({
   return (
     <>
       <style>{`
-        /* ── Tree connector colour (slightly warmer/more visible than --border) ── */
+        /* ── Tree connector colour ───────────────────────────────────────── */
         :root { --ftv-line: color-mix(in srgb, var(--foreground) 22%, transparent); }
 
         /* Tree layout */
@@ -467,21 +659,82 @@ export function FamilyTreeView({
           background: var(--ftv-line);
           flex-shrink: 0;
         }
+
+        /* ── Multi-parent layout ─────────────────────────────────────────── */
+
+        /* Row of parent couples sitting side by side */
+        .ftv-multi-parents {
+          display: flex;
+          align-items: flex-start;
+        }
+
+        /* Each parent couple wrapper — mirrors ftv-child but for parent generation */
+        .ftv-punit-wrapper {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          position: relative;
+          padding: 0 24px;
+        }
+
+        /* Horizontal convergence bar at the BOTTOM of each wrapper
+           (drawn level with the bottom of .ftv-punit-tendril).
+           Pattern mirrors ftv-child::before but applied below each couple. */
+        .ftv-punit-wrapper::before {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          height: 2px;
+          background: var(--ftv-line);
+        }
+
+        /* Left couple: bar extends rightward from center toward sibling */
+        .ftv-punit-first::before  { left: 50%; right: 0; }
+
+        /* Right couple: bar extends leftward from center toward sibling */
+        .ftv-punit-last::before   { left: 0; right: 50%; }
+
+        /* Middle couples: full-width bar */
+        .ftv-punit-middle::before { left: 0; right: 0; }
+
+        /* Single parent (no convergence bar needed) */
+        .ftv-punit-only::before   { display: none; }
+
+        /* Vertical tendril from each couple card down to the convergence bar */
+        .ftv-punit-tendril {
+          width: 2px;
+          height: 36px;
+          background: var(--ftv-line);
+          flex-shrink: 0;
+        }
       `}</style>
 
-      <div className="overflow-auto rounded-xl border border-[var(--border)] bg-[var(--background)] p-10"
-        style={{ backgroundImage: "radial-gradient(var(--border) 1px, transparent 1px)", backgroundSize: "24px 24px" }}
+      <div
+        className="overflow-auto rounded-xl border border-[var(--border)] bg-[var(--background)] p-10"
+        style={{
+          backgroundImage: "radial-gradient(var(--border) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
       >
         <div className="flex justify-center">
           <div className="flex flex-col items-center gap-10">
-            {rootNodes.map((node) => (
-              <FamilyNode
-                key={node.member.id}
-                node={node}
-                selectedId={selectedId}
-                onSelectMember={onSelectMember}
-              />
-            ))}
+            {rootEntries.map((entry) =>
+              entry.kind === "multi-parent" ? (
+                <MultiParentView
+                  key={entry.parentCouples[0].member.id}
+                  entry={entry}
+                  selectedId={selectedId}
+                  onSelectMember={onSelectMember}
+                />
+              ) : (
+                <FamilyNode
+                  key={entry.node.member.id}
+                  node={entry.node}
+                  selectedId={selectedId}
+                  onSelectMember={onSelectMember}
+                />
+              )
+            )}
           </div>
         </div>
       </div>
