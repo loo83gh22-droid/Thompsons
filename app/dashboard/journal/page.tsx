@@ -114,7 +114,6 @@ export default async function JournalPage() {
             const photos = photosByEntryId.get(entry.id) ?? [];
             const videos = videosByEntryId.get(entry.id) ?? [];
             const perspectiveCount = perspectiveCountByEntryId.get(entry.id) ?? 0;
-            const heroPhoto = photos[0] ?? null;
 
             const date = entry.trip_date
               ? formatDateOnly(entry.trip_date)
@@ -135,19 +134,6 @@ export default async function JournalPage() {
                 key={entry.id}
                 className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] transition-shadow hover:shadow-md"
               >
-                {/* Photo gallery — full-width banner with clickable lightbox */}
-                {heroPhoto && (
-                  <div className="relative">
-                    <JournalPhotoGallery photos={photos} title={entry.title || "Photo"} />
-                    {/* Video badge — top left overlay */}
-                    {videos.length > 0 && (
-                      <div className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-medium text-white pointer-events-none">
-                        ▶ {videos.length} video{videos.length !== 1 ? "s" : ""}
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 {/* Card body */}
                 <div className="p-5 sm:p-6">
                   {/* Metadata row */}
@@ -184,8 +170,7 @@ export default async function JournalPage() {
                         {perspectiveCount} perspective{perspectiveCount !== 1 ? "s" : ""}
                       </span>
                     )}
-                    {/* Video badge (no hero photo case) */}
-                    {!heroPhoto && videos.length > 0 && (
+                    {videos.length > 0 && (
                       <span className="rounded-full border border-[var(--border)] bg-[var(--secondary)] px-2.5 py-0.5 text-xs text-[var(--muted)]">
                         ▶ {videos.length} video{videos.length !== 1 ? "s" : ""}
                       </span>
@@ -206,29 +191,15 @@ export default async function JournalPage() {
                   </div>
                 </div>
 
-                {/* Video players — shown below body when no hero photo */}
-                {!heroPhoto && videos.length > 0 && (
-                  <div className="flex gap-2 overflow-x-auto border-t border-[var(--border)] p-4">
-                    {videos.map((video) => (
-                      <div
-                        key={video.id}
-                        className="relative h-48 w-72 flex-shrink-0 overflow-hidden rounded-lg bg-black"
-                      >
-                        {/* eslint-disable-next-line jsx-a11y/media-has-caption -- family home video, no captions */}
-                        <video
-                          src={video.url}
-                          controls
-                          preload="metadata"
-                          playsInline
-                          className="h-full w-full object-contain"
-                        />
-                      </div>
-                    ))}
+                {/* Photo thumbnails — below card body, click to open lightbox */}
+                {photos.length > 0 && (
+                  <div className="border-t border-[var(--border)]">
+                    <JournalPhotoGallery photos={photos} title={entry.title || "Photo"} />
                   </div>
                 )}
 
-                {/* When there IS a hero photo, still show videos below */}
-                {heroPhoto && videos.length > 0 && (
+                {/* Video players */}
+                {videos.length > 0 && (
                   <div className="flex gap-2 overflow-x-auto border-t border-[var(--border)] p-4">
                     {videos.map((video) => (
                       <div
