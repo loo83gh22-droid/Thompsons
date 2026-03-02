@@ -35,7 +35,10 @@ export const dateStringSchema = z
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)")
   .refine((date) => !isNaN(Date.parse(date)), "Invalid date");
 
-export const optionalDateStringSchema = dateStringSchema.optional().nullable();
+export const optionalDateStringSchema = z.preprocess(
+  (val) => (val === "" ? null : val),
+  dateStringSchema.optional().nullable()
+);
 
 export const coordinateSchema = z
   .number()
