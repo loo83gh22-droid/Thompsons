@@ -200,7 +200,7 @@ function LoginForm() {
                       onChange={(e) => setEmail(e.target.value)}
                       readOnly={!!email && tokenResolved}
                       required
-                      className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] read-only:opacity-70 read-only:cursor-default"
+                      className="input-base read-only:opacity-70 read-only:cursor-default"
                       placeholder="you@example.com"
                     />
                     {email && tokenResolved && (
@@ -224,7 +224,7 @@ function LoginForm() {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       autoFocus
-                      className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 pr-12 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+                      className="input-base pr-12"
                       placeholder="Choose a secure password"
                     />
                     <button
@@ -246,8 +246,8 @@ function LoginForm() {
                   <div
                     className={`rounded-lg px-4 py-3 text-sm ${
                       message.type === "success"
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : "bg-red-50 text-red-700 border border-red-200"
+                        ? "bg-[var(--success-bg)] text-[var(--success)] border border-[var(--success-border)]"
+                        : "bg-[var(--error-bg)] text-[var(--error)] border border-[var(--error-border)]"
                     }`}
                   >
                     {message.text}
@@ -335,7 +335,7 @@ function LoginForm() {
                   type="text"
                   value={familyName}
                   onChange={(e) => setFamilyName(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+                  className="input-base mt-1"
                   placeholder="e.g. Thompsons"
                 />
               </div>
@@ -349,7 +349,7 @@ function LoginForm() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required={isSignUp}
-                  className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+                  className="input-base mt-1"
                   placeholder="e.g. Sarah"
                 />
               </div>
@@ -411,7 +411,7 @@ function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 pr-12 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+                className="input-base pr-12"
                 placeholder="••••••••"
               />
               <button

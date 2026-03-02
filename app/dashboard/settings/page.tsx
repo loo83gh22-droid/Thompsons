@@ -18,7 +18,7 @@ const PLAN_DISPLAY: Record<
   free: { name: "The Nest", color: "text-[var(--muted)]", badge: "Free" },
   annual: {
     name: "The Full Nest",
-    color: "text-blue-600",
+    color: "text-[var(--primary)]",
     badge: "$79/year",
   },
   legacy: {
@@ -46,9 +46,9 @@ function StorageBar({
   const pct = limit > 0 ? Math.min((used / limit) * 100, 100) : 0;
   const barColor =
     pct > 95
-      ? "bg-red-500"
+      ? "bg-[var(--error)]"
       : pct > 80
-        ? "bg-amber-500"
+        ? "bg-[var(--warning)]"
         : "bg-[var(--accent)]";
 
   return (
@@ -66,7 +66,7 @@ function StorageBar({
         />
       </div>
       {pct > 80 && (
-        <p className={`text-xs ${pct > 95 ? "text-red-600" : "text-amber-700"}`}>
+        <p className={`text-xs ${pct > 95 ? "text-[var(--error)]" : "text-[var(--warning)]"}`}>
           {pct > 95
             ? "Storage almost full — consider upgrading your plan."
             : "Storage getting full — you may want to upgrade soon."}
@@ -128,19 +128,13 @@ export default async function SettingsPage() {
 
       {/* Header */}
       <div>
-        <Link
-          href="/dashboard"
-          className="mb-4 inline-flex items-center gap-1 text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
-        >
-          &larr; Back to Dashboard
-        </Link>
         <h1 className="font-display text-3xl font-bold">Account Settings</h1>
       </div>
 
       {/* Family Name */}
-      <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
         <div className="border-b border-[var(--border)] px-6 py-4">
-          <h2 className="text-lg font-semibold">Family Name</h2>
+          <h2 className="font-display text-xl font-semibold">Family Name</h2>
         </div>
         <div className="px-6 py-5">
           <FamilyNameEditor
@@ -151,9 +145,9 @@ export default async function SettingsPage() {
       </section>
 
       {/* Your Plan card */}
-      <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
         <div className="border-b border-[var(--border)] px-6 py-4">
-          <h2 className="text-lg font-semibold">Your Plan</h2>
+          <h2 className="font-display text-xl font-semibold">Your Plan</h2>
         </div>
 
         <div className="space-y-6 px-6 py-5">
@@ -191,9 +185,9 @@ export default async function SettingsPage() {
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
                       journalCount >= 10
-                        ? "bg-red-500"
+                        ? "bg-[var(--error)]"
                         : journalCount >= 8
-                          ? "bg-amber-500"
+                          ? "bg-[var(--warning)]"
                           : "bg-[var(--accent)]"
                     }`}
                     style={{
@@ -202,7 +196,7 @@ export default async function SettingsPage() {
                   />
                 </div>
                 {journalCount >= 10 && (
-                  <p className="text-xs text-red-600">
+                  <p className="text-xs text-[var(--error)]">
                     Journal entry limit reached. Upgrade to unlock unlimited
                     entries.
                   </p>
@@ -308,9 +302,9 @@ export default async function SettingsPage() {
       {planType === "legacy" && <ExportNest />}
 
       {/* Import */}
-      <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
         <div className="border-b border-[var(--border)] px-6 py-4">
-          <h2 className="text-lg font-semibold">Import Content</h2>
+          <h2 className="font-display text-xl font-semibold">Import Content</h2>
         </div>
         <div className="space-y-3 px-6 py-5">
           <p className="text-sm text-[var(--muted)]">
@@ -329,9 +323,9 @@ export default async function SettingsPage() {
       </section>
 
       {/* Quick links */}
-      <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
         <div className="border-b border-[var(--border)] px-6 py-4">
-          <h2 className="text-lg font-semibold">Account</h2>
+          <h2 className="font-display text-xl font-semibold">Account</h2>
         </div>
         <div className="divide-y divide-[var(--border)]">
           <Link
@@ -389,9 +383,9 @@ export default async function SettingsPage() {
 
       {/* Notifications */}
       {currentMember && (
-        <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+        <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
           <div className="border-b border-[var(--border)] px-6 py-4">
-            <h2 className="text-lg font-semibold">Notifications</h2>
+            <h2 className="font-display text-xl font-semibold">Notifications</h2>
           </div>
           <div className="px-6 py-5">
             <EmailNotificationsToggle

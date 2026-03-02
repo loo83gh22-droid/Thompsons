@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { AddRecipeForm } from "./AddRecipeForm";
@@ -39,29 +38,19 @@ export default async function RecipesPage() {
 
   return (
     <div>
-      <div className="mb-10">
-        <div className="mb-2">
-          <Link
-            href="/dashboard"
-            className="text-sm text-[var(--muted)] hover:text-[var(--foreground)]"
-          >
-            ← Home
-          </Link>
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
+            🍳 Recipes
+          </h1>
+          <p className="mt-2 text-[var(--muted)]">
+            The story behind the food — who taught it, what occasions, photos from dinners.
+          </p>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="font-display text-4xl font-bold text-[var(--foreground)]">
-              🍳 Recipes
-            </h1>
-            <p className="mt-2 text-lg text-[var(--muted)]">
-              The story behind the food — who taught it, what occasions, photos from dinners.
-            </p>
-          </div>
-          <AddRecipeForm
-            members={members || []}
-            journalPhotos={(journalPhotos ?? []) as unknown as Parameters<typeof AddRecipeForm>[0]["journalPhotos"]}
-          />
-        </div>
+        <AddRecipeForm
+          members={members || []}
+          journalPhotos={(journalPhotos ?? []) as unknown as Parameters<typeof AddRecipeForm>[0]["journalPhotos"]}
+        />
       </div>
 
       {!recipes?.length ? (

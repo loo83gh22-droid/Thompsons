@@ -138,19 +138,19 @@ export default async function TimeCapsulesPage() {
                     href={`/dashboard/time-capsules/${letter.id}`}
                     className={`group block overflow-hidden rounded-xl border transition-all duration-200 hover:shadow-md ${
                       unlocked
-                        ? "border-emerald-200 bg-emerald-50/40 hover:border-emerald-300 hover:bg-emerald-50"
-                        : "border-amber-200/70 hover:border-amber-300 hover:shadow-amber-100/60"
+                        ? "border-[var(--success-border)] bg-[var(--success-bg)]/40 hover:bg-[var(--success-bg)]"
+                        : "border-[var(--warning-border)]/70 hover:border-[var(--warning-border)]"
                     }`}
                     style={!unlocked ? { background: "linear-gradient(105deg, #fdf6e3 0%, #f5e8cc 100%)" } : undefined}
                   >
                     <div className="flex items-stretch gap-0">
                       {/* Left visual panel */}
                       {unlocked ? (
-                        <div className="flex w-20 shrink-0 items-center justify-center bg-emerald-100/60 border-r border-emerald-200 py-5">
+                        <div className="flex w-20 shrink-0 items-center justify-center bg-[var(--success-bg)] border-r border-[var(--success-border)] py-5">
                           <span className="text-3xl">💌</span>
                         </div>
                       ) : (
-                        <div className="flex w-20 shrink-0 flex-col items-center justify-center gap-0 border-r border-amber-200/60 py-5"
+                        <div className="flex w-20 shrink-0 flex-col items-center justify-center gap-0 border-r border-[var(--warning-border)]/60 py-5"
                           style={{ background: "linear-gradient(160deg, #fef3c7 0%, #fde68a33 100%)" }}
                         >
                           <div className="relative">
@@ -188,8 +188,8 @@ export default async function TimeCapsulesPage() {
                         <span
                           className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
                             unlocked
-                              ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                              : "bg-amber-50 text-amber-700 border border-amber-200"
+                              ? "bg-[var(--success-bg)] text-[var(--success)] border border-[var(--success-border)]"
+                              : "bg-[var(--warning-bg)] text-[var(--warning)] border border-[var(--warning-border)]"
                           }`}
                         >
                           {unlocked
@@ -229,19 +229,19 @@ export default async function TimeCapsulesPage() {
                     href={`/dashboard/time-capsules/${letter.id}`}
                     className={`group block overflow-hidden rounded-xl border transition-all duration-200 hover:shadow-md ${
                       unlocked
-                        ? "border-emerald-200 bg-emerald-50/40 hover:border-emerald-300 hover:bg-emerald-50"
-                        : "border-amber-200/70 hover:border-amber-300 hover:shadow-amber-100/60"
+                        ? "border-[var(--success-border)] bg-[var(--success-bg)]/40 hover:bg-[var(--success-bg)]"
+                        : "border-[var(--warning-border)]/70 hover:border-[var(--warning-border)]"
                     }`}
                     style={!unlocked ? { background: "linear-gradient(105deg, #fdf6e3 0%, #f5e8cc 100%)" } : undefined}
                   >
                     <div className="flex items-stretch gap-0">
                       {/* Left visual panel */}
                       {unlocked ? (
-                        <div className="flex w-20 shrink-0 items-center justify-center bg-emerald-100/60 border-r border-emerald-200 py-5">
+                        <div className="flex w-20 shrink-0 items-center justify-center bg-[var(--success-bg)] border-r border-[var(--success-border)] py-5">
                           <span className="text-3xl">📬</span>
                         </div>
                       ) : (
-                        <div className="flex w-20 shrink-0 flex-col items-center justify-center gap-0 border-r border-amber-200/60 py-5"
+                        <div className="flex w-20 shrink-0 flex-col items-center justify-center gap-0 border-r border-[var(--warning-border)]/60 py-5"
                           style={{ background: "linear-gradient(160deg, #fef3c7 0%, #fde68a33 100%)" }}
                         >
                           <div className="relative">
@@ -279,8 +279,8 @@ export default async function TimeCapsulesPage() {
                         <span
                           className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
                             unlocked
-                              ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                              : "bg-amber-50 text-amber-700 border border-amber-200"
+                              ? "bg-[var(--success-bg)] text-[var(--success)] border border-[var(--success-border)]"
+                              : "bg-[var(--warning-bg)] text-[var(--warning)] border border-[var(--warning-border)]"
                           }`}
                         >
                           {unlocked

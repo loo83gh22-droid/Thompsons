@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { AddTraditionForm } from "./AddTraditionForm";
@@ -26,16 +25,10 @@ export default async function TraditionsPage() {
     <div>
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <Link
-            href="/dashboard"
-            className="text-sm text-[var(--muted)] hover:text-[var(--foreground)]"
-          >
-            ← Home
-          </Link>
-          <h1 className="mt-2 font-display text-4xl font-bold text-[var(--foreground)]">
+          <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
             Family Traditions
           </h1>
-          <p className="mt-2 text-lg text-[var(--muted)]">
+          <p className="mt-2 text-[var(--muted)]">
             Taco Tuesday chants, holiday rituals, inside jokes — the cultural DNA that gets lost between generations.
           </p>
         </div>

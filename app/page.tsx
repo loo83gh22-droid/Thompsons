@@ -144,7 +144,7 @@ const organizationStructuredData = {
 
 export default function HomePage() {
   return (
-    <div className="landing" style={{ fontFamily: "var(--font-body)" }}>
+    <div className="landing">
       {/* Structured Data for SEO */}
       <script
         type="application/ld+json"

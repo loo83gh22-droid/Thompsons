@@ -17,6 +17,16 @@
   --border: hsl(36, 18%, 78%);
   --surface: hsl(40, 30%, 96%);
   --surface-hover: hsl(36, 22%, 87%);
+  /* Semantic state tokens (used for alerts, badges, progress bars) */
+  --success: hsl(158, 40%, 30%);
+  --success-bg: hsl(158, 35%, 94%);
+  --success-border: hsl(158, 35%, 75%);
+  --warning: hsl(32, 60%, 35%);
+  --warning-bg: hsl(32, 60%, 95%);
+  --warning-border: hsl(32, 55%, 78%);
+  --error: hsl(0, 60%, 40%);
+  --error-bg: hsl(0, 55%, 95%);
+  --error-border: hsl(0, 55%, 80%);
 }
 
 /* Landing page wrapper - z-index for mosaic background */

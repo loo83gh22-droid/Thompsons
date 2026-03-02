@@ -93,7 +93,7 @@ export default function MapPage() {
               type="button"
               onClick={handleSyncBirthPlaces}
               disabled={syncingBirth}
-              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] disabled:opacity-50"
+              className="min-h-[44px] rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] disabled:opacity-50"
             >
               {syncingBirth ? "Syncing…" : "Sync birth places to map"}
             </button>
@@ -101,7 +101,7 @@ export default function MapPage() {
               type="button"
               onClick={handleRebuildClusters}
               disabled={rebuilding}
-              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] disabled:opacity-50"
+              className="min-h-[44px] rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] disabled:opacity-50"
             >
               {rebuilding ? "Rebuilding…" : "Rebuild clusters"}
             </button>

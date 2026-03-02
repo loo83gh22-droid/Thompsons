@@ -209,7 +209,7 @@ export default function PricingPage() {
                 {tier.plan === "free" ? (
                   <Link
                     href={tier.ctaHref}
-                    className="block w-full rounded-full px-6 py-3 text-center font-medium transition-all hover:scale-[1.02] border border-[var(--border)] text-[var(--foreground)] bg-[var(--secondary)] hover:bg-[var(--surface-hover)]"
+                    className="block w-full rounded-lg px-6 py-3 text-center font-medium transition-colors border border-[var(--border)] text-[var(--foreground)] bg-[var(--secondary)] hover:bg-[var(--surface-hover)]"
                   >
                     {tier.cta}
                   </Link>

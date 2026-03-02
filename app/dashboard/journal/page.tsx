@@ -132,7 +132,7 @@ export default async function JournalPage() {
             return (
               <article
                 key={entry.id}
-                className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] transition-shadow hover:shadow-md"
+                className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] transition-shadow hover:shadow-md"
               >
                 {/* Card body */}
                 <div className="p-5 sm:p-6">
