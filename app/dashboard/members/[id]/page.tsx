@@ -16,7 +16,7 @@ export default async function MemberProfilePage({
 
   const { data: member } = await supabase
     .from("family_members")
-    .select("id, name, nickname, relationship, contact_email, user_id, birth_date, birth_place, avatar_url, created_at")
+    .select("id, name, nickname, relationship, contact_email, user_id, birth_date, birth_place, avatar_url, created_at, is_deceased, death_date")
     .eq("id", id)
     .eq("family_id", activeFamilyId)
     .single();

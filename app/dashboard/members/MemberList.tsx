@@ -18,6 +18,8 @@ export type Member = {
   birth_date: string | null;
   birth_place: string | null;
   avatar_url: string | null;
+  is_deceased: boolean;
+  death_date: string | null;
 };
 
 function initials(name: string): string {
@@ -61,6 +63,8 @@ function MemberCard({ member, index, alias }: { member: Member; index: number; a
   const [birthDate, setBirthDate] = useState(member.birth_date ?? "");
   const [birthPlace, setBirthPlace] = useState(member.birth_place ?? "");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(member.avatar_url);
+  const [isDeceased, setIsDeceased] = useState(member.is_deceased);
+  const [deathDate, setDeathDate] = useState(member.death_date ?? "");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -114,7 +118,9 @@ function MemberCard({ member, index, alias }: { member: Member; index: number; a
         birthDate || "",
         birthPlace.trim() || "",
         nickname.trim() || null,
-        finalAvatarUrl
+        finalAvatarUrl,
+        isDeceased,
+        deathDate || null
       );
       setAvatarUrl(finalAvatarUrl);
       clearNewPhoto();
@@ -278,6 +284,29 @@ function MemberCard({ member, index, alias }: { member: Member; index: number; a
               placeholder="e.g. Vancouver, BC"
             />
           </div>
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-hover)]/40 p-3">
+            <label className="flex cursor-pointer items-center gap-2.5">
+              <input
+                type="checkbox"
+                checked={isDeceased}
+                onChange={(e) => setIsDeceased(e.target.checked)}
+                className="h-4 w-4 rounded border-[var(--border)] accent-[var(--accent)]"
+              />
+              <span className="text-sm font-medium text-[var(--foreground)]">This person has passed away</span>
+            </label>
+            {isDeceased && (
+              <div className="mt-3">
+                <label htmlFor={`death-date-${member.id}`} className="block text-sm font-medium text-[var(--muted)]">Date of passing (optional)</label>
+                <input
+                  id={`death-date-${member.id}`}
+                  type="date"
+                  value={deathDate}
+                  onChange={(e) => setDeathDate(e.target.value)}
+                  className="input-base mt-1 w-full"
+                />
+              </div>
+            )}
+          </div>
           {message && (
             <div className={`rounded-lg px-4 py-2 text-sm ${message.type === "success" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
               {message.text}
@@ -305,13 +334,23 @@ function MemberCard({ member, index, alias }: { member: Member; index: number; a
       ? "pending"
       : null;
 
+  const isMemorial = member.is_deceased;
+
   return (
     <div
-      className="group relative overflow-hidden rounded-3xl border border-[var(--border)]/60 bg-gradient-to-b from-[var(--card)] to-[var(--surface)] p-6 text-center opacity-0 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)]"
+      className={`group relative overflow-hidden rounded-3xl border p-6 text-center opacity-0 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] ${
+        isMemorial
+          ? "border-slate-300/60 bg-gradient-to-b from-slate-50 to-white dark:border-slate-600/40 dark:from-slate-800/60 dark:to-slate-900/40"
+          : "border-[var(--border)]/60 bg-gradient-to-b from-[var(--card)] to-[var(--surface)]"
+      }`}
       style={{ animation: `fade-in-up 0.5s ease-out ${index * 80}ms forwards` }}
     >
       {/* Decorative top accent bar */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-[var(--accent)]/40 to-transparent" />
+      <div className={`pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${
+        isMemorial
+          ? "from-transparent via-slate-400/50 to-transparent"
+          : "from-transparent via-[var(--accent)]/40 to-transparent"
+      }`} />
 
       {/* Floating action buttons */}
       <div className="absolute right-3 top-3 flex gap-1.5 rounded-xl bg-[var(--card)]/80 p-1 opacity-100 backdrop-blur-sm transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
@@ -341,6 +380,14 @@ function MemberCard({ member, index, alias }: { member: Member; index: number; a
         </button>
       </div>
 
+      {/* In loving memory badge */}
+      {isMemorial && (
+        <div className="mb-3 flex items-center justify-center gap-1.5">
+          <span className="text-base">🕊️</span>
+          <span className="text-xs font-medium tracking-wide text-slate-500 dark:text-slate-400">In loving memory</span>
+        </div>
+      )}
+
       {/* Avatar with status indicator */}
       <Link href={`/dashboard/members/${member.id}`} className="group/avatar relative mx-auto block w-fit rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
         <div className="relative">
@@ -349,15 +396,23 @@ function MemberCard({ member, index, alias }: { member: Member; index: number; a
               src={member.avatar_url}
               alt={member.name}
               loading="lazy"
-              className="h-24 w-24 rounded-full object-cover ring-4 ring-[var(--accent)]/15 transition-all duration-300 group-hover/avatar:ring-[var(--accent)]/30"
+              className={`h-24 w-24 rounded-full object-cover ring-4 transition-all duration-300 ${
+                isMemorial
+                  ? "grayscale ring-slate-300/40 group-hover/avatar:grayscale-0 group-hover/avatar:ring-slate-400/50"
+                  : "ring-[var(--accent)]/15 group-hover/avatar:ring-[var(--accent)]/30"
+              }`}
             />
           ) : (
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[var(--primary)]/20 to-[var(--accent)]/15 text-xl font-bold text-[var(--primary)] ring-4 ring-[var(--primary)]/10 transition-all duration-300 group-hover/avatar:ring-[var(--primary)]/25">
+            <div className={`flex h-24 w-24 items-center justify-center rounded-full text-xl font-bold ring-4 transition-all duration-300 ${
+              isMemorial
+                ? "bg-gradient-to-br from-slate-200 to-slate-100 text-slate-500 ring-slate-200/60 dark:from-slate-700 dark:to-slate-800 dark:text-slate-400"
+                : "bg-gradient-to-br from-[var(--primary)]/20 to-[var(--accent)]/15 text-[var(--primary)] ring-[var(--primary)]/10 group-hover/avatar:ring-[var(--primary)]/25"
+            }`}>
               {initials(member.name)}
             </div>
           )}
-          {/* Online / pending status dot */}
-          {status && (
+          {/* Online / pending status dot — not shown for memorial cards */}
+          {status && !isMemorial && (
             <span
               className={`absolute bottom-1 right-1 block h-4 w-4 rounded-full border-2 border-[var(--card)] ${
                 status === "signed_in" ? "bg-emerald-400" : "bg-amber-400"
@@ -404,7 +459,13 @@ function MemberCard({ member, index, alias }: { member: Member; index: number; a
             <span>Born {shortBirthday}</span>
           </div>
         )}
-        {member.contact_email && (
+        {isMemorial && member.death_date && (
+          <div className="flex items-center justify-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+            <span className="text-xs">✦</span>
+            <span>{new Date(member.death_date + "T12:00:00").getFullYear()}</span>
+          </div>
+        )}
+        {member.contact_email && !isMemorial && (
           <div className="flex items-center justify-center gap-1.5 text-sm text-[var(--muted)]">
             <svg className="h-3.5 w-3.5 shrink-0 text-[var(--accent)]/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
             <span className="truncate">{member.contact_email}</span>
@@ -412,8 +473,8 @@ function MemberCard({ member, index, alias }: { member: Member; index: number; a
         )}
       </div>
 
-      {/* Status label (small, subtle) */}
-      {status && (
+      {/* Status label (small, subtle) — hidden for memorial cards */}
+      {status && !isMemorial && (
         <div className="mt-4">
           {status === "signed_in" ? (
             <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">

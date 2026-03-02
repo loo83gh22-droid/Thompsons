@@ -27,6 +27,8 @@ export function AddMemberForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const [isDeceased, setIsDeceased] = useState(false);
+  const [deathDate, setDeathDate] = useState("");
   const [links, setLinks] = useState<{ type: "spouse" | "child" | "parent"; memberId: string }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,6 +59,8 @@ export function AddMemberForm({
     setEmail("");
     setBirthDate("");
     setBirthPlace("");
+    setIsDeceased(false);
+    setDeathDate("");
     setLinks([]);
     setError(null);
     clearPhoto();
@@ -114,7 +118,9 @@ export function AddMemberForm({
         birthDate || "",
         birthPlace.trim() || "",
         nickname.trim() || null,
-        avatarUrl
+        avatarUrl,
+        isDeceased,
+        deathDate || null
       );
 
       const validLinks = links.filter((l) => l.memberId);
@@ -283,6 +289,33 @@ export function AddMemberForm({
                   placeholder="e.g. Vancouver, BC"
                 />
                 <p className="mt-1 text-xs text-[var(--muted)]">Creates a balloon pin on the map.</p>
+              </div>
+
+              <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-hover)]/40 p-3">
+                <label className="flex cursor-pointer items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={isDeceased}
+                    onChange={(e) => setIsDeceased(e.target.checked)}
+                    className="h-4 w-4 rounded border-[var(--border)] accent-[var(--accent)]"
+                  />
+                  <span className="text-sm font-medium text-[var(--foreground)]">This person has passed away</span>
+                </label>
+                <p className="mt-1 text-xs text-[var(--muted)] pl-6.5">Creates a memorial placeholder card — no login or invite needed.</p>
+                {isDeceased && (
+                  <div className="mt-3">
+                    <label htmlFor="am-death-date" className="block text-sm font-medium text-[var(--muted)]">
+                      Date of passing <span className="text-[var(--muted)]">(optional)</span>
+                    </label>
+                    <input
+                      id="am-death-date"
+                      type="date"
+                      value={deathDate}
+                      onChange={(e) => setDeathDate(e.target.value)}
+                      className="input-base mt-1 w-full"
+                    />
+                  </div>
+                )}
               </div>
 
               {linkMembers.length > 0 && (
