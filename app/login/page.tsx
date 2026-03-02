@@ -335,6 +335,7 @@ function LoginForm() {
                   type="text"
                   value={familyName}
                   onChange={(e) => setFamilyName(e.target.value)}
+                  required
                   className="input-base mt-1"
                   placeholder="e.g. Thompsons"
                 />
@@ -396,12 +397,14 @@ function LoginForm() {
               <label htmlFor="password" className="block text-sm font-medium text-[var(--muted)]">
                 Password
               </label>
-              <Link
-                href="/forgot-password"
-                className="text-xs text-[var(--accent)] hover:underline"
-              >
-                Forgot password?
-              </Link>
+              {!isSignUp && (
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-[var(--accent)] hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              )}
             </div>
             <div className="relative mt-1">
               <input

@@ -46,13 +46,13 @@ export function HeroSection() {
 
               </div>
               <p className="text-sm" style={{ color: "var(--muted)" }}>
-                Someone invited you?{" "}
+                Already have a Nest?{" "}
                 <Link
-                  href="/login?mode=signup"
+                  href="/login"
                   className="font-semibold underline underline-offset-4 transition-colors"
                   style={{ color: "var(--primary)" }}
                 >
-                  Join an existing Nest
+                  Sign in to your Nest
                 </Link>
               </p>
               {/* Trust signal */}
