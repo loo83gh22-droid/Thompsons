@@ -23,13 +23,13 @@ const nextConfig: NextConfig = {
     const csp = [
       "default-src 'self'",
       // Next.js requires unsafe-inline for hydration scripts; unsafe-eval for Turbopack dev HMR
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://www.googletagmanager.com",
       // Tailwind and Next.js inject inline styles
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Images: own origin (storage proxy), Google Maps tiles, OpenStreetMap tiles, data URIs, blobs
       `img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com https://*.tile.openstreetmap.org`,
       // API / WebSocket connections (Supabase for auth/db, not storage); CDN for world-atlas GeoJSON; Nominatim for location suggestions
-      `connect-src 'self' ${supabaseOrigin} wss://${supabaseHost ?? ""} https://maps.googleapis.com https://*.tile.openstreetmap.org https://nominatim.openstreetmap.org https://cdn.jsdelivr.net`,
+      `connect-src 'self' ${supabaseOrigin} wss://${supabaseHost ?? ""} https://maps.googleapis.com https://*.tile.openstreetmap.org https://nominatim.openstreetmap.org https://cdn.jsdelivr.net https://www.google-analytics.com https://region1.google-analytics.com`,
       // Audio / video now served via /api/storage proxy (same origin)
       `media-src 'self' blob:`,
       "font-src 'self' https://fonts.gstatic.com",
