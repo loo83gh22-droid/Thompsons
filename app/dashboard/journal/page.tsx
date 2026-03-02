@@ -6,12 +6,12 @@ export const metadata: Metadata = {
   title: "Family Journal — Family Nest",
 };
 import { createClient } from "@/src/lib/supabase/server";
-import Image from "next/image";
 import { formatDateOnly } from "@/src/lib/date";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { DeleteJournalEntryButton } from "./DeleteJournalEntryButton";
 import { EmptyState } from "@/app/dashboard/components/EmptyState";
 import { AddedToMapBanner } from "./AddedToMapBanner";
+import { JournalPhotoGallery } from "./JournalPhotoGallery";
 
 export default async function JournalPage() {
   const supabase = await createClient();
@@ -115,7 +115,6 @@ export default async function JournalPage() {
             const videos = videosByEntryId.get(entry.id) ?? [];
             const perspectiveCount = perspectiveCountByEntryId.get(entry.id) ?? 0;
             const heroPhoto = photos[0] ?? null;
-            const extraPhotos = photos.slice(1);
 
             const date = entry.trip_date
               ? formatDateOnly(entry.trip_date)
@@ -136,53 +135,13 @@ export default async function JournalPage() {
                 key={entry.id}
                 className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] transition-shadow hover:shadow-md"
               >
-                {/* Photo hero — full-width banner when photos exist */}
+                {/* Photo gallery — full-width banner with clickable lightbox */}
                 {heroPhoto && (
-                  <div className="relative h-56 w-full overflow-hidden bg-[var(--secondary)]">
-                    <Image
-                      src={heroPhoto.url}
-                      alt={heroPhoto.caption || entry.title || "Photo"}
-                      fill
-                      unoptimized
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, 800px"
-                    />
-                    {/* Gradient so bottom text is readable if needed */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-
-                    {/* Extra photo thumbnails — bottom right */}
-                    {extraPhotos.length > 0 && (
-                      <div className="absolute bottom-3 right-3 flex items-center gap-1.5">
-                        {extraPhotos.slice(0, 2).map((p) => (
-                          <div
-                            key={p.id}
-                            className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg"
-                            style={{ border: "2px solid rgba(255,255,255,0.7)" }}
-                          >
-                            <Image
-                              src={p.url}
-                              alt={p.caption || ""}
-                              fill
-                              unoptimized
-                              className="object-cover"
-                              sizes="48px"
-                            />
-                          </div>
-                        ))}
-                        {extraPhotos.length > 2 && (
-                          <div
-                            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white"
-                            style={{ backgroundColor: "rgba(0,0,0,0.45)", border: "2px solid rgba(255,255,255,0.5)" }}
-                          >
-                            +{extraPhotos.length - 2}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Video badge — top left */}
+                  <div className="relative">
+                    <JournalPhotoGallery photos={photos} title={entry.title || "Photo"} />
+                    {/* Video badge — top left overlay */}
                     {videos.length > 0 && (
-                      <div className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-medium text-white">
+                      <div className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-medium text-white pointer-events-none">
                         ▶ {videos.length} video{videos.length !== 1 ? "s" : ""}
                       </div>
                     )}
