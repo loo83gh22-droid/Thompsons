@@ -170,11 +170,6 @@ export default async function JournalPage() {
                         {perspectiveCount} perspective{perspectiveCount !== 1 ? "s" : ""}
                       </span>
                     )}
-                    {videos.length > 0 && (
-                      <span className="rounded-full border border-[var(--border)] bg-[var(--secondary)] px-2.5 py-0.5 text-xs text-[var(--muted)]">
-                        ▶ {videos.length} video{videos.length !== 1 ? "s" : ""}
-                      </span>
-                    )}
                     <div className="ml-auto flex items-center gap-2">
                       <Link
                         href={`/dashboard/journal/${entry.id}/edit`}
@@ -191,31 +186,10 @@ export default async function JournalPage() {
                   </div>
                 </div>
 
-                {/* Photo thumbnails — below card body, click to open lightbox */}
-                {photos.length > 0 && (
+                {/* Unified media thumbnails — photos + videos, click to open lightbox */}
+                {(photos.length > 0 || videos.length > 0) && (
                   <div className="border-t border-[var(--border)]">
-                    <JournalPhotoGallery photos={photos} title={entry.title || "Photo"} />
-                  </div>
-                )}
-
-                {/* Video players */}
-                {videos.length > 0 && (
-                  <div className="flex gap-2 overflow-x-auto border-t border-[var(--border)] p-4">
-                    {videos.map((video) => (
-                      <div
-                        key={video.id}
-                        className="relative h-48 w-72 flex-shrink-0 overflow-hidden rounded-lg bg-black"
-                      >
-                        {/* eslint-disable-next-line jsx-a11y/media-has-caption -- family home video, no captions */}
-                        <video
-                          src={video.url}
-                          controls
-                          preload="metadata"
-                          playsInline
-                          className="h-full w-full object-contain"
-                        />
-                      </div>
-                    ))}
+                    <JournalPhotoGallery photos={photos} videos={videos} title={entry.title || "Photo"} />
                   </div>
                 )}
               </article>
