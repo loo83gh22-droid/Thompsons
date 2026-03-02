@@ -221,7 +221,7 @@ function PetCard({
       {/* Photo */}
       {photos.length > 0 ? (
         <div
-          className="relative h-56 w-full cursor-pointer overflow-hidden bg-[var(--background)]"
+          className="relative h-72 w-full cursor-pointer overflow-hidden bg-[var(--background)]"
           onClick={() => onPhotoClick(photos[0].url)}
         >
           <Image
