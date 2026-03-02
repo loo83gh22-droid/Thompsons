@@ -230,6 +230,56 @@ export default function PricingPage() {
           ))}
         </div>
 
+        {/* Storage Add-ons */}
+        <section className="mx-auto mt-24 max-w-3xl">
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-8">
+            <h2 className="font-display text-2xl font-bold text-[var(--foreground)]">
+              Need more room?
+            </h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              Add a storage pack to any paid plan — billed annually, cancel any time.
+            </p>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              {[
+                { label: "+25 GB", price: "$9", note: "Great for photo-heavy families" },
+                { label: "+75 GB", price: "$24", note: "Add video without worry" },
+                { label: "+150 GB", price: "$49", note: "Best for regular video uploads" },
+              ].map((pack) => (
+                <div
+                  key={pack.label}
+                  className="flex flex-col gap-1 rounded-xl border border-[var(--border)] bg-[var(--secondary)] p-4"
+                >
+                  <span className="font-display text-xl font-bold text-[var(--accent)]">
+                    {pack.label}
+                  </span>
+                  <span className="text-sm font-medium text-[var(--foreground)]">
+                    {pack.price}
+                    <span className="text-[var(--muted)]">/year</span>
+                  </span>
+                  <span className="text-xs text-[var(--muted)]">{pack.note}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Storage tip */}
+            <div className="mt-6 flex gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+              <span className="mt-0.5 text-lg" aria-hidden="true">💡</span>
+              <p className="text-sm text-[var(--muted)]">
+                <span className="font-medium text-[var(--foreground)]">Using a lot of space?</span>{" "}
+                Before adding storage, it&apos;s worth checking your uploads — a single unedited video can
+                be several gigabytes. Deleting large videos you&apos;ve already watched, or photos that
+                didn&apos;t quite make the cut, is often the quickest way to free up room without spending
+                a penny.
+              </p>
+            </div>
+
+            <p className="mt-4 text-center text-xs text-[var(--muted)]">
+              Storage packs available after sign-up from your account settings.
+            </p>
+          </div>
+        </section>
+
         {/* FAQ Section */}
         <section className="mx-auto mt-24 max-w-3xl">
           <h2 className="text-center font-display text-3xl font-bold text-[var(--foreground)]">
