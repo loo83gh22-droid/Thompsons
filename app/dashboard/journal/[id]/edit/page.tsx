@@ -9,7 +9,7 @@ import { useFamily } from "@/app/dashboard/FamilyContext";
 import { VIDEO_LIMITS } from "@/src/lib/constants";
 import {
   updateJournalEntry,
-  addJournalPhotos,
+  registerJournalPhoto,
   deleteJournalPhoto,
   registerJournalVideo,
   deleteJournalVideo,
@@ -163,29 +163,40 @@ export default function EditJournalPage() {
   async function handleAddPhotos(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const formData = new FormData(form);
-    const files = formData.getAll("photos") as File[];
-    if (files.every((f) => f.size === 0)) {
+    const input = form.querySelector('input[name="photos"]') as HTMLInputElement;
+    const files = Array.from(input.files || []).filter((f) => f.size > 0);
+    if (files.length === 0) {
       setAddingPhotos(false);
       return;
     }
-    const validFiles = files.filter((f) => f.size > 0);
-    const totalAfter = photos.length + validFiles.length;
+    const totalAfter = photos.length + files.length;
     if (totalAfter > JOURNAL_PHOTO_LIMIT) {
-      setError(`Each journal entry can have up to ${JOURNAL_PHOTO_LIMIT} photos. You have ${photos.length} and tried to add ${validFiles.length}. Remove some or add fewer.`);
+      setError(`Each journal entry can have up to ${JOURNAL_PHOTO_LIMIT} photos. You have ${photos.length} and tried to add ${files.length}. Remove some or add fewer.`);
       return;
     }
     setError(null);
     try {
-      await addJournalPhotos(entryId, formData);
       const supabase = createClient();
+      // Upload each photo directly to Supabase Storage from the client (avoids Vercel payload limit)
+      for (const file of files) {
+        const ext = file.name.split(".").pop() || "jpg";
+        const storagePath = `${entryId}/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("journal-photos")
+          .upload(storagePath, file, { upsert: true });
+        if (uploadError) {
+          setError(`Upload failed for "${file.name}": ${uploadError.message}`);
+          continue;
+        }
+        await registerJournalPhoto(entryId, storagePath, file.size);
+      }
       const { data } = await supabase
         .from("journal_photos")
         .select("id, url, caption")
         .eq("entry_id", entryId)
         .order("sort_order");
       if (data) setPhotos(data as JournalPhoto[]);
-      (form.querySelector('input[name="photos"]') as HTMLInputElement).value = "";
+      input.value = "";
       setAddingPhotos(false);
       router.refresh();
     } catch (err) {

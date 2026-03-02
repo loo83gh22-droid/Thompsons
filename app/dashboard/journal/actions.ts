@@ -560,6 +560,55 @@ export async function addJournalPhotos(entryId: string, formData: FormData) {
   revalidatePath("/dashboard/photos");
 }
 
+/**
+ * Register a photo that was uploaded directly to Supabase Storage from the client.
+ * This avoids sending large image files through server actions (Vercel payload limit).
+ */
+export async function registerJournalPhoto(
+  entryId: string,
+  storagePath: string,
+  fileSizeBytes: number,
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
+  const JOURNAL_PHOTO_LIMIT = 5;
+  const { count } = await supabase
+    .from("journal_photos")
+    .select("id", { count: "exact", head: true })
+    .eq("entry_id", entryId);
+  const existingCount = count ?? 0;
+  if (existingCount >= JOURNAL_PHOTO_LIMIT) {
+    throw new Error(`Each journal entry can have up to ${JOURNAL_PHOTO_LIMIT} photos.`);
+  }
+
+  await addStorageUsage(supabase, activeFamilyId, fileSizeBytes);
+
+  const photoUrl = `/api/storage/journal-photos/${storagePath}`;
+  const { error: photoErr } = await supabase.from("journal_photos").insert({
+    family_id: activeFamilyId,
+    entry_id: entryId,
+    url: photoUrl,
+    sort_order: existingCount,
+  });
+  if (photoErr) throw new Error(photoErr.message);
+
+  const mosaicOrder = await getNextMosaicSortOrder(supabase, activeFamilyId);
+  await supabase.from("home_mosaic_photos").insert({
+    family_id: activeFamilyId,
+    url: photoUrl,
+    sort_order: mosaicOrder,
+  });
+
+  revalidatePath("/dashboard/journal");
+  revalidatePath(`/dashboard/journal/${entryId}`);
+  revalidatePath("/");
+  revalidatePath("/dashboard/photos");
+}
+
 export async function deleteJournalPhoto(photoId: string, entryId?: string) {
   const supabase = await createClient();
   const {
