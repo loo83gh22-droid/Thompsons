@@ -13,7 +13,7 @@ const steps = [
     number: "2",
     title: "Invite your family",
     description:
-      "Send invites to your parents, your kids, grandparents — the people who matter most. They join with one click, no app download needed.",
+      "Send invites to your parents, your kids, grandparents — the people who matter most. They join with one click and can save it to their home screen — no app store needed.",
   },
   {
     icon: Heart,
