@@ -22,8 +22,9 @@ function authorDisplay(raw: { name: string; nickname?: string | null; relationsh
 export default async function TimelinePage({
   searchParams,
 }: {
-  searchParams?: { member?: string };
+  searchParams?: Promise<{ member?: string }>;
 }) {
+  const resolvedParams = await searchParams;
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return null;
@@ -251,7 +252,7 @@ export default async function TimelinePage({
     return d.getDate() === thisDay && d.getMonth() === thisMonth && d.getFullYear() !== today.getFullYear();
   });
 
-  const initialMember = typeof searchParams?.member === "string" ? searchParams.member : undefined;
+  const initialMember = typeof resolvedParams?.member === "string" ? resolvedParams.member : undefined;
 
   return (
     <div>
