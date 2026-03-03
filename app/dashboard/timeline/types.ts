@@ -1,7 +1,7 @@
 export type TimelineItem = {
   id: string;
   date: string;
-  type: "journal" | "voice_memo" | "time_capsule" | "photo" | "message";
+  type: "journal" | "voice_memo" | "time_capsule" | "photo" | "message" | "story" | "event" | "recipe" | "tradition";
   title: string;
   description: string | null;
   authorName: string | null;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createEvent } from "./actions";
 import { EVENT_CATEGORIES } from "./constants";
@@ -18,10 +18,15 @@ export function AddEventForm({ members }: { members: Member[] }) {
   const [recurringAnnual, setRecurringAnnual] = useState(false);
   const [category, setCategory] = useState("other");
   const [inviteeIds, setInviteeIds] = useState<string[]>([]);
+  const [otherLabel, setOtherLabel] = useState("");
+  const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open && !eventDate) {
       setEventDate(new Date().toISOString().slice(0, 10));
+    }
+    if (open) {
+      setTimeout(() => titleRef.current?.focus(), 50);
     }
   }, [open, eventDate]);
 
@@ -34,8 +39,11 @@ export function AddEventForm({ members }: { members: Member[] }) {
     if (!title.trim() || !eventDate) return;
     setLoading(true);
     setError(null);
+    const effectiveTitle = category === "other" && otherLabel.trim()
+      ? otherLabel.trim().slice(0, 100)
+      : title.trim().slice(0, 100);
     const result = await createEvent(
-      title.trim().slice(0, 100),
+      effectiveTitle,
       eventDate,
       description.trim().slice(0, 500) || null,
       recurringAnnual ? "annual" : "none",
@@ -54,6 +62,7 @@ export function AddEventForm({ members }: { members: Member[] }) {
     setRecurringAnnual(false);
     setCategory("other");
     setInviteeIds([]);
+    setOtherLabel("");
     router.refresh();
   }
 
@@ -78,15 +87,15 @@ export function AddEventForm({ members }: { members: Member[] }) {
   return (
     <>
       <div className="fixed inset-0 z-50 bg-black/60" aria-hidden onClick={closeModal} />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
-          className="relative w-full max-w-lg rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-xl"
+          className="relative flex max-h-[90vh] w-full max-w-lg flex-col rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-xl"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
           aria-labelledby="add-event-title"
         >
-          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3">
+          <div className="flex flex-shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3">
             <h2 id="add-event-title" className="font-display text-lg font-semibold text-[var(--foreground)]">
               Add event
             </h2>
@@ -100,13 +109,14 @@ export function AddEventForm({ members }: { members: Member[] }) {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+          <form onSubmit={handleSubmit} className="overflow-y-auto p-4 sm:p-6 space-y-4">
             <div>
               <label htmlFor="event-title" className="block text-sm font-medium text-[var(--muted)]">
                 What are we celebrating? *
               </label>
               <input
                 id="event-title"
+                ref={titleRef}
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -146,6 +156,22 @@ export function AddEventForm({ members }: { members: Member[] }) {
                 ))}
               </select>
             </div>
+            {category === "other" && (
+              <div>
+                <label htmlFor="event-other-label" className="block text-sm font-medium text-[var(--muted)]">
+                  What kind of event is it?
+                </label>
+                <input
+                  id="event-other-label"
+                  type="text"
+                  value={otherLabel}
+                  onChange={(e) => setOtherLabel(e.target.value)}
+                  maxLength={100}
+                  className="input-base mt-1"
+                  placeholder="e.g., Game Night, Movie Marathon, Camping Trip"
+                />
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-[var(--muted)]">
                 Add details

@@ -150,6 +150,12 @@ export default function LocationInput({
           value={inputValue}
           onChange={(e) => handleInput(e.target.value)}
           onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+          onBlur={() => {
+            const trimmed = inputValue.trim();
+            if (trimmed && trimmed !== value) {
+              onChange({ name: trimmed, latitude: 0, longitude: 0 });
+            }
+          }}
           placeholder="e.g., Colorado, USA or Paris, France"
           className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
           required={required}

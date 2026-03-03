@@ -7,6 +7,7 @@ import { getFamilyPlan, canSharePublicly } from "@/src/lib/plans";
 import { StoryContent } from "../StoryContent";
 import { StoryDetailActions } from "../StoryDetailActions";
 import { StoryShareButton } from "../StoryShareButton";
+import { StoryPerspectives } from "../StoryPerspectives";
 
 const CATEGORY_LABELS: Record<string, string> = {
   family_history: "Family History",
@@ -119,6 +120,8 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
           />
         </div>
       )}
+
+      <StoryPerspectives storyId={story.id} />
     </div>
   );
 }

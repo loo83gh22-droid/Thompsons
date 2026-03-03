@@ -12,6 +12,10 @@ const TYPE_LABELS: Record<TimelineItem["type"], string> = {
   time_capsule: "Time capsule",
   photo: "Photo",
   message: "Message",
+  story: "Story",
+  event: "Event",
+  recipe: "Recipe",
+  tradition: "Tradition",
 };
 
 const TYPE_ICONS: Record<TimelineItem["type"], string> = {
@@ -20,6 +24,10 @@ const TYPE_ICONS: Record<TimelineItem["type"], string> = {
   time_capsule: "📮",
   photo: "🖼️",
   message: "💬",
+  story: "📖",
+  event: "🎉",
+  recipe: "🍽️",
+  tradition: "✨",
 };
 
 function formatDuration(seconds: number): string {

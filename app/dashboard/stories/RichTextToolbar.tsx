@@ -70,6 +70,7 @@ export function RichTextToolbar({ value, onChange, textareaRef }: ToolbarProps) 
     <div className="flex flex-wrap items-center gap-1 rounded-t-lg border border-b-0 border-[var(--border)] bg-[var(--surface-hover)] p-1.5">
       <button
         type="button"
+        onMouseDown={(e) => e.preventDefault()}
         onClick={() => wrapSelection("**")}
         className="rounded p-1.5 text-sm font-bold hover:bg-[var(--surface)]"
         title="Bold"
@@ -79,6 +80,7 @@ export function RichTextToolbar({ value, onChange, textareaRef }: ToolbarProps) 
       </button>
       <button
         type="button"
+        onMouseDown={(e) => e.preventDefault()}
         onClick={() => wrapSelection("_")}
         className="rounded p-1.5 text-sm italic hover:bg-[var(--surface)]"
         title="Italic"
@@ -88,6 +90,7 @@ export function RichTextToolbar({ value, onChange, textareaRef }: ToolbarProps) 
       </button>
       <button
         type="button"
+        onMouseDown={(e) => e.preventDefault()}
         onClick={() => insertLinePrefix("## ")}
         className="rounded p-1.5 text-sm hover:bg-[var(--surface)]"
         title="Heading 2"
@@ -97,6 +100,7 @@ export function RichTextToolbar({ value, onChange, textareaRef }: ToolbarProps) 
       </button>
       <button
         type="button"
+        onMouseDown={(e) => e.preventDefault()}
         onClick={() => insertLinePrefix("### ")}
         className="rounded p-1.5 text-sm hover:bg-[var(--surface)]"
         title="Heading 3"
@@ -106,6 +110,7 @@ export function RichTextToolbar({ value, onChange, textareaRef }: ToolbarProps) 
       </button>
       <button
         type="button"
+        onMouseDown={(e) => e.preventDefault()}
         onClick={() => insertLinePrefix("- ")}
         className="rounded p-1.5 text-sm hover:bg-[var(--surface)]"
         title="Bullet list"
@@ -115,6 +120,7 @@ export function RichTextToolbar({ value, onChange, textareaRef }: ToolbarProps) 
       </button>
       <button
         type="button"
+        onMouseDown={(e) => e.preventDefault()}
         onClick={() => insertLinePrefix("1. ")}
         className="rounded p-1.5 text-sm hover:bg-[var(--surface)]"
         title="Numbered list"
@@ -124,6 +130,7 @@ export function RichTextToolbar({ value, onChange, textareaRef }: ToolbarProps) 
       </button>
       <button
         type="button"
+        onMouseDown={(e) => e.preventDefault()}
         onClick={() => insertAtCursor("[", "](url)")}
         className="rounded p-1.5 text-sm hover:bg-[var(--surface)]"
         title="Link"

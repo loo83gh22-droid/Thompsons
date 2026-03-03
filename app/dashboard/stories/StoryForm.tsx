@@ -104,7 +104,6 @@ export function StoryForm({
         return;
       }
       router.push(`/dashboard/stories/${editStory!.id}`);
-      router.refresh();
       return;
     }
     const result = await createStory(
@@ -122,7 +121,6 @@ export function StoryForm({
       return;
     }
     router.push(result.id ? `/dashboard/stories/${result.id}` : "/dashboard/stories");
-    router.refresh();
   }
 
   return (

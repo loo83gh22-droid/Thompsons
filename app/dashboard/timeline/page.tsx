@@ -30,7 +30,7 @@ export default async function TimelinePage({
 
   const items: TimelineItem[] = [];
 
-  const [journalRes, voiceRes, timeCapsulesRes, photosRes, messagesRes] = await Promise.all([
+  const [journalRes, voiceRes, timeCapsulesRes, photosRes, messagesRes, storiesRes, eventsRes, recipesRes, traditionsRes] = await Promise.all([
     supabase
       .from("journal_entries")
       .select("id, title, content, trip_date, created_at, author_id, family_members!author_id(name, nickname, relationship)")
@@ -62,6 +62,32 @@ export default async function TimelinePage({
       .eq("family_id", activeFamilyId)
       .order("created_at", { ascending: false })
       .limit(QUERY_LIMITS.timelineItemsPerType),
+    supabase
+      .from("family_stories")
+      .select("id, title, content, created_at, author_family_member_id, family_members!author_family_member_id(name, nickname, relationship)")
+      .eq("family_id", activeFamilyId)
+      .eq("published", true)
+      .order("created_at", { ascending: false })
+      .limit(QUERY_LIMITS.timelineItemsPerType),
+    supabase
+      .from("family_events")
+      .select("id, title, event_date, created_at, description")
+      .eq("family_id", activeFamilyId)
+      .order("event_date", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .limit(QUERY_LIMITS.timelineItemsPerType),
+    supabase
+      .from("recipes")
+      .select("id, title, story, created_at, taught_by, family_members!taught_by(name, nickname, relationship)")
+      .eq("family_id", activeFamilyId)
+      .order("created_at", { ascending: false })
+      .limit(QUERY_LIMITS.timelineItemsPerType),
+    supabase
+      .from("family_traditions")
+      .select("id, title, description, created_at")
+      .eq("family_id", activeFamilyId)
+      .order("created_at", { ascending: false })
+      .limit(QUERY_LIMITS.timelineItemsPerType),
   ]);
 
   for (const row of journalRes.data ?? []) {
@@ -77,7 +103,7 @@ export default async function TimelinePage({
       authorRelationship: relationship,
       authorMemberId: row.author_id ?? null,
       thumbnailUrl: null,
-      href: `/dashboard/journal/${row.id}/edit`,
+      href: `/dashboard/journal/${row.id}`,
     });
   }
 
@@ -120,7 +146,7 @@ export default async function TimelinePage({
       id: row.id,
       date: row.created_at?.slice(0, 10) ?? "",
       type: "photo",
-      title: "Photo",
+      title: "Family photo",
       description: null,
       authorName: null,
       authorRelationship: null,
@@ -143,6 +169,68 @@ export default async function TimelinePage({
       authorMemberId: row.sender_id ?? null,
       thumbnailUrl: null,
       href: "/dashboard/messages",
+    });
+  }
+
+  for (const row of storiesRes.data ?? []) {
+    const { name, relationship } = authorDisplay(row.family_members);
+    items.push({
+      id: row.id,
+      date: row.created_at?.slice(0, 10) ?? "",
+      type: "story",
+      title: row.title ?? "Story",
+      description: row.content?.slice(0, 120) ?? null,
+      authorName: name,
+      authorRelationship: relationship,
+      authorMemberId: row.author_family_member_id ?? null,
+      thumbnailUrl: null,
+      href: `/dashboard/stories/${row.id}`,
+    });
+  }
+
+  for (const row of eventsRes.data ?? []) {
+    items.push({
+      id: row.id,
+      date: row.event_date ?? row.created_at?.slice(0, 10) ?? "",
+      type: "event",
+      title: row.title ?? "Event",
+      description: row.description?.slice(0, 120) ?? null,
+      authorName: null,
+      authorRelationship: null,
+      authorMemberId: null,
+      thumbnailUrl: null,
+      href: "/dashboard/events",
+    });
+  }
+
+  for (const row of recipesRes.data ?? []) {
+    const { name, relationship } = authorDisplay(row.family_members);
+    items.push({
+      id: row.id,
+      date: row.created_at?.slice(0, 10) ?? "",
+      type: "recipe",
+      title: row.title ?? "Recipe",
+      description: row.story?.slice(0, 120) ?? null,
+      authorName: name,
+      authorRelationship: relationship,
+      authorMemberId: row.taught_by ?? null,
+      thumbnailUrl: null,
+      href: "/dashboard/recipes",
+    });
+  }
+
+  for (const row of traditionsRes.data ?? []) {
+    items.push({
+      id: row.id,
+      date: row.created_at?.slice(0, 10) ?? "",
+      type: "tradition",
+      title: row.title ?? "Tradition",
+      description: row.description?.slice(0, 120) ?? null,
+      authorName: null,
+      authorRelationship: null,
+      authorMemberId: null,
+      thumbnailUrl: null,
+      href: "/dashboard/traditions",
     });
   }
 

@@ -12,6 +12,7 @@ import { DeleteJournalEntryButton } from "./DeleteJournalEntryButton";
 import { EmptyState } from "@/app/dashboard/components/EmptyState";
 import { AddedToMapBanner } from "./AddedToMapBanner";
 import { JournalPhotoGallery } from "./JournalPhotoGallery";
+import { ScrollToTop } from "./ScrollToTop";
 
 export default async function JournalPage() {
   const supabase = await createClient();
@@ -80,6 +81,7 @@ export default async function JournalPage() {
 
   return (
     <div>
+      <ScrollToTop />
       <Suspense fallback={null}>
         <AddedToMapBanner />
       </Suspense>
@@ -153,7 +155,9 @@ export default async function JournalPage() {
 
                   {/* Title */}
                   <h2 className="mt-2 font-display text-xl font-semibold text-[var(--foreground)]">
-                    {entry.title}
+                    <Link href={`/dashboard/journal/${entry.id}`} className="hover:text-[var(--accent)]">
+                      {entry.title}
+                    </Link>
                   </h2>
 
                   {/* Content preview */}

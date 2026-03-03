@@ -114,3 +114,23 @@ export async function deleteStory(id: string) {
   const { error } = await supabase.from("family_stories").delete().eq("id", id).eq("family_id", activeFamilyId);
   return { error: error?.message };
 }
+
+export async function addStoryPerspective(storyId: string, content: string, familyMemberId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { error } = await supabase.from("story_perspectives").insert({
+    story_id: storyId,
+    family_member_id: familyMemberId,
+    content: content.trim(),
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function removeStoryPerspective(perspectiveId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { error } = await supabase.from("story_perspectives").delete().eq("id", perspectiveId);
+  if (error) throw new Error(error.message);
+}

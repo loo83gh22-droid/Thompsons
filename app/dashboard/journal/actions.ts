@@ -370,12 +370,16 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
 
   // Allow author override (writing on behalf of someone)
   const authorOverrideId = getFormString(formData, "author_override") || null;
+  const mood = getFormString(formData, "mood") || null;
+  const weather = getFormString(formData, "weather") || null;
   const updateFields: Record<string, unknown> = {
     title: input.title,
     content: input.content,
     location: input.location,
     trip_date: input.trip_date,
     trip_date_end: input.trip_date_end,
+    mood,
+    weather,
     updated_at: new Date().toISOString(),
   };
   if (authorOverrideId) updateFields.author_id = authorOverrideId;
