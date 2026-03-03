@@ -131,10 +131,10 @@ export default async function MemberProfilePage({
           </div>
           <div className="mt-4">
             <Link
-              href="/dashboard/members"
+              href="/dashboard/our-family"
               className="inline-flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
             >
-              Edit profile
+              ← Back to family
             </Link>
           </div>
         </div>

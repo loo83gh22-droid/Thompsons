@@ -2,13 +2,17 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useMemo, useEffect } from "react";
-import { deleteFamilyMember, changeMemberRole, generateKidLink, revokeKidLink, resendInviteEmail } from "../members/actions";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { deleteFamilyMember, changeMemberRole, generateKidLink, revokeKidLink, resendInviteEmail, updateFamilyMember } from "../members/actions";
 import { setMemberRelationships } from "./actions";
 import type { OurFamilyMember } from "./page";
 import type { OurFamilyRelationship } from "./page";
 import type { MemberActivity } from "./page";
 import { ROLE_LABELS, ROLE_BADGES, type MemberRole } from "@/src/lib/roles";
+import { createClient } from "@/src/lib/supabase/client";
+import { RELATIONSHIP_OPTIONS } from "../members/constants";
+
+const ACCEPT_IMAGES = "image/jpeg,image/png,image/webp,image/gif";
 
 function initials(name: string): string {
   return name
@@ -71,6 +75,100 @@ export function MemberDetailsPanel({
   const [kidLinkUrl, setKidLinkUrl] = useState<string | null>(null);
   const [resending, setResending] = useState(false);
   const [resendResult, setResendResult] = useState<"sent" | "error" | null>(null);
+
+  // Inline edit state
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState(member.name);
+  const [editRelationship, setEditRelationship] = useState(member.relationship ?? "");
+  const [editNickname, setEditNickname] = useState(member.nickname ?? "");
+  const [editEmail, setEditEmail] = useState(member.contact_email ?? "");
+  const [editBirthDate, setEditBirthDate] = useState(member.birth_date ?? "");
+  const [editBirthPlace, setEditBirthPlace] = useState(member.birth_place ?? "");
+  const [editAvatarUrl, setEditAvatarUrl] = useState<string | null>(member.avatar_url);
+  const [editIsDeceased, setEditIsDeceased] = useState(member.is_deceased);
+  const [editDeathDate, setEditDeathDate] = useState(member.death_date ?? "");
+  const [editPhotoFile, setEditPhotoFile] = useState<File | null>(null);
+  const [editPhotoPreview, setEditPhotoPreview] = useState<string | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editMessage, setEditMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function resetEditState() {
+    setEditName(member.name);
+    setEditRelationship(member.relationship ?? "");
+    setEditNickname(member.nickname ?? "");
+    setEditEmail(member.contact_email ?? "");
+    setEditBirthDate(member.birth_date ?? "");
+    setEditBirthPlace(member.birth_place ?? "");
+    setEditAvatarUrl(member.avatar_url);
+    setEditIsDeceased(member.is_deceased);
+    setEditDeathDate(member.death_date ?? "");
+    setEditPhotoFile(null);
+    setEditPhotoPreview(null);
+    setEditMessage(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function handleEditPhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    setEditPhotoFile(file);
+    setEditPhotoPreview(URL.createObjectURL(file));
+  }
+
+  async function handleEditSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editName.trim()) return;
+    if (!editRelationship.trim()) {
+      setEditMessage({ type: "error", text: "Please select a relationship." });
+      return;
+    }
+    setEditLoading(true);
+    setEditMessage(null);
+    try {
+      let finalAvatarUrl = editAvatarUrl;
+      if (editPhotoFile) {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const ext = editPhotoFile.name.split(".").pop() || "jpg";
+        const path = `members/${user.id}_${member.id}_${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("member-photos")
+          .upload(path, editPhotoFile, { upsert: true });
+        if (uploadError) throw uploadError;
+        finalAvatarUrl = `/api/storage/member-photos/${path}`;
+      }
+      const result = await updateFamilyMember(
+        member.id,
+        editName.trim(),
+        editRelationship.trim(),
+        editEmail.trim() || "",
+        editBirthDate || "",
+        editBirthPlace.trim() || "",
+        editNickname.trim() || null,
+        finalAvatarUrl,
+        editIsDeceased,
+        editDeathDate || null,
+      );
+      setEditAvatarUrl(finalAvatarUrl);
+      setEditPhotoFile(null);
+      setEditPhotoPreview(null);
+      setEditMessage({
+        type: "success",
+        text: result?.birthdayEventAdded ? "Updated. Birthday added to Family Events!" : "Updated.",
+      });
+      setEditing(false);
+      router.refresh();
+    } catch (err) {
+      setEditMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Something went wrong.",
+      });
+    } finally {
+      setEditLoading(false);
+    }
+  }
   const current = useMemberTreeRels(member.id, relationships);
   const [spouseId, setSpouseId] = useState<string>(current.spouseId ?? "");
   const [parentIds, setParentIds] = useState<string[]>(current.parentIds);
@@ -148,34 +246,109 @@ export function MemberDetailsPanel({
         </button>
       </div>
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
-        <div className="flex flex-col items-center text-center">
-          {member.avatar_url ? (
-            <img
-              src={member.avatar_url}
-              alt={member.name}
-              loading="lazy"
-              className="h-[120px] w-[120px] rounded-full object-cover shadow-md"
-            />
-          ) : (
-            <div className="flex h-[120px] w-[120px] items-center justify-center rounded-full bg-[var(--accent)]/30 text-3xl font-semibold text-[var(--accent)]">
-              {initials(member.name)}
+        {editing && (
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted)]">Profile photo</label>
+              <div className="mt-2 flex items-center gap-3">
+                {editPhotoPreview ? (
+                  <img src={editPhotoPreview} alt="Preview" loading="lazy" className="h-16 w-16 rounded-full object-cover ring-2 ring-[var(--border)]" />
+                ) : editAvatarUrl ? (
+                  <img src={editAvatarUrl} alt={member.name} loading="lazy" className="h-16 w-16 rounded-full object-cover ring-2 ring-[var(--border)]" />
+                ) : (
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent)]/20 text-xs text-[var(--muted)]">No photo</div>
+                )}
+                <div>
+                  <input ref={fileInputRef} type="file" accept={ACCEPT_IMAGES} onChange={handleEditPhotoChange} className="block w-full text-xs text-[var(--muted)] file:rounded file:border-0 file:bg-[var(--accent)]/20 file:px-2 file:py-1 file:text-[var(--accent)]" />
+                  {editPhotoPreview && (
+                    <button type="button" onClick={() => { setEditPhotoFile(null); setEditPhotoPreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }} className="mt-1 text-xs text-[var(--muted)] underline">Clear</button>
+                  )}
+                </div>
+              </div>
             </div>
-          )}
-          <h3 className="mt-3 font-display text-xl font-bold text-[var(--foreground)]">{member.name}</h3>
-          {member.nickname?.trim() && (
-            <p className="text-[var(--muted)]">&quot;{member.nickname}&quot;</p>
-          )}
-          {member.relationship && (
-            <span className="mt-1 inline-block rounded-full bg-[var(--accent)]/20 px-3 py-1 text-sm font-medium text-[var(--accent)]">
-              {member.relationship}
-            </span>
-          )}
-          {member.role && (
-            <span className={`mt-1 inline-block rounded-full px-3 py-1 text-xs font-semibold ${ROLE_BADGES[member.role as MemberRole]?.bg || "bg-[var(--surface-hover)]"} ${ROLE_BADGES[member.role as MemberRole]?.text || "text-[var(--muted)]"}`}>
-              {ROLE_LABELS[member.role as MemberRole] || member.role}
-            </span>
-          )}
-        </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted)]">Full name *</label>
+              <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} required className="input-base mt-1 w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted)]">Relationship *</label>
+              <select value={editRelationship} onChange={(e) => setEditRelationship(e.target.value)} required className="input-base mt-1 w-full">
+                <option value="">Select relationship</option>
+                {RELATIONSHIP_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted)]">What do you call them? (optional)</label>
+              <input type="text" value={editNickname} onChange={(e) => setEditNickname(e.target.value)} className="input-base mt-1 w-full" placeholder="e.g., Mom, Grandma Sue" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted)]">Email (optional)</label>
+              <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="input-base mt-1 w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted)]">Birthday (optional)</label>
+              <input type="date" value={editBirthDate} onChange={(e) => setEditBirthDate(e.target.value)} className="input-base mt-1 w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted)]">Birth place (optional)</label>
+              <input type="text" value={editBirthPlace} onChange={(e) => setEditBirthPlace(e.target.value)} className="input-base mt-1 w-full" placeholder="e.g. Vancouver, BC" />
+            </div>
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-hover)]/40 p-3">
+              <label className="flex cursor-pointer items-center gap-2.5">
+                <input type="checkbox" checked={editIsDeceased} onChange={(e) => setEditIsDeceased(e.target.checked)} className="h-4 w-4 rounded border-[var(--border)] accent-[var(--accent)]" />
+                <span className="text-sm font-medium text-[var(--foreground)]">This person has passed away</span>
+              </label>
+              {editIsDeceased && (
+                <div className="mt-3">
+                  <label className="block text-sm font-medium text-[var(--muted)]">Date of passing (optional)</label>
+                  <input type="date" value={editDeathDate} onChange={(e) => setEditDeathDate(e.target.value)} className="input-base mt-1 w-full" />
+                </div>
+              )}
+            </div>
+            {editMessage && (
+              <div className={`rounded-lg px-3 py-2 text-sm ${editMessage.type === "success" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
+                {editMessage.text}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <button type="submit" disabled={editLoading} className="flex-1 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50">
+                {editLoading ? "Saving…" : "Save"}
+              </button>
+              <button type="button" onClick={() => { setEditing(false); resetEditState(); }} disabled={editLoading} className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm hover:bg-[var(--surface-hover)] disabled:opacity-50">
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+        {!editing && <>
+          <div className="flex flex-col items-center text-center">
+            {member.avatar_url ? (
+              <img
+                src={member.avatar_url}
+                alt={member.name}
+                loading="lazy"
+                className="h-[120px] w-[120px] rounded-full object-cover shadow-md"
+              />
+            ) : (
+              <div className="flex h-[120px] w-[120px] items-center justify-center rounded-full bg-[var(--accent)]/30 text-3xl font-semibold text-[var(--accent)]">
+                {initials(member.name)}
+              </div>
+            )}
+            <h3 className="mt-3 font-display text-xl font-bold text-[var(--foreground)]">{member.name}</h3>
+            {member.nickname?.trim() && (
+              <p className="text-[var(--muted)]">&quot;{member.nickname}&quot;</p>
+            )}
+            {member.relationship && (
+              <span className="mt-1 inline-block rounded-full bg-[var(--accent)]/20 px-3 py-1 text-sm font-medium text-[var(--accent)]">
+                {member.relationship}
+              </span>
+            )}
+            {member.role && (
+              <span className={`mt-1 inline-block rounded-full px-3 py-1 text-xs font-semibold ${ROLE_BADGES[member.role as MemberRole]?.bg || "bg-[var(--surface-hover)]"} ${ROLE_BADGES[member.role as MemberRole]?.text || "text-[var(--muted)]"}`}>
+                {ROLE_LABELS[member.role as MemberRole] || member.role}
+              </span>
+            )}
+          </div>
 
         <div className="space-y-2 text-sm">
           {birthdayStr && (
@@ -374,12 +547,13 @@ export function MemberDetailsPanel({
         )}
 
         <div className="flex flex-col gap-2 border-t border-[var(--border)] pt-4">
-          <Link
-            href={`/dashboard/members/${member.id}`}
+          <button
+            type="button"
+            onClick={() => { resetEditState(); setEditing(true); }}
             className="rounded-lg border border-[var(--border)] px-4 py-2 text-center text-sm font-medium hover:bg-[var(--surface-hover)]"
           >
             Edit Profile
-          </Link>
+          </button>
           <Link
             href="/dashboard/messages"
             className="rounded-lg border border-[var(--border)] px-4 py-2 text-center text-sm font-medium hover:bg-[var(--surface-hover)]"
@@ -418,6 +592,7 @@ export function MemberDetailsPanel({
             {removing ? "Removing…" : "Remove Member"}
           </button>
         </div>
+        </>}
       </div>
     </aside>
   );
