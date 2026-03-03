@@ -7,7 +7,7 @@ export type ValidationResult<T> =
 /**
  * Format Zod validation errors into user-friendly message
  */
-export function formatZodError(error: z.ZodError<any>): string {
+export function formatZodError(error: z.ZodError<unknown>): string {
   const issues = error.issues;
   if (!issues || issues.length === 0) return "Validation failed";
 

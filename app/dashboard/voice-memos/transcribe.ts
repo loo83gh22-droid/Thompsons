@@ -83,7 +83,7 @@ export async function transcribeVoiceMemo(voiceMemoId: string) {
 
     return { success: true, transcript: transcription };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Transcription error:', error);
 
     // Mark as failed in database
@@ -94,7 +94,7 @@ export async function transcribeVoiceMemo(voiceMemoId: string) {
 
     return {
       success: false,
-      error: error.message || 'Transcription failed'
+      error: error instanceof Error ? error.message : 'Transcription failed'
     };
   }
 }

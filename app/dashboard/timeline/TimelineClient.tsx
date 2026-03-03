@@ -63,22 +63,20 @@ function TimelineItemRow({
   item,
   typeLabels,
   typeIcons,
-  audioRefs,
   formatDuration,
 }: {
   item: TimelineItem;
   typeLabels: Record<TimelineItem["type"], string>;
   typeIcons: Record<TimelineItem["type"], string>;
-  audioRefs: React.MutableRefObject<Record<string, HTMLAudioElement | null>>;
   formatDuration: (s: number) => string;
 }) {
-  const audioId = `audio-${item.type}-${item.id}`;
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handlePlay = (e: React.MouseEvent) => {
     if (item.type !== "voice_memo") return;
     e.preventDefault();
     e.stopPropagation();
-    const el = audioRefs.current[audioId];
+    const el = audioRef.current;
     if (el) {
       if (el.paused) el.play();
       else el.pause();
@@ -120,7 +118,7 @@ function TimelineItemRow({
             <div className="mt-2 flex items-center gap-2">
               {item.audioUrl && (
                 <>
-                  <audio ref={(el) => { audioRefs.current[audioId] = el; }} src={item.audioUrl} preload="metadata" className="hidden" />
+                  <audio ref={audioRef} src={item.audioUrl} preload="metadata" className="hidden" />
                   <button
                     type="button"
                     onClick={handlePlay}
@@ -160,7 +158,6 @@ export function TimelineClient({
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
   const [displayCount, setDisplayCount] = useState<number>(UI_DISPLAY.timelinePageSize);
-  const audioRefs = useRef<Record<string, HTMLAudioElement | null>>({});
 
   const filtered = useMemo(() => {
     let list = [...initialItems];
@@ -318,7 +315,6 @@ export function TimelineClient({
                       item={item}
                       typeLabels={TYPE_LABELS}
                       typeIcons={TYPE_ICONS}
-                      audioRefs={audioRefs}
                       formatDuration={formatDuration}
                     />
                   ))}

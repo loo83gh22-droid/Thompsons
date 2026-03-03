@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import { MemberList } from "../members/MemberList";
 
@@ -28,17 +28,17 @@ export function OurFamilyClient({
   activityByMember: Record<string, MemberActivity>;
   aliasMap?: Record<string, string>;
 }) {
-  const [view, setView] = useState<View>("tree");
-  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
-
-  useEffect(() => {
+  const [view, setView] = useState<View>(() => {
+    if (typeof window === "undefined") return "tree";
     try {
       const saved = localStorage.getItem(VIEW_KEY) as View | null;
-      if (saved === "tree" || saved === "list") setView(saved);
+      if (saved === "tree" || saved === "list") return saved;
     } catch {
       // ignore
     }
-  }, []);
+    return "tree";
+  });
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
 
   function handleViewChange(v: View) {
     setView(v);

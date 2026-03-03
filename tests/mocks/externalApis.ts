@@ -4,7 +4,7 @@ import { vi } from "vitest";
  * Mock Google Maps Geocoding API
  * Returns realistic coordinates for New York by default
  */
-export function mockGoogleMapsAPI(customResponse?: any) {
+export function mockGoogleMapsAPI(customResponse?: unknown) {
   global.fetch = vi.fn((url: string | URL) => {
     const urlString = typeof url === "string" ? url : url.toString();
 
@@ -53,7 +53,7 @@ export function mockGoogleMapsAPI(customResponse?: any) {
     }
 
     return Promise.reject(new Error(`Unknown URL: ${urlString}`));
-  }) as any;
+  }) as typeof global.fetch;
 }
 
 /**
@@ -69,7 +69,7 @@ export function mockGoogleMapsAPIError() {
           results: [],
         }),
     } as Response)
-  ) as any;
+  ) as typeof global.fetch;
 }
 
 /**
@@ -193,7 +193,7 @@ export function mockFileDownload(content: string | ArrayBuffer) {
           new Blob([typeof content === "string" ? content : new Uint8Array(content)])
         ),
     } as Response)
-  ) as any;
+  ) as typeof global.fetch;
 }
 
 /**
@@ -202,7 +202,7 @@ export function mockFileDownload(content: string | ArrayBuffer) {
 export function mockFileDownloadError() {
   global.fetch = vi.fn(() =>
     Promise.reject(new Error("Failed to fetch file"))
-  ) as any;
+  ) as typeof global.fetch;
 }
 
 /**

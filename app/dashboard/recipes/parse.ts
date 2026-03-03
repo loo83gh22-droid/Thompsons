@@ -92,11 +92,11 @@ Only return the JSON, no explanation.`,
       },
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Recipe parsing error:', error);
     return {
       success: false,
-      error: error.message || 'Failed to parse recipe',
+      error: error instanceof Error ? error.message : 'Failed to parse recipe',
     };
   }
 }
