@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -10,12 +10,10 @@ function getGreeting(): string {
 }
 
 export function PersonalGreeting({ firstName }: { firstName: string | null }) {
-  const [greeting, setGreeting] = useState("Welcome home");
-
-  useEffect(() => {
+  const [greeting] = useState(() => {
     const timeGreeting = getGreeting();
-    setGreeting(firstName ? `${timeGreeting}, ${firstName}` : timeGreeting);
-  }, [firstName]);
+    return firstName ? `${timeGreeting}, ${firstName}` : timeGreeting;
+  });
 
   return (
     <div>

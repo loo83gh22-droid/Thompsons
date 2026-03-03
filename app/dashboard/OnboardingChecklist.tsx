@@ -41,12 +41,7 @@ export function OnboardingChecklist({
   storyCount: number;
   voiceMemoCount: number;
 }) {
-  const [archived, setArchived] = useState(true); // hidden by default until checked
-  const [sessionHidden, setSessionHidden] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
-
-  useEffect(() => {
+  const [archived, setArchived] = useState(() => {
     try {
       // Migrate old localStorage dismissed/archived flags to cookie
       const oldDismissed = localStorage.getItem("family-nest-onboarding-dismissed");
@@ -56,16 +51,20 @@ export function OnboardingChecklist({
         localStorage.removeItem("family-nest-onboarding-dismissed");
         localStorage.removeItem("family-nest-onboarding-archived");
       }
-
-      const isArchived = getCookie(ARCHIVED_COOKIE) === "true";
-      const isHidden = sessionStorage.getItem(HIDDEN_KEY) === "true";
-      setArchived(isArchived);
-      setSessionHidden(isHidden);
+      return getCookie(ARCHIVED_COOKIE) === "true";
     } catch {
-      setArchived(false);
-      setSessionHidden(false);
+      return false;
     }
-  }, []);
+  });
+  const [sessionHidden, setSessionHidden] = useState(() => {
+    try {
+      return sessionStorage.getItem(HIDDEN_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
   // Track window size for confetti
   useEffect(() => {
@@ -132,6 +131,7 @@ export function OnboardingChecklist({
       try {
         const alreadyCelebrated = localStorage.getItem(CELEBRATED_KEY) === "true";
         if (!alreadyCelebrated) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setShowConfetti(true);
           localStorage.setItem(CELEBRATED_KEY, "true");
           // Auto-hide confetti after 5 seconds
@@ -270,11 +270,7 @@ export function OnboardingChecklist({
 }
 
 function ResumeWelcomeTourLink() {
-  const [showLink, setShowLink] = useState(false);
-
-  useEffect(() => {
-    setShowLink(!isWelcomeTourCompleted());
-  }, []);
+  const [showLink] = useState(() => !isWelcomeTourCompleted());
 
   if (!showLink) return null;
 

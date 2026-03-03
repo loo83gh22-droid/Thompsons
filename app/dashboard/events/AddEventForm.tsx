@@ -13,7 +13,7 @@ export function AddEventForm({ members }: { members: Member[] }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [title, setTitle] = useState("");
-  const [eventDate, setEventDate] = useState("");
+  const [eventDate, setEventDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [description, setDescription] = useState("");
   const [recurringAnnual, setRecurringAnnual] = useState(false);
   const [category, setCategory] = useState("other");
@@ -22,13 +22,10 @@ export function AddEventForm({ members }: { members: Member[] }) {
   const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (open && !eventDate) {
-      setEventDate(new Date().toISOString().slice(0, 10));
-    }
     if (open) {
       setTimeout(() => titleRef.current?.focus(), 50);
     }
-  }, [open, eventDate]);
+  }, [open]);
 
   function toggleInvitee(id: string) {
     setInviteeIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));

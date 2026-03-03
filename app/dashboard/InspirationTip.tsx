@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const tips = [
   "Ask a grandparent about their childhood recipe and add it to Recipes.",
@@ -24,14 +24,10 @@ const tips = [
 ];
 
 export function InspirationTip() {
-  const [tip, setTip] = useState("");
-
-  useEffect(() => {
+  const [tip] = useState(() => {
     const daySeed = Math.floor(Date.now() / 86_400_000);
-    setTip(tips[daySeed % tips.length]);
-  }, []);
-
-  if (!tip) return null;
+    return tips[daySeed % tips.length];
+  });
 
   return (
     <section className="rounded-2xl border border-[var(--accent)]/20 bg-gradient-to-br from-[var(--accent)]/5 to-[var(--surface)] p-5 sm:p-6">

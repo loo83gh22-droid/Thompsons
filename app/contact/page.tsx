@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Navbar } from "@/app/components/home/Navbar";
@@ -16,28 +16,15 @@ const CATEGORIES = [
 
 function ContactForm() {
   const searchParams = useSearchParams();
-  const [form, setForm] = useState({
+  const initialCat = searchParams.get("category");
+  const initialErrorId = searchParams.get("errorId") ?? undefined;
+  const [form, setForm] = useState(() => ({
     name: "",
     email: "",
-    category: CATEGORIES[0],
-    message: "",
-  });
-  const [errorId, setErrorId] = useState<string | undefined>();
-
-  useEffect(() => {
-    const cat = searchParams.get("category");
-    const eid = searchParams.get("errorId") ?? undefined;
-    if (cat && CATEGORIES.includes(cat)) {
-      setForm((prev) => ({ ...prev, category: cat }));
-    }
-    if (eid) {
-      setErrorId(eid);
-      setForm((prev) => ({
-        ...prev,
-        message: `Error ID: ${eid}\n\nWhat I was doing:\n`,
-      }));
-    }
-  }, [searchParams]);
+    category: initialCat && CATEGORIES.includes(initialCat) ? initialCat : CATEGORIES[0],
+    message: initialErrorId ? `Error ID: ${initialErrorId}\n\nWhat I was doing:\n` : "",
+  }));
+  const [errorId] = useState<string | undefined>(initialErrorId);
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 

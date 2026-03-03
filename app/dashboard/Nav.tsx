@@ -111,6 +111,16 @@ export function Nav({
     return () => { document.body.style.overflow = ""; };
   }, [mobileMenuOpen]);
 
+  function closeMobileMenu() {
+    setMobileMenuOpen(false);
+    setFamilyOpen(false);
+    setMemoriesOpen(false);
+    setFavouritesOpen(false);
+    setMobileFamilyOpen(false);
+    setMobileMemoriesOpen(false);
+    setMobileFavouritesOpen(false);
+  }
+
   useEffect(() => {
     function handleEscape(e: KeyboardEvent) {
       if (e.key === "Escape") closeMobileMenu();
@@ -133,16 +143,6 @@ export function Nav({
     setMobileMenuOpen(false);
     router.push("/");
     router.refresh();
-  }
-
-  function closeMobileMenu() {
-    setMobileMenuOpen(false);
-    setFamilyOpen(false);
-    setMemoriesOpen(false);
-    setFavouritesOpen(false);
-    setMobileFamilyOpen(false);
-    setMobileMemoriesOpen(false);
-    setMobileFavouritesOpen(false);
   }
 
   const navLinkClass = (isActive: boolean) =>

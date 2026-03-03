@@ -6,11 +6,7 @@ import { useEffect, useState } from "react";
 
 export function AddedToMapBanner() {
   const searchParams = useSearchParams();
-  const [show, setShow] = useState(false);
-
-  useEffect(() => {
-    if (searchParams.get("addedToMap") === "1") setShow(true);
-  }, [searchParams]);
+  const [show, setShow] = useState(() => searchParams.get("addedToMap") === "1");
 
   useEffect(() => {
     if (!show) return;

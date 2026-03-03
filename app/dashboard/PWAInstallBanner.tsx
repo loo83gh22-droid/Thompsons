@@ -31,10 +31,12 @@ export function PWAInstallBanner() {
       return;
 
     const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsIOS(ios);
 
     if (ios) {
       // iOS doesn't fire beforeinstallprompt — show instructions immediately
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShow(true);
     } else {
       // Android / Chrome — wait for the native install prompt

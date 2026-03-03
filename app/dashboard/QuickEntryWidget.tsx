@@ -29,17 +29,19 @@ const actions = [
 
 export function QuickEntryWidget() {
   const [visible, setVisible] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(COLLAPSED_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     try {
       // Show once per browser session (reappears each new login)
       const seen = sessionStorage.getItem(SESSION_KEY);
       if (seen) return;
-
-      // Restore collapsed preference from last session
-      const wasCollapsed = localStorage.getItem(COLLAPSED_KEY) === "true";
-      setCollapsed(wasCollapsed);
 
       // Slight delay so it doesn't pop in before the page paints
       const timer = setTimeout(() => setVisible(true), 600);

@@ -23,9 +23,11 @@ export function WelcomeModal({ familyName }: { familyName: string }) {
       if (typeof window === "undefined") return;
       const completed = localStorage.getItem(COMPLETED_KEY);
       if (!completed) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         openModal();
       }
     } catch {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpen(true);
     }
   }, [openModal]);

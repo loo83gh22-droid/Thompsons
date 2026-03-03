@@ -148,7 +148,7 @@ export function BirthdayPrompt() {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-[var(--foreground)]">
-                    🎂 {birthday.memberName}'s Birthday
+                    🎂 {birthday.memberName}&apos;s Birthday
                   </p>
                   <p className="mt-1 text-xs text-[var(--muted)]">
                     {birthday.relationship} •{" "}
