@@ -50,8 +50,8 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
       }
     }
 
-    // Extract and validate FormData
-    const memberIds = formData.getAll("member_ids").map(String).filter(Boolean);
+    // Extract and validate FormData — deduplicate in case client sends IDs twice
+    const memberIds = [...new Set(formData.getAll("member_ids").map(String).filter(Boolean))];
     const rawData = {
       family_member_id: memberIds[0] || null,
       member_ids: memberIds,
@@ -335,8 +335,8 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
     throw new Error("Entry not found or access denied.");
   }
 
-  // Extract and validate FormData
-  const memberIds = formData.getAll("member_ids").map(String).filter(Boolean);
+  // Extract and validate FormData — deduplicate in case client sends IDs twice
+  const memberIds = [...new Set(formData.getAll("member_ids").map(String).filter(Boolean))];
   const rawData = {
     family_member_id: memberIds[0] || null,
     member_ids: memberIds,
