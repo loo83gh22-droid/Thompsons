@@ -105,19 +105,19 @@ function TreeAvatar({ initials, bg, color, size = 9 }: { initials: string; bg: s
   );
 }
 
-function TreePreview() {
-  const LINE = "rgba(100,100,90,0.22)";
+const TREE_LINE = "rgba(100,100,90,0.22)";
 
-  // Mini card node matching the real family-tree card style
-  const Node = ({
-    initials,
-    bg,
-    label,
-  }: {
-    initials: string;
-    bg: string;
-    label: string;
-  }) => (
+// Mini card node matching the real family-tree card style
+function TreeNode({
+  initials,
+  bg,
+  label,
+}: {
+  initials: string;
+  bg: string;
+  label: string;
+}) {
+  return (
     <div
       className="flex flex-col items-center rounded-xl bg-white px-2 py-1.5 shadow-sm"
       style={{ border: `1.5px solid ${bg}55`, minWidth: 40 }}
@@ -136,6 +136,10 @@ function TreePreview() {
       </p>
     </div>
   );
+}
+
+function TreePreview() {
+  const LINE = TREE_LINE;
 
   return (
     <div
@@ -157,22 +161,22 @@ function TreePreview() {
 
       {/* Gen 0 — Grandparents */}
       <div className="flex items-center gap-0.5">
-        <Node initials="Gma" bg="#3d6b5e" label="Grandma" />
+        <TreeNode initials="Gma" bg="#3d6b5e" label="Grandma" />
         <div style={{ width: 10, height: 2, background: LINE }} />
         <span style={{ fontSize: 9, color: "#c47c3a", lineHeight: 1 }}>♥</span>
         <div style={{ width: 10, height: 2, background: LINE }} />
-        <Node initials="Gpa" bg="#3d6b5e" label="Grandpa" />
+        <TreeNode initials="Gpa" bg="#3d6b5e" label="Grandpa" />
       </div>
 
       <div style={{ width: 2, height: 11, background: LINE }} />
 
       {/* Gen 1 — Parents */}
       <div className="flex items-center gap-0.5">
-        <Node initials="Mom" bg="#c47c3a" label="Mom" />
+        <TreeNode initials="Mom" bg="#c47c3a" label="Mom" />
         <div style={{ width: 10, height: 2, background: LINE }} />
         <span style={{ fontSize: 9, color: "#c47c3a", lineHeight: 1 }}>♥</span>
         <div style={{ width: 10, height: 2, background: LINE }} />
-        <Node initials="Dad" bg="#c47c3a" label="Dad" />
+        <TreeNode initials="Dad" bg="#c47c3a" label="Dad" />
       </div>
 
       {/* Branch to kids */}
@@ -188,7 +192,7 @@ function TreePreview() {
             style={{ margin: "0 5px" }}
           >
             <div style={{ width: 2, height: 10, background: LINE }} />
-            <Node initials={n} bg="#8ca89a" label={n} />
+            <TreeNode initials={n} bg="#8ca89a" label={n} />
           </div>
         ))}
       </div>

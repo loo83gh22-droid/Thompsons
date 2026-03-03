@@ -83,11 +83,11 @@ Generate 3 opening sentences for this family memory.`,
       prompts,
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Writing prompts error:', error);
     return {
       success: false,
-      error: error.message || 'Failed to generate prompts',
+      error: error instanceof Error ? error.message : 'Failed to generate prompts',
     };
   }
 }

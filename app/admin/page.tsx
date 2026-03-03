@@ -54,8 +54,8 @@ export default async function AdminPage() {
   );
 
   const now = new Date();
-  const sevenDaysAgo = new Date(Date.now() - 7 * 86_400_000).toISOString();
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000).toISOString();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 86_400_000).toISOString();
 
   // ── Parallel data fetches ───────────────────────────────────────────────────
   const [

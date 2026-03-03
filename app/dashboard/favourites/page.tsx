@@ -16,8 +16,8 @@ export default async function FavouritesPage() {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
 
   // Fetch active favourite counts per category
-  let countsByCategory: Record<string, number> = {};
-  let memberCountsByCategory: Record<string, number> = {};
+  const countsByCategory: Record<string, number> = {};
+  const memberCountsByCategory: Record<string, number> = {};
 
   if (activeFamilyId) {
     const { data } = await supabase

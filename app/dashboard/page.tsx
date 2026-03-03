@@ -24,6 +24,9 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
 
+  const todayDate = new Date();
+  const nowMs = todayDate.getTime();
+
   let stats = {
     memberCount: 0,
     photoCount: 0,
@@ -70,7 +73,7 @@ export default async function DashboardPage() {
       supabase.from("voice_memos").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("time_capsules").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("family_stories").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId).eq("published", true),
-      supabase.from("family_events").select("id, title, event_date, category").eq("family_id", activeFamilyId).gte("event_date", new Date().toISOString().slice(0, 10)).lte("event_date", new Date(Date.now() + UI_DISPLAY.upcomingEventWindowMs).toISOString().slice(0, 10)).order("event_date", { ascending: true }).limit(QUERY_LIMITS.dashboardPreview),
+      supabase.from("family_events").select("id, title, event_date, category").eq("family_id", activeFamilyId).gte("event_date", todayDate.toISOString().slice(0, 10)).lte("event_date", new Date(nowMs + UI_DISPLAY.upcomingEventWindowMs).toISOString().slice(0, 10)).order("event_date", { ascending: true }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("home_mosaic_photos").select("id, url, created_at").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("journal_entries").select("id, title, created_at, family_members!author_id(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("voice_memos").select("id, title, created_at, duration_seconds, family_members!family_member_id(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
@@ -78,7 +81,7 @@ export default async function DashboardPage() {
       // Birthday detection: fetch members with birth dates
       supabase.from("family_members").select("id, name, birth_date").eq("family_id", activeFamilyId).not("birth_date", "is", null),
       // Streak: get distinct activity dates for last 56 days (8 weeks) across all content types
-      supabase.from("journal_entries").select("created_at").eq("family_id", activeFamilyId).gte("created_at", new Date(Date.now() - 56 * 86_400_000).toISOString()).order("created_at", { ascending: false }),
+      supabase.from("journal_entries").select("created_at").eq("family_id", activeFamilyId).gte("created_at", new Date(nowMs - 56 * 86_400_000).toISOString()).order("created_at", { ascending: false }),
       // On This Day: journal entries created on today's month/day in prior years
       supabase.from("journal_entries").select("id, title, created_at, family_members!author_id(name, nickname)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(200),
     ]);
@@ -215,7 +218,7 @@ export default async function DashboardPage() {
 
     // Count consecutive weeks with at least one active day (going backwards from current week)
     weekStreak = 0;
-    let checkWeekStart = new Date(currentSunday);
+    const checkWeekStart = new Date(currentSunday);
     for (let w = 0; w < 8; w++) {
       const weekStart = new Date(checkWeekStart);
       const weekEnd = new Date(checkWeekStart);
@@ -329,7 +332,7 @@ export default async function DashboardPage() {
 
     // Pick one highlight based on day-seed (changes daily)
     if (highlightCandidates.length > 0) {
-      const daySeed = Math.floor(Date.now() / 86_400_000);
+      const daySeed = Math.floor(nowMs / 86_400_000);
       highlight = highlightCandidates[daySeed % highlightCandidates.length];
     }
   }
