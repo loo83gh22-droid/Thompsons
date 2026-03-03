@@ -34,10 +34,12 @@ export function StoryForm({
   members,
   defaultAuthorMemberId,
   editStory,
+  initialMemberIds,
 }: {
   members: Member[];
   defaultAuthorMemberId?: string | null;
   editStory?: EditStory | null;
+  initialMemberIds?: string[];
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -46,11 +48,13 @@ export function StoryForm({
   const [content, setContent] = useState(editStory?.content ?? "");
   const [category, setCategory] = useState(editStory?.category ?? "memorable_moments");
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>(
-    editStory?.author_family_member_id
-      ? [editStory.author_family_member_id]
-      : defaultAuthorMemberId
-        ? [defaultAuthorMemberId]
-        : []
+    initialMemberIds && initialMemberIds.length > 0
+      ? initialMemberIds
+      : editStory?.author_family_member_id
+        ? [editStory.author_family_member_id]
+        : defaultAuthorMemberId
+          ? [defaultAuthorMemberId]
+          : []
   );
   const [coverUrl, setCoverUrl] = useState<string | null>(editStory?.cover_url ?? null);
   const [coverUploading, setCoverUploading] = useState(false);

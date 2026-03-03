@@ -30,11 +30,19 @@ export default async function EditStoryPage({ params }: { params: Promise<{ id: 
   const isAuthor = !!me && (story.created_by === me.id || story.author_family_member_id === me.id);
   if (!isAuthor) notFound();
 
-  const { data: members } = await supabase
-    .from("family_members")
-    .select("id, name")
-    .eq("family_id", activeFamilyId)
-    .order("name");
+  const [{ data: members }, { data: storyMembers }] = await Promise.all([
+    supabase
+      .from("family_members")
+      .select("id, name")
+      .eq("family_id", activeFamilyId)
+      .order("name"),
+    supabase
+      .from("family_story_members")
+      .select("family_member_id")
+      .eq("story_id", id),
+  ]);
+
+  const existingMemberIds = storyMembers?.map((m) => m.family_member_id) ?? [];
 
   return (
     <div>
@@ -44,6 +52,7 @@ export default async function EditStoryPage({ params }: { params: Promise<{ id: 
       </p>
       <StoryForm
         members={members ?? []}
+        initialMemberIds={existingMemberIds}
         editStory={{
           id: story.id,
           title: story.title,
