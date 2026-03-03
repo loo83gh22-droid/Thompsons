@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function SportsPage() {
-  redirect("/dashboard/achievements");
+  redirect("/dashboard/trophy-case");
 }

@@ -106,16 +106,19 @@ export async function ensureBirthdayEvents(): Promise<{ added: number }> {
 
   const { data: existing } = await supabase
     .from("family_events")
-    .select("id, created_by")
+    .select("id, created_by, title")
     .eq("family_id", activeFamilyId)
     .eq("category", "birthday");
   const existingMemberIds = new Set((existing ?? []).map((e) => e.created_by).filter(Boolean));
+  const existingTitles = new Set((existing ?? []).map((e) => (e.title ?? "").toLowerCase()));
 
   const thisYear = new Date().getFullYear();
   let added = 0;
   for (const m of members) {
     const title = `${m.name}'s Birthday`;
     if (existingMemberIds.has(m.id)) continue;
+    // Also skip if a birthday event with the same title already exists (handles null created_by)
+    if (existingTitles.has(title.toLowerCase())) continue;
     const d = String(m.birth_date);
     const eventDate = `${thisYear}-${d.slice(5, 7)}-${d.slice(8, 10)}`;
     const { error } = await supabase.from("family_events").insert({
