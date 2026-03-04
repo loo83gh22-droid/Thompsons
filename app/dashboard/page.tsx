@@ -13,7 +13,6 @@ import { UpcomingEvents } from "./UpcomingEvents";
 import { ActivityFeed, type ActivityItem } from "./ActivityFeed";
 import { FamilySummaryStrip } from "./FamilySummaryStrip";
 import { OnboardingChecklist } from "./OnboardingChecklist";
-import { QuickActions } from "./QuickActions";
 import { FamilyHighlight, type HighlightItem } from "./FamilyHighlight";
 import { InspirationTip } from "./InspirationTip";
 import { BirthdayBanner, type BirthdayPerson } from "./BirthdayBanner";
@@ -349,10 +348,6 @@ export default async function DashboardPage() {
               <BirthdayBanner birthdays={upcomingBirthdays} />
             </div>
           )}
-
-          <div className="mt-6">
-            <QuickActions />
-          </div>
 
           <div className="mt-6">
             <OnboardingChecklist
