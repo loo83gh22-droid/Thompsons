@@ -1,4 +1,5 @@
 import { createClient } from "@/src/lib/supabase/server";
+import { getActiveFamilyId } from "@/src/lib/family";
 import { PHOTO_LIMITS } from "@/src/lib/constants";
 import Image from "next/image";
 
@@ -14,12 +15,17 @@ export async function MosaicBackground() {
   let urls: string[] = [];
   try {
     const supabase = await createClient();
-    const { data: photos } = await supabase
-      .from("home_mosaic_photos")
-      .select("id, url")
-      .order("sort_order")
-      .limit(PHOTO_LIMITS.mosaicDisplayLimit);
-    urls = (photos || []).map((p) => p.url);
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (activeFamilyId) {
+      const { data: photos } = await supabase
+        .from("home_mosaic_photos")
+        .select("id, url")
+        .eq("family_id", activeFamilyId)
+        .order("taken_at", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false })
+        .limit(PHOTO_LIMITS.mosaicDisplayLimit);
+      urls = (photos || []).map((p) => p.url);
+    }
   } catch {
     // Table may not exist yet or Supabase unavailable - use fallback
   }

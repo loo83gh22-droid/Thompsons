@@ -109,7 +109,8 @@ export async function FamilyMosaic() {
     const { data: photos } = await supabase
       .from("home_mosaic_photos")
       .select("id, url")
-      .order("sort_order")
+      .order("taken_at", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false })
       .limit(12);
     urls = (photos || []).map((p) => p.url);
   } catch {
