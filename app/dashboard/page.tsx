@@ -11,7 +11,6 @@ import { PersonalGreeting } from "./PersonalGreeting";
 import { DashboardStats } from "./DashboardStats";
 import { UpcomingEvents } from "./UpcomingEvents";
 import { ActivityFeed, type ActivityItem } from "./ActivityFeed";
-import { FamilySummaryStrip } from "./FamilySummaryStrip";
 import { OnboardingChecklist } from "./OnboardingChecklist";
 import { FamilyHighlight, type HighlightItem } from "./FamilyHighlight";
 import { InspirationTip } from "./InspirationTip";
@@ -39,7 +38,6 @@ export default async function DashboardPage() {
   let upcomingEvents: { id: string; title: string; event_date: string; category: string }[] = [];
   let activityItems: ActivityItem[] = [];
   let activityHasMore = false;
-  let summaryMembers: { id: string; name: string; avatar_url: string | null }[] = [];
   let highlight: HighlightItem | null = null;
   let upcomingBirthdays: BirthdayPerson[] = [];
   let weekActiveDays: string[] = [];
@@ -49,7 +47,6 @@ export default async function DashboardPage() {
 
   if (activeFamilyId) {
     const [
-      membersListRes,
       membersRes,
       photosRes,
       journalRes,
@@ -65,7 +62,6 @@ export default async function DashboardPage() {
       recentActivityDatesRes,
       allJournalForOTDRes,
     ] = await Promise.all([
-      supabase.from("family_members").select("id, name, avatar_url").eq("family_id", activeFamilyId).order("name").limit(QUERY_LIMITS.memberListDisplay),
       supabase.from("family_members").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("home_mosaic_photos").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("journal_entries").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
@@ -161,7 +157,6 @@ export default async function DashboardPage() {
     );
     activityHasMore = combined.length > QUERY_LIMITS.recentActivity;
     activityItems = combined.slice(0, QUERY_LIMITS.recentActivity);
-    summaryMembers = membersListRes.data ?? [];
 
     const first = activityItems[0];
     if (first) {
@@ -356,16 +351,6 @@ export default async function DashboardPage() {
               journalCount={stats.journalCount}
               storyCount={stats.storyCount}
               voiceMemoCount={stats.voiceMemoCount}
-            />
-          </div>
-
-          <div className="mt-6">
-            <FamilySummaryStrip
-              members={summaryMembers}
-              photoCount={stats.photoCount}
-              journalCount={stats.journalCount}
-              voiceMemoCount={stats.voiceMemoCount}
-              lastActivityAt={stats.lastActivityAt}
             />
           </div>
 
