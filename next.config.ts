@@ -36,7 +36,7 @@ const nextConfig: NextConfig = {
       "font-src 'self' https://fonts.gstatic.com",
       // Service workers and audio worklets need blob:
       "worker-src 'self' blob:",
-      "frame-src 'none'",
+      "frame-src https://open.spotify.com",
       "object-src 'none'",
     ]
       .filter(Boolean)
