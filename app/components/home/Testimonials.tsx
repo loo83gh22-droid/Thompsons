@@ -89,6 +89,9 @@ export function Testimonials() {
           <p className="mx-auto mt-4 max-w-xl text-lg" style={{ color: "var(--muted)" }}>
             From grandmothers to dads to the kid who finally got Grandpa into the water.
           </p>
+          <p className="mt-2 text-xs" style={{ color: "var(--muted)", opacity: 0.6 }}>
+            Stories represent typical customer experiences.
+          </p>
         </div>
 
         <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
