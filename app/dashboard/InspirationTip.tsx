@@ -1,26 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 const tips = [
-  "Ask a grandparent about their childhood recipe and add it to Recipes.",
-  "Record a voice memo of your family's favourite inside joke.",
-  "Write about your favourite holiday tradition in the Journal.",
-  "Upload a photo from your most recent family gathering.",
-  "What advice would you give your future self? Write a Time Capsule.",
-  "Tell the story of how your parents met in Stories.",
-  "Document a recipe that's been passed down through generations.",
-  "Record a lullaby or bedtime song as a voice memo.",
-  "Write a journal entry about your favourite childhood memory.",
-  "Add a pin to the Family Map for a place that means a lot to your family.",
-  "Ask a family member to share their perspective on a journal entry.",
-  "Write about a tradition your family has kept alive for years.",
-  "Send a surprise pop-up message to your family for when they log in.",
-  "Capture the story behind your family's favourite meal.",
-  "Record a voice memo telling your kids something you want them to remember.",
-  "Write about a lesson you learned from a family elder.",
-  "Upload a photo from a trip and add a journal entry about it.",
-  "What's your family's funniest story? Write it down before it's forgotten.",
+  { text: "Ask a grandparent about their childhood recipe and add it to Recipes.", href: "/dashboard/recipes/new", cta: "Add Recipe" },
+  { text: "Record a voice memo of your family's favourite inside joke.", href: "/dashboard/voice-memos", cta: "Record Memo" },
+  { text: "Write about your favourite holiday tradition in the Journal.", href: "/dashboard/journal/new", cta: "Write Entry" },
+  { text: "Upload a photo from your most recent family gathering.", href: "/dashboard/photos", cta: "Upload Photo" },
+  { text: "What advice would you give your future self? Write a Time Capsule.", href: "/dashboard/time-capsules/new", cta: "Create Capsule" },
+  { text: "Tell the story of how your parents met in Stories.", href: "/dashboard/stories/new", cta: "Write Story" },
+  { text: "Document a recipe that's been passed down through generations.", href: "/dashboard/recipes/new", cta: "Add Recipe" },
+  { text: "Record a lullaby or bedtime song as a voice memo.", href: "/dashboard/voice-memos", cta: "Record Memo" },
+  { text: "Write a journal entry about your favourite childhood memory.", href: "/dashboard/journal/new", cta: "Write Entry" },
+  { text: "Add a pin to the Family Map for a place that means a lot to your family.", href: "/dashboard/map", cta: "Open Map" },
+  { text: "Ask a family member to share their perspective on a journal entry.", href: "/dashboard/journal", cta: "View Journal" },
+  { text: "Write about a tradition your family has kept alive for years.", href: "/dashboard/traditions", cta: "Add Tradition" },
+  { text: "Send a surprise pop-up message to your family for when they log in.", href: "/dashboard/messages", cta: "Send Message" },
+  { text: "Capture the story behind your family's favourite meal.", href: "/dashboard/recipes/new", cta: "Add Recipe" },
+  { text: "Record a voice memo telling your kids something you want them to remember.", href: "/dashboard/voice-memos", cta: "Record Memo" },
+  { text: "Write about a lesson you learned from a family elder.", href: "/dashboard/journal/new", cta: "Write Entry" },
+  { text: "Upload a photo from a trip and add a journal entry about it.", href: "/dashboard/photos", cta: "Upload Photo" },
+  { text: "What's your family's funniest story? Write it down before it's forgotten.", href: "/dashboard/stories/new", cta: "Write Story" },
 ];
 
 export function InspirationTip() {
@@ -41,9 +42,17 @@ export function InspirationTip() {
         <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/10 text-xl" aria-hidden="true">
           💡
         </span>
-        <p className="text-sm leading-relaxed text-[var(--foreground)]">
-          {tip}
-        </p>
+        <div className="flex min-w-0 flex-1 flex-col gap-3">
+          <p className="text-sm leading-relaxed text-[var(--foreground)]">
+            {tip.text}
+          </p>
+          <Link
+            href={tip.href}
+            className="self-start rounded-full bg-[var(--accent)] px-4 py-1.5 text-xs font-semibold text-white transition-all duration-200 hover:brightness-110 hover:shadow-md"
+          >
+            {tip.cta} →
+          </Link>
+        </div>
       </div>
     </section>
   );
