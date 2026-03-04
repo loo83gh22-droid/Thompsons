@@ -41,10 +41,27 @@ function formatBirthdayShort(birthDate: string | null): string | null {
 export function MemberList({
   members,
   aliasMap = {},
+  compact = false,
 }: {
   members: Member[];
   aliasMap?: Record<string, string>;
+  compact?: boolean;
 }) {
+  if (compact) {
+    return (
+      <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]">
+        {members.map((m, i) => (
+          <MemberRow
+            key={m.id}
+            member={m}
+            alias={aliasMap[m.id] ?? null}
+            isLast={i === members.length - 1}
+          />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {members.map((m, i) => (
@@ -53,6 +70,255 @@ export function MemberList({
     </div>
   );
 }
+
+// ─── Compact list row ────────────────────────────────────────────────────────
+
+function MemberRow({
+  member,
+  alias,
+  isLast,
+}: {
+  member: Member;
+  alias: string | null;
+  isLast: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(member.name);
+  const [relationship, setRelationship] = useState(member.relationship ?? "");
+  const [nickname, setNickname] = useState(member.nickname ?? "");
+  const [email, setEmail] = useState(member.contact_email ?? "");
+  const [birthDate, setBirthDate] = useState(member.birth_date ?? "");
+  const [birthPlace, setBirthPlace] = useState(member.birth_place ?? "");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(member.avatar_url);
+  const [isDeceased, setIsDeceased] = useState(member.is_deceased);
+  const [deathDate, setDeathDate] = useState(member.death_date ?? "");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  }
+
+  function clearNewPhoto() {
+    setPhotoFile(null);
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  async function handleUpdate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) return;
+    if (!relationship.trim()) {
+      setMessage({ type: "error", text: "Please select a relationship." });
+      return;
+    }
+    setLoading(true);
+    setMessage(null);
+    try {
+      let finalAvatarUrl = avatarUrl;
+      if (photoFile) {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const ext = photoFile.name.split(".").pop() || "jpg";
+        const path = `members/${user.id}_${member.id}_${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("member-photos")
+          .upload(path, photoFile, { upsert: true });
+        if (uploadError) throw uploadError;
+        finalAvatarUrl = `/api/storage/member-photos/${path}`;
+      }
+      const result = await updateFamilyMember(
+        member.id, name.trim(), relationship.trim(), email.trim() || "",
+        birthDate || "", birthPlace.trim() || "", nickname.trim() || null,
+        finalAvatarUrl, isDeceased, deathDate || null
+      );
+      setAvatarUrl(finalAvatarUrl);
+      clearNewPhoto();
+      setMessage({
+        type: "success",
+        text: result?.birthdayEventAdded ? "Updated. Birthday added to Family Events!" : "Updated.",
+      });
+      setEditing(false);
+    } catch (err) {
+      setMessage({ type: "error", text: err instanceof Error ? err.message : "Something went wrong." });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleRemove() {
+    if (!confirmRemove) { setConfirmRemove(true); return; }
+    setLoading(true);
+    try {
+      await deleteFamilyMember(member.id);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Something went wrong.");
+      setLoading(false);
+      setConfirmRemove(false);
+    }
+  }
+
+  const displayPhoto = photoPreview || avatarUrl;
+  const shortBirthday = formatBirthdayShort(member.birth_date);
+  const isMemorial = member.is_deceased;
+  const status = member.user_id
+    ? "signed_in"
+    : member.contact_email?.trim() ? "pending" : null;
+  const label = alias ?? member.relationship;
+
+  // Inline edit expands like a form panel
+  if (editing) {
+    return (
+      <div className={`border-b border-[var(--border)] bg-[var(--surface-hover)]/40 p-4 ${isLast ? "border-b-0" : ""}`}>
+        <form onSubmit={handleUpdate} className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-[var(--foreground)]">Editing {member.name}</p>
+            <button type="button" onClick={() => { setEditing(false); clearNewPhoto(); }} className="text-xs text-[var(--muted)] hover:text-[var(--foreground)]">Cancel</button>
+          </div>
+          {/* Photo */}
+          <div className="flex items-center gap-3">
+            {displayPhoto ? (
+              <img src={displayPhoto} alt="" className="h-10 w-10 rounded-full object-cover ring-2 ring-[var(--border)]" />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent)]/20 text-xs font-semibold text-[var(--accent)]">{initials(member.name)}</div>
+            )}
+            <input ref={fileInputRef} type="file" accept={ACCEPT_IMAGES} onChange={handlePhotoChange}
+              className="text-xs text-[var(--muted)] file:rounded file:border-0 file:bg-[var(--accent)]/20 file:px-2 file:py-1 file:text-[var(--accent)]" />
+            {photoPreview && <button type="button" onClick={clearNewPhoto} className="text-xs text-[var(--muted)] underline">Clear</button>}
+          </div>
+          {/* Fields in a 2-col grid */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label className="block text-xs font-medium text-[var(--muted)]">Full name *</label>
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="input-base mt-1 w-full" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[var(--muted)]">Relationship *</label>
+              <select value={relationship} onChange={(e) => setRelationship(e.target.value)} required className="input-base mt-1 w-full">
+                <option value="">Select…</option>
+                {RELATIONSHIP_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[var(--muted)]">Nickname</label>
+              <input type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} className="input-base mt-1 w-full" placeholder="e.g. Mom" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[var(--muted)]">Email</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input-base mt-1 w-full" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[var(--muted)]">Birthday</label>
+              <input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="input-base mt-1 w-full" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[var(--muted)]">Birth place</label>
+              <input type="text" value={birthPlace} onChange={(e) => setBirthPlace(e.target.value)} className="input-base mt-1 w-full" placeholder="e.g. Vancouver, BC" />
+            </div>
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={isDeceased} onChange={(e) => setIsDeceased(e.target.checked)} className="h-4 w-4 rounded border-[var(--border)] accent-[var(--accent)]" />
+            <span className="text-[var(--foreground)]">Passed away</span>
+          </label>
+          {isDeceased && (
+            <div>
+              <label className="block text-xs font-medium text-[var(--muted)]">Date of passing</label>
+              <input type="date" value={deathDate} onChange={(e) => setDeathDate(e.target.value)} className="input-base mt-1 w-full" />
+            </div>
+          )}
+          {message && (
+            <div className={`rounded-lg px-3 py-2 text-xs ${message.type === "success" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>{message.text}</div>
+          )}
+          <div className="flex gap-2">
+            <button type="submit" disabled={loading} className="rounded-full bg-[var(--primary)] px-4 py-1.5 text-xs font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50">
+              {loading ? "Saving…" : "Save"}
+            </button>
+            <button type="button" onClick={() => { setEditing(false); clearNewPhoto(); }} disabled={loading} className="rounded-lg border border-[var(--border)] px-4 py-1.5 text-xs hover:bg-[var(--surface-hover)]">Cancel</button>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[var(--surface-hover)]/50 ${!isLast ? "border-b border-[var(--border)]" : ""} ${isMemorial ? "opacity-75" : ""}`}>
+      {/* Avatar */}
+      <Link href={`/dashboard/members/${member.id}`} className="shrink-0">
+        {displayPhoto ? (
+          <img src={displayPhoto} alt={member.name} loading="lazy"
+            className={`h-10 w-10 rounded-full object-cover ring-2 ring-[var(--border)] ${isMemorial ? "grayscale" : ""}`} />
+        ) : (
+          <div className={`flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold ${
+            isMemorial
+              ? "bg-slate-100 text-slate-500 ring-2 ring-slate-200"
+              : "bg-gradient-to-br from-[var(--primary)]/20 to-[var(--accent)]/15 text-[var(--primary)] ring-2 ring-[var(--primary)]/10"
+          }`}>
+            {initials(member.name)}
+          </div>
+        )}
+      </Link>
+
+      {/* Name + subtitle */}
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-baseline gap-x-2">
+          <Link href={`/dashboard/members/${member.id}`}
+            className="truncate font-medium text-[var(--foreground)] hover:text-[var(--accent)]">
+            {member.name}
+          </Link>
+          {member.nickname && (
+            <span className="text-xs italic text-[var(--muted)]">&ldquo;{member.nickname}&rdquo;</span>
+          )}
+          {isMemorial && <span className="text-xs text-slate-400">🕊️</span>}
+        </div>
+        {label && (
+          <p className="truncate text-xs text-[var(--muted)]">{label}</p>
+        )}
+      </div>
+
+      {/* Right-side metadata */}
+      <div className="hidden shrink-0 items-center gap-3 sm:flex">
+        {shortBirthday && (
+          <span className="text-xs text-[var(--muted)]">🎂 {shortBirthday}</span>
+        )}
+        {status && !isMemorial && (
+          <span className={`flex items-center gap-1 text-xs font-medium ${status === "signed_in" ? "text-emerald-600" : "text-amber-600"}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${status === "signed_in" ? "bg-emerald-400" : "bg-amber-400"}`} />
+            {status === "signed_in" ? "Active" : "Invited"}
+          </span>
+        )}
+      </div>
+
+      {/* Edit / Remove — reveal on hover */}
+      <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+        <button type="button" onClick={() => setEditing(true)}
+          className="rounded-lg p-1.5 text-[var(--muted)] hover:bg-[var(--accent)]/10 hover:text-[var(--accent)]"
+          title="Edit">
+          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+        </button>
+        <button type="button" onClick={handleRemove} disabled={loading}
+          className={`rounded-lg p-1.5 transition-colors disabled:opacity-50 ${confirmRemove ? "bg-red-50 text-red-600" : "text-[var(--muted)] hover:bg-red-50 hover:text-red-500"}`}
+          title={confirmRemove ? "Click again to confirm" : "Remove"}>
+          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Card view (unchanged) ────────────────────────────────────────────────────
 
 function MemberCard({ member, index, alias }: { member: Member; index: number; alias: string | null }) {
   const [editing, setEditing] = useState(false);

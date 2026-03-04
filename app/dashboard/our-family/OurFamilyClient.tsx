@@ -110,7 +110,7 @@ export function OurFamilyClient({
               selectedId={selectedMemberId}
             />
           ) : (
-            <MemberList members={members as Parameters<typeof MemberList>[0]["members"]} aliasMap={aliasMap} />
+            <MemberList members={members as Parameters<typeof MemberList>[0]["members"]} aliasMap={aliasMap} compact />
           )}
         </div>
         {selectedMember && (
