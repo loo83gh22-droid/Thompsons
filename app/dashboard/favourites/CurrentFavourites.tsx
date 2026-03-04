@@ -12,16 +12,19 @@ type Item = {
   age: number | null;
   photo_url: string | null;
   created_at: string;
+  member_id: string;
+  memberName: string;
+  isShared: boolean;
 };
 
 export function CurrentFavourites({
   items,
-  memberName,
   categoryLabel,
+  showMemberBadge,
 }: {
   items: Item[];
-  memberName: string;
   categoryLabel: string;
+  showMemberBadge: boolean;
 }) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -93,10 +96,10 @@ export function CurrentFavourites({
       <div className="rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)]/50 px-6 py-10 text-center">
         <p className="text-2xl">⭐</p>
         <p className="mt-2 font-medium text-[var(--foreground)]">
-          {memberName} hasn&apos;t added any {categoryLabel.toLowerCase()} yet
+          No {categoryLabel.toLowerCase()} yet
         </p>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Use the + Add button above to add their first favourite
+          Use the + Add button above to add the first favourite
         </p>
       </div>
     );
@@ -106,7 +109,9 @@ export function CurrentFavourites({
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((item) => {
         if (editingId === item.id) {
-          const currentPhoto = clearPhoto ? null : (editPhotoPreview ?? item.photo_url);
+          const currentPhoto = clearPhoto
+            ? null
+            : (editPhotoPreview ?? item.photo_url);
           return (
             <div
               key={item.id}
@@ -135,7 +140,7 @@ export function CurrentFavourites({
                 className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--muted)] placeholder:text-[var(--muted)]/60 focus:border-[var(--accent)] focus:outline-none"
               />
               <div className="mt-2 flex items-center gap-2">
-                <label className="text-sm text-[var(--muted)] whitespace-nowrap">
+                <label className="whitespace-nowrap text-sm text-[var(--muted)]">
                   Age at the time
                 </label>
                 <input
@@ -152,17 +157,22 @@ export function CurrentFavourites({
               {/* Photo edit */}
               <div className="mt-3">
                 {currentPhoto ? (
-                  <div className="relative w-20 h-20">
+                  <div className="relative h-20 w-20">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={currentPhoto}
                       alt="Photo"
-                      className="w-20 h-20 rounded-lg object-cover border border-[var(--border)]"
+                      className="h-20 w-20 rounded-lg border border-[var(--border)] object-cover"
                     />
                     <button
                       type="button"
-                      onClick={() => { setClearPhoto(true); setEditPhoto(null); setEditPhotoPreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
-                      className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--foreground)] text-[var(--background)] text-xs leading-none"
+                      onClick={() => {
+                        setClearPhoto(true);
+                        setEditPhoto(null);
+                        setEditPhotoPreview(null);
+                        if (fileInputRef.current) fileInputRef.current.value = "";
+                      }}
+                      className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--foreground)] text-xs leading-none text-[var(--background)]"
                     >
                       ×
                     </button>
@@ -209,16 +219,29 @@ export function CurrentFavourites({
         return (
           <div
             key={item.id}
-            className="group relative rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden transition-all hover:border-[var(--accent)]/40 hover:shadow-sm"
+            className={`group relative overflow-hidden rounded-xl border bg-[var(--surface)] transition-all hover:shadow-sm ${
+              item.isShared
+                ? "border-amber-400/60 hover:border-amber-400"
+                : "border-[var(--border)] hover:border-[var(--accent)]/40"
+            }`}
           >
+            {/* Family favourite banner */}
+            {item.isShared && (
+              <div className="flex items-center gap-1.5 bg-amber-400/15 px-3 py-1.5 text-xs font-medium text-amber-700 dark:text-amber-400">
+                <span>⭐</span>
+                Family favourite
+              </div>
+            )}
+
             {item.photo_url && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={item.photo_url}
                 alt={item.title}
-                className="w-full h-36 object-cover"
+                className="h-36 w-full object-cover"
               />
             )}
+
             <div className="p-4">
               <h3 className="font-medium leading-snug text-[var(--foreground)]">
                 {item.title}
@@ -238,6 +261,17 @@ export function CurrentFavourites({
                   Age {item.age}
                 </p>
               )}
+
+              {/* Member badge — only shown in All / Family favourites view */}
+              {showMemberBadge && (
+                <div className="mt-2">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[var(--surface-hover)] px-2.5 py-0.5 text-xs text-[var(--muted)]">
+                    <span className="text-[10px]">👤</span>
+                    {item.memberName}
+                  </span>
+                </div>
+              )}
+
               <div className="mt-3 flex gap-3 opacity-0 transition-opacity group-hover:opacity-100">
                 <button
                   type="button"
