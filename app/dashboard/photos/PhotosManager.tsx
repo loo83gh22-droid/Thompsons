@@ -5,12 +5,43 @@ import Image from "next/image";
 import { addPhoto, removePhoto } from "./actions";
 import { EmptyState } from "../components/EmptyState";
 
-type Photo = { id: string; url: string; sort_order: number };
+type Photo = {
+  id: string;
+  url: string;
+  sort_order: number;
+  taken_at: string | null;
+  created_at: string;
+};
+
+function effectiveDate(photo: Photo): string {
+  return photo.taken_at ?? photo.created_at.slice(0, 10);
+}
+
+function formatMonthYear(dateStr: string): string {
+  const [year, month] = dateStr.split("-");
+  return new Date(Number(year), Number(month) - 1, 1).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function groupByMonth(photos: Photo[]): { label: string; photos: Photo[] }[] {
+  const groups: Map<string, Photo[]> = new Map();
+  for (const photo of photos) {
+    const key = effectiveDate(photo).slice(0, 7); // "YYYY-MM"
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(photo);
+  }
+  return Array.from(groups.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, photos]) => ({ label: formatMonthYear(key), photos }));
+}
 
 export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
   const [photos, setPhotos] = useState(initialPhotos);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [takenAt, setTakenAt] = useState(new Date().toISOString().slice(0, 10));
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -19,8 +50,13 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
     setUploading(true);
     setError(null);
     try {
-      const newPhoto = await addPhoto(file);
-      setPhotos((p) => [...p, newPhoto].sort((a, b) => a.sort_order - b.sort_order));
+      const newPhoto = await addPhoto(file, takenAt || undefined);
+      setPhotos((p) => {
+        const updated = [...p, newPhoto];
+        return updated.sort((a, b) =>
+          effectiveDate(a).localeCompare(effectiveDate(b))
+        );
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.");
     } finally {
@@ -39,9 +75,23 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
     }
   }
 
+  const groups = groupByMonth(photos);
+
   return (
     <div className="mt-8 space-y-6">
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-[var(--muted)]">
+            Photo date
+          </label>
+          <input
+            type="date"
+            value={takenAt}
+            onChange={(e) => setTakenAt(e.target.value)}
+            className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+          />
+        </div>
+
         <label className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-full bg-[var(--primary)] px-4 py-3 font-medium text-[var(--primary-foreground)] hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]">
           {uploading ? "Uploading..." : "Add photo"}
           <input
@@ -54,8 +104,9 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
             aria-label="Choose photo to upload"
           />
         </label>
+
         <span className="text-sm text-[var(--muted)]">
-          {photos.length} photos
+          {photos.length} photo{photos.length !== 1 ? "s" : ""}
         </span>
       </div>
 
@@ -69,36 +120,43 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
         <EmptyState
           icon="📷"
           headline="No photos yet"
-          description="Upload photos to build your family's visual story. They'll appear here and in the background mosaic."
+          description="Upload photos to build your family's visual story. They'll appear here in chronological order and in the background mosaic."
           actionLabel="+ Upload your first photo"
           onAction={() => fileInputRef.current?.click()}
         />
-      ) : null}
-
-      {photos.length > 0 && (
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-6">
-        {photos.map((photo) => (
-          <div
-            key={photo.id}
-            className="group relative aspect-square overflow-hidden rounded-lg border border-[var(--border)]"
-          >
-            <Image
-              src={photo.url}
-              alt="Family photo"
-              fill
-              unoptimized
-              className="object-cover"
-              sizes="150px"
-            />
-            <button
-              onClick={() => handleRemove(photo.id)}
-              className="absolute right-2 top-2 rounded bg-black/60 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100"
-            >
-              Remove
-            </button>
-          </div>
-        ))}
-      </div>
+      ) : (
+        <div className="space-y-8">
+          {groups.map(({ label, photos: groupPhotos }) => (
+            <div key={label}>
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
+                {label}
+              </h2>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-6">
+                {groupPhotos.map((photo) => (
+                  <div
+                    key={photo.id}
+                    className="group relative aspect-square overflow-hidden rounded-lg border border-[var(--border)]"
+                  >
+                    <Image
+                      src={photo.url}
+                      alt="Family photo"
+                      fill
+                      unoptimized
+                      className="object-cover"
+                      sizes="150px"
+                    />
+                    <button
+                      onClick={() => handleRemove(photo.id)}
+                      className="absolute right-2 top-2 rounded bg-black/60 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       <p className="text-sm text-[var(--muted)]">

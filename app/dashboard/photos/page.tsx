@@ -19,9 +19,10 @@ export default async function PhotosPage() {
 
   const { data: photos } = await supabase
     .from("home_mosaic_photos")
-    .select("id, url, sort_order")
+    .select("id, url, sort_order, taken_at, created_at")
     .eq("family_id", activeFamilyId)
-    .order("sort_order");
+    .order("taken_at", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: true });
 
   return (
     <div>

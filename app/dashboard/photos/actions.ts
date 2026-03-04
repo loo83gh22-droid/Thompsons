@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { enforceStorageLimit, addStorageUsage } from "@/src/lib/plans";
 
-export async function addPhoto(file: File) {
+export async function addPhoto(file: File, takenAt?: string) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -53,8 +53,9 @@ export async function addPhoto(file: File) {
       url: `/api/storage/home-mosaic/${path}`,
       sort_order: nextOrder,
       uploaded_by: myMember?.id || null,
+      taken_at: takenAt || null,
     })
-    .select("id, url, sort_order")
+    .select("id, url, sort_order, taken_at, created_at")
     .single();
 
   if (insertError) throw insertError;
