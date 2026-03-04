@@ -71,7 +71,7 @@ export default async function DashboardPage() {
       supabase.from("family_stories").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId).eq("published", true),
       supabase.from("family_events").select("id, title, event_date, category").eq("family_id", activeFamilyId).gte("event_date", todayDate.toISOString().slice(0, 10)).order("event_date", { ascending: true }).limit(3),
       supabase.from("home_mosaic_photos").select("id, url, created_at, family_members!uploaded_by(id, name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
-      supabase.from("journal_entries").select("id, title, created_at, family_members!author_id(id, name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
+      supabase.from("journal_entries").select("id, title, trip_date, created_at, family_members!author_id(id, name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("voice_memos").select("id, title, created_at, duration_seconds, family_members!family_member_id(id, name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("family_messages").select("id, title, created_at, family_members!sender_id(id, name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       // Birthday detection: fetch members with birth dates
@@ -134,13 +134,14 @@ export default async function DashboardPage() {
       };
     });
 
-    const journalRows = (journalActivity.data ?? []).map((j: { id: string; title: string; created_at: string; family_members: MemberJoin }) => {
+    const journalRows = (journalActivity.data ?? []).map((j: { id: string; title: string; trip_date?: string | null; created_at: string; family_members: MemberJoin }) => {
       const author = one(j.family_members);
       return {
         type: "journal" as const,
         id: j.id,
         memberId: author?.id ?? null,
         createdAt: j.created_at,
+        tripDate: j.trip_date ?? null,
         title: j.title,
         thumbnailUrl: null,
         memberName: resolveName(author?.id ?? null, author?.name ?? null),
@@ -343,6 +344,7 @@ export default async function DashboardPage() {
       title: item.title ?? null,
       imageUrl: item.thumbnailUrl ?? null,
       createdAt: item.createdAt,
+      eventDate: item.type === "journal" ? (item.tripDate ?? null) : null,
       href: item.href,
     }));
 

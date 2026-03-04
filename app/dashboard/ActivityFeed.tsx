@@ -5,10 +5,12 @@ export type ActivityItem = {
   type: "photo" | "journal" | "voice_memo" | "message";
   id: string;
   createdAt: string;
+  tripDate?: string | null;
   title?: string | null;
   thumbnailUrl?: string | null;
   memberName?: string | null;
   memberRelationship?: string | null;
+  memberId?: string | null;
   durationSeconds?: number | null;
   href: string;
 };

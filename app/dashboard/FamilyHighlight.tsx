@@ -7,6 +7,7 @@ export type HighlightItem = {
   title: string | null;
   imageUrl: string | null;
   createdAt: string;
+  eventDate?: string | null;
   href: string;
 };
 
@@ -29,7 +30,8 @@ const typeIcons: Record<HighlightItem["type"], string> = {
 export function FamilyHighlight({ item }: { item: HighlightItem | null }) {
   if (!item) return null;
 
-  const dateStr = new Date(item.createdAt).toLocaleDateString("en-US", {
+  const displayDate = item.eventDate ?? item.createdAt;
+  const dateStr = new Date(displayDate + (displayDate.length === 10 ? "T12:00:00" : "")).toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
     year: "numeric",
