@@ -182,7 +182,7 @@ export default async function DashboardPage() {
       };
     });
 
-    const combined = [...photoRows, ...journalRows, ...voiceRows, ...messageRows].sort(
+    const combined = [...photoRows.filter((p) => p.memberName !== null), ...journalRows, ...voiceRows, ...messageRows].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
     activityHasMore = combined.length > QUERY_LIMITS.recentActivity;
