@@ -97,7 +97,7 @@ const faqs = [
   {
     question: "Can I upgrade from Annual to Legacy?",
     answer:
-      "Absolutely. You can upgrade at any time from The Full Nest to The Legacy plan. When you do, we'll pro-rate the remaining time on your annual subscription toward the one-time Legacy price.",
+      "Absolutely. You can upgrade at any time from The Full Nest to The Legacy plan. When you do, your annual subscription will be cancelled and you'll get full lifetime access immediately.",
   },
   {
     question: "How does ownership transfer work?",
