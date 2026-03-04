@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { MosaicBackground } from "./components/MosaicBackground";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
@@ -123,7 +122,6 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Family Nest" />
       </head>
       <body className="antialiased">
-        <MosaicBackground />
         {children}
         <Analytics />
         <SpeedInsights />

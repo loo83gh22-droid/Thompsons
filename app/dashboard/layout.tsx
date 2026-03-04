@@ -13,6 +13,7 @@ import { FeedbackPromptModal } from "@/app/dashboard/FeedbackPromptModal";
 import { QuickEntryWidget } from "@/app/dashboard/QuickEntryWidget";
 import { PWAInstallBanner } from "@/app/dashboard/PWAInstallBanner";
 import { MobileBottomNav } from "@/app/components/MobileBottomNav";
+import { MosaicBackground } from "@/app/components/MosaicBackground";
 
 export default async function DashboardLayout({
   children,
@@ -195,6 +196,7 @@ export default async function DashboardLayout({
 
     return (
       <FamilyProvider activeFamilyId={activeFamilyId} families={families} currentUserRole={currentUserRole} currentMemberId={currentMemberId} planType={planType}>
+        {activeFamilyId && <MosaicBackground activeFamilyId={activeFamilyId} />}
         <WelcomeModal familyName={familyName} />
         <BirthdayPrompt />
         <FeedbackPromptModal />
