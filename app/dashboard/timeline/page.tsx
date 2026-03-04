@@ -74,6 +74,7 @@ export default async function TimelinePage({
       .from("family_events")
       .select("id, title, event_date, created_at, description")
       .eq("family_id", activeFamilyId)
+      .lte("event_date", new Date().toISOString().slice(0, 10))
       .order("event_date", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false })
       .limit(QUERY_LIMITS.timelineItemsPerType),
