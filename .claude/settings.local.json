@@ -28,7 +28,23 @@
       "Bash(taskkill:*)",
       "Bash(find:*)",
       "Bash(cat:*)",
-      "mcp__Claude_in_Chrome__*"
+      "mcp__Claude_in_Chrome__*",
+      "mcp__Desktop_Commander__read_file",
+      "Bash(npx vercel env:*)",
+      "Bash(ls:*)",
+      "Bash(node -e:*)",
+      "Bash(node scripts/create-test-user.mjs:*)",
+      "Bash(node scripts/send-welcome-jason.mjs:*)",
+      "Bash(# Check app/api/emails/send-welcome - is it protected? find \"\"C:/Users/keepi/OneDrive/Desktop/Coding/Thompsons/family-site/app/api/emails\"\" -type f)",
+      "Bash(npx vercel whoami:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "WebFetch(domain:foleymedia.ai)",
+      "Bash(xxd)",
+      "Bash(Remove-Item -Force .next/lock -ErrorAction SilentlyContinue)",
+      "mcp__mcp-registry__search_mcp_registry",
+      "Bash(npm run db:push)",
+      "Bash(python3 -c \":*)"
     ]
   }
 }

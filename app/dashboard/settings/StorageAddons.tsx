@@ -8,6 +8,8 @@ type ActiveAddon = {
   label: string;
   bytes_added: number;
   price_per_year_usd: number;
+  status: string;
+  grace_until?: string | null;
 };
 
 type AddonTier = {
@@ -110,26 +112,39 @@ export function StorageAddons({ activeAddons }: { activeAddons: ActiveAddon[] })
               </span>
             </p>
             <ul className="space-y-2">
-              {activeAddons.map((addon) => (
-                <li
-                  key={addon.id}
-                  className="flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-2.5 text-sm"
-                >
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-500" />
-                    <span className="font-medium text-[var(--foreground)]">
-                      {addon.label}
+              {activeAddons.map((addon) => {
+                const isCancelling = addon.status === "cancelling";
+                const graceDate = addon.grace_until
+                  ? new Date(addon.grace_until).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                  : null;
+                return (
+                  <li
+                    key={addon.id}
+                    className={`flex items-center justify-between rounded-lg border px-4 py-2.5 text-sm ${
+                      isCancelling
+                        ? "border-[var(--warning)]/50 bg-[var(--warning)]/5"
+                        : "border-[var(--border)] bg-[var(--secondary)]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className={`h-4 w-4 ${isCancelling ? "text-[var(--warning)]" : "text-emerald-500"}`} />
+                      <div>
+                        <span className="font-medium text-[var(--foreground)]">{addon.label}</span>
+                        {isCancelling && graceDate && (
+                          <p className="text-xs text-[var(--warning)]">Cancelling — grace period ends {graceDate}</p>
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-[var(--muted)]">
+                      {isCancelling ? "Cancelling" : `$${addon.price_per_year_usd}/yr`}
                     </span>
-                  </div>
-                  <span className="text-[var(--muted)]">
-                    ${addon.price_per_year_usd}/yr
-                  </span>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
             <p className="mt-2 text-xs text-[var(--muted)]">
               To cancel an add-on, use{" "}
-              <span className="font-medium text-[var(--foreground)]">Manage Billing</span> below.
+              <span className="font-medium text-[var(--foreground)]">Manage Billing</span> in your plan section above.
             </p>
           </div>
         )}
@@ -178,6 +193,18 @@ export function StorageAddons({ activeAddons }: { activeAddons: ActiveAddon[] })
             <span className="font-medium text-[var(--foreground)]">Before adding storage,</span>{" "}
             check your uploads — a single unedited video can be several gigabytes.
             Deleting large files you no longer need is often the fastest way to free up room.
+          </p>
+        </div>
+
+        {/* Cancellation policy */}
+        <div className="flex gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+          <span className="mt-0.5 text-base" aria-hidden="true">ℹ️</span>
+          <p className="text-sm text-[var(--muted)]">
+            <span className="font-medium text-[var(--foreground)]">Cancellation policy:</span>{" "}
+            If you cancel a storage add-on and your usage exceeds your base plan limit, you&apos;ll have a{" "}
+            <span className="font-medium text-[var(--foreground)]">30-day grace period</span> to reduce your storage.
+            After that, your largest media files will be removed to bring you within your limit.{" "}
+            Journal entries, stories, and recipes are <span className="font-medium text-[var(--foreground)]">never deleted</span>.
           </p>
         </div>
       </div>

@@ -84,6 +84,8 @@ export async function GET(request: Request) {
     day5Invites: 0,
     day14Upgrades: 0,
     day30Reengagement: 0,
+    graceReminders: 0,
+    graceEnforced: 0,
     errors: [] as string[],
   };
 
@@ -556,6 +558,191 @@ export async function GET(request: Request) {
     } catch (err) {
       results.errors.push(`Weekly digest: ${err}`);
     }
+  }
+
+  // ── 6. Storage add-on grace period: reminders + enforcement ──────────────
+  try {
+    const now = new Date();
+    const nowIso = now.toISOString();
+
+    // Fetch all cancelling add-ons
+    const { data: cancellingAddons } = await supabase
+      .from("storage_addons")
+      .select("id, family_id, bytes_added, label, grace_until, grace_email_sent_at")
+      .eq("status", "cancelling")
+      .not("grace_until", "is", null);
+
+    for (const addon of cancellingAddons ?? []) {
+      const graceUntil = new Date(addon.grace_until);
+      const daysLeft = Math.ceil((graceUntil.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+      // ── Reminder emails at 15, 7, and 1 days remaining ──
+      const shouldRemind = [15, 7, 1].includes(daysLeft);
+      if (shouldRemind) {
+        const lastSent = addon.grace_email_sent_at ? new Date(addon.grace_email_sent_at) : null;
+        const alreadySentToday = lastSent && lastSent.toISOString().slice(0, 10) === todayStr;
+        if (!alreadySentToday) {
+          const { data: family } = await supabase
+            .from("families")
+            .select("name, storage_used_bytes, storage_limit_bytes")
+            .eq("id", addon.family_id)
+            .single();
+
+          const { data: members } = await supabase
+            .from("family_members")
+            .select("contact_email")
+            .eq("family_id", addon.family_id)
+            .in("role", ["owner", "adult"])
+            .not("contact_email", "is", null);
+
+          const emails = (members ?? []).map((m) => m.contact_email as string).filter(Boolean);
+
+          if (family && emails.length > 0) {
+            const newLimit = family.storage_limit_bytes - addon.bytes_added;
+            const overBy = family.storage_used_bytes - newLimit;
+            if (overBy > 0) {
+              const overGb = (overBy / (1024 ** 3)).toFixed(1);
+              const newLimitGb = (newLimit / (1024 ** 3)).toFixed(0);
+              const urgency = daysLeft === 1 ? "🚨 Final warning" : daysLeft <= 7 ? "⚠️ Urgent" : "📦 Reminder";
+              try {
+                await resend.emails.send({
+                  from: fromEmail,
+                  to: emails,
+                  subject: `${urgency}: ${daysLeft} day${daysLeft === 1 ? "" : "s"} to reduce storage in ${family.name}`,
+                  html: `
+                    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px">
+                      <h2 style="color:#c53030">${urgency}: Storage reduction needed</h2>
+                      <p>Your <strong>${addon.label}</strong> storage add-on for <strong>${family.name}</strong> has been cancelled.</p>
+                      <p>You are <strong>${overGb} GB over</strong> your new limit of ${newLimitGb} GB.
+                      You have <strong>${daysLeft} day${daysLeft === 1 ? "" : "s"}</strong> to remove files.</p>
+                      <p>After ${graceUntil.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })},
+                      Family Nest will automatically remove your largest media files to bring your account within its limit.
+                      <strong>Journal entries, stories, and recipes will never be deleted.</strong></p>
+                      <p><a href="https://www.familynest.io/dashboard/settings"
+                        style="background:#e53e3e;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block">
+                        Manage my storage
+                      </a></p>
+                      <p style="color:#666;font-size:13px;margin-top:24px">The Family Nest Team</p>
+                    </div>
+                  `,
+                });
+                await supabase
+                  .from("storage_addons")
+                  .update({ grace_email_sent_at: nowIso })
+                  .eq("id", addon.id);
+                results.graceReminders++;
+              } catch (err) {
+                results.errors.push(`Grace reminder email for addon ${addon.id}: ${err}`);
+              }
+            }
+          }
+        }
+      }
+
+      // ── Enforcement: grace period has expired ──
+      if (daysLeft <= 0) {
+        try {
+          const { data: family } = await supabase
+            .from("families")
+            .select("name, storage_used_bytes, storage_limit_bytes")
+            .eq("id", addon.family_id)
+            .single();
+
+          if (!family) continue;
+
+          const newLimitBytes = family.storage_limit_bytes - addon.bytes_added;
+          let bytesToFree = family.storage_used_bytes - newLimitBytes;
+
+          // Media buckets that use {family_id}/ path prefix
+          const mediaBuckets = [
+            "journal-videos",
+            "journal-photos",
+            "voice-memos",
+            "sports-photos",
+            "artwork-photos",
+            "pet-photos",
+            "story-covers",
+            "favourite-photos",
+            "achievements",
+            "award-files",
+          ];
+
+          if (bytesToFree > 0) {
+            // Find all media files for this family sorted by size DESC
+            const { data: objects } = await supabase
+              .schema("storage" as never)
+              .from("objects")
+              .select("id, bucket_id, name, metadata")
+              .in("bucket_id", mediaBuckets)
+              .like("name", `${addon.family_id}/%`)
+              .order("metadata->size" as never, { ascending: false });
+
+            for (const obj of objects ?? []) {
+              if (bytesToFree <= 0) break;
+              const fileSize = Number((obj.metadata as Record<string, unknown>)?.size ?? 0);
+              try {
+                await supabase.storage.from(obj.bucket_id).remove([obj.name]);
+                await supabase.rpc("decrement_storage_used", {
+                  fid: addon.family_id,
+                  bytes_to_subtract: fileSize,
+                });
+                bytesToFree -= fileSize;
+              } catch (err) {
+                results.errors.push(`Delete file ${obj.bucket_id}/${obj.name}: ${err}`);
+              }
+            }
+          }
+
+          // Mark add-on as cancelled and reduce storage limit
+          await supabase
+            .from("storage_addons")
+            .update({ status: "cancelled" })
+            .eq("id", addon.id);
+
+          await supabase.rpc("decrement_storage_limit", {
+            fid: addon.family_id,
+            bytes_to_subtract: addon.bytes_added,
+          });
+
+          // Send final notification email
+          const { data: members } = await supabase
+            .from("family_members")
+            .select("contact_email")
+            .eq("family_id", addon.family_id)
+            .in("role", ["owner", "adult"])
+            .not("contact_email", "is", null);
+
+          const emails = (members ?? []).map((m) => m.contact_email as string).filter(Boolean);
+          if (emails.length > 0) {
+            const filesRemoved = family.storage_used_bytes > newLimitBytes;
+            await resend.emails.send({
+              from: fromEmail,
+              to: emails,
+              subject: `Storage update for ${family.name}`,
+              html: `
+                <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px">
+                  <h2 style="color:#1a1a1a">Your storage add-on grace period has ended</h2>
+                  <p>Your <strong>${addon.label}</strong> add-on for <strong>${family.name}</strong> has been fully removed.</p>
+                  ${filesRemoved
+                    ? `<p>Some media files were removed to bring your account within your storage limit.
+                       Journal entries, stories, and recipes were not affected.</p>
+                       <p>You can re-add storage at any time from your <a href="https://www.familynest.io/dashboard/settings">account settings</a>.</p>`
+                    : `<p>Your usage was already within your new limit — no files were removed.</p>`
+                  }
+                  <p style="color:#666;font-size:13px;margin-top:24px">The Family Nest Team</p>
+                </div>
+              `,
+            });
+          }
+
+          results.graceEnforced++;
+        } catch (err) {
+          results.errors.push(`Grace enforcement for addon ${addon.id}: ${err}`);
+        }
+      }
+    }
+  } catch (err) {
+    results.errors.push(`Storage grace period handler: ${err}`);
   }
 
   return NextResponse.json(results);

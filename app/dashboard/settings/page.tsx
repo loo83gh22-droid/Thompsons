@@ -111,16 +111,18 @@ export default async function SettingsPage() {
     .eq("family_id", activeFamilyId)
     .single();
 
-  // Fetch active storage add-ons (paid plans only)
+  // Fetch active + cancelling storage add-ons (paid plans only)
   const { data: activeAddonsRaw } = planType !== "free"
     ? await supabase
         .from("storage_addons")
-        .select("id, label, bytes_added, price_per_year_usd")
+        .select("id, label, bytes_added, price_per_year_usd, status, grace_until")
         .eq("family_id", activeFamilyId)
-        .eq("status", "active")
+        .in("status", ["active", "cancelling"])
         .order("created_at")
     : { data: [] };
   const activeAddons = activeAddonsRaw ?? [];
+  const cancellingAddons = activeAddons.filter((a) => a.status === "cancelling");
+  const nowMs = new Date().getTime();
 
   // Count journal entries for free tier limit display
   let journalCount = 0;
@@ -137,6 +139,35 @@ export default async function SettingsPage() {
       <Suspense>
         <PaymentSuccessBanner planName={plan.name} />
       </Suspense>
+
+      {/* Storage grace period warning banner */}
+      {cancellingAddons.length > 0 && (
+        <div className="rounded-2xl border border-[var(--warning)] bg-[var(--warning)]/10 px-6 py-4 space-y-2">
+          <p className="font-semibold text-[var(--warning)]">⚠️ Storage add-on cancellation in progress</p>
+          {cancellingAddons.map((addon) => {
+            const graceDate = addon.grace_until
+              ? new Date(addon.grace_until).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+              : null;
+            const daysLeft = addon.grace_until
+              ? Math.ceil((new Date(addon.grace_until).getTime() - nowMs) / (1000 * 60 * 60 * 24))
+              : null;
+            return (
+              <p key={addon.id} className="text-sm text-[var(--foreground)]">
+                Your <strong>{addon.label}</strong> add-on was cancelled.
+                {graceDate && daysLeft !== null && daysLeft > 0 && (
+                  <> Please reduce your storage before <strong>{graceDate}</strong> ({daysLeft} day{daysLeft === 1 ? "" : "s"} left).</>
+                )}
+                {daysLeft !== null && daysLeft <= 0 && (
+                  <> Grace period has ended — files may be removed shortly.</>
+                )}
+              </p>
+            );
+          })}
+          <p className="text-xs text-[var(--muted)]">
+            Journal entries, stories, and recipes will never be deleted. Only media files (photos, videos, audio) may be removed.
+          </p>
+        </div>
+      )}
 
       {/* Header */}
       <div>
@@ -297,14 +328,17 @@ export default async function SettingsPage() {
                 </p>
               )}
 
-              {/* Nest Keepers link */}
-              <Link
-                href="/dashboard/settings/nest-keepers"
-                className="inline-flex items-center gap-2 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/5 px-5 py-2.5 text-sm font-semibold text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/10"
-              >
-                Manage Nest Keepers
-                <span aria-hidden="true">&rarr;</span>
-              </Link>
+              {/* Nest Keepers + Manage Billing (if has add-ons) */}
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/dashboard/settings/nest-keepers"
+                  className="inline-flex items-center gap-2 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/5 px-5 py-2.5 text-sm font-semibold text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/10"
+                >
+                  Manage Nest Keepers
+                  <span aria-hidden="true">&rarr;</span>
+                </Link>
+                {activeAddons.length > 0 && <ManageBilling />}
+              </div>
             </div>
           )}
         </div>

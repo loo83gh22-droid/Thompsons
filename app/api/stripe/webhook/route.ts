@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/src/lib/stripe";
 import { createClient } from "@supabase/supabase-js";
 import { PLAN_LIMITS } from "@/src/lib/constants";
+import { Resend } from "resend";
 import type Stripe from "stripe";
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const fromEmail = process.env.RESEND_FROM_EMAIL || "Family Nest <notifications@resend.dev>";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -112,24 +116,77 @@ async function deactivateStorageAddon(stripeSubscriptionId: string) {
 
   const { data: addon } = await supabase
     .from("storage_addons")
-    .select("family_id, bytes_added, status")
+    .select("family_id, bytes_added, status, label")
     .eq("stripe_subscription_id", stripeSubscriptionId)
     .single();
 
-  if (!addon || addon.status === "cancelled") return;
+  if (!addon || addon.status === "cancelled" || addon.status === "cancelling") return;
+
+  // Start 30-day grace period instead of immediately removing storage
+  const graceUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
   await supabase
     .from("storage_addons")
     .update({
-      status: "cancelled",
+      status: "cancelling",
       cancelled_at: new Date().toISOString(),
+      grace_until: graceUntil,
     })
     .eq("stripe_subscription_id", stripeSubscriptionId);
 
-  await supabase.rpc("decrement_storage_limit", {
-    fid: addon.family_id,
-    bytes_to_subtract: addon.bytes_added,
-  });
+  // Get family name + owner/adult emails to notify
+  const { data: family } = await supabase
+    .from("families")
+    .select("name, storage_used_bytes, storage_limit_bytes")
+    .eq("id", addon.family_id)
+    .single();
+
+  const { data: members } = await supabase
+    .from("family_members")
+    .select("contact_email, role")
+    .eq("family_id", addon.family_id)
+    .in("role", ["owner", "adult"])
+    .not("contact_email", "is", null);
+
+  const emails = (members ?? [])
+    .map((m) => m.contact_email as string)
+    .filter(Boolean);
+
+  if (resend && emails.length > 0 && family) {
+    const newLimitBytes = family.storage_limit_bytes - addon.bytes_added;
+    const newLimitGb = (newLimitBytes / (1024 ** 3)).toFixed(0);
+    const usedGb = (family.storage_used_bytes / (1024 ** 3)).toFixed(1);
+    const graceDate = new Date(graceUntil).toLocaleDateString("en-US", {
+      year: "numeric", month: "long", day: "numeric",
+    });
+
+    const isOverLimit = family.storage_used_bytes > newLimitBytes;
+
+    await resend.emails.send({
+      from: fromEmail,
+      to: emails,
+      subject: `Your ${addon.label} storage add-on has been cancelled`,
+      html: `
+        <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px">
+          <h2 style="color:#1a1a1a">Storage add-on cancelled</h2>
+          <p>Your <strong>${addon.label}</strong> storage add-on for <strong>${family.name}</strong> has been cancelled.</p>
+          ${isOverLimit ? `
+          <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:16px;margin:20px 0">
+            <strong>⚠️ Action required by ${graceDate}</strong>
+            <p style="margin:8px 0 0">You are currently using <strong>${usedGb} GB</strong> but your new limit will be <strong>${newLimitGb} GB</strong>.
+            Please reduce your storage before ${graceDate}.</p>
+            <p style="margin:8px 0 0">After that date, Family Nest will remove your largest media files (photos and videos) to bring your account within its limit.
+            <strong>Text memories (journal entries, stories, recipes) will never be deleted.</strong></p>
+          </div>
+          <p><a href="https://www.familynest.io/dashboard/settings" style="background:#e53e3e;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block">Manage my storage</a></p>
+          ` : `
+          <p style="color:#38a169">✅ Your current usage (${usedGb} GB) is within your new limit of ${newLimitGb} GB. No action needed.</p>
+          `}
+          <p style="color:#666;font-size:13px;margin-top:24px">The Family Nest Team</p>
+        </div>
+      `,
+    });
+  }
 }
 
 // ── Webhook handler ───────────────────────────────────────────────────────────
