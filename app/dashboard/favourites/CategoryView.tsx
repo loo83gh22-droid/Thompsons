@@ -108,54 +108,25 @@ export function CategoryView({
   return (
     <div>
       {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-2">
-        {/* All pill */}
-        <button
-          type="button"
-          onClick={() => setFilterMemberId(null)}
-          className={`min-h-[36px] rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
-            isAllView
-              ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
-              : "border border-[var(--border)] text-[var(--muted)] hover:border-[var(--primary)]/50 hover:text-[var(--foreground)]"
-          }`}
+      <div className="flex items-center gap-3">
+        <select
+          value={filterMemberId ?? ""}
+          onChange={(e) => {
+            const val = e.target.value;
+            setFilterMemberId(val === "" ? null : val);
+          }}
+          className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
         >
-          All
-        </button>
-
-        {/* Per-member pills */}
-        {members.map((member) => (
-          <button
-            key={member.id}
-            type="button"
-            onClick={() =>
-              setFilterMemberId(
-                member.id === filterMemberId ? null : member.id
-              )
-            }
-            className={`min-h-[36px] rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
-              filterMemberId === member.id
-                ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
-                : "border border-[var(--border)] text-[var(--muted)] hover:border-[var(--primary)]/50 hover:text-[var(--foreground)]"
-            }`}
-          >
-            {member.name}
-          </button>
-        ))}
-
-        {/* Family favourites pill — only show when there are shared items */}
-        {sharedCount > 0 && (
-          <button
-            type="button"
-            onClick={() => setFilterMemberId("__shared__")}
-            className={`min-h-[36px] rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
-              filterMemberId === "__shared__"
-                ? "bg-amber-500 text-white shadow-sm"
-                : "border border-amber-400/50 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-            }`}
-          >
-            ⭐ Family favourites ({sharedCount})
-          </button>
-        )}
+          <option value="">Everyone</option>
+          {members.map((member) => (
+            <option key={member.id} value={member.id}>
+              {member.name}
+            </option>
+          ))}
+          {sharedCount > 0 && (
+            <option value="__shared__">⭐ Family favourites ({sharedCount})</option>
+          )}
+        </select>
 
         {/* Spacer + Add button */}
         <div className="flex-1" />
