@@ -21,7 +21,7 @@ export function PersonalGreeting({ firstName }: { firstName: string | null }) {
         {greeting}
       </h1>
       <p className="mt-2 text-[var(--muted)]">
-        Your family hub. Pick a destination below.
+        Here&apos;s what&apos;s been happening in your family.
       </p>
     </div>
   );

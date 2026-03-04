@@ -15,7 +15,7 @@ function authorDisplay(raw: { name: string; nickname?: string | null; relationsh
   if (!r) return { name: null, relationship: null };
   const single = one(r);
   if (!single) return { name: null, relationship: null };
-  const name = single.nickname?.trim() || single.name || null;
+  const name = single.name || null;
   return { name, relationship: single.relationship?.trim() ?? null };
 }
 
