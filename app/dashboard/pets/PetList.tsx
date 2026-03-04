@@ -78,13 +78,18 @@ function petAge(birthday: string | null, passedDate: string | null) {
 }
 
 function ownerLabel(owners: PetOwner[]): string {
+  // Use first names only to keep the label compact
   const names = owners
-    .map((o) => o.member?.name)
+    .map((o) => o.member?.name?.split(" ")[0])
     .filter((n): n is string => !!n);
   if (names.length === 0) return "Everyone's pet";
   if (names.length === 1) return `${names[0]}'s pet`;
   if (names.length === 2) return `${names[0]} & ${names[1]}'s pet`;
-  return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}'s pet`;
+  // Cap visible names at 3, show "+N more" for the rest
+  const visible = names.slice(0, 3);
+  const extra = names.length - 3;
+  const base = `${visible.slice(0, -1).join(", ")} & ${visible[visible.length - 1]}`;
+  return extra > 0 ? `${base} +${extra} · pet` : `${base}'s pet`;
 }
 
 export function PetList({ pets }: { pets: Pet[] }) {
@@ -269,14 +274,14 @@ function PetCard({
       )}
 
       {/* Content */}
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col p-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <h3 className="font-display text-lg font-semibold text-[var(--foreground)] truncate">
+            <h3 className="font-display text-base font-semibold text-[var(--foreground)] truncate">
               {photos.length === 0 && <span className="mr-1">{emoji}</span>}
               {pet.name}
             </h3>
-            <p className="text-sm text-[var(--muted)]">
+            <p className="text-xs text-[var(--muted)]">
               {[pet.breed, pet.species !== "other"
                 ? pet.species.charAt(0).toUpperCase() + pet.species.slice(1)
                 : "Other"
@@ -303,21 +308,21 @@ function PetCard({
           </div>
         </div>
 
-        <div className="mt-3 space-y-1 text-xs text-[var(--muted)]">
-          <p>👤 {label}</p>
+        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-[var(--muted)]">
+          <span>👤 {label}</span>
           {pet.birthday && (
-            <p>🎂 Born {formatDate(pet.birthday)}{age ? ` (${age})` : ""}</p>
+            <span>🎂 {formatDate(pet.birthday)}{age ? ` (${age})` : ""}</span>
           )}
           {pet.adopted_date && (
-            <p>🏠 Joined the family {formatDate(pet.adopted_date)}</p>
+            <span>🏠 {formatDate(pet.adopted_date)}</span>
           )}
           {pet.passed_date && (
-            <p>🌈 Passed {formatDate(pet.passed_date)}</p>
+            <span>🌈 {formatDate(pet.passed_date)}</span>
           )}
         </div>
 
         {pet.description && (
-          <p className="mt-3 text-sm text-[var(--foreground)]/80 leading-relaxed line-clamp-4">
+          <p className="mt-2 text-xs text-[var(--foreground)]/75 leading-relaxed line-clamp-3">
             {pet.description}
           </p>
         )}
