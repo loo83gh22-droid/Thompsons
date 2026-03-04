@@ -351,6 +351,10 @@ export default async function DashboardPage() {
           )}
 
           <div className="mt-6">
+            <QuickActions />
+          </div>
+
+          <div className="mt-6">
             <OnboardingChecklist
               memberCount={stats.memberCount}
               photoCount={stats.photoCount}
@@ -404,7 +408,6 @@ export default async function DashboardPage() {
       )}
 
       <div className="mt-12 space-y-8">
-        <QuickActions />
         <div className="grid grid-cols-1 gap-6 min-[768px]:grid-cols-2">
           <FamilyHighlight item={highlight} />
           <InspirationTip />

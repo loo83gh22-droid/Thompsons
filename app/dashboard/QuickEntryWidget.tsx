@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-const SESSION_KEY = "fn-quick-entry-seen";
-const COLLAPSED_KEY = "fn-quick-entry-collapsed";
+const SESSION_KEY = "fn-quick-actions-seen";
+const COLLAPSED_KEY = "fn-quick-actions-collapsed";
 
 const actions = [
   {
@@ -78,13 +78,13 @@ export function QuickEntryWidget() {
         visible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
       }`}
       role="complementary"
-      aria-label="Quick entry shortcuts"
+      aria-label="Quick actions shortcuts"
     >
       <div className="overflow-hidden rounded-2xl ring-1 ring-indigo-500/25 bg-[var(--surface)] shadow-2xl">
         {/* Header — gradient */}
         <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-indigo-600 to-violet-600">
           <span className="text-sm font-semibold text-white tracking-wide">
-            ✨ Quick Entry
+            ✨ Quick Actions
           </span>
           <div className="flex items-center gap-1">
             {/* Collapse / expand */}
@@ -92,7 +92,7 @@ export function QuickEntryWidget() {
               type="button"
               onClick={handleCollapse}
               className="flex h-7 w-7 items-center justify-center rounded-lg text-white/70 hover:bg-white/20 hover:text-white transition-colors"
-              aria-label={collapsed ? "Expand quick entry" : "Collapse quick entry"}
+              aria-label={collapsed ? "Expand quick actions" : "Collapse quick actions"}
             >
               <svg
                 width="14"
@@ -112,7 +112,7 @@ export function QuickEntryWidget() {
               type="button"
               onClick={handleDismiss}
               className="flex h-7 w-7 items-center justify-center rounded-lg text-white/70 hover:bg-white/20 hover:text-white transition-colors"
-              aria-label="Dismiss quick entry"
+              aria-label="Dismiss quick actions"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M2 2l10 10M12 2L2 12" />
