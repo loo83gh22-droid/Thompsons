@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { UpgradeButton } from "./UpgradeButton";
 import { PaymentCancelledBanner } from "./PaymentCancelledBanner";
+import { StorageAddonButton } from "./StorageAddonButton";
 
 export const metadata: Metadata = {
   title: "Pricing — Family Nest",
@@ -241,23 +242,30 @@ export default function PricingPage() {
             </p>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-3">
-              {[
-                { label: "+25 GB", price: "$9", note: "Great for photo-heavy families" },
-                { label: "+75 GB", price: "$24", note: "Add video without worry" },
-                { label: "+150 GB", price: "$49", note: "Best for regular video uploads" },
-              ].map((pack) => (
+              {(
+                [
+                  { plan: "storage_25gb",  label: "+25 GB",  priceUsd: 9,  note: "Great for photo-heavy families" },
+                  { plan: "storage_75gb",  label: "+75 GB",  priceUsd: 24, note: "Add video without worry" },
+                  { plan: "storage_150gb", label: "+150 GB", priceUsd: 49, note: "Best for regular video uploads" },
+                ] as const
+              ).map((pack) => (
                 <div
-                  key={pack.label}
+                  key={pack.plan}
                   className="flex flex-col gap-1 rounded-xl border border-[var(--border)] bg-[var(--secondary)] p-4"
                 >
                   <span className="font-display text-xl font-bold text-[var(--accent)]">
                     {pack.label}
                   </span>
                   <span className="text-sm font-medium text-[var(--foreground)]">
-                    {pack.price}
+                    ${pack.priceUsd}
                     <span className="text-[var(--muted)]">/year</span>
                   </span>
                   <span className="text-xs text-[var(--muted)]">{pack.note}</span>
+                  <StorageAddonButton
+                    plan={pack.plan}
+                    label={pack.label}
+                    priceUsd={pack.priceUsd}
+                  />
                 </div>
               ))}
             </div>
@@ -275,7 +283,7 @@ export default function PricingPage() {
             </div>
 
             <p className="mt-4 text-center text-xs text-[var(--muted)]">
-              Storage packs available after sign-up from your account settings.
+              Available on Full Nest and Legacy plans. Billed annually, cancel any time from your billing portal.
             </p>
           </div>
         </section>

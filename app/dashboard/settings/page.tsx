@@ -8,6 +8,7 @@ import { FamilyNameEditor } from "./FamilyNameEditor";
 import { ManageBilling } from "./ManageBilling";
 import { PaymentSuccessBanner } from "./PaymentSuccessBanner";
 import { EmailNotificationsToggle } from "./EmailNotificationsToggle";
+import { StorageAddons } from "./StorageAddons";
 
 type PlanType = "free" | "annual" | "legacy";
 
@@ -109,6 +110,17 @@ export default async function SettingsPage() {
     .eq("user_id", user.id)
     .eq("family_id", activeFamilyId)
     .single();
+
+  // Fetch active storage add-ons (paid plans only)
+  const { data: activeAddonsRaw } = planType !== "free"
+    ? await supabase
+        .from("storage_addons")
+        .select("id, label, bytes_added, price_per_year_usd")
+        .eq("family_id", activeFamilyId)
+        .eq("status", "active")
+        .order("created_at")
+    : { data: [] };
+  const activeAddons = activeAddonsRaw ?? [];
 
   // Count journal entries for free tier limit display
   let journalCount = 0;
@@ -297,6 +309,9 @@ export default async function SettingsPage() {
           )}
         </div>
       </section>
+
+      {/* Storage Add-ons — paid plans only */}
+      {planType !== "free" && <StorageAddons activeAddons={activeAddons} />}
 
       {/* Export — Legacy plan only */}
       {planType === "legacy" && <ExportNest />}

@@ -1,7 +1,25 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/src/lib/supabase/server";
-import { stripe, STRIPE_PRICES } from "@/src/lib/stripe";
+import {
+  stripe,
+  STRIPE_PRICES,
+  STORAGE_ADDON_CONFIGS,
+  type CheckoutPlan,
+  type StorageAddonPlan,
+} from "@/src/lib/stripe";
 import { checkHttpRateLimit, strictLimiter } from "@/src/lib/httpRateLimit";
+
+const VALID_PLANS: CheckoutPlan[] = [
+  "annual",
+  "legacy",
+  "storage_25gb",
+  "storage_75gb",
+  "storage_150gb",
+];
+
+function isStorageAddon(plan: CheckoutPlan): plan is StorageAddonPlan {
+  return plan.startsWith("storage_");
+}
 
 export async function POST(request: Request) {
   const limited = await checkHttpRateLimit(request, strictLimiter);
@@ -18,26 +36,50 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const plan = body.plan as "annual" | "legacy";
+    const plan = body.plan as CheckoutPlan;
 
-    if (!plan || !["annual", "legacy"].includes(plan)) {
+    if (!plan || !VALID_PLANS.includes(plan)) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
 
     const priceId = STRIPE_PRICES[plan];
     if (!priceId) {
       return NextResponse.json(
-        { error: `Stripe price not configured for ${plan} plan. Set STRIPE_PRICE_${plan.toUpperCase()} env var.` },
+        {
+          error: `Stripe price not configured for ${plan} plan. Set STRIPE_PRICE_${plan.toUpperCase()} env var.`,
+        },
         { status: 500 }
       );
     }
 
-    // Get family ID for metadata
+    // Get the user's active family
     const { data: member } = await supabase
       .from("family_members")
       .select("family_id")
       .eq("user_id", user.id)
       .single();
+
+    const familyId = member?.family_id ?? "";
+
+    // Storage add-ons require an active paid plan
+    if (isStorageAddon(plan)) {
+      const { data: family } = await supabase
+        .from("families")
+        .select("plan_type")
+        .eq("id", familyId)
+        .single();
+
+      if (!family || family.plan_type === "free") {
+        return NextResponse.json(
+          {
+            error:
+              "Storage add-ons require an active Full Nest or Legacy plan.",
+            code: "upgrade_required",
+          },
+          { status: 402 }
+        );
+      }
+    }
 
     const appUrl =
       process.env.NEXT_PUBLIC_APP_URL ||
@@ -45,38 +87,35 @@ export async function POST(request: Request) {
         ? `https://${process.env.VERCEL_URL}`
         : "http://localhost:3000");
 
-    const isRecurring = plan === "annual";
+    const isOneTime = plan === "legacy";
+    const addonConfig = isStorageAddon(plan)
+      ? STORAGE_ADDON_CONFIGS[plan]
+      : null;
+
+    // Shared metadata for all plan types
+    const sharedMeta: Record<string, string> = {
+      user_id: user.id,
+      family_id: familyId,
+      plan,
+    };
+    if (addonConfig) {
+      sharedMeta.bytes_added = String(addonConfig.bytes);
+      sharedMeta.label = addonConfig.label;
+      sharedMeta.price_usd = String(addonConfig.priceUsd);
+    }
 
     const session = await stripe.checkout.sessions.create({
       customer_email: user.email,
-      mode: isRecurring ? "subscription" : "payment",
+      mode: isOneTime ? "payment" : "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
-      metadata: {
-        user_id: user.id,
-        family_id: member?.family_id ?? "",
-        plan,
-      },
+      metadata: sharedMeta,
       success_url: `${appUrl}/dashboard/settings?payment=success&plan=${plan}`,
-      cancel_url: `${appUrl}/pricing?payment=cancelled`,
-      ...(isRecurring
-        ? {
-            subscription_data: {
-              metadata: {
-                user_id: user.id,
-                family_id: member?.family_id ?? "",
-                plan,
-              },
-            },
-          }
-        : {
-            payment_intent_data: {
-              metadata: {
-                user_id: user.id,
-                family_id: member?.family_id ?? "",
-                plan,
-              },
-            },
-          }),
+      cancel_url: isStorageAddon(plan)
+        ? `${appUrl}/dashboard/settings`
+        : `${appUrl}/pricing?payment=cancelled`,
+      ...(isOneTime
+        ? { payment_intent_data: { metadata: sharedMeta } }
+        : { subscription_data: { metadata: sharedMeta } }),
     });
 
     return NextResponse.json({ url: session.url });
