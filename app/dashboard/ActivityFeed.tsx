@@ -50,10 +50,7 @@ function ActivityIcon({ type }: { type: ActivityItem["type"] }) {
 }
 
 function ActivityCard({ item }: { item: ActivityItem }) {
-  const memberLabel =
-    item.memberName && item.memberRelationship
-      ? `${item.memberName} (${item.memberRelationship})`
-      : item.memberName ?? "Someone";
+  const memberLabel = item.memberName ?? "Someone";
 
   return (
     <Link

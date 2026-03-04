@@ -21,6 +21,7 @@ import { OnThisDay, type OnThisDayItem } from "./OnThisDay";
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
+  const { data: { user: currentUser } } = await supabase.auth.getUser();
 
   const todayDate = new Date();
   const nowMs = todayDate.getTime();
@@ -69,17 +70,37 @@ export default async function DashboardPage() {
       supabase.from("time_capsules").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("family_stories").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId).eq("published", true),
       supabase.from("family_events").select("id, title, event_date, category").eq("family_id", activeFamilyId).gte("event_date", todayDate.toISOString().slice(0, 10)).order("event_date", { ascending: true }).limit(3),
-      supabase.from("home_mosaic_photos").select("id, url, created_at, family_members!uploaded_by(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
-      supabase.from("journal_entries").select("id, title, created_at, family_members!author_id(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
-      supabase.from("voice_memos").select("id, title, created_at, duration_seconds, family_members!family_member_id(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
-      supabase.from("family_messages").select("id, title, created_at, family_members!sender_id(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
+      supabase.from("home_mosaic_photos").select("id, url, created_at, family_members!uploaded_by(id, name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
+      supabase.from("journal_entries").select("id, title, created_at, family_members!author_id(id, name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
+      supabase.from("voice_memos").select("id, title, created_at, duration_seconds, family_members!family_member_id(id, name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
+      supabase.from("family_messages").select("id, title, created_at, family_members!sender_id(id, name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       // Birthday detection: fetch members with birth dates
       supabase.from("family_members").select("id, name, birth_date").eq("family_id", activeFamilyId).not("birth_date", "is", null),
       // Streak: get distinct activity dates for last 56 days (8 weeks) across all content types
       supabase.from("journal_entries").select("created_at").eq("family_id", activeFamilyId).gte("created_at", new Date(nowMs - 56 * 86_400_000).toISOString()).order("created_at", { ascending: false }),
       // On This Day: journal entries created on today's month/day in prior years
-      supabase.from("journal_entries").select("id, title, created_at, family_members!author_id(name, nickname)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(200),
+      supabase.from("journal_entries").select("id, title, created_at, family_members!author_id(id, name)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(200),
     ]);
+
+    // Fetch current viewer's member record and personal aliases
+    const { data: currentMemberData } = currentUser
+      ? await supabase.from("family_members").select("id, name, nickname").eq("family_id", activeFamilyId).eq("user_id", currentUser.id).single()
+      : { data: null };
+    const currentMemberId = currentMemberData?.id ?? null;
+
+    const { data: aliasRows } = currentMemberId
+      ? await supabase.from("member_aliases").select("target_member_id, label").eq("viewer_member_id", currentMemberId)
+      : { data: [] };
+    const aliasMap: Record<string, string> = Object.fromEntries(
+      (aliasRows ?? []).map((a: { target_member_id: string; label: string }) => [a.target_member_id, a.label])
+    );
+
+    // Helper: resolve how the current viewer sees a member
+    const resolveName = (memberId: string | null, memberName: string | null): string | null => {
+      if (!memberId || !memberName) return memberName;
+      if (aliasMap[memberId]) return aliasMap[memberId];
+      return memberName.split(" ")[0]; // default to first name
+    };
 
     stats = {
       memberCount: membersRes.count ?? 0,
@@ -95,60 +116,66 @@ export default async function DashboardPage() {
 
     const one = <T,>(x: T | T[] | null): T | null => (x == null ? null : Array.isArray(x) ? x[0] ?? null : x);
 
-    const photoRows = (photosActivity.data ?? []).map((p: { id: string; url: string; created_at: string; family_members: { name: string; nickname: string | null; relationship: string | null } | { name: string; nickname: string | null; relationship: string | null }[] | null }) => {
+    type MemberJoin = { id: string; name: string; relationship: string | null } | { id: string; name: string; relationship: string | null }[] | null;
+
+    const photoRows = (photosActivity.data ?? []).map((p: { id: string; url: string; created_at: string; family_members: MemberJoin }) => {
       const uploader = one(p.family_members);
       return {
         type: "photo" as const,
         id: p.id,
+        memberId: uploader?.id ?? null,
         createdAt: p.created_at,
         title: null,
         thumbnailUrl: p.url,
-        memberName: uploader?.name ?? null,
+        memberName: resolveName(uploader?.id ?? null, uploader?.name ?? null),
         memberRelationship: uploader?.relationship ?? null,
         durationSeconds: null,
         href: "/dashboard/photos",
       };
     });
 
-    const journalRows = (journalActivity.data ?? []).map((j: { id: string; title: string; created_at: string; family_members: { name: string; nickname: string | null; relationship: string | null } | { name: string; nickname: string | null; relationship: string | null }[] | null }) => {
+    const journalRows = (journalActivity.data ?? []).map((j: { id: string; title: string; created_at: string; family_members: MemberJoin }) => {
       const author = one(j.family_members);
       return {
         type: "journal" as const,
         id: j.id,
+        memberId: author?.id ?? null,
         createdAt: j.created_at,
         title: j.title,
         thumbnailUrl: null,
-        memberName: author?.name ?? null,
+        memberName: resolveName(author?.id ?? null, author?.name ?? null),
         memberRelationship: author?.relationship ?? null,
         durationSeconds: null,
         href: `/dashboard/journal/${j.id}/edit`,
       };
     });
 
-    const voiceRows = (voiceActivity.data ?? []).map((v: { id: string; title: string; created_at: string; duration_seconds: number | null; family_members: { name: string; nickname: string | null; relationship: string | null } | { name: string; nickname: string | null; relationship: string | null }[] | null }) => {
+    const voiceRows = (voiceActivity.data ?? []).map((v: { id: string; title: string; created_at: string; duration_seconds: number | null; family_members: MemberJoin }) => {
       const by = one(v.family_members);
       return {
         type: "voice_memo" as const,
         id: v.id,
+        memberId: by?.id ?? null,
         createdAt: v.created_at,
         title: v.title,
         thumbnailUrl: null,
-        memberName: by?.name ?? null,
+        memberName: resolveName(by?.id ?? null, by?.name ?? null),
         memberRelationship: by?.relationship ?? null,
         durationSeconds: v.duration_seconds ?? null,
         href: "/dashboard/voice-memos",
       };
     });
 
-    const messageRows = (messagesActivity.data ?? []).map((m: { id: string; title: string; created_at: string; family_members: { name: string; nickname: string | null; relationship: string | null } | { name: string; nickname: string | null; relationship: string | null }[] | null }) => {
+    const messageRows = (messagesActivity.data ?? []).map((m: { id: string; title: string; created_at: string; family_members: MemberJoin }) => {
       const sender = one(m.family_members);
       return {
         type: "message" as const,
         id: m.id,
+        memberId: sender?.id ?? null,
         createdAt: m.created_at,
         title: m.title,
         thumbnailUrl: null,
-        memberName: sender?.name ?? null,
+        memberName: resolveName(sender?.id ?? null, sender?.name ?? null),
         memberRelationship: sender?.relationship ?? null,
         durationSeconds: null,
         href: "/dashboard/messages",
@@ -186,7 +213,7 @@ export default async function DashboardPage() {
         const turningAge = birthYear > 1900
           ? nextBirthday.getFullYear() - birthYear
           : null;
-        return { id: m.id, name: m.name, turningAge, daysUntil };
+        return { id: m.id, name: resolveName(m.id, m.name) ?? m.name, turningAge, daysUntil };
       })
       .filter((b) => b.daysUntil <= BIRTHDAY_WINDOW_DAYS)
       .sort((a, b) => a.daysUntil - b.daysUntil);
@@ -238,7 +265,7 @@ export default async function DashboardPage() {
     const todayDay = todayLocal.getDate();
     const todayYear = todayLocal.getFullYear();
 
-    const otdJournal = ((allJournalForOTDRes.data ?? []) as { id: string; title: string; created_at: string; family_members: { name: string; nickname: string | null } | { name: string; nickname: string | null }[] | null }[])
+    const otdJournal = ((allJournalForOTDRes.data ?? []) as { id: string; title: string; created_at: string; family_members: { id: string; name: string } | { id: string; name: string }[] | null }[])
       .filter((j) => {
         const d = new Date(j.created_at);
         return d.getMonth() === todayMonth && d.getDate() === todayDay && d.getFullYear() < todayYear;
@@ -251,7 +278,7 @@ export default async function DashboardPage() {
           type: "journal",
           id: j.id,
           title: j.title,
-          memberName: author?.name ?? null,
+          memberName: resolveName(author?.id ?? null, author?.name ?? null),
           createdAt: j.created_at,
           href: `/dashboard/journal/${j.id}/edit`,
           yearsAgo,
@@ -269,18 +296,10 @@ export default async function DashboardPage() {
       })
       .slice(0, 4);
 
-    // Get current user's member ID and name for filtering
-    const { data: currentUser } = await supabase.auth.getUser();
-    const { data: currentMemberData } = await supabase
-      .from("family_members")
-      .select("id, name, nickname")
-      .eq("family_id", activeFamilyId)
-      .eq("user_id", currentUser.user?.id)
-      .single();
-
-    const currentMemberId = currentMemberData?.id;
-    const currentMemberName = currentMemberData ? (currentMemberData.nickname?.trim() || currentMemberData.name) : null;
-    userFirstName = currentMemberName ? currentMemberName.split(" ")[0] : null;
+    // Set greeting first name — uses own nickname for self-greeting
+    userFirstName = currentMemberData
+      ? (currentMemberData.nickname?.trim() || currentMemberData.name)?.split(" ")[0] ?? null
+      : null;
 
     // Query journal entries where user has added perspective
     const { data: userPerspectives } = await supabase
@@ -288,30 +307,30 @@ export default async function DashboardPage() {
       .select("journal_entry_id")
       .eq("author_id", currentMemberId);
     const journalIdsWithUserPerspective = new Set(
-      userPerspectives?.map((p) => p.journal_entry_id) || []
+      userPerspectives?.map((p: { journal_entry_id: string }) => p.journal_entry_id) || []
     );
 
-    // Filter combined activity to user-relevant memories
+    // Filter combined activity to user-relevant memories (compare by member ID)
     const userRelevantActivity = combined.filter((item) => {
-      // Photos: include all (uploader not currently tracked in activity query)
+      // Photos: include all
       if (item.type === "photo") return true;
 
       // Journal: created by user OR user added perspective
       if (item.type === "journal") {
         return (
-          item.memberName === currentMemberName ||
+          item.memberId === currentMemberId ||
           journalIdsWithUserPerspective.has(item.id)
         );
       }
 
       // Voice memo: recorded by user
       if (item.type === "voice_memo") {
-        return item.memberName === currentMemberName;
+        return item.memberId === currentMemberId;
       }
 
       // Message: sent by user
       if (item.type === "message") {
-        return item.memberName === currentMemberName;
+        return item.memberId === currentMemberId;
       }
 
       return false;
