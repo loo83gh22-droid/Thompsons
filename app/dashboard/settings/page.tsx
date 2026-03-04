@@ -9,6 +9,7 @@ import { ManageBilling } from "./ManageBilling";
 import { PaymentSuccessBanner } from "./PaymentSuccessBanner";
 import { EmailNotificationsToggle } from "./EmailNotificationsToggle";
 import { StorageAddons } from "./StorageAddons";
+import { SpotifyPlaylistEditor } from "./SpotifyPlaylistEditor";
 
 type PlanType = "free" | "annual" | "legacy";
 
@@ -91,7 +92,7 @@ export default async function SettingsPage() {
   const { data: family } = await supabase
     .from("families")
     .select(
-      "name, plan_type, plan_started_at, plan_expires_at, storage_used_bytes, storage_limit_bytes"
+      "name, plan_type, plan_started_at, plan_expires_at, storage_used_bytes, storage_limit_bytes, spotify_playlist_id"
     )
     .eq("id", activeFamilyId)
     .single();
@@ -103,13 +104,15 @@ export default async function SettingsPage() {
   const planStarted: string | null = family?.plan_started_at ?? null;
   const planExpires: string | null = family?.plan_expires_at ?? null;
 
-  // Fetch current member for email notification preference
+  // Fetch current member for email notification preference and role
   const { data: currentMember } = await supabase
     .from("family_members")
-    .select("id, email_notifications")
+    .select("id, email_notifications, role")
     .eq("user_id", user.id)
     .eq("family_id", activeFamilyId)
     .single();
+
+  const canEditPlaylist = currentMember?.role === "owner" || currentMember?.role === "adult";
 
   // Fetch active + cancelling storage add-ons (paid plans only)
   const { data: activeAddonsRaw } = planType !== "free"
@@ -186,6 +189,20 @@ export default async function SettingsPage() {
           />
         </div>
       </section>
+
+      {/* Spotify Playlist — owners and adults only */}
+      {canEditPlaylist && (
+        <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+          <div className="border-b border-[var(--border)] px-6 py-4">
+            <h2 className="font-display text-xl font-semibold">Family Music</h2>
+          </div>
+          <div className="px-6 py-5">
+            <SpotifyPlaylistEditor
+              currentPlaylistId={family?.spotify_playlist_id ?? null}
+            />
+          </div>
+        </section>
+      )}
 
       {/* Your Plan card */}
       <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">

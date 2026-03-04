@@ -182,17 +182,16 @@ export default async function DashboardLayout({
 
     // Get family plan type
     let planType: "free" | "annual" | "legacy" = "free";
+    let playlistId: string | null = null;
     if (activeFamilyId) {
       const { data: familyRow } = await supabase
         .from("families")
-        .select("plan_type")
+        .select("plan_type, spotify_playlist_id")
         .eq("id", activeFamilyId)
         .single();
       if (familyRow?.plan_type) planType = familyRow.plan_type as typeof planType;
+      playlistId = familyRow?.spotify_playlist_id?.trim() || null;
     }
-
-    const playlistId =
-      process.env.NEXT_PUBLIC_SPOTIFY_PLAYLIST_ID?.trim() || null;
 
     return (
       <FamilyProvider activeFamilyId={activeFamilyId} families={families} currentUserRole={currentUserRole} currentMemberId={currentMemberId} planType={planType}>
