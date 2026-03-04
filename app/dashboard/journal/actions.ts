@@ -260,6 +260,7 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
         family_id: activeFamilyId,
         url: photoUrl,
         sort_order: mosaicOrder++,
+        taken_at: input.trip_date || null,
       });
     } catch {
       // Skip this photo and continue so one bad file doesn't fail the whole entry
@@ -526,6 +527,13 @@ export async function addJournalPhotos(entryId: string, formData: FormData) {
   const startOrder = existingCount;
   let mosaicOrder = await getNextMosaicSortOrder(supabase, activeFamilyId);
 
+  const { data: entryRow } = await supabase
+    .from("journal_entries")
+    .select("trip_date")
+    .eq("id", entryId)
+    .single();
+  const entryTripDate = entryRow?.trip_date || null;
+
   for (let i = 0; i < photos.length; i++) {
     const file = photos[i];
     if (file.size === 0) continue;
@@ -554,6 +562,7 @@ export async function addJournalPhotos(entryId: string, formData: FormData) {
         family_id: activeFamilyId,
         url: photoUrl,
         sort_order: mosaicOrder++,
+        taken_at: entryTripDate,
       });
     }
   }
@@ -601,10 +610,16 @@ export async function registerJournalPhoto(
   if (photoErr) throw new Error(photoErr.message);
 
   const mosaicOrder = await getNextMosaicSortOrder(supabase, activeFamilyId);
+  const { data: regEntryRow } = await supabase
+    .from("journal_entries")
+    .select("trip_date")
+    .eq("id", entryId)
+    .single();
   await supabase.from("home_mosaic_photos").insert({
     family_id: activeFamilyId,
     url: photoUrl,
     sort_order: mosaicOrder,
+    taken_at: regEntryRow?.trip_date || null,
   });
 
   revalidatePath("/dashboard/journal");
