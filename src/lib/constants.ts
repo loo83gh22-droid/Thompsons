@@ -27,7 +27,7 @@ export const PLAN_LIMITS = {
   },
   annual: {
     journalEntries: null, // unlimited
-    storageLimitBytes: 10737418240, // 10 GB
+    storageLimitBytes: 53687091200, // 50 GB
     videoUploads: true,
     mapEditing: true,
     publicSharing: true,

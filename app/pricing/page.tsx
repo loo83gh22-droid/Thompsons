@@ -44,7 +44,7 @@ const tiers = [
     features: [
       "Everything in Free, unlimited",
       "Unlimited journal entries with video uploads",
-      "10 GB storage (photos + videos)",
+      "50 GB storage (photos + videos)",
       "Voice Memos & Stories",
       "Recipes & Traditions",
       "Time Capsules",

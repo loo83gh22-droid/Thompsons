@@ -109,14 +109,14 @@ const softwareStructuredData = {
     },
     {
       "@type": "Offer",
-      price: "49.00",
+      price: "79.00",
       priceCurrency: "USD",
       name: "The Full Nest",
       description:
-        "Unlimited entries, 10 GB storage, videos & voice memos, all core features",
+        "Unlimited entries, 50 GB storage, videos & voice memos, all core features",
       priceSpecification: {
         "@type": "UnitPriceSpecification",
-        price: "49.00",
+        price: "79.00",
         priceCurrency: "USD",
         billingDuration: "P1Y",
       },

@@ -20,7 +20,7 @@ const plans = [
     description: "For families ready to go all in",
     features: [
       "Unlimited entries",
-      "10 GB storage",
+      "50 GB storage",
       "Videos & voice memos",
       "All core features",
     ],
