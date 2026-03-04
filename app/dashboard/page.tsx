@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/server";
-import { UI_DISPLAY, QUERY_LIMITS } from "@/src/lib/constants";
+import { QUERY_LIMITS } from "@/src/lib/constants";
 
 export const metadata: Metadata = {
   title: "My Family Nest — Dashboard",
@@ -68,7 +68,7 @@ export default async function DashboardPage() {
       supabase.from("voice_memos").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("time_capsules").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("family_stories").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId).eq("published", true),
-      supabase.from("family_events").select("id, title, event_date, category").eq("family_id", activeFamilyId).gte("event_date", todayDate.toISOString().slice(0, 10)).lte("event_date", new Date(nowMs + UI_DISPLAY.upcomingEventWindowMs).toISOString().slice(0, 10)).order("event_date", { ascending: true }).limit(QUERY_LIMITS.dashboardPreview),
+      supabase.from("family_events").select("id, title, event_date, category").eq("family_id", activeFamilyId).gte("event_date", todayDate.toISOString().slice(0, 10)).order("event_date", { ascending: true }).limit(3),
       supabase.from("home_mosaic_photos").select("id, url, created_at, family_members!uploaded_by(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("journal_entries").select("id, title, created_at, family_members!author_id(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("voice_memos").select("id, title, created_at, duration_seconds, family_members!family_member_id(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
