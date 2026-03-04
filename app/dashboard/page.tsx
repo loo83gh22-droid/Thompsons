@@ -69,7 +69,7 @@ export default async function DashboardPage() {
       supabase.from("time_capsules").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("family_stories").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId).eq("published", true),
       supabase.from("family_events").select("id, title, event_date, category").eq("family_id", activeFamilyId).gte("event_date", todayDate.toISOString().slice(0, 10)).lte("event_date", new Date(nowMs + UI_DISPLAY.upcomingEventWindowMs).toISOString().slice(0, 10)).order("event_date", { ascending: true }).limit(QUERY_LIMITS.dashboardPreview),
-      supabase.from("home_mosaic_photos").select("id, url, created_at").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
+      supabase.from("home_mosaic_photos").select("id, url, created_at, family_members!uploaded_by(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("journal_entries").select("id, title, created_at, family_members!author_id(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("voice_memos").select("id, title, created_at, duration_seconds, family_members!family_member_id(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("family_messages").select("id, title, created_at, family_members!sender_id(name, nickname, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
@@ -95,17 +95,20 @@ export default async function DashboardPage() {
 
     const one = <T,>(x: T | T[] | null): T | null => (x == null ? null : Array.isArray(x) ? x[0] ?? null : x);
 
-    const photoRows = (photosActivity.data ?? []).map((p: { id: string; url: string; created_at: string }) => ({
-      type: "photo" as const,
-      id: p.id,
-      createdAt: p.created_at,
-      title: null,
-      thumbnailUrl: p.url,
-      memberName: null,
-      memberRelationship: null,
-      durationSeconds: null,
-      href: "/dashboard/photos",
-    }));
+    const photoRows = (photosActivity.data ?? []).map((p: { id: string; url: string; created_at: string; family_members: { name: string; nickname: string | null; relationship: string | null } | { name: string; nickname: string | null; relationship: string | null }[] | null }) => {
+      const uploader = one(p.family_members);
+      return {
+        type: "photo" as const,
+        id: p.id,
+        createdAt: p.created_at,
+        title: null,
+        thumbnailUrl: p.url,
+        memberName: uploader ? (uploader.nickname?.trim() || uploader.name) : null,
+        memberRelationship: uploader?.relationship ?? null,
+        durationSeconds: null,
+        href: "/dashboard/photos",
+      };
+    });
 
     const journalRows = (journalActivity.data ?? []).map((j: { id: string; title: string; created_at: string; family_members: { name: string; nickname: string | null; relationship: string | null } | { name: string; nickname: string | null; relationship: string | null }[] | null }) => {
       const author = one(j.family_members);
