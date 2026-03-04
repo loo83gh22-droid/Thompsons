@@ -25,15 +25,15 @@ function formatMonthYear(dateStr: string): string {
   });
 }
 
-function groupByMonth(photos: Photo[]): { label: string; photos: Photo[] }[] {
+function groupByMonth(photos: Photo[], newestFirst: boolean): { label: string; photos: Photo[] }[] {
   const groups: Map<string, Photo[]> = new Map();
   for (const photo of photos) {
-    const key = effectiveDate(photo).slice(0, 7); // "YYYY-MM"
+    const key = effectiveDate(photo).slice(0, 7);
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(photo);
   }
   return Array.from(groups.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
+    .sort(([a], [b]) => newestFirst ? b.localeCompare(a) : a.localeCompare(b))
     .map(([key, photos]) => ({ label: formatMonthYear(key), photos }));
 }
 
@@ -42,6 +42,7 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [takenAt, setTakenAt] = useState(new Date().toISOString().slice(0, 10));
+  const [newestFirst, setNewestFirst] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -51,12 +52,7 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
     setError(null);
     try {
       const newPhoto = await addPhoto(file, takenAt || undefined);
-      setPhotos((p) => {
-        const updated = [...p, newPhoto];
-        return updated.sort((a, b) =>
-          effectiveDate(a).localeCompare(effectiveDate(b))
-        );
-      });
+      setPhotos((p) => [...p, newPhoto]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.");
     } finally {
@@ -75,7 +71,7 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
     }
   }
 
-  const groups = groupByMonth(photos);
+  const groups = groupByMonth(photos, newestFirst);
 
   return (
     <div className="mt-8 space-y-6">
@@ -108,6 +104,15 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
         <span className="text-sm text-[var(--muted)]">
           {photos.length} photo{photos.length !== 1 ? "s" : ""}
         </span>
+
+        {photos.length > 0 && (
+          <button
+            onClick={() => setNewestFirst((v) => !v)}
+            className="ml-auto flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--muted)] hover:border-[var(--foreground)] hover:text-[var(--foreground)] transition-colors"
+          >
+            {newestFirst ? "↓ Newest first" : "↑ Oldest first"}
+          </button>
+        )}
       </div>
 
       {error && (
