@@ -62,6 +62,7 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
   }
 
   async function handleRemove(id: string) {
+    if (!confirm("Are you sure you want to delete this photo? This cannot be undone.")) return;
     setError(null);
     try {
       await removePhoto(id);
