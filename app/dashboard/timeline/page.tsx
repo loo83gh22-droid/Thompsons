@@ -10,12 +10,13 @@ function one<T>(x: T | T[] | null): T | null {
   return x == null ? null : Array.isArray(x) ? x[0] ?? null : x;
 }
 
-function authorDisplay(raw: { name: string; nickname?: string | null; relationship?: string | null } | unknown): { name: string | null; relationship: string | null } {
-  const r = raw as { name: string; nickname?: string | null; relationship?: string | null } | { name: string; nickname?: string | null; relationship?: string | null }[] | null;
+function authorDisplay(raw: { id?: string; name: string; relationship?: string | null } | unknown, aliasMap: Record<string, string>): { name: string | null; relationship: string | null } {
+  const r = raw as { id?: string; name: string; relationship?: string | null } | { id?: string; name: string; relationship?: string | null }[] | null;
   if (!r) return { name: null, relationship: null };
   const single = one(r);
   if (!single) return { name: null, relationship: null };
-  const name = single.name || null;
+  const id = single.id ?? null;
+  const name = id && aliasMap[id] ? aliasMap[id] : (single.name.split(" ")[0] || null);
   return { name, relationship: single.relationship?.trim() ?? null };
 }
 
@@ -31,23 +32,34 @@ export default async function TimelinePage({
 
   const items: TimelineItem[] = [];
 
+  const { data: { user: tlUser } } = await supabase.auth.getUser();
+  const { data: tlMember } = tlUser
+    ? await supabase.from("family_members").select("id").eq("family_id", activeFamilyId).eq("user_id", tlUser.id).single()
+    : { data: null };
+  const { data: tlAliasRows } = tlMember?.id
+    ? await supabase.from("member_aliases").select("target_member_id, label").eq("viewer_member_id", tlMember.id)
+    : { data: [] };
+  const aliasMap: Record<string, string> = Object.fromEntries(
+    (tlAliasRows ?? []).map((a: { target_member_id: string; label: string }) => [a.target_member_id, a.label])
+  );
+
   const [journalRes, voiceRes, timeCapsulesRes, photosRes, messagesRes, storiesRes, eventsRes, recipesRes, traditionsRes] = await Promise.all([
     supabase
       .from("journal_entries")
-      .select("id, title, content, trip_date, created_at, author_id, family_members!author_id(name, nickname, relationship)")
+      .select("id, title, content, trip_date, created_at, author_id, family_members!author_id(id, name, relationship)")
       .eq("family_id", activeFamilyId)
       .order("trip_date", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false })
       .limit(QUERY_LIMITS.timelineItemsPerType),
     supabase
       .from("voice_memos")
-      .select("id, title, description, created_at, family_member_id, audio_url, duration_seconds, family_members!family_member_id(name, nickname, relationship)")
+      .select("id, title, description, created_at, family_member_id, audio_url, duration_seconds, family_members!family_member_id(id, name, relationship)")
       .eq("family_id", activeFamilyId)
       .order("created_at", { ascending: false })
       .limit(QUERY_LIMITS.timelineItemsPerType),
     supabase
       .from("time_capsules")
-      .select("id, title, created_at, from_family_member_id, family_members!from_family_member_id(name, nickname, relationship)")
+      .select("id, title, created_at, from_family_member_id, family_members!from_family_member_id(id, name, relationship)")
       .eq("family_id", activeFamilyId)
       .order("created_at", { ascending: false })
       .limit(QUERY_LIMITS.timelineItemsPerType),
@@ -59,13 +71,13 @@ export default async function TimelinePage({
       .limit(QUERY_LIMITS.timelineItemsPerType),
     supabase
       .from("family_messages")
-      .select("id, title, content, created_at, sender_id, family_members!sender_id(name, nickname, relationship)")
+      .select("id, title, content, created_at, sender_id, family_members!sender_id(id, name, relationship)")
       .eq("family_id", activeFamilyId)
       .order("created_at", { ascending: false })
       .limit(QUERY_LIMITS.timelineItemsPerType),
     supabase
       .from("family_stories")
-      .select("id, title, content, created_at, author_family_member_id, family_members!author_family_member_id(name, nickname, relationship)")
+      .select("id, title, content, created_at, author_family_member_id, family_members!author_family_member_id(id, name, relationship)")
       .eq("family_id", activeFamilyId)
       .eq("published", true)
       .order("created_at", { ascending: false })
@@ -80,7 +92,7 @@ export default async function TimelinePage({
       .limit(QUERY_LIMITS.timelineItemsPerType),
     supabase
       .from("recipes")
-      .select("id, title, story, created_at, taught_by, family_members!taught_by(name, nickname, relationship)")
+      .select("id, title, story, created_at, taught_by, family_members!taught_by(id, name, relationship)")
       .eq("family_id", activeFamilyId)
       .order("created_at", { ascending: false })
       .limit(QUERY_LIMITS.timelineItemsPerType),
@@ -94,7 +106,7 @@ export default async function TimelinePage({
 
   for (const row of journalRes.data ?? []) {
     const date = row.trip_date ?? row.created_at?.slice(0, 10) ?? "";
-    const { name, relationship } = authorDisplay(row.family_members);
+    const { name, relationship } = authorDisplay(row.family_members, aliasMap);
     items.push({
       id: row.id,
       date,
@@ -110,7 +122,7 @@ export default async function TimelinePage({
   }
 
   for (const row of voiceRes.data ?? []) {
-    const { name, relationship } = authorDisplay(row.family_members);
+    const { name, relationship } = authorDisplay(row.family_members, aliasMap);
     items.push({
       id: row.id,
       date: row.created_at?.slice(0, 10) ?? "",
@@ -128,7 +140,7 @@ export default async function TimelinePage({
   }
 
   for (const row of timeCapsulesRes.data ?? []) {
-    const { name, relationship } = authorDisplay(row.family_members);
+    const { name, relationship } = authorDisplay(row.family_members, aliasMap);
     items.push({
       id: row.id,
       date: row.created_at?.slice(0, 10) ?? "",
@@ -159,7 +171,7 @@ export default async function TimelinePage({
   }
 
   for (const row of messagesRes.data ?? []) {
-    const { name, relationship } = authorDisplay(row.family_members);
+    const { name, relationship } = authorDisplay(row.family_members, aliasMap);
     items.push({
       id: row.id,
       date: row.created_at?.slice(0, 10) ?? "",
@@ -175,7 +187,7 @@ export default async function TimelinePage({
   }
 
   for (const row of storiesRes.data ?? []) {
-    const { name, relationship } = authorDisplay(row.family_members);
+    const { name, relationship } = authorDisplay(row.family_members, aliasMap);
     items.push({
       id: row.id,
       date: row.created_at?.slice(0, 10) ?? "",
@@ -206,7 +218,7 @@ export default async function TimelinePage({
   }
 
   for (const row of recipesRes.data ?? []) {
-    const { name, relationship } = authorDisplay(row.family_members);
+    const { name, relationship } = authorDisplay(row.family_members, aliasMap);
     items.push({
       id: row.id,
       date: row.created_at?.slice(0, 10) ?? "",
