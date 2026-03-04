@@ -33,6 +33,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [signUpSuccess, setSignUpSuccess] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const supabase = createClient();
 
@@ -254,9 +255,24 @@ function LoginForm() {
                   </div>
                 )}
 
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={agreedToTerms}
+                    onChange={(e) => setAgreedToTerms(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-[var(--border)] accent-[var(--primary)]"
+                  />
+                  <span className="text-xs text-[var(--muted)]">
+                    I agree to the{" "}
+                    <Link href="/terms" className="text-[var(--accent)] hover:underline" target="_blank">Terms of Service</Link>
+                    {" "}and{" "}
+                    <Link href="/privacy" className="text-[var(--accent)] hover:underline" target="_blank">Privacy Policy</Link>
+                  </span>
+                </label>
+
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !agreedToTerms}
                   className="w-full rounded-full bg-[var(--primary)] py-3 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 disabled:opacity-50"
                 >
                   {loading ? "Setting up your account…" : familyName ? `Join ${familyName}'s Nest →` : "Access my Family Nest →"}
@@ -444,9 +460,26 @@ function LoginForm() {
             </div>
           )}
 
+          {isSignUp && (
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-[var(--border)] accent-[var(--primary)]"
+              />
+              <span className="text-xs text-[var(--muted)]">
+                I agree to the{" "}
+                <Link href="/terms" className="text-[var(--accent)] hover:underline" target="_blank">Terms of Service</Link>
+                {" "}and{" "}
+                <Link href="/privacy" className="text-[var(--accent)] hover:underline" target="_blank">Privacy Policy</Link>
+              </span>
+            </label>
+          )}
+
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (isSignUp && !agreedToTerms)}
             className="w-full rounded-full bg-[var(--primary)] py-3 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 disabled:opacity-50"
           >
             {loading ? "..." : isSignUp ? "Sign up our Family" : "Sign in"}

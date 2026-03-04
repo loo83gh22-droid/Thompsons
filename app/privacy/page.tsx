@@ -85,7 +85,7 @@ export default function PrivacyPage() {
               5. Data Retention &amp; Deletion
             </h2>
             <p className="mt-2">
-              Your content is stored for as long as your account is active. You can delete individual entries at any time. Legacy plan members can export all data at any time using the data export feature.
+              Your content is stored for as long as your account is active. You can delete individual entries at any time. Annual and Legacy plan members can export all data at any time using the data export feature in account settings.
             </p>
             <p className="mt-2">
               To delete your account and all associated data, contact us at the email below. We will process deletion requests within 30 days.
@@ -101,7 +101,7 @@ export default function PrivacyPage() {
               <li>Access the personal data we hold about you</li>
               <li>Request correction of inaccurate data</li>
               <li>Request deletion of your data</li>
-              <li>Export your data (available for Legacy plan members)</li>
+              <li>Export your data (available for Annual and Legacy plan members)</li>
               <li>Opt out of non-essential emails via notification settings</li>
             </ul>
           </section>
@@ -111,7 +111,7 @@ export default function PrivacyPage() {
               7. Cookies
             </h2>
             <p className="mt-2">
-              We use essential cookies for authentication and session management only. We do not use advertising or tracking cookies. Vercel Analytics collects anonymized page view data without cookies.
+              We use essential cookies for authentication and session management only. We do not use advertising or tracking cookies. Vercel Analytics collects anonymized page view data without cookies. Because we only use strictly necessary cookies, no cookie consent banner is required.
             </p>
           </section>
 

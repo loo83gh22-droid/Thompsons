@@ -90,6 +90,9 @@ export default function TermsPage() {
             <p className="mt-2">
               If you cancel your Annual plan, you retain access to paid features until the end of your current billing period. After that, your account will be downgraded to the Free plan. Your data is not deleted; however, content exceeding Free plan limits will become read-only until you upgrade again or delete content.
             </p>
+            <p className="mt-2">
+              <strong>Storage add-ons:</strong> Storage add-ons are billed annually. If you cancel a storage add-on, you retain the extra storage until the end of the paid billing period. After cancellation takes effect, a <strong>30-day grace period</strong> begins. During this period, you can reduce your storage usage to fall within your base plan limit. If your usage still exceeds your limit after the grace period, Family Nest will automatically remove your largest media files (photos and videos) to bring your account within its limit. Journal entries, stories, and recipes are never automatically deleted.
+            </p>
           </section>
 
           <section>
@@ -109,7 +112,7 @@ export default function TermsPage() {
               8. Data Ownership &amp; Export
             </h2>
             <p className="mt-2">
-              Your data is yours. Legacy plan members can export all family data at any time. If we ever discontinue the service, we will provide at least 12 months&apos; notice and a data export tool for all users, regardless of plan.
+              Your data is yours. Annual and Legacy plan members can export all family data at any time using the data export feature in account settings. If we ever discontinue the service, we will provide at least 12 months&apos; notice and a data export tool for all users, regardless of plan.
             </p>
           </section>
 
@@ -151,7 +154,16 @@ export default function TermsPage() {
 
           <section>
             <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
-              13. Contact
+              13. Governing Law
+            </h2>
+            <p className="mt-2">
+              These Terms are governed by and construed in accordance with the laws of the Province of British Columbia and the federal laws of Canada applicable therein. Any disputes arising under these Terms shall be subject to the exclusive jurisdiction of the courts of British Columbia, Canada.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
+              14. Contact
             </h2>
             <p className="mt-2">
               For questions about these Terms, email{" "}
