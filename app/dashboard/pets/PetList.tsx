@@ -18,6 +18,18 @@ const SPECIES_EMOJI: Record<string, string> = {
   other:   "🐾",
 };
 
+// Accent colour per species — used for the top border bar and no-photo background
+const SPECIES_COLORS: Record<string, string> = {
+  dog:     "#f59e0b",
+  cat:     "#8b5cf6",
+  bird:    "#38bdf8",
+  fish:    "#14b8a6",
+  rabbit:  "#ec4899",
+  hamster: "#f97316",
+  reptile: "#22c55e",
+  other:   "#64748b",
+};
+
 type PetPhoto = { id: string; url: string; sort_order: number };
 type PetOwner = { member_id: string; member: { name: string } | null };
 
@@ -208,38 +220,50 @@ function PetCard({
   inMemory?: boolean;
 }) {
   const emoji  = SPECIES_EMOJI[pet.species] ?? "🐾";
+  const color  = SPECIES_COLORS[pet.species] ?? "#64748b";
   const photos = [...pet.pet_photos].sort((a, b) => a.sort_order - b.sort_order);
   const age    = petAge(pet.birthday, pet.passed_date);
   const label  = ownerLabel(pet.pet_owners);
 
   return (
     <article
-      className={`rounded-xl border bg-[var(--surface)] overflow-hidden flex flex-col ${
-        inMemory ? "border-[var(--border)] opacity-80" : "border-[var(--border)]"
+      className={`rounded-xl border bg-[var(--surface)] overflow-hidden flex flex-col shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${
+        inMemory ? "border-[var(--border)] grayscale-[30%] opacity-85" : "border-[var(--border)]"
       }`}
     >
       {/* Photo */}
       {photos.length > 0 ? (
-        <div
-          className="relative h-72 w-full cursor-pointer overflow-hidden bg-[var(--background)]"
-          onClick={() => onPhotoClick(photos[0].url)}
-        >
-          <Image
-            src={photos[0].url}
-            alt={pet.name}
-            fill
-            className="object-cover transition-transform hover:scale-105"
-            unoptimized
-          />
-          {photos.length > 1 && (
-            <span className="absolute bottom-2 right-2 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">
-              +{photos.length - 1} more
-            </span>
-          )}
-          {inMemory && <div className="absolute inset-0 bg-black/20" />}
-        </div>
+        <>
+          {/* Species colour accent bar above photo */}
+          <div style={{ backgroundColor: color }} className="h-[3px] w-full flex-shrink-0" />
+          <div
+            className="relative h-72 w-full cursor-pointer overflow-hidden bg-[var(--background)]"
+            onClick={() => onPhotoClick(photos[0].url)}
+          >
+            <Image
+              src={photos[0].url}
+              alt={pet.name}
+              fill
+              className="object-cover transition-transform hover:scale-105"
+              unoptimized
+            />
+            {photos.length > 1 && (
+              <span className="absolute bottom-2 right-2 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">
+                +{photos.length - 1} more
+              </span>
+            )}
+            {inMemory && <div className="absolute inset-0 bg-black/20" />}
+          </div>
+        </>
       ) : (
-        <div className="flex h-32 items-center justify-center bg-[var(--surface-hover)] text-5xl">
+        /* No-photo placeholder — tinted gradient in the species colour */
+        <div
+          className="flex h-40 items-center justify-center text-6xl"
+          style={{
+            background: `linear-gradient(135deg, ${color}22 0%, ${color}10 100%)`,
+            borderBottom: `1px solid ${color}30`,
+          }}
+        >
           {emoji}
         </div>
       )}
