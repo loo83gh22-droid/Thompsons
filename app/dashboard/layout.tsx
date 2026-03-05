@@ -164,8 +164,10 @@ export default async function DashboardLayout({
     const { activeFamilyId, families } = await getActiveFamilyId(supabase);
     const familyName = await getActiveFamilyName(supabase);
 
-    // Get current user's role in the active family
-    let currentUserRole: "owner" | "adult" | "teen" | "child" = "adult";
+    // Get current user's role in the active family.
+    // Default to "teen" (least-privilege for a logged-in user) so that any
+    // lookup failure denies access rather than silently granting adult rights.
+    let currentUserRole: "owner" | "adult" | "teen" | "child" = "teen";
     let currentMemberId: string | null = null;
     if (activeFamilyId) {
       const { data: myMember } = await supabase
@@ -175,7 +177,7 @@ export default async function DashboardLayout({
         .eq("family_id", activeFamilyId)
         .single();
       if (myMember) {
-        currentUserRole = (myMember.role as typeof currentUserRole) || "adult";
+        currentUserRole = (myMember.role as typeof currentUserRole) || "teen";
         currentMemberId = myMember.id;
       }
     }

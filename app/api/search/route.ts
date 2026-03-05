@@ -34,6 +34,7 @@ export async function GET(request: Request) {
   if (!activeFamilyId) return NextResponse.json({ results: [] });
 
   const pattern = `%${q}%`;
+  const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD — used to exclude sealed capsules
   const results: SearchResult[] = [];
 
   // Search in parallel across all content types
@@ -87,11 +88,13 @@ export async function GET(request: Request) {
       .or(`title.ilike.${pattern},description.ilike.${pattern}`)
       .order("created_at", { ascending: false })
       .limit(SEARCH_LIMITS.resultsPerType),
-    // Time capsules
+    // Time capsules — only return unlocked ones (unlock_date ≤ today).
+    // Sealed capsules must not appear in search results regardless of role.
     supabase
       .from("time_capsules")
       .select("id, title, content, unlock_date, created_at")
       .eq("family_id", activeFamilyId)
+      .lte("unlock_date", todayStr)
       .or(`title.ilike.${pattern},content.ilike.${pattern}`)
       .order("created_at", { ascending: false })
       .limit(SEARCH_LIMITS.resultsPerType),

@@ -2,7 +2,7 @@
 
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { getActiveFamilyId } from "@/src/lib/family";
+import { requireRole } from "@/src/lib/requireRole";
 
 export type AddAchievementData = {
   familyMemberId?: string;
@@ -20,8 +20,9 @@ export async function addAchievement(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) throw new Error("No active family");
+  // Only owners and adults can create achievements — prevents teens from
+  // adding achievements on behalf of other family members.
+  const { familyId: activeFamilyId } = await requireRole(supabase, user.id, ["owner", "adult"]);
 
   let attachmentUrl: string | null = null;
   if (file && file.size > 0) {
@@ -74,8 +75,8 @@ export async function removeAchievement(id: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) throw new Error("No active family");
+  // Only owners and adults can delete achievements.
+  const { familyId: activeFamilyId } = await requireRole(supabase, user.id, ["owner", "adult"]);
 
   const { error } = await supabase.from("achievements").delete().eq("id", id).eq("family_id", activeFamilyId);
   if (error) throw error;

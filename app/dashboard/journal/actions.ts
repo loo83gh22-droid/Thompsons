@@ -72,17 +72,24 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
 
     const input = validation.data;
 
-    // Get the logged-in user's family_member record for created_by
+    // Get the logged-in user's family_member record for created_by + role check
     const { data: myMember } = await supabase
       .from("family_members")
-      .select("id")
+      .select("id, role")
       .eq("user_id", user.id)
       .eq("family_id", activeFamilyId)
       .single();
 
     // author_override lets a user attribute the entry to another family member
-    // (e.g., writing on behalf of a grandparent who doesn't have an account)
+    // (e.g., writing on behalf of a grandparent who doesn't have an account).
+    // Only owners and adults may use this — prevent teens from impersonating others.
     const authorOverrideId = getFormString(formData, "author_override") || null;
+    if (authorOverrideId) {
+      const role = myMember?.role;
+      if (role !== "owner" && role !== "adult") {
+        return { success: false, error: "Only owners and adults can attribute entries to other family members." };
+      }
+    }
     const authorId = authorOverrideId || myMember?.id || input.member_ids[0];
 
     const { data: entry, error: entryError } = await supabase

@@ -3,7 +3,7 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import { NextResponse } from "next/server";
 import { getFamilyPlan, canManageNestKeepers } from "@/src/lib/plans";
 
-// GET: Fetch nest keepers for the current family
+// GET: Fetch nest keepers for the current family (owner-only)
 export async function GET() {
   try {
     const supabase = await createClient();
@@ -21,6 +21,17 @@ export async function GET() {
     const plan = await getFamilyPlan(supabase, activeFamilyId);
     if (!canManageNestKeepers(plan.planType))
       return NextResponse.json({ error: "Nest Keepers requires the Legacy plan." }, { status: 403 });
+
+    // Only the family owner may view the succession plan — it is sensitive
+    // information that should not be visible to other family members.
+    const { data: callerMember } = await supabase
+      .from("family_members")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("family_id", activeFamilyId)
+      .single();
+    if (callerMember?.role !== "owner")
+      return NextResponse.json({ error: "Only the family owner can view Nest Keepers." }, { status: 403 });
 
     const { data, error } = await supabase
       .from("nest_keepers")

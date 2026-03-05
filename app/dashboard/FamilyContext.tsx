@@ -18,7 +18,7 @@ type FamilyContextValue = {
 const FamilyContext = createContext<FamilyContextValue>({
   activeFamilyId: null,
   families: [],
-  currentUserRole: "adult",
+  currentUserRole: "teen", // least-privilege default for a logged-in user
   currentMemberId: null,
   planType: "free",
 });
@@ -26,7 +26,7 @@ const FamilyContext = createContext<FamilyContextValue>({
 export function FamilyProvider({
   activeFamilyId,
   families,
-  currentUserRole = "adult",
+  currentUserRole = "teen", // least-privilege default for a logged-in user
   currentMemberId = null,
   planType = "free",
   children,

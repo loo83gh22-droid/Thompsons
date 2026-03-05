@@ -3,6 +3,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
+import { requireRole } from "@/src/lib/requireRole";
 
 /** Add a relationship. For child: memberId is child, relatedId is parent. For spouse: both directions are inserted. */
 export async function addRelationship(
@@ -12,9 +13,13 @@ export async function addRelationship(
 ): Promise<{ error?: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return { error: "No family" };
+  if (!user) return { error: "Not authenticated" };
+  let activeFamilyId: string;
+  try {
+    ({ familyId: activeFamilyId } = await requireRole(supabase, user.id, ["owner", "adult"]));
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Insufficient permissions" };
+  }
 
   const { data: memberRow } = await supabase
     .from("family_members")
@@ -58,9 +63,13 @@ export async function removeRelationship(
 ): Promise<{ error?: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return { error: "No family" };
+  if (!user) return { error: "Not authenticated" };
+  let activeFamilyId: string;
+  try {
+    ({ familyId: activeFamilyId } = await requireRole(supabase, user.id, ["owner", "adult"]));
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Insufficient permissions" };
+  }
 
   await supabase
     .from("family_relationships")
@@ -88,8 +97,14 @@ export async function setMemberRelationships(
   opts: { spouseId?: string | null; parentIds?: string[]; childIds?: string[] }
 ): Promise<{ error?: string }> {
   const supabase = await createClient();
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return { error: "No family" };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+  let activeFamilyId: string;
+  try {
+    ({ familyId: activeFamilyId } = await requireRole(supabase, user.id, ["owner", "adult"]));
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Insufficient permissions" };
+  }
 
   const { data: memberRow } = await supabase
     .from("family_members")
