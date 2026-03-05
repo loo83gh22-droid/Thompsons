@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 type GeocodeSuggestion = {
   display_name: string;
@@ -107,7 +108,7 @@ export default function LocationInput({
 
   const handleCurrentLocation = () => {
     if (!("geolocation" in navigator)) {
-      alert("Geolocation is not supported by your browser");
+      toast.error("Geolocation is not supported by your browser");
       return;
     }
     setUseCurrentLocation(true);
@@ -132,7 +133,7 @@ export default function LocationInput({
         setUseCurrentLocation(false);
       },
       () => {
-        alert("Unable to get your location. Please enter manually.");
+        toast.error("Unable to get your location. Please enter manually.");
         setUseCurrentLocation(false);
       }
     );

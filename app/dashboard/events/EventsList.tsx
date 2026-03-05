@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { deleteEvent, updateEvent } from "./actions";
 import { getCategoryLabel, getCategoryColor } from "./constants";
 import { EVENT_CATEGORIES } from "./constants";
+import { toast } from "sonner";
 
 type Invitee = { family_member_id: string; family_members: { id: string; name: string } | { id: string; name: string }[] | null };
 
@@ -87,12 +88,20 @@ export function EventsList({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this event?")) return;
-    setDeletingId(id);
-    await deleteEvent(id);
-    setDeletingId(null);
-    router.refresh();
+  function handleDelete(id: string) {
+    toast("Delete this event?", {
+      action: {
+        label: "Delete",
+        onClick: async () => {
+          setDeletingId(id);
+          await deleteEvent(id);
+          setDeletingId(null);
+          router.refresh();
+        },
+      },
+      cancel: { label: "Cancel" },
+      duration: 8000,
+    });
   }
 
   const groups = groupEvents(events);

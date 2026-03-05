@@ -10,6 +10,7 @@ import {
   type FeedbackCategory,
   type FeedbackStatus,
 } from "./actions";
+import { toast } from "sonner";
 
 type FeedbackItem = {
   id: string;
@@ -77,12 +78,20 @@ export function FeedbackList({ items, isOwner }: { items: FeedbackItem[]; isOwne
     router.refresh();
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this feedback?")) return;
-    setLoadingAction(id);
-    await deleteFeedback(id);
-    setLoadingAction(null);
-    router.refresh();
+  function handleDelete(id: string) {
+    toast("Delete this feedback?", {
+      action: {
+        label: "Delete",
+        onClick: async () => {
+          setLoadingAction(id);
+          await deleteFeedback(id);
+          setLoadingAction(null);
+          router.refresh();
+        },
+      },
+      cancel: { label: "Cancel" },
+      duration: 8000,
+    });
   }
 
   if (items.length === 0) {

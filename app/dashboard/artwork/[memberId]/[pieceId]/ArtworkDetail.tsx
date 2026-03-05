@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { deleteArtworkPiece, deleteArtworkPhoto, getOrCreateArtworkShareToken, sendArtworkShareEmail, revokeArtworkShare } from "../../actions";
 import { ArtworkForm } from "../ArtworkForm";
 
@@ -61,18 +62,26 @@ function ArtworkShareButton({
   // Revoke state
   const [revoking, setRevoking] = useState(false);
 
-  async function handleRevoke() {
-    if (!confirm("Stop sharing this artwork? Anyone with the link will no longer be able to view it.")) return;
-    setRevoking(true);
-    try {
-      await revokeArtworkShare(pieceId);
-      setShareUrl(null);
-      setOpen(false);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to stop sharing.");
-    } finally {
-      setRevoking(false);
-    }
+  function handleRevoke() {
+    toast("Stop sharing this artwork? Anyone with the link will no longer be able to view it.", {
+      action: {
+        label: "Stop sharing",
+        onClick: async () => {
+          setRevoking(true);
+          try {
+            await revokeArtworkShare(pieceId);
+            setShareUrl(null);
+            setOpen(false);
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Failed to stop sharing.");
+          } finally {
+            setRevoking(false);
+          }
+        },
+      },
+      cancel: { label: "Cancel" },
+      duration: 8000,
+    });
   }
 
   // Email sub-form state
@@ -90,7 +99,7 @@ function ArtworkShareButton({
       setShareUrl(`${window.location.origin}/share/artwork/${shareToken}`);
       setOpen(true);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to create share link");
+      toast.error(err instanceof Error ? err.message : "Failed to create share link");
     } finally {
       setLoading(false);
     }

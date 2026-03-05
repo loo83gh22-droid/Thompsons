@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
 export function ManageBilling() {
   const [loading, setLoading] = useState(false);
@@ -13,10 +14,10 @@ export function ManageBilling() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert(data.error || "Unable to open billing portal.");
+        toast.error(data.error || "Unable to open billing portal.");
       }
     } catch {
-      alert("Failed to open billing portal. Please try again.");
+      toast.error("Failed to open billing portal. Please try again.");
     } finally {
       setLoading(false);
     }

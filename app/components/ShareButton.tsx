@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
 /* ─── Social icon SVGs ─── */
 
@@ -73,7 +74,7 @@ export function ShareButton({
       setCurrentToken(result.shareToken);
       if (result.isPublic) setShowPanel(true);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to update sharing");
+      toast.error(err instanceof Error ? err.message : "Failed to update sharing");
     } finally {
       setLoading(false);
     }

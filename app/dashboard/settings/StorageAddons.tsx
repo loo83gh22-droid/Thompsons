@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { HardDrive, Plus, CheckCircle } from "lucide-react";
+import { toast } from "sonner";
 
 type ActiveAddon = {
   id: string;
@@ -63,12 +64,12 @@ function AddonPurchaseButton({ tier }: { tier: AddonTier }) {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || "Something went wrong. Please try again.");
+        toast.error(data.error || "Something went wrong. Please try again.");
         return;
       }
       if (data.url) window.location.href = data.url;
     } catch {
-      alert("Failed to start checkout. Please try again.");
+      toast.error("Failed to start checkout. Please try again.");
     } finally {
       setLoading(false);
     }

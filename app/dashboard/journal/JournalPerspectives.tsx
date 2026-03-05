@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
 import { addJournalPerspective, removeJournalPerspective } from "./actions";
+import { toast } from "sonner";
 
 type Member = { id: string; name: string };
 type Perspective = {
@@ -86,16 +87,24 @@ export function JournalPerspectives({
     }
   }
 
-  async function handleRemove(id: string) {
-    if (!confirm("Remove this perspective?")) return;
-    setDeletingId(id);
-    try {
-      await removeJournalPerspective(id, entryId);
-      setPerspectives((p) => p.filter((x) => x.id !== id));
-      router.refresh();
-    } finally {
-      setDeletingId(null);
-    }
+  function handleRemove(id: string) {
+    toast("Remove this perspective?", {
+      action: {
+        label: "Remove",
+        onClick: async () => {
+          setDeletingId(id);
+          try {
+            await removeJournalPerspective(id, entryId);
+            setPerspectives((p) => p.filter((x) => x.id !== id));
+            router.refresh();
+          } finally {
+            setDeletingId(null);
+          }
+        },
+      },
+      cancel: { label: "Cancel" },
+      duration: 8000,
+    });
   }
 
   if (loadingPerspectives) return null;

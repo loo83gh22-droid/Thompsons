@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { deleteStory } from "./actions";
 import { PrintButton } from "./PrintButton";
+import { toast } from "sonner";
 
 export function StoryDetailActions({
   storyId,
@@ -26,27 +27,35 @@ export function StoryDetailActions({
         });
       } else {
         await navigator.clipboard.writeText(url);
-        alert("Link copied to clipboard");
+        toast.success("Link copied to clipboard");
       }
     } catch (err) {
       if (navigator.clipboard) {
         await navigator.clipboard.writeText(url);
-        alert("Link copied to clipboard");
+        toast.success("Link copied to clipboard");
       }
     }
   }
 
-  async function handleDelete() {
-    if (!confirm("Delete this story? This cannot be undone.")) return;
-    setDeleting(true);
-    const result = await deleteStory(storyId);
-    setDeleting(false);
-    if (result.error) {
-      alert(result.error);
-      return;
-    }
-    router.push("/dashboard/stories");
-    router.refresh();
+  function handleDelete() {
+    toast("Delete this story? This cannot be undone.", {
+      action: {
+        label: "Delete",
+        onClick: async () => {
+          setDeleting(true);
+          const result = await deleteStory(storyId);
+          setDeleting(false);
+          if (result.error) {
+            toast.error(result.error);
+            return;
+          }
+          router.push("/dashboard/stories");
+          router.refresh();
+        },
+      },
+      cancel: { label: "Cancel" },
+      duration: 8000,
+    });
   }
 
   return (

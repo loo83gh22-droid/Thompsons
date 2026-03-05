@@ -6,6 +6,7 @@ import Image from "next/image";
 import { removePet } from "./actions";
 import { EmptyStateGuide } from "@/app/components/EmptyStateGuide";
 import { EditPetForm, type EditablePet } from "./EditPetForm";
+import { toast } from "sonner";
 
 const SPECIES_EMOJI: Record<string, string> = {
   dog:     "🐕",
@@ -98,15 +99,23 @@ export function PetList({ pets }: { pets: Pet[] }) {
   const [expandedPhoto, setExpandedPhoto] = useState<string | null>(null);
   const [editingPet,    setEditingPet]    = useState<Pet | null>(null);
 
-  async function handleDelete(id: string, name: string) {
-    if (!confirm(`Remove ${name} from your pet profiles?`)) return;
-    setDeletingId(id);
-    try {
-      await removePet(id);
-      router.refresh();
-    } finally {
-      setDeletingId(null);
-    }
+  function handleDelete(id: string, name: string) {
+    toast(`Remove ${name} from your pet profiles?`, {
+      action: {
+        label: "Remove",
+        onClick: async () => {
+          setDeletingId(id);
+          try {
+            await removePet(id);
+            router.refresh();
+          } finally {
+            setDeletingId(null);
+          }
+        },
+      },
+      cancel: { label: "Cancel" },
+      duration: 8000,
+    });
   }
 
   if (!pets.length) {

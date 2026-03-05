@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { removeTradition, updateTradition } from "./actions";
 import { EmptyStateGuide } from "@/app/components/EmptyStateGuide";
+import { toast } from "sonner";
 
 type Tradition = {
   id: string;
@@ -23,15 +24,23 @@ export function TraditionList({ traditions }: { traditions: Tradition[] }) {
   const [editDescription, setEditDescription] = useState("");
   const [saving, setSaving] = useState(false);
 
-  async function handleDelete(id: string) {
-    if (!confirm("Remove this tradition?")) return;
-    setDeletingId(id);
-    try {
-      await removeTradition(id);
-      router.refresh();
-    } finally {
-      setDeletingId(null);
-    }
+  function handleDelete(id: string) {
+    toast("Remove this tradition?", {
+      action: {
+        label: "Remove",
+        onClick: async () => {
+          setDeletingId(id);
+          try {
+            await removeTradition(id);
+            router.refresh();
+          } finally {
+            setDeletingId(null);
+          }
+        },
+      },
+      cancel: { label: "Cancel" },
+      duration: 8000,
+    });
   }
 
   function startEdit(t: Tradition) {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useMemo, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { deleteFamilyMember, changeMemberRole, generateKidLink, revokeKidLink, resendInviteEmail, updateFamilyMember } from "../members/actions";
 import { formatDateOnly } from "@/src/lib/date";
 import { setMemberRelationships } from "./actions";
@@ -195,7 +196,7 @@ export function MemberDetailsPanel({
     });
     setSavingRels(false);
     if (err.error) {
-      alert(err.error);
+      toast.error(err.error);
       return;
     }
     router.refresh();
@@ -208,18 +209,26 @@ export function MemberDetailsPanel({
     setChildIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
-  async function handleRemove() {
-    if (!confirm(`Remove ${member.name} from the family? This cannot be undone.`)) return;
-    setRemoving(true);
-    try {
-      await deleteFamilyMember(member.id);
-      onClose();
-      router.refresh();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : "Failed to remove member");
-    } finally {
-      setRemoving(false);
-    }
+  function handleRemove() {
+    toast(`Remove ${member.name} from the family? This cannot be undone.`, {
+      action: {
+        label: "Remove",
+        onClick: async () => {
+          setRemoving(true);
+          try {
+            await deleteFamilyMember(member.id);
+            onClose();
+            router.refresh();
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Failed to remove member");
+          } finally {
+            setRemoving(false);
+          }
+        },
+      },
+      cancel: { label: "Cancel" },
+      duration: 8000,
+    });
   }
 
   const act = activity ?? { journalCount: 0, voiceCount: 0, photoCount: 0 };
@@ -455,7 +464,7 @@ export function MemberDetailsPanel({
                   await changeMemberRole(member.id, newRole);
                   router.refresh();
                 } catch (err) {
-                  alert(err instanceof Error ? err.message : "Failed to change role");
+                  toast.error(err instanceof Error ? err.message : "Failed to change role");
                 } finally {
                   setChangingRole(false);
                 }
@@ -505,7 +514,7 @@ export function MemberDetailsPanel({
                         await revokeKidLink(member.id);
                         router.refresh();
                       } catch (err) {
-                        alert(err instanceof Error ? err.message : "Failed to revoke link");
+                        toast.error(err instanceof Error ? err.message : "Failed to revoke link");
                       } finally {
                         setKidLinkLoading(false);
                       }
@@ -527,7 +536,7 @@ export function MemberDetailsPanel({
                     await generateKidLink(member.id);
                     router.refresh();
                   } catch (err) {
-                    alert(err instanceof Error ? err.message : "Failed to generate link");
+                    toast.error(err instanceof Error ? err.message : "Failed to generate link");
                   } finally {
                     setKidLinkLoading(false);
                   }

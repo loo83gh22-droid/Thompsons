@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 type NestKeeper = {
   id: string;
@@ -120,20 +121,26 @@ export default function NestKeepersPage() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Remove this Nest Keeper?")) return;
-    setError(null);
-    try {
-      const res = await fetch(`/api/nest-keepers?id=${id}`, {
-        method: "DELETE",
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to remove");
-      setSuccess("Nest Keeper removed");
-      await fetchKeepers();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to remove");
-    }
+  function handleDelete(id: string) {
+    toast("Remove this Nest Keeper?", {
+      action: {
+        label: "Remove",
+        onClick: async () => {
+          setError(null);
+          try {
+            const res = await fetch(`/api/nest-keepers?id=${id}`, { method: "DELETE" });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to remove");
+            setSuccess("Nest Keeper removed");
+            await fetchKeepers();
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to remove");
+          }
+        },
+      },
+      cancel: { label: "Cancel" },
+      duration: 8000,
+    });
   }
 
   async function handleMovePriority(id: string, direction: "up" | "down") {

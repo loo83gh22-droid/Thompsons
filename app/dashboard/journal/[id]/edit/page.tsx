@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { toast } from "sonner";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/client";
@@ -212,16 +213,24 @@ export default function EditJournalPage() {
     }
   }
 
-  async function handleDeletePhoto(photoId: string) {
-    if (!confirm("Remove this photo?")) return;
-    setError(null);
-    try {
-      await deleteJournalPhoto(photoId, entryId);
-      setPhotos((p) => p.filter((x) => x.id !== photoId));
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to remove photo.");
-    }
+  function handleDeletePhoto(photoId: string) {
+    toast("Remove this photo?", {
+      action: {
+        label: "Remove",
+        onClick: async () => {
+          setError(null);
+          try {
+            await deleteJournalPhoto(photoId, entryId);
+            setPhotos((p) => p.filter((x) => x.id !== photoId));
+            router.refresh();
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to remove photo.");
+          }
+        },
+      },
+      cancel: { label: "Cancel" },
+      duration: 8000,
+    });
   }
 
   async function handleAddVideos(e: React.FormEvent<HTMLFormElement>) {
@@ -282,16 +291,24 @@ export default function EditJournalPage() {
     }
   }
 
-  async function handleDeleteVideo(videoId: string) {
-    if (!confirm("Remove this video?")) return;
-    setError(null);
-    try {
-      await deleteJournalVideo(videoId, entryId);
-      setVideos((v) => v.filter((x) => x.id !== videoId));
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to remove video.");
-    }
+  function handleDeleteVideo(videoId: string) {
+    toast("Remove this video?", {
+      action: {
+        label: "Remove",
+        onClick: async () => {
+          setError(null);
+          try {
+            await deleteJournalVideo(videoId, entryId);
+            setVideos((v) => v.filter((x) => x.id !== videoId));
+            router.refresh();
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to remove video.");
+          }
+        },
+      },
+      cancel: { label: "Cancel" },
+      duration: 8000,
+    });
   }
 
   if (loading || !entry) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
 export function StorageAddonButton({
   plan,
@@ -34,13 +35,13 @@ export function StorageAddonButton({
           window.location.href = `/pricing#pricing-grid`;
           return;
         }
-        alert(data.error || "Something went wrong. Please try again.");
+        toast.error(data.error || "Something went wrong. Please try again.");
         return;
       }
 
       if (data.url) window.location.href = data.url;
     } catch {
-      alert("Failed to start checkout. Please try again.");
+      toast.error("Failed to start checkout. Please try again.");
     } finally {
       setLoading(false);
     }

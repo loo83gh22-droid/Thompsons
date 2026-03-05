@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteJournalEntry } from "./actions";
+import { toast } from "sonner";
 
 interface DeleteJournalEntryButtonProps {
   entryId: string;
@@ -18,23 +19,30 @@ export function DeleteJournalEntryButton({
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
 
-  async function handleDelete() {
+  function handleDelete() {
     const message =
       variant === "edit"
         ? "Are you sure you want to delete this entry? Photos and perspectives will be removed. This cannot be undone."
         : `Delete "${title}"? This cannot be undone.`;
-    if (!confirm(message)) return;
-
-    setDeleting(true);
-    try {
-      await deleteJournalEntry(entryId);
-      router.push("/dashboard/journal");
-      router.refresh();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete.");
-    } finally {
-      setDeleting(false);
-    }
+    toast(message, {
+      action: {
+        label: "Delete",
+        onClick: async () => {
+          setDeleting(true);
+          try {
+            await deleteJournalEntry(entryId);
+            router.push("/dashboard/journal");
+            router.refresh();
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Failed to delete.");
+          } finally {
+            setDeleting(false);
+          }
+        },
+      },
+      cancel: { label: "Cancel" },
+      duration: 8000,
+    });
   }
 
   if (variant === "edit") {

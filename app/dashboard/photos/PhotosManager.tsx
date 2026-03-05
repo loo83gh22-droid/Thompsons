@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { addPhoto, removePhoto } from "./actions";
 import { EmptyState } from "../components/EmptyState";
+import { toast } from "sonner";
 
 type Photo = {
   id: string;
@@ -61,15 +62,23 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
     }
   }
 
-  async function handleRemove(id: string) {
-    if (!confirm("Are you sure you want to delete this photo? This cannot be undone.")) return;
-    setError(null);
-    try {
-      await removePhoto(id);
-      setPhotos((p) => p.filter((x) => x.id !== id));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to remove.");
-    }
+  function handleRemove(id: string) {
+    toast("Delete this photo? This cannot be undone.", {
+      action: {
+        label: "Delete",
+        onClick: async () => {
+          setError(null);
+          try {
+            await removePhoto(id);
+            setPhotos((p) => p.filter((x) => x.id !== id));
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to remove.");
+          }
+        },
+      },
+      cancel: { label: "Cancel" },
+      duration: 8000,
+    });
   }
 
   const groups = groupByMonth(photos, newestFirst);

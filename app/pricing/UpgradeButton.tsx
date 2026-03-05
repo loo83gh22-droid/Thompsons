@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
 export function UpgradeButton({
   plan,
@@ -30,7 +31,7 @@ export function UpgradeButton({
           window.location.href = `/login?mode=signup&plan=${plan}`;
           return;
         }
-        alert(data.error || "Something went wrong. Please try again.");
+        toast.error(data.error || "Something went wrong. Please try again.");
         return;
       }
 
@@ -38,7 +39,7 @@ export function UpgradeButton({
         window.location.href = data.url;
       }
     } catch {
-      alert("Failed to start checkout. Please try again.");
+      toast.error("Failed to start checkout. Please try again.");
     } finally {
       setLoading(false);
     }

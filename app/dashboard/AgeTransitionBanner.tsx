@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { checkAgeTransitions, changeMemberRole } from "./members/actions";
 import { ROLE_LABELS, type MemberRole } from "@/src/lib/roles";
+import { toast } from "sonner";
 
 type Transition = {
   id: string;
@@ -43,7 +44,7 @@ export function AgeTransitionBanner() {
       setTransitions((prev) => prev.filter((x) => x.id !== t.id));
       router.refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to update role");
+      toast.error(err instanceof Error ? err.message : "Failed to update role");
     } finally {
       setUpdating(null);
     }

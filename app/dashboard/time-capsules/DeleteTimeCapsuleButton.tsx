@@ -2,15 +2,24 @@
 
 import { useRouter } from "next/navigation";
 import { deleteTimeCapsule } from "./actions";
+import { toast } from "sonner";
 
 export function DeleteTimeCapsuleButton({ id, className = "" }: { id: string; className?: string }) {
   const router = useRouter();
 
-  async function handleDelete() {
-    if (!confirm("Delete this letter? This cannot be undone.")) return;
-    await deleteTimeCapsule(id);
-    router.push("/dashboard/time-capsules");
-    router.refresh();
+  function handleDelete() {
+    toast("Delete this letter? This cannot be undone.", {
+      action: {
+        label: "Delete",
+        onClick: async () => {
+          await deleteTimeCapsule(id);
+          router.push("/dashboard/time-capsules");
+          router.refresh();
+        },
+      },
+      cancel: { label: "Cancel" },
+      duration: 8000,
+    });
   }
 
   return (

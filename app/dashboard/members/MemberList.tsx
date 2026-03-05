@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/client";
 import { updateFamilyMember, deleteFamilyMember } from "./actions";
 import { RELATIONSHIP_OPTIONS } from "./constants";
+import { toast } from "sonner";
 
 const ACCEPT_IMAGES = "image/jpeg,image/png,image/webp,image/gif";
 
@@ -161,7 +162,7 @@ function MemberRow({
     try {
       await deleteFamilyMember(member.id);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Something went wrong.");
+      toast.error(err instanceof Error ? err.message : "Something went wrong.");
       setLoading(false);
       setConfirmRemove(false);
     }
@@ -414,7 +415,7 @@ function MemberCard({ member, index, alias }: { member: Member; index: number; a
     try {
       await deleteFamilyMember(member.id);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Something went wrong.");
+      toast.error(err instanceof Error ? err.message : "Something went wrong.");
       setLoading(false);
       setConfirmRemove(false);
     }
