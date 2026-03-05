@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { deleteAward, deleteAwardFile } from "../../actions";
 import { AwardForm } from "../new/AwardForm";
 
@@ -69,13 +70,21 @@ export function AwardDetail({
   const currentMemberIds = (award.award_members ?? []).map((m) => m.family_member_id);
 
   async function handleDeleteFile(fileId: string) {
-    await deleteAwardFile(fileId, award.id, memberId);
+    const result = await deleteAwardFile(fileId, award.id, memberId);
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
     setFiles((prev) => prev.filter((f) => f.id !== fileId));
   }
 
   function handleDelete() {
     startTransition(async () => {
-      await deleteAward(award.id);
+      const result = await deleteAward(award.id);
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
       router.push(`/dashboard/awards/${memberId}`);
       router.refresh();
     });

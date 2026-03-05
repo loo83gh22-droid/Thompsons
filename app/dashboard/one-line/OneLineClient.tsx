@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useRef, useEffect } from "react";
+import { toast } from "sonner";
 import { saveOneLineEntry, deleteOneLineEntry } from "./actions";
 
 type Entry = { id: string; entry_date: string; content: string };
@@ -90,7 +91,11 @@ export function OneLineClient({
   function handleDelete() {
     if (!todayEntryId) return;
     startTransition(async () => {
-      await deleteOneLineEntry(todayEntryId);
+      const result = await deleteOneLineEntry(todayEntryId);
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
       setContent("");
       setSavedContent("");
       setTodayEntryId(null);

@@ -68,15 +68,14 @@ function ArtworkShareButton({
         label: "Stop sharing",
         onClick: async () => {
           setRevoking(true);
-          try {
-            await revokeArtworkShare(pieceId);
-            setShareUrl(null);
-            setOpen(false);
-          } catch (err) {
-            toast.error(err instanceof Error ? err.message : "Failed to stop sharing.");
-          } finally {
-            setRevoking(false);
+          const result = await revokeArtworkShare(pieceId);
+          setRevoking(false);
+          if (result.error) {
+            toast.error(result.error);
+            return;
           }
+          setShareUrl(null);
+          setOpen(false);
         },
       },
       cancel: { label: "Cancel", onClick: () => {} },
@@ -94,15 +93,14 @@ function ArtworkShareButton({
   async function handleOpen() {
     if (shareUrl) { setOpen(true); return; }
     setLoading(true);
-    try {
-      const { shareToken } = await getOrCreateArtworkShareToken(pieceId);
-      setShareUrl(`${window.location.origin}/share/artwork/${shareToken}`);
-      setOpen(true);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create share link");
-    } finally {
-      setLoading(false);
+    const result = await getOrCreateArtworkShareToken(pieceId);
+    setLoading(false);
+    if (result.error) {
+      toast.error(result.error);
+      return;
     }
+    setShareUrl(`${window.location.origin}/share/artwork/${result.shareToken}`);
+    setOpen(true);
   }
 
   function handleCopy() {
@@ -298,13 +296,21 @@ export function ArtworkDetail({
   );
 
   async function handleDeletePhoto(photoId: string) {
-    await deleteArtworkPhoto(photoId, piece.id, memberId);
+    const result = await deleteArtworkPhoto(photoId, piece.id, memberId);
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
     setPhotos((prev) => prev.filter((p) => p.id !== photoId));
   }
 
   function handleDelete() {
     startTransition(async () => {
-      await deleteArtworkPiece(piece.id, memberId);
+      const result = await deleteArtworkPiece(piece.id, memberId);
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
       router.push(`/dashboard/artwork/${memberId}`);
       router.refresh();
     });

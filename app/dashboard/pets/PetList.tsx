@@ -105,12 +105,13 @@ export function PetList({ pets }: { pets: Pet[] }) {
         label: "Remove",
         onClick: async () => {
           setDeletingId(id);
-          try {
-            await removePet(id);
-            router.refresh();
-          } finally {
-            setDeletingId(null);
+          const result = await removePet(id);
+          setDeletingId(null);
+          if (result.error) {
+            toast.error(result.error);
+            return;
           }
+          router.refresh();
         },
       },
       cancel: { label: "Cancel", onClick: () => {} },

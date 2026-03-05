@@ -168,122 +168,140 @@ export async function updateArtworkPiece(
   }
 }
 
-export async function deleteArtworkPiece(pieceId: string, memberId: string): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+export async function deleteArtworkPiece(pieceId: string, memberId: string): Promise<{ error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Not authenticated" };
 
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) throw new Error("No active family");
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { error: "No active family" };
 
-  const { error } = await supabase
-    .from("artwork_pieces")
-    .delete()
-    .eq("id", pieceId)
-    .eq("family_id", activeFamilyId);
-
-  if (error) throw error;
-
-  revalidatePath("/dashboard/artwork");
-  revalidatePath(`/dashboard/artwork/${memberId}`);
-}
-
-export async function getOrCreateArtworkShareToken(pieceId: string): Promise<{ shareToken: string }> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (activeFamilyId) {
-    const plan = await getFamilyPlan(supabase, activeFamilyId);
-    if (!canSharePublicly(plan.planType)) {
-      throw new Error("Public sharing requires the Full Nest or Legacy plan.");
-    }
-  }
-
-  const { data: piece } = await supabase
-    .from("artwork_pieces")
-    .select("id, share_token, family_member_id")
-    .eq("id", pieceId)
-    .single();
-
-  if (!piece) throw new Error("Artwork not found");
-
-  if (piece.share_token) return { shareToken: piece.share_token };
-
-  const token = crypto.randomBytes(16).toString("hex");
-  await supabase
-    .from("artwork_pieces")
-    .update({ is_public: true, share_token: token })
-    .eq("id", pieceId);
-
-  return { shareToken: token };
-}
-
-export async function revokeArtworkShare(pieceId: string): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) throw new Error("No active family");
-
-  const { data: piece } = await supabase
-    .from("artwork_pieces")
-    .select("family_member_id")
-    .eq("id", pieceId)
-    .eq("family_id", activeFamilyId)
-    .single();
-
-  if (!piece) throw new Error("Artwork not found");
-
-  await supabase
-    .from("artwork_pieces")
-    .update({ is_public: false, share_token: null })
-    .eq("id", pieceId)
-    .eq("family_id", activeFamilyId);
-
-  revalidatePath(`/dashboard/artwork/${piece.family_member_id}/${pieceId}`);
-}
-
-export async function toggleArtworkShare(pieceId: string): Promise<{ shareToken: string | null; isPublic: boolean }> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (activeFamilyId) {
-    const plan = await getFamilyPlan(supabase, activeFamilyId);
-    if (!canSharePublicly(plan.planType)) {
-      throw new Error("Public sharing requires the Full Nest or Legacy plan.");
-    }
-  }
-
-  const { data: piece } = await supabase
-    .from("artwork_pieces")
-    .select("id, is_public, share_token, family_member_id")
-    .eq("id", pieceId)
-    .single();
-
-  if (!piece) throw new Error("Artwork not found");
-
-  if (piece.is_public) {
-    await supabase
+    const { error } = await supabase
       .from("artwork_pieces")
-      .update({ is_public: false, share_token: null })
-      .eq("id", pieceId);
+      .delete()
+      .eq("id", pieceId)
+      .eq("family_id", activeFamilyId);
 
-    revalidatePath(`/dashboard/artwork/${piece.family_member_id}/${pieceId}`);
-    return { shareToken: null, isPublic: false };
-  } else {
+    if (error) return { error: error.message };
+
+    revalidatePath("/dashboard/artwork");
+    revalidatePath(`/dashboard/artwork/${memberId}`);
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}
+
+export async function getOrCreateArtworkShareToken(pieceId: string): Promise<{ shareToken?: string; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Not authenticated" };
+
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (activeFamilyId) {
+      const plan = await getFamilyPlan(supabase, activeFamilyId);
+      if (!canSharePublicly(plan.planType)) {
+        return { error: "Public sharing requires the Full Nest or Legacy plan." };
+      }
+    }
+
+    const { data: piece } = await supabase
+      .from("artwork_pieces")
+      .select("id, share_token, family_member_id")
+      .eq("id", pieceId)
+      .single();
+
+    if (!piece) return { error: "Artwork not found" };
+
+    if (piece.share_token) return { shareToken: piece.share_token };
+
     const token = crypto.randomBytes(16).toString("hex");
     await supabase
       .from("artwork_pieces")
       .update({ is_public: true, share_token: token })
       .eq("id", pieceId);
 
+    return { shareToken: token };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}
+
+export async function revokeArtworkShare(pieceId: string): Promise<{ error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Not authenticated" };
+
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { error: "No active family" };
+
+    const { data: piece } = await supabase
+      .from("artwork_pieces")
+      .select("family_member_id")
+      .eq("id", pieceId)
+      .eq("family_id", activeFamilyId)
+      .single();
+
+    if (!piece) return { error: "Artwork not found" };
+
+    await supabase
+      .from("artwork_pieces")
+      .update({ is_public: false, share_token: null })
+      .eq("id", pieceId)
+      .eq("family_id", activeFamilyId);
+
     revalidatePath(`/dashboard/artwork/${piece.family_member_id}/${pieceId}`);
-    return { shareToken: token, isPublic: true };
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}
+
+export async function toggleArtworkShare(pieceId: string): Promise<{ shareToken?: string | null; isPublic?: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Not authenticated" };
+
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (activeFamilyId) {
+      const plan = await getFamilyPlan(supabase, activeFamilyId);
+      if (!canSharePublicly(plan.planType)) {
+        return { error: "Public sharing requires the Full Nest or Legacy plan." };
+      }
+    }
+
+    const { data: piece } = await supabase
+      .from("artwork_pieces")
+      .select("id, is_public, share_token, family_member_id")
+      .eq("id", pieceId)
+      .single();
+
+    if (!piece) return { error: "Artwork not found" };
+
+    if (piece.is_public) {
+      await supabase
+        .from("artwork_pieces")
+        .update({ is_public: false, share_token: null })
+        .eq("id", pieceId);
+
+      revalidatePath(`/dashboard/artwork/${piece.family_member_id}/${pieceId}`);
+      return { shareToken: null, isPublic: false };
+    } else {
+      const token = crypto.randomBytes(16).toString("hex");
+      await supabase
+        .from("artwork_pieces")
+        .update({ is_public: true, share_token: token })
+        .eq("id", pieceId);
+
+      revalidatePath(`/dashboard/artwork/${piece.family_member_id}/${pieceId}`);
+      return { shareToken: token, isPublic: true };
+    }
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong" };
   }
 }
 
@@ -303,13 +321,11 @@ export async function sendArtworkShareEmail(
   const { activeFamilyId } = await getActiveFamilyId(supabase);
 
   // Get or create the share token (ensures piece is public)
-  let shareToken: string;
-  try {
-    const result = await getOrCreateArtworkShareToken(pieceId);
-    shareToken = result.shareToken;
-  } catch (err) {
-    return { success: false, error: err instanceof Error ? err.message : "Could not create share link." };
+  const shareTokenResult = await getOrCreateArtworkShareToken(pieceId);
+  if (shareTokenResult.error || !shareTokenResult.shareToken) {
+    return { success: false, error: shareTokenResult.error ?? "Could not create share link." };
   }
+  const shareToken: string = shareTokenResult.shareToken;
 
   // Fetch piece + first photo in one query
   const { data: piece } = await supabase
@@ -497,21 +513,26 @@ export async function sendArtworkShareEmail(
   }
 }
 
-export async function deleteArtworkPhoto(photoId: string, pieceId: string, memberId: string): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+export async function deleteArtworkPhoto(photoId: string, pieceId: string, memberId: string): Promise<{ error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Not authenticated" };
 
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) throw new Error("No active family");
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { error: "No active family" };
 
-  const { error } = await supabase
-    .from("artwork_photos")
-    .delete()
-    .eq("id", photoId)
-    .eq("family_id", activeFamilyId);
+    const { error } = await supabase
+      .from("artwork_photos")
+      .delete()
+      .eq("id", photoId)
+      .eq("family_id", activeFamilyId);
 
-  if (error) throw error;
+    if (error) return { error: error.message };
 
-  revalidatePath(`/dashboard/artwork/${memberId}/${pieceId}`);
+    revalidatePath(`/dashboard/artwork/${memberId}/${pieceId}`);
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong" };
+  }
 }

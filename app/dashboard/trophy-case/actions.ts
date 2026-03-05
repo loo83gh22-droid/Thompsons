@@ -178,51 +178,56 @@ export async function updateTrophy(
   }
 }
 
-export async function deleteTrophy(trophyId: string): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+export async function deleteTrophy(trophyId: string): Promise<{ error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Not authenticated" };
 
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) throw new Error("No active family");
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { error: "No active family" };
 
-  const { data: files } = await supabase
-    .from("award_files")
-    .select("url")
-    .eq("award_id", trophyId)
-    .eq("family_id", activeFamilyId);
+    const { data: files } = await supabase
+      .from("award_files")
+      .select("url")
+      .eq("award_id", trophyId)
+      .eq("family_id", activeFamilyId);
 
-  if (files && files.length > 0) {
-    // Handle files from both the award-files bucket and legacy achievements bucket
-    const awardFilePaths = files
-      .filter((f) => f.url.startsWith("/api/storage/award-files/"))
-      .map((f) => f.url.replace("/api/storage/award-files/", ""));
-    const achievementPaths = files
-      .filter((f) => f.url.startsWith("/api/storage/achievements/"))
-      .map((f) => f.url.replace("/api/storage/achievements/", ""));
+    if (files && files.length > 0) {
+      // Handle files from both the award-files bucket and legacy achievements bucket
+      const awardFilePaths = files
+        .filter((f) => f.url.startsWith("/api/storage/award-files/"))
+        .map((f) => f.url.replace("/api/storage/award-files/", ""));
+      const achievementPaths = files
+        .filter((f) => f.url.startsWith("/api/storage/achievements/"))
+        .map((f) => f.url.replace("/api/storage/achievements/", ""));
 
-    if (awardFilePaths.length > 0) {
-      await supabase.storage.from("award-files").remove(awardFilePaths);
+      if (awardFilePaths.length > 0) {
+        await supabase.storage.from("award-files").remove(awardFilePaths);
+      }
+      if (achievementPaths.length > 0) {
+        await supabase.storage.from("achievements").remove(achievementPaths);
+      }
     }
-    if (achievementPaths.length > 0) {
-      await supabase.storage.from("achievements").remove(achievementPaths);
+
+    const { data: members } = await supabase
+      .from("award_members")
+      .select("family_member_id")
+      .eq("award_id", trophyId);
+
+    await supabase
+      .from("awards")
+      .delete()
+      .eq("id", trophyId)
+      .eq("family_id", activeFamilyId);
+
+    revalidatePath("/dashboard/trophy-case");
+    for (const m of members ?? []) {
+      revalidatePath(`/dashboard/trophy-case/${m.family_member_id}`);
     }
-  }
-
-  const { data: members } = await supabase
-    .from("award_members")
-    .select("family_member_id")
-    .eq("award_id", trophyId);
-
-  await supabase
-    .from("awards")
-    .delete()
-    .eq("id", trophyId)
-    .eq("family_id", activeFamilyId);
-
-  revalidatePath("/dashboard/trophy-case");
-  for (const m of members ?? []) {
-    revalidatePath(`/dashboard/trophy-case/${m.family_member_id}`);
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong" };
   }
 }
 
@@ -230,36 +235,41 @@ export async function deleteTrophyFile(
   fileId: string,
   trophyId: string,
   memberId: string
-): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+): Promise<{ error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Not authenticated" };
 
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) throw new Error("No active family");
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { error: "No active family" };
 
-  const { data: file } = await supabase
-    .from("award_files")
-    .select("url")
-    .eq("id", fileId)
-    .eq("family_id", activeFamilyId)
-    .single();
+    const { data: file } = await supabase
+      .from("award_files")
+      .select("url")
+      .eq("id", fileId)
+      .eq("family_id", activeFamilyId)
+      .single();
 
-  if (file) {
-    if (file.url.startsWith("/api/storage/award-files/")) {
-      const path = file.url.replace("/api/storage/award-files/", "");
-      await supabase.storage.from("award-files").remove([path]);
-    } else if (file.url.startsWith("/api/storage/achievements/")) {
-      const path = file.url.replace("/api/storage/achievements/", "");
-      await supabase.storage.from("achievements").remove([path]);
+    if (file) {
+      if (file.url.startsWith("/api/storage/award-files/")) {
+        const path = file.url.replace("/api/storage/award-files/", "");
+        await supabase.storage.from("award-files").remove([path]);
+      } else if (file.url.startsWith("/api/storage/achievements/")) {
+        const path = file.url.replace("/api/storage/achievements/", "");
+        await supabase.storage.from("achievements").remove([path]);
+      }
     }
+
+    await supabase
+      .from("award_files")
+      .delete()
+      .eq("id", fileId)
+      .eq("family_id", activeFamilyId);
+
+    revalidatePath(`/dashboard/trophy-case/${memberId}/${trophyId}`);
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong" };
   }
-
-  await supabase
-    .from("award_files")
-    .delete()
-    .eq("id", fileId)
-    .eq("family_id", activeFamilyId);
-
-  revalidatePath(`/dashboard/trophy-case/${memberId}/${trophyId}`);
 }

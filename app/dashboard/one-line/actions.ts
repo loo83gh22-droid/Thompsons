@@ -45,18 +45,23 @@ export async function saveOneLineEntry(
   }
 }
 
-export async function deleteOneLineEntry(entryId: string): Promise<void> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+export async function deleteOneLineEntry(entryId: string): Promise<{ error?: string }> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { error: "Not authenticated" };
 
-  await supabase
-    .from("one_line_entries")
-    .delete()
-    .eq("id", entryId)
-    .eq("user_id", user.id);
+    await supabase
+      .from("one_line_entries")
+      .delete()
+      .eq("id", entryId)
+      .eq("user_id", user.id);
 
-  revalidatePath("/dashboard/one-line");
+    revalidatePath("/dashboard/one-line");
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong" };
+  }
 }

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { deleteTrophy, deleteTrophyFile } from "../../actions";
 import { TrophyForm } from "../new/TrophyForm";
 
@@ -71,13 +72,21 @@ export function TrophyDetail({
   const currentMemberIds = (trophy.award_members ?? []).map((m) => m.family_member_id);
 
   async function handleDeleteFile(fileId: string) {
-    await deleteTrophyFile(fileId, trophy.id, memberId);
+    const result = await deleteTrophyFile(fileId, trophy.id, memberId);
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
     setFiles((prev) => prev.filter((f) => f.id !== fileId));
   }
 
   function handleDelete() {
     startTransition(async () => {
-      await deleteTrophy(trophy.id);
+      const result = await deleteTrophy(trophy.id);
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
       router.push(`/dashboard/trophy-case/${memberId}`);
       router.refresh();
     });

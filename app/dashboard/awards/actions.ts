@@ -183,41 +183,46 @@ export async function updateAward(
   }
 }
 
-export async function deleteAward(awardId: string): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+export async function deleteAward(awardId: string): Promise<{ error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Not authenticated" };
 
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) throw new Error("No active family");
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { error: "No active family" };
 
-  // Get files to clean up storage
-  const { data: files } = await supabase
-    .from("award_files")
-    .select("url")
-    .eq("award_id", awardId)
-    .eq("family_id", activeFamilyId);
+    // Get files to clean up storage
+    const { data: files } = await supabase
+      .from("award_files")
+      .select("url")
+      .eq("award_id", awardId)
+      .eq("family_id", activeFamilyId);
 
-  if (files && files.length > 0) {
-    const paths = files.map((f) => f.url.replace("/api/storage/award-files/", ""));
-    await supabase.storage.from("award-files").remove(paths);
-  }
+    if (files && files.length > 0) {
+      const paths = files.map((f) => f.url.replace("/api/storage/award-files/", ""));
+      await supabase.storage.from("award-files").remove(paths);
+    }
 
-  // Get member IDs for revalidation before deleting
-  const { data: members } = await supabase
-    .from("award_members")
-    .select("family_member_id")
-    .eq("award_id", awardId);
+    // Get member IDs for revalidation before deleting
+    const { data: members } = await supabase
+      .from("award_members")
+      .select("family_member_id")
+      .eq("award_id", awardId);
 
-  await supabase
-    .from("awards")
-    .delete()
-    .eq("id", awardId)
-    .eq("family_id", activeFamilyId);
+    await supabase
+      .from("awards")
+      .delete()
+      .eq("id", awardId)
+      .eq("family_id", activeFamilyId);
 
-  revalidatePath("/dashboard/awards");
-  for (const m of members ?? []) {
-    revalidatePath(`/dashboard/awards/${m.family_member_id}`);
+    revalidatePath("/dashboard/awards");
+    for (const m of members ?? []) {
+      revalidatePath(`/dashboard/awards/${m.family_member_id}`);
+    }
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong" };
   }
 }
 
@@ -225,31 +230,36 @@ export async function deleteAwardFile(
   fileId: string,
   awardId: string,
   memberId: string
-): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+): Promise<{ error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Not authenticated" };
 
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) throw new Error("No active family");
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { error: "No active family" };
 
-  const { data: file } = await supabase
-    .from("award_files")
-    .select("url")
-    .eq("id", fileId)
-    .eq("family_id", activeFamilyId)
-    .single();
+    const { data: file } = await supabase
+      .from("award_files")
+      .select("url")
+      .eq("id", fileId)
+      .eq("family_id", activeFamilyId)
+      .single();
 
-  if (file) {
-    const path = file.url.replace("/api/storage/award-files/", "");
-    await supabase.storage.from("award-files").remove([path]);
+    if (file) {
+      const path = file.url.replace("/api/storage/award-files/", "");
+      await supabase.storage.from("award-files").remove([path]);
+    }
+
+    await supabase
+      .from("award_files")
+      .delete()
+      .eq("id", fileId)
+      .eq("family_id", activeFamilyId);
+
+    revalidatePath(`/dashboard/awards/${memberId}/${awardId}`);
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong" };
   }
-
-  await supabase
-    .from("award_files")
-    .delete()
-    .eq("id", fileId)
-    .eq("family_id", activeFamilyId);
-
-  revalidatePath(`/dashboard/awards/${memberId}/${awardId}`);
 }

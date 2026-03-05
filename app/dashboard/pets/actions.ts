@@ -208,38 +208,48 @@ export async function updatePet(petId: string, formData: FormData): Promise<PetR
   }
 }
 
-export async function removePet(id: string): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+export async function removePet(id: string): Promise<{ error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Not authenticated" };
 
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) throw new Error("No active family");
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { error: "No active family" };
 
-  const { error } = await supabase
-    .from("family_pets")
-    .delete()
-    .eq("id", id)
-    .eq("family_id", activeFamilyId);
+    const { error } = await supabase
+      .from("family_pets")
+      .delete()
+      .eq("id", id)
+      .eq("family_id", activeFamilyId);
 
-  if (error) throw error;
-  revalidatePath("/dashboard/pets");
+    if (error) return { error: error.message };
+    revalidatePath("/dashboard/pets");
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong" };
+  }
 }
 
-export async function removePetPhoto(photoId: string): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+export async function removePetPhoto(photoId: string): Promise<{ error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Not authenticated" };
 
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) throw new Error("No active family");
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { error: "No active family" };
 
-  const { error } = await supabase
-    .from("pet_photos")
-    .delete()
-    .eq("id", photoId)
-    .eq("family_id", activeFamilyId);
+    const { error } = await supabase
+      .from("pet_photos")
+      .delete()
+      .eq("id", photoId)
+      .eq("family_id", activeFamilyId);
 
-  if (error) throw error;
-  revalidatePath("/dashboard/pets");
+    if (error) return { error: error.message };
+    revalidatePath("/dashboard/pets");
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong" };
+  }
 }
