@@ -16,7 +16,6 @@ type JournalPhoto = {
   journal_entries: { title: string; trip_date: string | null } | null;
 };
 
-export const metadata = { title: "Edit Recipe | Family Nest" };
 
 export default function EditRecipePage() {
   const router = useRouter();

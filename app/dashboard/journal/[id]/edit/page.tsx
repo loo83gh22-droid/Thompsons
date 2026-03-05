@@ -23,7 +23,6 @@ type FamilyMember = { id: string; name: string; color: string | null; symbol: st
 type JournalPhoto = { id: string; url: string; caption: string | null };
 type JournalVideo = { id: string; url: string; duration_seconds: number | null; file_size_bytes: number };
 
-export const metadata = { title: "Edit Journal Entry | Family Nest" };
 
 export default function EditJournalPage() {
   const router = useRouter();

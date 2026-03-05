@@ -36,7 +36,6 @@ const LEGEND = [
   { color: "#6b7280", label: "Other", symbol: "circle" },
 ];
 
-export const metadata = { title: "Family Map | Family Nest" };
 
 export default function MapPage() {
   const { activeFamilyId } = useFamily();
