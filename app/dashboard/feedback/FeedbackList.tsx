@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { OwnerOnly } from "@/app/components/RoleGate";
 import { useFamily } from "@/app/dashboard/FamilyContext";
 import {
   updateFeedbackStatus,
@@ -52,8 +53,10 @@ const CATEGORY_LABELS: Record<FeedbackCategory, string> = {
   other: "Other",
 };
 
-export function FeedbackList({ items, isOwner }: { items: FeedbackItem[]; isOwner: boolean }) {
+export function FeedbackList({ items }: { items: FeedbackItem[] }) {
   const router = useRouter();
+  const { currentUserRole } = useFamily();
+  const isOwner = currentUserRole === "owner";
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | FeedbackStatus>("all");
   const [responseText, setResponseText] = useState<Record<string, string>>({});
@@ -107,7 +110,7 @@ export function FeedbackList({ items, isOwner }: { items: FeedbackItem[]; isOwne
   return (
     <div className="space-y-4">
       {/* Filter tabs (owner view) */}
-      {isOwner && (
+      <OwnerOnly>
         <div className="flex flex-wrap gap-2">
           {(["all", "new", "read", "in_progress", "resolved", "wont_fix"] as const).map((f) => (
             <button
@@ -129,7 +132,7 @@ export function FeedbackList({ items, isOwner }: { items: FeedbackItem[]; isOwne
             </button>
           ))}
         </div>
-      )}
+      </OwnerOnly>
 
       {/* Feedback cards */}
       {filtered.map((item) => {
@@ -223,7 +226,18 @@ export function FeedbackList({ items, isOwner }: { items: FeedbackItem[]; isOwne
                 )}
 
                 {/* Owner actions */}
-                {isOwner && (
+                <OwnerOnly
+                  fallback={
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(item.id)}
+                      disabled={isLoading}
+                      className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-500/10"
+                    >
+                      Delete
+                    </button>
+                  }
+                >
                   <div className="space-y-3 border-t border-[var(--border)] pt-3">
                     {/* Status change */}
                     <div className="flex items-center gap-2">
@@ -272,19 +286,7 @@ export function FeedbackList({ items, isOwner }: { items: FeedbackItem[]; isOwne
                       </div>
                     </div>
                   </div>
-                )}
-
-                {/* Non-owner delete own */}
-                {!isOwner && (
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(item.id)}
-                    disabled={isLoading}
-                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-500/10"
-                  >
-                    Delete
-                  </button>
-                )}
+                </OwnerOnly>
               </div>
             )}
           </div>

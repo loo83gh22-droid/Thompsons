@@ -61,7 +61,7 @@ export default async function FeedbackPage() {
         <h2 className="mb-4 font-display text-lg font-semibold text-[var(--foreground)]">
           {isOwner ? "All Family Feedback" : "Your Feedback"}
         </h2>
-        <FeedbackList items={feedbackItems ?? []} isOwner={isOwner} />
+        <FeedbackList items={feedbackItems ?? []} />
       </section>
     </div>
   );

@@ -10,6 +10,7 @@ import { PaymentSuccessBanner } from "./PaymentSuccessBanner";
 import { EmailNotificationsToggle } from "./EmailNotificationsToggle";
 import { StorageAddons } from "./StorageAddons";
 import { SpotifyPlaylistEditor } from "./SpotifyPlaylistEditor";
+import { AdultOnly } from "@/app/components/RoleGate";
 
 type PlanType = "free" | "annual" | "legacy";
 
@@ -109,12 +110,10 @@ export default async function SettingsPage() {
   // Fetch current member for email notification preference and role
   const { data: currentMember } = await supabase
     .from("family_members")
-    .select("id, email_notifications, role")
+    .select("id, email_notifications")
     .eq("user_id", user.id)
     .eq("family_id", activeFamilyId)
     .single();
-
-  const canEditPlaylist = currentMember?.role === "owner" || currentMember?.role === "adult";
 
   // Fetch active + cancelling storage add-ons (paid plans only)
   const { data: activeAddonsRaw } = planType !== "free"
@@ -193,7 +192,7 @@ export default async function SettingsPage() {
       </section>
 
       {/* Spotify Playlist — owners and adults only */}
-      {canEditPlaylist && (
+      <AdultOnly>
         <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
           <div className="border-b border-[var(--border)] px-6 py-4">
             <h2 className="font-display text-xl font-semibold">Family Music</h2>
@@ -204,7 +203,7 @@ export default async function SettingsPage() {
             />
           </div>
         </section>
-      )}
+      </AdultOnly>
 
       {/* Your Plan card */}
       <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
