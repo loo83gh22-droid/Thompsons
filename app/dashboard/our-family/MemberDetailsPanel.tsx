@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { deleteFamilyMember, changeMemberRole, generateKidLink, revokeKidLink, resendInviteEmail, updateFamilyMember } from "../members/actions";
+import { formatDateOnly } from "@/src/lib/date";
 import { setMemberRelationships } from "./actions";
 import type { OurFamilyMember } from "./page";
 import type { OurFamilyRelationship } from "./page";
@@ -180,13 +181,7 @@ export function MemberDetailsPanel({
   }, [member.id, current.spouseId, current.parentIds, current.childIds]);
   const status = memberStatus(member);
   const others = members.filter((m) => m.id !== member.id);
-  const birthdayStr = member.birth_date
-    ? new Date(member.birth_date + "T12:00:00").toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: member.birth_date.slice(0, 4) !== "0000" ? "numeric" : undefined,
-      })
-    : null;
+  const birthdayStr = member.birth_date ? formatDateOnly(member.birth_date) : null;
   const memberSince = member.created_at
     ? new Date(member.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })
     : null;

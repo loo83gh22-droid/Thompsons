@@ -107,7 +107,7 @@ export function FeedbackList({ items, isOwner }: { items: FeedbackItem[]; isOwne
               onClick={() => setFilter(f)}
               className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors min-h-[32px] ${
                 filter === f
-                  ? "bg-[var(--accent)] text-white"
+                  ? "bg-[var(--accent)] text-[var(--background)]"
                   : "bg-[var(--surface)] text-[var(--muted)] border border-[var(--border)] hover:bg-[var(--surface-hover)]"
               }`}
             >

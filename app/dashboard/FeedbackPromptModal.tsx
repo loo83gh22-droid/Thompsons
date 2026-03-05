@@ -117,7 +117,7 @@ export function FeedbackPromptModal() {
             <button
               type="button"
               onClick={handleGoToFeedback}
-              className="rounded-full bg-[var(--accent)] px-4 py-3 font-medium text-white hover:brightness-110 min-h-[44px]"
+              className="rounded-full bg-[var(--accent)] px-4 py-3 font-medium text-[var(--background)] hover:brightness-110 min-h-[44px]"
             >
               Share Feedback
             </button>

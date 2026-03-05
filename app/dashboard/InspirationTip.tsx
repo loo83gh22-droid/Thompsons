@@ -48,7 +48,7 @@ export function InspirationTip() {
           </p>
           <Link
             href={tip.href}
-            className="self-start rounded-full bg-[var(--accent)] px-4 py-1.5 text-xs font-semibold text-white transition-all duration-200 hover:brightness-110 hover:shadow-md"
+            className="self-start rounded-full bg-[var(--accent)] px-4 py-1.5 text-xs font-semibold text-[var(--background)] transition-all duration-200 hover:brightness-110 hover:shadow-md"
           >
             {tip.cta} →
           </Link>

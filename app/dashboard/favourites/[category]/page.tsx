@@ -46,7 +46,7 @@ export default async function FavouriteCategoryPage({
           >
             ← Favourites
           </Link>
-          <h1 className="mt-2 font-display text-4xl font-bold text-[var(--foreground)]">
+          <h1 className="mt-2 font-display text-3xl font-bold text-[var(--foreground)]">
             <span className="mr-2">{cat.icon}</span>
             {cat.label}
           </h1>

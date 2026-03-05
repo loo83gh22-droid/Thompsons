@@ -78,7 +78,7 @@ export function ArtworkGallery({
             onClick={() => setFilterMedium("all")}
             className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
               filterMedium === "all"
-                ? "bg-[var(--accent)] text-white"
+                ? "bg-[var(--accent)] text-[var(--background)]"
                 : "bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--foreground)]"
             }`}
           >
@@ -90,7 +90,7 @@ export function ArtworkGallery({
               onClick={() => setFilterMedium(m)}
               className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
                 filterMedium === m
-                  ? "bg-[var(--accent)] text-white"
+                  ? "bg-[var(--accent)] text-[var(--background)]"
                   : "bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--foreground)]"
               }`}
             >

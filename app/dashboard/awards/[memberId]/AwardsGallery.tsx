@@ -88,7 +88,7 @@ export function AwardsGallery({
             onClick={() => setFilterCategory("all")}
             className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
               filterCategory === "all"
-                ? "bg-[var(--accent)] text-white"
+                ? "bg-[var(--accent)] text-[var(--background)]"
                 : "bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--foreground)]"
             }`}
           >
@@ -100,7 +100,7 @@ export function AwardsGallery({
               onClick={() => setFilterCategory(c)}
               className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
                 filterCategory === c
-                  ? "bg-[var(--accent)] text-white"
+                  ? "bg-[var(--accent)] text-[var(--background)]"
                   : "bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--foreground)]"
               }`}
             >

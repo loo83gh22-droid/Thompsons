@@ -44,7 +44,7 @@ function BirthdayCard({ person }: { person: BirthdayPerson }) {
       <span
         className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
           isToday
-            ? "bg-amber-400 text-white"
+            ? "bg-amber-400 text-amber-900"
             : isTomorrow
             ? "bg-[var(--accent)]/20 text-[var(--accent)]"
             : "bg-[var(--surface-hover)] text-[var(--muted)]"

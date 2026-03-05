@@ -44,10 +44,10 @@ export default async function FavouritesPage() {
 
   return (
     <div>
-      <h1 className="font-display text-4xl font-bold text-[var(--foreground)]">
+      <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
         Favourites
       </h1>
-      <p className="mt-2 text-lg text-[var(--muted)]">
+      <p className="mt-2 text-[var(--muted)]">
         Books, movies, shows, games — what everyone loves right now.
       </p>
 

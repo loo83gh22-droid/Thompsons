@@ -70,13 +70,7 @@ export default async function MemberProfilePage({
     supabase.from("voice_memos").select("id", { count: "exact", head: true }).eq("family_member_id", id),
   ]);
 
-  const birthdayStr = member.birth_date
-    ? new Date(member.birth_date + "T12:00:00").toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: member.birth_date.slice(0, 4) !== "0000" ? undefined : undefined,
-      })
-    : null;
+  const birthdayStr = member.birth_date ? formatDateOnly(member.birth_date) : null;
   const memberSince = member.created_at
     ? new Date(member.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })
     : null;

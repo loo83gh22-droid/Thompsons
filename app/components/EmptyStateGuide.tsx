@@ -31,7 +31,7 @@ export function EmptyStateGuide({
         </span>
 
         {/* Title */}
-        <h2 className="mt-4 font-display text-xl font-semibold text-[var(--accent)]">
+        <h2 className="mt-4 font-display text-xl font-semibold text-[var(--foreground)]">
           {title}
         </h2>
 
@@ -68,7 +68,7 @@ export function EmptyStateGuide({
           {ctaHref ? (
             <Link
               href={ctaHref}
-              className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent)]/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-[var(--primary)] px-6 py-3 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
             >
               {ctaLabel}
             </Link>
@@ -76,7 +76,7 @@ export function EmptyStateGuide({
             <button
               type="button"
               onClick={onAction}
-              className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent)]/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-[var(--primary)] px-6 py-3 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
             >
               {ctaLabel}
             </button>
