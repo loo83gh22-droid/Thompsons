@@ -52,6 +52,8 @@ export async function saveMyAliases(
       .in("target_member_id", toDelete);
   }
 
+  revalidatePath("/dashboard");
   revalidatePath("/dashboard/our-family");
   revalidatePath("/dashboard/personalize");
+  revalidatePath("/dashboard/timeline");
 }
