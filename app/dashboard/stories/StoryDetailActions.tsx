@@ -53,7 +53,7 @@ export function StoryDetailActions({
           router.refresh();
         },
       },
-      cancel: { label: "Cancel" },
+      cancel: { label: "Cancel", onClick: () => {} },
       duration: 8000,
     });
   }

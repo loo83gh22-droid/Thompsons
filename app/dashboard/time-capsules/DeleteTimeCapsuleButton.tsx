@@ -17,7 +17,7 @@ export function DeleteTimeCapsuleButton({ id, className = "" }: { id: string; cl
           router.refresh();
         },
       },
-      cancel: { label: "Cancel" },
+      cancel: { label: "Cancel", onClick: () => {} },
       duration: 8000,
     });
   }

@@ -89,7 +89,7 @@ export function FeedbackList({ items, isOwner }: { items: FeedbackItem[]; isOwne
           router.refresh();
         },
       },
-      cancel: { label: "Cancel" },
+      cancel: { label: "Cancel", onClick: () => {} },
       duration: 8000,
     });
   }

@@ -79,7 +79,7 @@ function ArtworkShareButton({
           }
         },
       },
-      cancel: { label: "Cancel" },
+      cancel: { label: "Cancel", onClick: () => {} },
       duration: 8000,
     });
   }

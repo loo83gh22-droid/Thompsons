@@ -113,7 +113,7 @@ export function PetList({ pets }: { pets: Pet[] }) {
           }
         },
       },
-      cancel: { label: "Cancel" },
+      cancel: { label: "Cancel", onClick: () => {} },
       duration: 8000,
     });
   }

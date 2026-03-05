@@ -228,7 +228,7 @@ export default function EditJournalPage() {
           }
         },
       },
-      cancel: { label: "Cancel" },
+      cancel: { label: "Cancel", onClick: () => {} },
       duration: 8000,
     });
   }
@@ -306,7 +306,7 @@ export default function EditJournalPage() {
           }
         },
       },
-      cancel: { label: "Cancel" },
+      cancel: { label: "Cancel", onClick: () => {} },
       duration: 8000,
     });
   }

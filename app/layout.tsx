@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
@@ -123,6 +124,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         {children}
+        <Toaster richColors theme="system" position="bottom-right" />
         <Analytics />
         <SpeedInsights />
       </body>

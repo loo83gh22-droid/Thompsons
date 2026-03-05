@@ -38,7 +38,7 @@ export function TraditionList({ traditions }: { traditions: Tradition[] }) {
           }
         },
       },
-      cancel: { label: "Cancel" },
+      cancel: { label: "Cancel", onClick: () => {} },
       duration: 8000,
     });
   }

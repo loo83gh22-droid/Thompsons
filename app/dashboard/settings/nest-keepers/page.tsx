@@ -138,7 +138,7 @@ export default function NestKeepersPage() {
           }
         },
       },
-      cancel: { label: "Cancel" },
+      cancel: { label: "Cancel", onClick: () => {} },
       duration: 8000,
     });
   }
