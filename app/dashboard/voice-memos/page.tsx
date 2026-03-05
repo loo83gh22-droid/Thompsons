@@ -3,6 +3,8 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import { AddVoiceMemoForm } from "./AddVoiceMemoForm";
 import { VoiceMemoList } from "./VoiceMemoList";
 
+export const metadata = { title: "Voice Memos | Family Nest" };
+
 export default async function VoiceMemosPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);

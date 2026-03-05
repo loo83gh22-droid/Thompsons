@@ -20,6 +20,8 @@ function authorDisplay(raw: { id?: string; name: string; relationship?: string |
   return { name, relationship: single.relationship?.trim() ?? null };
 }
 
+export const metadata = { title: "Family Timeline | Family Nest" };
+
 export default async function TimelinePage({
   searchParams,
 }: {

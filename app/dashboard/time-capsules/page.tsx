@@ -7,6 +7,8 @@ import { EmptyState } from "@/app/dashboard/components/EmptyState";
 import { formatDateOnly } from "@/src/lib/date";
 import { WaxSeal, nameToInitials } from "./WaxSeal";
 
+export const metadata = { title: "Time Capsules | Family Nest" };
+
 export default async function TimeCapsulesPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

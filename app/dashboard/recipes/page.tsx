@@ -4,6 +4,8 @@ import { AddRecipeForm } from "./AddRecipeForm";
 import { RecipeCard } from "./RecipeCard";
 import { RecipesEmptyState } from "./RecipesEmptyState";
 
+export const metadata = { title: "Family Recipes | Family Nest" };
+
 export default async function RecipesPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);

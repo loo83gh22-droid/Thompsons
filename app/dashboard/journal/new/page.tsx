@@ -21,6 +21,8 @@ function formatDateTitle(d: DateValue): string {
   return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 }
 
+export const metadata = { title: "New Journal Entry | Family Nest" };
+
 export default function NewJournalPage() {
   const { activeFamilyId, planType, currentMemberId } = useFamily();
   const videosAllowed = canUploadVideos(planType);

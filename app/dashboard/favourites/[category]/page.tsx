@@ -13,6 +13,8 @@ const CATEGORIES: Record<string, { label: string; icon: string }> = {
   games: { label: "Games", icon: "🎮" },
 };
 
+export const metadata = { title: "Favourites | Family Nest" };
+
 export default async function FavouriteCategoryPage({
   params,
 }: {

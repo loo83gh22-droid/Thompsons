@@ -6,6 +6,8 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import { DeleteRecipeButton } from "../DeleteRecipeButton";
 import { RecipeShareButton } from "../RecipeShareButton";
 
+export const metadata = { title: "Recipe | Family Nest" };
+
 export default async function RecipePage({
   params,
 }: {

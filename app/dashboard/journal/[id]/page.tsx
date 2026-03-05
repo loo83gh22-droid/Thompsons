@@ -7,6 +7,8 @@ import { JournalPhotoGallery } from "../JournalPhotoGallery";
 import { JournalPerspectives } from "../JournalPerspectives";
 import { DeleteJournalEntryButton } from "../DeleteJournalEntryButton";
 
+export const metadata = { title: "Journal Entry | Family Nest" };
+
 export default async function JournalEntryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();

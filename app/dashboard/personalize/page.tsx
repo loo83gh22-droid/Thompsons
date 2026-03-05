@@ -3,6 +3,8 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import { PersonalizeClient } from "./PersonalizeClient";
 import { redirect } from "next/navigation";
 
+export const metadata = { title: "Personalize | Family Nest" };
+
 export default async function PersonalizePage() {
   const supabase = await createClient();
   const {

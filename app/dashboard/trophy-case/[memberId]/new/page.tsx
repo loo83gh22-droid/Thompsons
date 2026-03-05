@@ -4,6 +4,8 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { TrophyForm } from "./TrophyForm";
 
+export const metadata = { title: "New Trophy | Family Nest" };
+
 export default async function NewTrophyPage({
   params,
 }: {

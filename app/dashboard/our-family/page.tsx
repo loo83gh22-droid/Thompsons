@@ -35,6 +35,8 @@ export type MemberActivity = {
   photoCount: number;
 };
 
+export const metadata = { title: "Our Family | Family Nest" };
+
 export default async function OurFamilyPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);

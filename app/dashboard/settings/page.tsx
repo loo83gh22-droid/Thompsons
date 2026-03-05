@@ -78,6 +78,8 @@ function StorageBar({
   );
 }
 
+export const metadata = { title: "Settings | Family Nest" };
+
 export default async function SettingsPage() {
   const supabase = await createClient();
   const {

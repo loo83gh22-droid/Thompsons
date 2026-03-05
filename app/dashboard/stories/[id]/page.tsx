@@ -31,6 +31,8 @@ function authorDisplay(fm: { name: string; nickname?: string | null; relationshi
   return one.relationship?.trim() ? `${name} (${one.relationship})` : name;
 }
 
+export const metadata = { title: "Story | Family Nest" };
+
 export default async function StoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();

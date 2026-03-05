@@ -3,6 +3,8 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import { AddPetForm } from "./AddPetForm";
 import { PetList } from "./PetList";
 
+export const metadata = { title: "Family Pets | Family Nest" };
+
 export default async function PetsPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);

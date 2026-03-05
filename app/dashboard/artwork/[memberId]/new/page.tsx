@@ -4,6 +4,8 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { ArtworkForm } from "../ArtworkForm";
 
+export const metadata = { title: "New Artwork | Family Nest" };
+
 export default async function NewArtworkPage({
   params,
 }: {

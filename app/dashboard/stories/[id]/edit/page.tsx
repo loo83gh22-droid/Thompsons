@@ -3,6 +3,8 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { StoryForm } from "../../StoryForm";
 
+export const metadata = { title: "Edit Story | Family Nest" };
+
 export default async function EditStoryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();

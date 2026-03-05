@@ -4,6 +4,8 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { AwardForm } from "./AwardForm";
 
+export const metadata = { title: "New Award | Family Nest" };
+
 export default async function NewAwardPage({
   params,
 }: {

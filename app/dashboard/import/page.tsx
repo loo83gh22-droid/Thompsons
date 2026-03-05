@@ -29,6 +29,8 @@ interface MultiResult {
   result: ImportResult;
 }
 
+export const metadata = { title: "Import Data | Family Nest" };
+
 export default function ImportPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState<Step>("upload");

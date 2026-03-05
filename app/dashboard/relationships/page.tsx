@@ -4,6 +4,8 @@ import { FamilyWebClient } from "./FamilyWebClient";
 import { EmptyStateGuide } from "@/app/components/EmptyStateGuide";
 import type { FamilyMemberRow, RelationshipRow } from "./types";
 
+export const metadata = { title: "Relationships | Family Nest" };
+
 export default async function RelationshipsPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);

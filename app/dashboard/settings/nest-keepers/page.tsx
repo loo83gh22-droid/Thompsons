@@ -37,6 +37,8 @@ const RELATIONSHIP_SUGGESTIONS = [
   "Friend",
 ];
 
+export const metadata = { title: "Nest Keepers | Family Nest" };
+
 export default function NestKeepersPage() {
   const [keepers, setKeepers] = useState<NestKeeper[]>([]);
   const [loading, setLoading] = useState(true);

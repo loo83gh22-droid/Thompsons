@@ -4,6 +4,8 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { AwardsGallery } from "./AwardsGallery";
 
+export const metadata = { title: "Awards Gallery | Family Nest" };
+
 export default async function MemberAwardsPage({
   params,
 }: {

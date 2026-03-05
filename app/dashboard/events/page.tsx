@@ -18,6 +18,8 @@ type EventRow = {
   family_event_invitees?: { family_member_id: string; family_members: { id: string; name: string } | null }[];
 };
 
+export const metadata = { title: "Family Events | Family Nest" };
+
 export default async function EventsPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);

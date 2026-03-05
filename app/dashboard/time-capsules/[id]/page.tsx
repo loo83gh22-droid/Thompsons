@@ -6,6 +6,8 @@ import { formatDateOnly } from "@/src/lib/date";
 import { DeleteTimeCapsuleButton } from "../DeleteTimeCapsuleButton";
 import { WaxSeal, nameToInitials } from "../WaxSeal";
 
+export const metadata = { title: "Time Capsule | Family Nest" };
+
 export default async function TimeCapsulePage({
   params,
 }: {

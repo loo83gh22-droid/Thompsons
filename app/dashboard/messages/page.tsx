@@ -2,6 +2,8 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { SendMessageForm } from "./SendMessageForm";
 
+export const metadata = { title: "Send a Message | Family Nest" };
+
 export default async function SendMessagePage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

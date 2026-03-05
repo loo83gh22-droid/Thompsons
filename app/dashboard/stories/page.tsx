@@ -4,6 +4,8 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import { EmptyStateGuide } from "@/app/components/EmptyStateGuide";
 import { StoriesList } from "./StoriesList";
 
+export const metadata = { title: "Family Stories | Family Nest" };
+
 export default async function StoriesPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);

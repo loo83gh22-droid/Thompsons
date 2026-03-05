@@ -11,6 +11,8 @@ const CATEGORIES = [
   { id: "games", label: "Games", icon: "🎮" },
 ] as const;
 
+export const metadata = { title: "Favourites | Family Nest" };
+
 export default async function FavouritesPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);

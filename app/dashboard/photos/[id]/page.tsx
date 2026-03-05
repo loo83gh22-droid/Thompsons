@@ -4,6 +4,8 @@ import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 
+export const metadata = { title: "Photo | Family Nest" };
+
 export default async function PhotoDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();

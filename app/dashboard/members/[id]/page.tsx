@@ -4,6 +4,8 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { formatDateOnly } from "@/src/lib/date";
 
+export const metadata = { title: "Member Profile | Family Nest" };
+
 export default async function MemberProfilePage({
   params,
 }: {

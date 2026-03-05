@@ -3,6 +3,8 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import { AddTraditionForm } from "./AddTraditionForm";
 import { TraditionList } from "./TraditionList";
 
+export const metadata = { title: "Family Traditions | Family Nest" };
+
 export default async function TraditionsPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
