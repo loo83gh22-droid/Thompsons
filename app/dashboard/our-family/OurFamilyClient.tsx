@@ -22,11 +22,13 @@ export function OurFamilyClient({
   relationships,
   activityByMember,
   aliasMap = {},
+  derivedRelationshipMap = {},
 }: {
   members: OurFamilyMember[];
   relationships: OurFamilyRelationship[];
   activityByMember: Record<string, MemberActivity>;
   aliasMap?: Record<string, string>;
+  derivedRelationshipMap?: Record<string, string>;
 }) {
   const [view, setView] = useState<View>(() => {
     if (typeof window === "undefined") return "tree";
@@ -110,7 +112,12 @@ export function OurFamilyClient({
               selectedId={selectedMemberId}
             />
           ) : (
-            <MemberList members={members as Parameters<typeof MemberList>[0]["members"]} aliasMap={aliasMap} compact />
+            <MemberList
+              members={members as Parameters<typeof MemberList>[0]["members"]}
+              aliasMap={aliasMap}
+              derivedRelMap={derivedRelationshipMap}
+              compact
+            />
           )}
         </div>
         {selectedMember && (
@@ -119,6 +126,7 @@ export function OurFamilyClient({
             members={members}
             relationships={relationships}
             activity={activityByMember[selectedMember.id]}
+            derivedRelationshipMap={derivedRelationshipMap}
             onClose={() => setSelectedMemberId(null)}
           />
         )}

@@ -61,12 +61,14 @@ export function MemberDetailsPanel({
   members,
   relationships,
   activity,
+  derivedRelationshipMap = {},
   onClose,
 }: {
   member: OurFamilyMember;
   members: OurFamilyMember[];
   relationships: OurFamilyRelationship[];
   activity?: MemberActivity;
+  derivedRelationshipMap?: Record<string, string>;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -342,11 +344,23 @@ export function MemberDetailsPanel({
             {member.nickname?.trim() && (
               <p className="text-[var(--muted)]">&quot;{member.nickname}&quot;</p>
             )}
-            {member.relationship && (
-              <span className="mt-1 inline-block rounded-full bg-[var(--accent)]/20 px-3 py-1 text-sm font-medium text-[var(--accent)]">
-                {member.relationship}
-              </span>
-            )}
+            {(() => {
+              const derived = derivedRelationshipMap[member.id];
+              const displayLabel = derived ?? member.relationship;
+              return displayLabel ? (
+                <div className="mt-1 flex flex-col items-center gap-0.5">
+                  <span className="inline-block rounded-full bg-[var(--accent)]/20 px-3 py-1 text-sm font-medium text-[var(--accent)]">
+                    {displayLabel}
+                  </span>
+                  {/* Show original label dimly when it differs from derived */}
+                  {derived && member.relationship && derived !== member.relationship && (
+                    <span className="text-xs text-[var(--muted)]/60" title="Original relationship label">
+                      {member.relationship}
+                    </span>
+                  )}
+                </div>
+              ) : null;
+            })()}
             {member.role && (
               <span className={`mt-1 inline-block rounded-full px-3 py-1 text-xs font-semibold ${ROLE_BADGES[member.role as MemberRole]?.bg || "bg-[var(--surface-hover)]"} ${ROLE_BADGES[member.role as MemberRole]?.text || "text-[var(--muted)]"}`}>
                 {ROLE_LABELS[member.role as MemberRole] || member.role}

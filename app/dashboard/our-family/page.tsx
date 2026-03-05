@@ -4,6 +4,7 @@ import { OurFamilyClient } from "./OurFamilyClient";
 import { AddMemberForm } from "../members/AddMemberForm";
 import type { MemberRole } from "@/src/lib/roles";
 import Link from "next/link";
+import { buildDerivedRelationshipMap } from "@/src/lib/deriveRelationship";
 
 export type OurFamilyMember = {
   id: string;
@@ -92,6 +93,16 @@ export default async function OurFamilyPage() {
   );
   const hasPersonalized = (aliasRes.data ?? []).length > 0;
 
+  // Compute viewer-relative relationship labels (e.g. "Father-in-Law" for a
+  // spouse looking at their partner's parent who is labeled "Father").
+  const derivedRelationshipMap: Record<string, string> = currentMember
+    ? buildDerivedRelationshipMap(
+        currentMember.id,
+        (relationships ?? []) as { member_id: string; related_id: string; relationship_type: string }[],
+        (members ?? []).map((m) => ({ id: m.id, relationship: m.relationship }))
+      )
+    : {};
+
   const activityByMember: Record<string, MemberActivity> = {};
   (members ?? []).forEach((m) => {
     activityByMember[m.id] = { journalCount: 0, voiceCount: 0, photoCount: 0 };
@@ -127,6 +138,7 @@ export default async function OurFamilyPage() {
         relationships={(relationships ?? []) as OurFamilyRelationship[]}
         activityByMember={activityByMember}
         aliasMap={aliasMap}
+        derivedRelationshipMap={derivedRelationshipMap}
       />
 
       {/* Personalize prompt — shown once until the user sets their names */}

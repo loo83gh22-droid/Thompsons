@@ -42,10 +42,13 @@ function formatBirthdayShort(birthDate: string | null): string | null {
 export function MemberList({
   members,
   aliasMap = {},
+  derivedRelMap = {},
   compact = false,
 }: {
   members: Member[];
   aliasMap?: Record<string, string>;
+  /** Viewer-relative derived relationship labels (e.g. "Father-in-Law") */
+  derivedRelMap?: Record<string, string>;
   compact?: boolean;
 }) {
   if (compact) {
@@ -56,6 +59,7 @@ export function MemberList({
             key={m.id}
             member={m}
             alias={aliasMap[m.id] ?? null}
+            derivedLabel={derivedRelMap[m.id] ?? null}
             isLast={i === members.length - 1}
           />
         ))}
@@ -66,7 +70,13 @@ export function MemberList({
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {members.map((m, i) => (
-        <MemberCard key={m.id} member={m} index={i} alias={aliasMap[m.id] ?? null} />
+        <MemberCard
+          key={m.id}
+          member={m}
+          index={i}
+          alias={aliasMap[m.id] ?? null}
+          derivedLabel={derivedRelMap[m.id] ?? null}
+        />
       ))}
     </div>
   );
@@ -77,10 +87,12 @@ export function MemberList({
 function MemberRow({
   member,
   alias,
+  derivedLabel,
   isLast,
 }: {
   member: Member;
   alias: string | null;
+  derivedLabel: string | null;
   isLast: boolean;
 }) {
   const [editing, setEditing] = useState(false);
@@ -174,7 +186,8 @@ function MemberRow({
   const status = member.user_id
     ? "signed_in"
     : member.contact_email?.trim() ? "pending" : null;
-  const label = alias ?? member.relationship;
+  // Priority: personal alias > derived (tree-inferred) > original label
+  const label = alias ?? derivedLabel ?? member.relationship;
 
   // Inline edit expands like a form panel
   if (editing) {
@@ -321,7 +334,17 @@ function MemberRow({
 
 // ─── Card view (unchanged) ────────────────────────────────────────────────────
 
-function MemberCard({ member, index, alias }: { member: Member; index: number; alias: string | null }) {
+function MemberCard({
+  member,
+  index,
+  alias,
+  derivedLabel,
+}: {
+  member: Member;
+  index: number;
+  alias: string | null;
+  derivedLabel: string | null;
+}) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(member.name);
   const [relationship, setRelationship] = useState(member.relationship ?? "");
@@ -705,18 +728,26 @@ function MemberCard({ member, index, alias }: { member: Member; index: number; a
       )}
 
       {/* Relationship / personal alias badge */}
-      {(alias || member.relationship) && (
-        <div className="mt-3 flex flex-col items-center gap-1">
-          <span className="inline-flex items-center gap-1 rounded-full bg-[var(--accent)]/10 px-3 py-1 text-xs font-semibold tracking-wide text-[var(--accent)]">
-            <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-            {alias ?? member.relationship}
-          </span>
-          {/* Show the real relationship label dimly when an alias overrides it */}
-          {alias && member.relationship && alias !== member.relationship && (
-            <span className="text-xs text-[var(--muted)]/60">{member.relationship}</span>
-          )}
-        </div>
-      )}
+      {(() => {
+        // Priority: personal alias > derived (tree-inferred) > original label
+        const displayLabel = alias ?? derivedLabel ?? member.relationship;
+        const showOriginal =
+          displayLabel &&
+          displayLabel !== member.relationship &&
+          !!member.relationship;
+        return displayLabel ? (
+          <div className="mt-3 flex flex-col items-center gap-1">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[var(--accent)]/10 px-3 py-1 text-xs font-semibold tracking-wide text-[var(--accent)]">
+              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+              {displayLabel}
+            </span>
+            {/* Show the original label dimly when an alias or derived label overrides it */}
+            {showOriginal && (
+              <span className="text-xs text-[var(--muted)]/60">{member.relationship}</span>
+            )}
+          </div>
+        ) : null;
+      })()}
 
       {/* Details */}
       <div className="mt-4 space-y-1.5">
