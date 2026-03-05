@@ -110,7 +110,7 @@ export async function GET(request: Request) {
     ) {
       const { data: signedUrl } = await supabase.storage
         .from("exports")
-        .createSignedUrl(exportJob.file_path, 3600); // 1-hour link
+        .createSignedUrl(exportJob.file_path, 300); // 5-min link — fresh URL generated on every GET
 
       return NextResponse.json({
         export: {
@@ -608,10 +608,11 @@ Notes
         })
         .eq("id", job.id);
 
-      // Generate signed download URL
+      // Generate signed download URL — 5 min is enough to initiate the download.
+      // The GET endpoint always issues a fresh URL so re-fetching is trivial.
       const { data: signedUrl } = await supabase.storage
         .from("exports")
-        .createSignedUrl(exportPath, 3600);
+        .createSignedUrl(exportPath, 300);
 
       return NextResponse.json({
         export: {

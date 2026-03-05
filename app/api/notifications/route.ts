@@ -604,35 +604,40 @@ export async function GET(request: Request) {
               const overGb = (overBy / (1024 ** 3)).toFixed(1);
               const newLimitGb = (newLimit / (1024 ** 3)).toFixed(0);
               const urgency = daysLeft === 1 ? "🚨 Final warning" : daysLeft <= 7 ? "⚠️ Urgent" : "📦 Reminder";
-              try {
-                await resend.emails.send({
-                  from: fromEmail,
-                  to: emails,
-                  subject: `${urgency}: ${daysLeft} day${daysLeft === 1 ? "" : "s"} to reduce storage in ${family.name}`,
-                  html: `
-                    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px">
-                      <h2 style="color:#c53030">${urgency}: Storage reduction needed</h2>
-                      <p>Your <strong>${addon.label}</strong> storage add-on for <strong>${family.name}</strong> has been cancelled.</p>
-                      <p>You are <strong>${overGb} GB over</strong> your new limit of ${newLimitGb} GB.
-                      You have <strong>${daysLeft} day${daysLeft === 1 ? "" : "s"}</strong> to remove files.</p>
-                      <p>After ${graceUntil.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })},
-                      Family Nest will automatically remove your largest media files to bring your account within its limit.
-                      <strong>Journal entries, stories, and recipes will never be deleted.</strong></p>
-                      <p><a href="https://www.familynest.io/dashboard/settings"
-                        style="background:#e53e3e;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block">
-                        Manage my storage
-                      </a></p>
-                      <p style="color:#666;font-size:13px;margin-top:24px">The Family Nest Team</p>
-                    </div>
-                  `,
-                });
+              const subject = `${urgency}: ${daysLeft} day${daysLeft === 1 ? "" : "s"} to reduce storage in ${family.name}`;
+              const html = `
+                <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px">
+                  <h2 style="color:#c53030">${urgency}: Storage reduction needed</h2>
+                  <p>Your <strong>${addon.label}</strong> storage add-on for <strong>${family.name}</strong> has been cancelled.</p>
+                  <p>You are <strong>${overGb} GB over</strong> your new limit of ${newLimitGb} GB.
+                  You have <strong>${daysLeft} day${daysLeft === 1 ? "" : "s"}</strong> to remove files.</p>
+                  <p>After ${graceUntil.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })},
+                  Family Nest will automatically remove your largest media files to bring your account within its limit.
+                  <strong>Journal entries, stories, and recipes will never be deleted.</strong></p>
+                  <p><a href="https://www.familynest.io/dashboard/settings"
+                    style="background:#e53e3e;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block">
+                    Manage my storage
+                  </a></p>
+                  <p style="color:#666;font-size:13px;margin-top:24px">The Family Nest Team</p>
+                </div>
+              `;
+              // Send individually — avoids exposing the full recipient list to
+              // Resend in a single call (which would reveal family membership).
+              let anySent = false;
+              for (const to of emails) {
+                try {
+                  await resend.emails.send({ from: fromEmail, to, subject, html });
+                  anySent = true;
+                } catch (err) {
+                  results.errors.push(`Grace reminder email to ${to} for addon ${addon.id}: ${err}`);
+                }
+              }
+              if (anySent) {
                 await supabase
                   .from("storage_addons")
                   .update({ grace_email_sent_at: nowIso })
                   .eq("id", addon.id);
                 results.graceReminders++;
-              } catch (err) {
-                results.errors.push(`Grace reminder email for addon ${addon.id}: ${err}`);
               }
             }
           }
@@ -715,24 +720,33 @@ export async function GET(request: Request) {
           const emails = (members ?? []).map((m) => m.contact_email as string).filter(Boolean);
           if (emails.length > 0) {
             const filesRemoved = family.storage_used_bytes > newLimitBytes;
-            await resend.emails.send({
-              from: fromEmail,
-              to: emails,
-              subject: `Storage update for ${family.name}`,
-              html: `
-                <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px">
-                  <h2 style="color:#1a1a1a">Your storage add-on grace period has ended</h2>
-                  <p>Your <strong>${addon.label}</strong> add-on for <strong>${family.name}</strong> has been fully removed.</p>
-                  ${filesRemoved
-                    ? `<p>Some media files were removed to bring your account within your storage limit.
-                       Journal entries, stories, and recipes were not affected.</p>
-                       <p>You can re-add storage at any time from your <a href="https://www.familynest.io/dashboard/settings">account settings</a>.</p>`
-                    : `<p>Your usage was already within your new limit — no files were removed.</p>`
-                  }
-                  <p style="color:#666;font-size:13px;margin-top:24px">The Family Nest Team</p>
-                </div>
-              `,
-            });
+            const enforcementHtml = `
+              <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px">
+                <h2 style="color:#1a1a1a">Your storage add-on grace period has ended</h2>
+                <p>Your <strong>${addon.label}</strong> add-on for <strong>${family.name}</strong> has been fully removed.</p>
+                ${filesRemoved
+                  ? `<p>Some media files were removed to bring your account within your storage limit.
+                     Journal entries, stories, and recipes were not affected.</p>
+                     <p>You can re-add storage at any time from your <a href="https://www.familynest.io/dashboard/settings">account settings</a>.</p>`
+                  : `<p>Your usage was already within your new limit — no files were removed.</p>`
+                }
+                <p style="color:#666;font-size:13px;margin-top:24px">The Family Nest Team</p>
+              </div>
+            `;
+            // Send individually — avoids exposing the full recipient list to
+            // Resend in a single call (which would reveal family membership).
+            for (const to of emails) {
+              try {
+                await resend.emails.send({
+                  from: fromEmail,
+                  to,
+                  subject: `Storage update for ${family.name}`,
+                  html: enforcementHtml,
+                });
+              } catch (err) {
+                results.errors.push(`Grace enforcement email to ${to} for addon ${addon.id}: ${err}`);
+              }
+            }
           }
 
           results.graceEnforced++;
