@@ -31,7 +31,7 @@ export default async function SendMessagePage() {
 
   return (
     <div>
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-5 sm:px-6">
+      <div className="mb-8">
         <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
           Send a message
         </h1>
