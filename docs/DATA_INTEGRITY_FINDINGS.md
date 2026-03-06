@@ -108,10 +108,10 @@ create table public.time_capsule_members (
 
 ---
 
-### W14 — Duplicate submission guards missing [MEDIUM]
-**Files:** `app/dashboard/journal/actions.ts`, `app/dashboard/voice-memos/actions.ts`
-**Issue:** `createJournalEntry()` and `insertVoiceMemo()` have no idempotency key or unique constraint. A network timeout + user resubmission creates duplicate entries.
-**Fix:** Add a client-generated idempotency UUID to the request, add a unique constraint on `(family_id, author_id, idempotency_key)`, and upsert or reject on conflict.
+### W14 — Duplicate submission guards missing ✅ FIXED (2026-03-06)
+**Files:** `app/dashboard/journal/actions.ts`, `app/dashboard/voice-memos/actions.ts`, `app/dashboard/journal/new/page.tsx`, `app/dashboard/voice-memos/AddVoiceMemoForm.tsx`
+**Issue:** `createJournalEntry()` and `insertVoiceMemo()` had no idempotency key or unique constraint. A network timeout + user resubmission created duplicate entries.
+**Fix:** Added `idempotency_key uuid` column (nullable, partial unique index) to both tables (migration 081). Client generates `crypto.randomUUID()` on mount, passes it in every submission, and rotates it only on success. Server handles `23505` conflict on `journal_entries` by returning the existing entry's id (so video registration can proceed); on `voice_memos` it treats the conflict as a silent success.
 
 ---
 

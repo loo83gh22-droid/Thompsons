@@ -35,6 +35,7 @@ export function AddVoiceMemoForm({
   const [recordedDate, setRecordedDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [description, setDescription] = useState("");
 
+  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
   const [recording, setRecording] = useState(false);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const [recordSeconds, setRecordSeconds] = useState(0);
@@ -71,6 +72,7 @@ export function AddVoiceMemoForm({
     setRecordedDate(new Date().toISOString().slice(0, 10));
     setDescription("");
     setError(null);
+    setIdempotencyKey(crypto.randomUUID());
   };
 
   useEffect(() => {
@@ -206,6 +208,8 @@ export function AddVoiceMemoForm({
         description: description.trim().slice(0, 500) || null,
         audioUrl: `/api/storage/voice-memos/${path}`,
         durationSeconds: durationSeconds,
+        fileSizeBytes: recordedBlob.size,
+        idempotencyKey,
       });
 
       setUploadProgress(100);

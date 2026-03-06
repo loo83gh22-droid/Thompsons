@@ -16,6 +16,8 @@ export type VoiceMemoInsert = {
   durationSeconds: number;
   /** File size in bytes — used for storage tracking. Pass 0 if unknown. */
   fileSizeBytes?: number;
+  /** Client-generated UUID to prevent duplicate inserts on network retry. */
+  idempotencyKey?: string | null;
 };
 
 export async function insertVoiceMemo(data: VoiceMemoInsert) {
@@ -53,13 +55,18 @@ export async function insertVoiceMemo(data: VoiceMemoInsert) {
     recorded_date: data.recordedDate,
     sort_order: nextOrder,
     updated_at: new Date().toISOString(),
+    idempotency_key: data.idempotencyKey ?? null,
   }).select("id").single();
 
-  if (!error && fileBytes > 0) {
-    await addStorageUsage(supabase, activeFamilyId, fileBytes);
+  if (error) {
+    // Duplicate submission — idempotency key already used. Treat as success.
+    if (error.code === "23505" && data.idempotencyKey) return;
+    throw error;
   }
 
-  if (error) throw error;
+  if (fileBytes > 0) {
+    await addStorageUsage(supabase, activeFamilyId, fileBytes);
+  }
 
   // Insert junction table rows for all selected members
   const ids = data.memberIds?.filter(Boolean) ?? [];

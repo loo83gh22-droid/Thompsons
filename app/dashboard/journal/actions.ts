@@ -92,6 +92,8 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
     }
     const authorId = authorOverrideId || myMember?.id || input.member_ids[0];
 
+    const idempotencyKey = getFormString(formData, "idempotency_key") || null;
+
     const { data: entry, error: entryError } = await supabase
       .from("journal_entries")
       .insert({
@@ -103,11 +105,23 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
         location: input.location,
         trip_date: input.trip_date,
         trip_date_end: input.trip_date_end,
+        idempotency_key: idempotencyKey,
       })
       .select("id")
       .single();
 
-    if (entryError) return { success: false, error: entryError.message || "Failed to save entry." };
+    if (entryError) {
+      // Duplicate submission — idempotency key already used. Return the existing entry id.
+      if (entryError.code === "23505" && idempotencyKey) {
+        const { data: existing } = await supabase
+          .from("journal_entries")
+          .select("id")
+          .eq("idempotency_key", idempotencyKey)
+          .single();
+        if (existing?.id) return { success: true, id: existing.id };
+      }
+      return { success: false, error: entryError.message || "Failed to save entry." };
+    }
     if (!entry?.id) return { success: false, error: "Failed to save entry." };
 
     // Insert junction table rows for all selected members

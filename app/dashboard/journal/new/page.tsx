@@ -47,6 +47,7 @@ export default function NewJournalPage() {
   const [coverPhotoIndex, setCoverPhotoIndex] = useState(0);
   const [authorOverride, setAuthorOverride] = useState<string | null>(null);
   const [showAuthorPicker, setShowAuthorPicker] = useState(false);
+  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
 
   useEffect(() => {
     if (!activeFamilyId) return;
@@ -102,6 +103,7 @@ export default function NewJournalPage() {
         formData.set("location_lng", String(location.longitude));
       }
       if (authorOverride) formData.set("author_override", authorOverride);
+      formData.set("idempotency_key", idempotencyKey);
 
       const orderedPhotos =
         photoFiles.length === 0
@@ -117,6 +119,7 @@ export default function NewJournalPage() {
 
       const result = await createJournalEntry(formData);
       if (result?.success) {
+        setIdempotencyKey(crypto.randomUUID());
         if (videoFiles.length > 0) {
           const supabase = createClient();
           for (const file of videoFiles) {
