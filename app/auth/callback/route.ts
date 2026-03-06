@@ -68,7 +68,8 @@ export async function GET(request: Request) {
         // Don't fail auth callback if email fails
       }
 
-      return NextResponse.redirect(`${origin}${next}`);
+      const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+      return NextResponse.redirect(`${origin}${safeNext}`);
     }
   }
 

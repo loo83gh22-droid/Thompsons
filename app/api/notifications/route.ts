@@ -261,7 +261,7 @@ export async function GET(request: Request) {
       let sent = 0;
       for (const to of emails) {
         try {
-          await resend.emails.send({ from: fromEmail2, to, subject: `Family message: ${msg.title}`, html });
+          await resend.emails.send({ from: fromEmail2, to, subject: `Family message: ${safeTitle}`, html });
           sent++;
           scheduledMessagesSent.count++;
         } catch (err) {

@@ -2,9 +2,13 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { NextResponse } from "next/server";
 import { getFamilyPlan, canManageNestKeepers } from "@/src/lib/plans";
+import { checkHttpRateLimit, defaultLimiter } from "@/src/lib/httpRateLimit";
 
 // GET: Fetch nest keepers for the current family (owner-only)
-export async function GET() {
+export async function GET(request: Request) {
+  const limited = await checkHttpRateLimit(request, defaultLimiter);
+  if (limited) return limited;
+
   try {
     const supabase = await createClient();
     const {
@@ -53,6 +57,9 @@ export async function GET() {
 
 // POST: Add a new nest keeper (max 3 per family)
 export async function POST(request: Request) {
+  const limited = await checkHttpRateLimit(request, defaultLimiter);
+  if (limited) return limited;
+
   try {
     const supabase = await createClient();
     const {
@@ -145,6 +152,9 @@ export async function POST(request: Request) {
 
 // PUT: Update keeper details or priority
 export async function PUT(request: Request) {
+  const limited = await checkHttpRateLimit(request, defaultLimiter);
+  if (limited) return limited;
+
   try {
     const supabase = await createClient();
     const {
@@ -261,6 +271,9 @@ export async function PUT(request: Request) {
 
 // DELETE: Remove a nest keeper
 export async function DELETE(request: Request) {
+  const limited = await checkHttpRateLimit(request, defaultLimiter);
+  if (limited) return limited;
+
   try {
     const supabase = await createClient();
     const {

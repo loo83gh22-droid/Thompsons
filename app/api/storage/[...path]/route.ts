@@ -1,6 +1,19 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { NextResponse } from "next/server";
 
+const ALLOWED_BUCKETS = new Set([
+  "journal-photos",
+  "journal-videos",
+  "voice-memos",
+  "member-photos",
+  "artwork-photos",
+  "award-files",
+  "pet-photos",
+  "sports-photos",
+  "favourite-photos",
+  "death-box-files",
+]);
+
 /**
  * Authenticated storage proxy.
  *
@@ -36,6 +49,10 @@ export async function GET(
 
   const bucket = segments[0];
   const objectPath = segments.slice(1).join("/");
+
+  if (!ALLOWED_BUCKETS.has(bucket)) {
+    return new NextResponse("Not Found", { status: 404 });
+  }
 
   // 3. Generate a short-lived signed URL using the user's own session.
   //    60 seconds is enough — it's only used for the server-side fetch below.

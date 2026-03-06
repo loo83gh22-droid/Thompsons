@@ -2,8 +2,12 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/src/lib/supabase/server";
 import { stripe } from "@/src/lib/stripe";
 import { getActiveFamilyId } from "@/src/lib/family";
+import { checkHttpRateLimit, strictLimiter } from "@/src/lib/httpRateLimit";
 
-export async function POST() {
+export async function POST(request: Request) {
+  const limited = await checkHttpRateLimit(request, strictLimiter);
+  if (limited) return limited;
+
   try {
     const supabase = await createClient();
     const {

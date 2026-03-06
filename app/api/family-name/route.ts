@@ -1,8 +1,12 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { checkHttpRateLimit, defaultLimiter } from "@/src/lib/httpRateLimit";
 
 export async function PUT(request: Request) {
+  const limited = await checkHttpRateLimit(request, defaultLimiter);
+  if (limited) return limited;
+
   try {
     const supabase = await createClient();
     const {

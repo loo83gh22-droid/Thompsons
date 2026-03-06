@@ -58,7 +58,7 @@ function LoginForm() {
   useEffect(() => {
     if (isSignUp || isInvited) return;
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) router.replace(next.startsWith("/") ? next : "/dashboard");
+      if (session) router.replace(next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard");
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -106,7 +106,7 @@ function LoginForm() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        router.push(next.startsWith("/") ? next : "/dashboard");
+        router.push(next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard");
         router.refresh();
       }
     } catch (err: unknown) {
