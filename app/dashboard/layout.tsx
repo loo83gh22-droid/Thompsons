@@ -195,10 +195,25 @@ export default async function DashboardLayout({
       playlistId = familyRow?.spotify_playlist_id?.trim() || null;
     }
 
+    // Fetch onboarding counts for WelcomeModal — data-driven so it works cross-device
+    let welcomeMemberCount = 0;
+    let welcomePhotoCount = 0;
+    let welcomeJournalCount = 0;
+    if (activeFamilyId) {
+      const [membRes, photRes, jrnlRes] = await Promise.all([
+        supabase.from("family_members").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
+        supabase.from("home_mosaic_photos").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
+        supabase.from("journal_entries").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
+      ]);
+      welcomeMemberCount = membRes.count ?? 0;
+      welcomePhotoCount = photRes.count ?? 0;
+      welcomeJournalCount = jrnlRes.count ?? 0;
+    }
+
     return (
       <FamilyProvider activeFamilyId={activeFamilyId} families={families} currentUserRole={currentUserRole} currentMemberId={currentMemberId} planType={planType}>
         {activeFamilyId && <MosaicBackground activeFamilyId={activeFamilyId} />}
-        <WelcomeModal familyName={familyName} />
+        <WelcomeModal familyName={familyName} memberCount={welcomeMemberCount} photoCount={welcomePhotoCount} journalCount={welcomeJournalCount} />
         <BirthdayPrompt />
         <FeedbackPromptModal />
         {/* Quick entry widget: desktop only — mobile uses MobileBottomNav FAB instead */}

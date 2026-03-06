@@ -6,21 +6,46 @@ import Link from "next/link";
 const COMPLETED_KEY = "family-nest-welcome-completed";
 const STEP_KEY = "family-nest-welcome-step";
 
-export function WelcomeModal({ familyName }: { familyName: string }) {
+export function WelcomeModal({
+  familyName,
+  memberCount,
+  photoCount,
+  journalCount,
+}: {
+  familyName: string;
+  memberCount: number;
+  photoCount: number;
+  journalCount: number;
+}) {
   const [open, setOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+
+  // Determine step completion from real data — works across all devices/browsers
+  const step0Done = memberCount >= 2;
+  const step1Done = photoCount >= 1;
+  const step2Done = journalCount >= 1;
+  const allDataDone = step0Done && step1Done && step2Done;
 
   const openModal = useCallback(() => {
     try {
       const savedStep = localStorage.getItem(STEP_KEY);
-      if (savedStep) setCurrentStep(parseInt(savedStep, 10));
+      if (savedStep) {
+        setCurrentStep(parseInt(savedStep, 10));
+      } else {
+        // Start at the first incomplete step so users aren't re-prompted for done actions
+        const stepsDone = [step0Done, step1Done, step2Done];
+        const firstIncomplete = stepsDone.findIndex((d) => !d);
+        if (firstIncomplete >= 0) setCurrentStep(firstIncomplete);
+      }
     } catch { /* ignore */ }
     setOpen(true);
-  }, []);
+  }, [step0Done, step1Done, step2Done]);
 
   useEffect(() => {
     try {
       if (typeof window === "undefined") return;
+      // Never show if all steps are already done — data-driven check works cross-device
+      if (allDataDone) return;
       const completed = localStorage.getItem(COMPLETED_KEY);
       if (!completed) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -30,7 +55,7 @@ export function WelcomeModal({ familyName }: { familyName: string }) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpen(true);
     }
-  }, [openModal]);
+  }, [openModal, allDataDone]);
 
   // Listen for "reopen welcome tour" events from other components
   useEffect(() => {
