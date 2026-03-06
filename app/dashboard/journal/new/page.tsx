@@ -87,8 +87,8 @@ export default function NewJournalPage() {
       const formData = new FormData();
       selectedMemberIds.forEach((id) => formData.append("member_ids", id));
 
-      // Title is optional — fall back to a date-based title
-      const rawTitle = (form.elements.namedItem("title") as HTMLInputElement).value.trim();
+      // Title is optional — fall back to a date-based title (element may not exist when optionals are collapsed)
+      const rawTitle = (form.elements.namedItem("title") as HTMLInputElement | null)?.value.trim() ?? "";
       formData.set("title", rawTitle || formatDateTitle(date));
 
       formData.set("content", (form.elements.namedItem("content") as HTMLTextAreaElement).value);
