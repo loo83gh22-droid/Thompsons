@@ -15,7 +15,16 @@ import { NextResponse } from "next/server";
 function makeLimiter(requests: number, window: `${number} ${"s" | "m" | "h" | "d"}`) {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return null;
+  if (!url || !token) {
+    // R1: Warn loudly in production so a misconfigured deployment is immediately visible.
+    if (process.env.NODE_ENV === "production") {
+      console.error(
+        "[httpRateLimit] UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN is not set — " +
+          "rate limiting is DISABLED. Set these env vars in Vercel to re-enable."
+      );
+    }
+    return null;
+  }
   return new Ratelimit({
     redis: new Redis({ url, token }),
     limiter: Ratelimit.slidingWindow(requests, window),
@@ -45,7 +54,16 @@ export async function checkHttpRateLimit(
     request.headers.get("x-real-ip") ??
     "anonymous";
 
-  const { success, limit, remaining, reset } = await limiter.limit(ip);
+  // R2: Fail open if Upstash is unreachable at runtime (network blip, maintenance).
+  // This keeps the app functional rather than returning 500 for all rate-limited endpoints.
+  let result: { success: boolean; limit: number; remaining: number; reset: number };
+  try {
+    result = await limiter.limit(ip);
+  } catch (err) {
+    console.error("[httpRateLimit] Upstash unreachable, failing open:", err);
+    return null;
+  }
+  const { success, limit, remaining, reset } = result;
 
   if (!success) {
     return NextResponse.json(

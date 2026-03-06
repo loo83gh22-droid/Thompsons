@@ -150,7 +150,7 @@ export async function POST() {
     // Verify Legacy plan
     const { data: family } = await supabase
       .from("families")
-      .select("name, plan_type")
+      .select("name, plan_type, storage_used_bytes")
       .eq("id", activeFamilyId)
       .single();
 
@@ -158,6 +158,20 @@ export async function POST() {
       return NextResponse.json(
         { error: "Data export is only available on the Legacy plan." },
         { status: 403 }
+      );
+    }
+
+    // R3: Guard against OOM on Vercel (1 GB function memory limit).
+    // ZIP builds all media in-memory before uploading; very large families can exceed it.
+    const MAX_EXPORT_BYTES = 750 * 1024 * 1024; // 750 MB
+    if ((family?.storage_used_bytes ?? 0) > MAX_EXPORT_BYTES) {
+      return NextResponse.json(
+        {
+          error:
+            "Your family's archive is too large to export automatically (> 750 MB). " +
+            "Please contact support and we'll prepare a manual export for you.",
+        },
+        { status: 413 }
       );
     }
 

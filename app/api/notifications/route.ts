@@ -73,6 +73,9 @@ export async function GET(request: Request) {
   const todayStr = today.toISOString().slice(0, 10);
   const dayOfWeek = today.getDay(); // 0 = Sunday
   const threeDaysOut = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  // R4: One extra day gives a retry window if the cron failed the previous day.
+  const fourDaysOut = new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const yesterdayStr = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
   const results = {
     birthdayReminders: 0,
@@ -96,15 +99,18 @@ export async function GET(request: Request) {
       .select("id, name, nickname, birth_date, family_id")
       .not("birth_date", "is", null);
 
+    // R4: Match 3-4 days out (MM-DD only) so a missed cron day still delivers the reminder.
+    // Deduplication below (via email_campaigns) prevents duplicate sends.
     const birthdayMembers = (allMembers ?? []).filter((m) => {
       if (!m.birth_date) return false;
-      return m.birth_date.slice(5) === threeDaysOut.slice(5); // MM-DD match
+      const mmdd = m.birth_date.slice(5);
+      return mmdd === threeDaysOut.slice(5) || mmdd === fourDaysOut.slice(5);
     });
 
     for (const bm of birthdayMembers) {
       const { data: familyMembers } = await supabase
         .from("family_members")
-        .select("contact_email, name")
+        .select("id, contact_email, name")
         .eq("family_id", bm.family_id)
         .eq("email_notifications", true)
         .in("role", ["owner", "adult"])
@@ -120,14 +126,31 @@ export async function GET(request: Request) {
         : null;
       const ageText = turningAge ? ` (turning ${turningAge})` : "";
 
+      // R4: Deduplicate per recipient per birthday-year so the 3→4 day retry window
+      // never sends twice even if Resend succeeds on both days.
+      const campaignType = `birthday_${today.getFullYear()}_${bm.id}`;
+
       for (const fm of familyMembers ?? []) {
         if (!fm.contact_email) continue;
+        // Check if we already sent this birthday reminder to this recipient
+        const { data: alreadySent } = await supabase
+          .from("email_campaigns")
+          .select("id")
+          .eq("family_member_id", fm.id)
+          .eq("campaign_type", campaignType)
+          .maybeSingle();
+        if (alreadySent) continue;
+
         try {
           await resend.emails.send({
             from: fromEmail,
             to: fm.contact_email,
             subject: `🎂 ${esc(displayName)}'s birthday is in 3 days!`,
             html: birthdayEmailHtml(displayName, ageText, fm.name),
+          });
+          await supabase.from("email_campaigns").insert({
+            family_member_id: fm.id,
+            campaign_type: campaignType,
           });
           results.birthdayReminders++;
         } catch (err) {
@@ -141,10 +164,12 @@ export async function GET(request: Request) {
 
   // ── 2. Time capsule unlock notifications ──
   try {
+    // R4: Also pick up yesterday's unlocks in case the cron missed a run.
+    // Deduplication via email_campaigns prevents double-sends.
     const { data: capsules } = await supabase
       .from("time_capsules")
       .select("id, title, family_id, to_family_member_id, from_family_member_id, unlock_date")
-      .eq("unlock_date", todayStr);
+      .in("unlock_date", [todayStr, yesterdayStr]);
 
     for (const cap of capsules ?? []) {
       const { data: recipient } = await supabase
@@ -154,6 +179,16 @@ export async function GET(request: Request) {
         .single();
 
       if (!recipient?.contact_email) continue;
+
+      // R4: Dedup — skip if we already notified this recipient about this capsule.
+      const capsuleCampaignType = `capsule_unlock_${cap.id}`;
+      const { data: capsuleAlreadySent } = await supabase
+        .from("email_campaigns")
+        .select("id")
+        .eq("family_member_id", cap.to_family_member_id)
+        .eq("campaign_type", capsuleCampaignType)
+        .maybeSingle();
+      if (capsuleAlreadySent) continue;
 
       let senderName = "Someone in your family";
       if (cap.from_family_member_id) {
@@ -175,6 +210,10 @@ export async function GET(request: Request) {
             senderName,
             cap.title
           ),
+        });
+        await supabase.from("email_campaigns").insert({
+          family_member_id: cap.to_family_member_id,
+          campaign_type: capsuleCampaignType,
         });
         results.capsuleUnlocks++;
       } catch (err) {

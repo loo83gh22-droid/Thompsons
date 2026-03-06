@@ -60,7 +60,10 @@ export default function LocationInput({
 
     debounceRef.current = setTimeout(async () => {
       try {
-        // Try Google Geocoding API first if key available
+        // Try Google Geocoding API first if key available.
+        // S1 IMPORTANT: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is embedded in client JS.
+        // The key MUST be restricted to HTTP referrers (familynest.io, thompsons.vercel.app)
+        // in Google Cloud Console → Credentials to prevent quota theft.
         const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
         if (apiKey) {
           const res = await fetch(
