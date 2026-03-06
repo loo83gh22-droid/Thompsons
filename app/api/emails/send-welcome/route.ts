@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     // Send email
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'Family Nest <notifications@resend.dev>',
+      from: process.env.RESEND_FROM_EMAIL || 'Family Nest <hello@send.familynest.io>',
       to: email,
       subject: `You're in! ${safeFamilyName}'s Nest is ready`,
       html: emailHtml,

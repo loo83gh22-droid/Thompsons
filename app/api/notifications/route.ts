@@ -28,7 +28,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const resendKey = process.env.RESEND_API_KEY;
 const cronSecret = process.env.CRON_SECRET;
-const fromEmail = process.env.RESEND_FROM_EMAIL || "Family Nest <notifications@resend.dev>";
+const fromEmail = process.env.RESEND_FROM_EMAIL || "Family Nest <hello@send.familynest.io>";
 
 /** Minimal shape of a family_member row as returned by the drip campaign queries. */
 interface DripMember {

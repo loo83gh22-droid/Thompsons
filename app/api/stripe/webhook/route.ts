@@ -6,7 +6,7 @@ import { Resend } from "resend";
 import type Stripe from "stripe";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const fromEmail = process.env.RESEND_FROM_EMAIL || "Family Nest <notifications@resend.dev>";
+const fromEmail = process.env.RESEND_FROM_EMAIL || "Family Nest <hello@send.familynest.io>";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 

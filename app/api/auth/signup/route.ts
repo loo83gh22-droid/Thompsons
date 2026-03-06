@@ -13,7 +13,7 @@ import { checkHttpRateLimit, strictLimiter } from "@/src/lib/httpRateLimit";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const resendKey = process.env.RESEND_API_KEY;
-const fromEmail = process.env.RESEND_FROM_EMAIL || "Family Nest <onboarding@resend.dev>";
+const fromEmail = process.env.RESEND_FROM_EMAIL || "Family Nest <hello@send.familynest.io>";
 
 function esc(s: string): string {
   return s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
