@@ -66,8 +66,9 @@ export async function POST(request: NextRequest) {
       subject: "We got your message — Family Nest",
       html: buildConfirmationEmail(safeName, safeCategory, safeMessage),
     });
-  } catch {
+  } catch (err) {
     // Confirmation failure is non-fatal — admin already notified
+    console.error("[contact] Confirmation email failed for", email.trim(), err);
   }
 
   return NextResponse.json({ success: true });

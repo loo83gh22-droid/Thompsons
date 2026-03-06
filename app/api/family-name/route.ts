@@ -56,8 +56,10 @@ export async function PUT(request: Request) {
       .select("id, name")
       .maybeSingle();
 
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error("[family-name PUT]", error.message);
+      return NextResponse.json({ error: "Failed to update family name" }, { status: 500 });
+    }
 
     if (!updated) {
       return NextResponse.json(

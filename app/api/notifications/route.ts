@@ -760,5 +760,10 @@ export async function GET(request: Request) {
     results.errors.push(`Storage grace period handler: ${err}`);
   }
 
+  if (results.errors.length > 0) {
+    console.error(`[notifications cron] Completed with ${results.errors.length} error(s):`, results.errors);
+    return NextResponse.json(results, { status: 500 });
+  }
+
   return NextResponse.json(results);
 }

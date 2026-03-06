@@ -43,8 +43,10 @@ export async function GET(request: Request) {
       .eq("family_id", activeFamilyId)
       .order("priority", { ascending: true });
 
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error("[nest-keepers GET]", error.message);
+      return NextResponse.json({ error: "Failed to load nest keepers" }, { status: 500 });
+    }
 
     return NextResponse.json({ keepers: data });
   } catch {
@@ -138,8 +140,10 @@ export async function POST(request: Request) {
       .select()
       .single();
 
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error("[nest-keepers POST]", error.message);
+      return NextResponse.json({ error: "Failed to add nest keeper" }, { status: 500 });
+    }
 
     return NextResponse.json({ keeper: data }, { status: 201 });
   } catch {
@@ -262,8 +266,10 @@ export async function PUT(request: Request) {
       .select()
       .single();
 
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error("[nest-keepers PUT]", error.message);
+      return NextResponse.json({ error: "Failed to update nest keeper" }, { status: 500 });
+    }
 
     return NextResponse.json({ keeper: data });
   } catch {
@@ -316,8 +322,10 @@ export async function DELETE(request: Request) {
       .eq("id", id)
       .eq("family_id", activeFamilyId);
 
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error("[nest-keepers DELETE]", error.message);
+      return NextResponse.json({ error: "Failed to remove nest keeper" }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true });
   } catch {

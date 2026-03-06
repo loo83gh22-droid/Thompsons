@@ -360,7 +360,8 @@ export async function POST(request: Request) {
       }
 
       default:
-        // Unhandled event type — ignored
+        // Unhandled event type — log so we notice new Stripe event types
+        console.warn(`[stripe-webhook] Unhandled event type: ${event.type}`);
         break;
     }
   } catch (err) {

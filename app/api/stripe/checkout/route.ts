@@ -44,10 +44,9 @@ export async function POST(request: Request) {
 
     const priceId = STRIPE_PRICES[plan];
     if (!priceId) {
+      console.error(`[stripe-checkout] Price not configured for plan: ${plan}. Set STRIPE_PRICE_${plan.toUpperCase()} env var.`);
       return NextResponse.json(
-        {
-          error: `Stripe price not configured for ${plan} plan. Set STRIPE_PRICE_${plan.toUpperCase()} env var.`,
-        },
+        { error: "This plan is not available. Please contact support." },
         { status: 500 }
       );
     }

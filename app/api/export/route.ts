@@ -121,7 +121,8 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ export: exportJob });
-  } catch {
+  } catch (err) {
+    console.error("[export GET] Unexpected error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -624,6 +625,7 @@ Notes
         },
       });
     } catch (buildErr) {
+      console.error("[export] ZIP build failed:", buildErr);
       // Mark job as failed
       await supabase
         .from("family_exports")
@@ -644,7 +646,8 @@ Notes
         { status: 500 }
       );
     }
-  } catch {
+  } catch (err) {
+    console.error("[export POST] Unexpected error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -273,8 +273,8 @@ export async function addFamilyMember(
     try {
       const familyName = await getActiveFamilyName(supabase);
       await sendInviteEmail(trimmedEmail, name.trim(), familyName, member?.id);
-    } catch {
-      // Non-blocking
+    } catch (err) {
+      console.error("[addFamilyMember] Invite email failed for", trimmedEmail, err);
     }
   }
 
@@ -424,8 +424,8 @@ export async function updateFamilyMember(
       try {
         const familyName = await getActiveFamilyName(supabase);
         await sendInviteEmail(trimmedEmail, name.trim(), familyName);
-      } catch {
-        // Non-blocking
+      } catch (err) {
+        console.error("[updateFamilyMember] Invite email failed for", trimmedEmail, err);
       }
     }
   }

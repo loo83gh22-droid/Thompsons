@@ -64,8 +64,8 @@ export async function POST(request: NextRequest) {
     });
 
     if (emailError) {
-      console.error('Error sending welcome email:', emailError);
-      return NextResponse.json({ error: emailError.message }, { status: 500 });
+      console.error('[send-welcome] Resend error:', emailError);
+      return NextResponse.json({ error: 'Failed to send welcome email' }, { status: 500 });
     }
 
     // Track email sent
@@ -78,9 +78,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, emailId: emailData?.id });
   } catch (error: unknown) {
-    console.error('Error in send-welcome:', error);
+    console.error('[send-welcome] Unexpected error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
