@@ -99,8 +99,8 @@ failures to a `failed_email_queue` table and retry on next cron run if the windo
 ### S1 — Google Maps API key is client-exposed; referrer restriction status unknown
 **File:** `app/components/LocationInput.tsx:64`, `app/dashboard/map/AddLocationForm.tsx`
 **Severity:** Medium
-**Status:** Code comment added (2026-03-06). GCP Console restriction is a manual step — owner must
-verify/set HTTP referrer restrictions to `familynest.io/*` and `thompsons.vercel.app/*`.
+**Status:** ✅ FIXED — GCP Console confirmed (2026-03-06). HTTP referrer restrictions active:
+`*.familynest.io/*`, `familynest.io/*`, `localhost:3000/*`, `thompsons.vercel.app/*`.
 
 `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` is embedded in client-side JS and used to call the Google Geocoding API
 directly from the browser. This is the standard pattern for client-side Maps usage, but the key **must** be
