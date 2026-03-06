@@ -23,12 +23,14 @@ export function OurFamilyClient({
   activityByMember,
   aliasMap = {},
   derivedRelationshipMap = {},
+  viewerIsAdminOrOwner = false,
 }: {
   members: OurFamilyMember[];
   relationships: OurFamilyRelationship[];
   activityByMember: Record<string, MemberActivity>;
   aliasMap?: Record<string, string>;
   derivedRelationshipMap?: Record<string, string>;
+  viewerIsAdminOrOwner?: boolean;
 }) {
   const [view, setView] = useState<View>(() => {
     if (typeof window === "undefined") return "tree";
@@ -127,6 +129,7 @@ export function OurFamilyClient({
             relationships={relationships}
             activity={activityByMember[selectedMember.id]}
             derivedRelationshipMap={derivedRelationshipMap}
+            viewerIsAdminOrOwner={viewerIsAdminOrOwner}
             onClose={() => setSelectedMemberId(null)}
           />
         )}

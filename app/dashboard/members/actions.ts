@@ -148,7 +148,7 @@ export async function resendInviteEmail(
 
   const { data: member } = await supabase
     .from("family_members")
-    .select("name, contact_email, user_id")
+    .select("name, contact_email, user_id, role")
     .eq("id", memberId)
     .eq("family_id", activeFamilyId)
     .single();
@@ -156,6 +156,7 @@ export async function resendInviteEmail(
   if (!member) return { success: false, error: "Member not found" };
   if (member.user_id) return { success: false, error: "This member has already joined." };
   if (!member.contact_email?.trim()) return { success: false, error: "No email address on file for this member." };
+  if (member.role === "child") return { success: false, error: "Cannot send invite emails to child accounts." };
 
   try {
     const familyName = await getActiveFamilyName(supabase);
@@ -266,8 +267,9 @@ export async function addFamilyMember(
   }
 
   // Send invite email when adding a member with an email (server-only, no public API)
+  // Never send invite emails to child-role members — they can't log in.
   const trimmedEmail = email?.trim();
-  if (trimmedEmail) {
+  if (trimmedEmail && role !== "child") {
     try {
       const familyName = await getActiveFamilyName(supabase);
       await sendInviteEmail(trimmedEmail, name.trim(), familyName, member?.id);
@@ -409,15 +411,16 @@ export async function updateFamilyMember(
 
   // Send invite email ONLY when a new email is being added to a member who hasn't signed up yet
   // (i.e., the email field is changing from blank/different to a new value)
+  // Never send to child-role members — they can't log in.
   const trimmedEmail = email?.trim();
   if (trimmedEmail) {
     const { data: memberRow } = await supabase
       .from("family_members")
-      .select("user_id, contact_email")
+      .select("user_id, contact_email, role")
       .eq("id", id)
       .single();
     const emailChanged = memberRow && memberRow.contact_email?.trim() !== trimmedEmail;
-    if (emailChanged && !memberRow.user_id) {
+    if (emailChanged && !memberRow.user_id && memberRow.role !== "child") {
       try {
         const familyName = await getActiveFamilyName(supabase);
         await sendInviteEmail(trimmedEmail, name.trim(), familyName);

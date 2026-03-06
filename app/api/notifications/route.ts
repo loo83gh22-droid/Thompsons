@@ -107,6 +107,7 @@ export async function GET(request: Request) {
         .select("contact_email, name")
         .eq("family_id", bm.family_id)
         .eq("email_notifications", true)
+        .in("role", ["owner", "adult"])
         .not("contact_email", "is", null)
         .neq("id", bm.id);
 

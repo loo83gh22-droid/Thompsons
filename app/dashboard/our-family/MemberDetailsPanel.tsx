@@ -62,6 +62,7 @@ export function MemberDetailsPanel({
   relationships,
   activity,
   derivedRelationshipMap = {},
+  viewerIsAdminOrOwner = false,
   onClose,
 }: {
   member: OurFamilyMember;
@@ -69,6 +70,7 @@ export function MemberDetailsPanel({
   relationships: OurFamilyRelationship[];
   activity?: MemberActivity;
   derivedRelationshipMap?: Record<string, string>;
+  viewerIsAdminOrOwner?: boolean;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -462,8 +464,8 @@ export function MemberDetailsPanel({
           </div>
         </div>
 
-        {/* Role management (owner only, non-owner targets) */}
-        {member.role !== "owner" && (
+        {/* Role management (owner/adult only, non-owner targets) */}
+        {viewerIsAdminOrOwner && member.role !== "owner" && (
           <div className="border-t border-[var(--border)] pt-4">
             <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
               Access Level
@@ -496,8 +498,8 @@ export function MemberDetailsPanel({
           </div>
         )}
 
-        {/* Kid link (for child/teen members) */}
-        {(member.role === "child" || member.role === "teen") && (
+        {/* Kid link (owner/adult only, for child/teen members) */}
+        {viewerIsAdminOrOwner && (member.role === "child" || member.role === "teen") && (
           <div className="border-t border-[var(--border)] pt-4">
             <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
               Kid Link
@@ -565,20 +567,22 @@ export function MemberDetailsPanel({
         )}
 
         <div className="flex flex-col gap-2 border-t border-[var(--border)] pt-4">
-          <button
-            type="button"
-            onClick={() => { resetEditState(); setEditing(true); }}
-            className="rounded-lg border border-[var(--border)] px-4 py-2 text-center text-sm font-medium hover:bg-[var(--surface-hover)]"
-          >
-            Edit Profile
-          </button>
+          {viewerIsAdminOrOwner && (
+            <button
+              type="button"
+              onClick={() => { resetEditState(); setEditing(true); }}
+              className="rounded-lg border border-[var(--border)] px-4 py-2 text-center text-sm font-medium hover:bg-[var(--surface-hover)]"
+            >
+              Edit Profile
+            </button>
+          )}
           <Link
             href="/dashboard/messages"
             className="rounded-lg border border-[var(--border)] px-4 py-2 text-center text-sm font-medium hover:bg-[var(--surface-hover)]"
           >
             Send Message
           </Link>
-          {status === "pending_invitation" && (
+          {viewerIsAdminOrOwner && status === "pending_invitation" && (
             <button
               type="button"
               disabled={resending}
@@ -601,14 +605,16 @@ export function MemberDetailsPanel({
                 : "Resend Invitation"}
             </button>
           )}
-          <button
-            type="button"
-            onClick={handleRemove}
-            disabled={removing}
-            className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 disabled:opacity-50"
-          >
-            {removing ? "Removing…" : "Remove Member"}
-          </button>
+          {viewerIsAdminOrOwner && (
+            <button
+              type="button"
+              onClick={handleRemove}
+              disabled={removing}
+              className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 disabled:opacity-50"
+            >
+              {removing ? "Removing…" : "Remove Member"}
+            </button>
+          )}
         </div>
         </>}
       </div>

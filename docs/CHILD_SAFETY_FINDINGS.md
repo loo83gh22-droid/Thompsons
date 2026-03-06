@@ -7,7 +7,7 @@ Auditor: Claude Sonnet 4.6
 
 ## Content Access (A#)
 
-### A1 — Child PII Exposed to All Logged-In Family Members (Medium)
+### ✅ FIXED — A1 — Child PII Exposed to All Logged-In Family Members (Medium)
 
 **Files:**
 - `app/dashboard/our-family/page.tsx` line 67
@@ -23,7 +23,7 @@ A teen member who is logged in can see all other members' full PII including bir
 
 ---
 
-### A2 — MemberDetailsPanel Renders Admin Controls Without Role Gate (Low / UI Only)
+### ✅ FIXED — A2 — MemberDetailsPanel Renders Admin Controls Without Role Gate (Low / UI Only)
 
 **File:** `app/dashboard/our-family/MemberDetailsPanel.tsx` lines 59–73 (no `currentUserRole` prop)
 
@@ -35,7 +35,7 @@ A teen member who is logged in can see all other members' full PII including bir
 
 ## Data & Accounts (D#)
 
-### D1 — Invite Emails Sent to Child Member Email Addresses (High)
+### ✅ FIXED — D1 — Invite Emails Sent to Child Member Email Addresses (High)
 
 **File:** `app/dashboard/members/actions.ts` lines 268–277 and 419–427
 
@@ -61,7 +61,7 @@ Apply the same `detectedRole !== "child"` guard at line 419–427.
 
 ---
 
-### D2 — `resendInviteEmail` Lacks Child Role Check (High)
+### ✅ FIXED — D2 — `resendInviteEmail` Lacks Child Role Check (High)
 
 **File:** `app/dashboard/members/actions.ts` lines 139–165
 
@@ -77,7 +77,7 @@ if (member.role === "child") return { success: false, error: "Cannot send invite
 
 ---
 
-### D3 — Birthday Notification Emails Not Filtered by Recipient Role (Low)
+### ✅ FIXED — D3 — Birthday Notification Emails Not Filtered by Recipient Role (Low)
 
 **File:** `app/api/notifications/route.ts` lines 104–128
 

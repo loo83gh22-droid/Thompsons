@@ -42,18 +42,19 @@ export default async function OurFamilyPage() {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return null;
 
-  // Load current user's member record for alias lookups
+  // Load current user's member record for alias lookups and role-based filtering
   const {
     data: { user },
   } = await supabase.auth.getUser();
   const { data: currentMember } = user
     ? await supabase
         .from("family_members")
-        .select("id")
+        .select("id, role")
         .eq("user_id", user.id)
         .eq("family_id", activeFamilyId)
         .single()
     : { data: null };
+  const viewerIsAdminOrOwner = ["owner", "adult"].includes(currentMember?.role ?? "");
 
   const [
     { data: members },
@@ -97,6 +98,7 @@ export default async function OurFamilyPage() {
 
   // Compute viewer-relative relationship labels (e.g. "Father-in-Law" for a
   // spouse looking at their partner's parent who is labeled "Father").
+  // Uses raw members (relationship labels are not sensitive).
   const derivedRelationshipMap: Record<string, string> = currentMember
     ? buildDerivedRelationshipMap(
         currentMember.id,
@@ -105,8 +107,16 @@ export default async function OurFamilyPage() {
       )
     : {};
 
+  // Redact sensitive fields on child-role members for non-owner/adult viewers
+  const safeMembers = (members ?? []).map((m) => {
+    if (!viewerIsAdminOrOwner && m.role === "child") {
+      return { ...m, contact_email: null, birth_date: null, birth_place: null, kid_access_token: null };
+    }
+    return m;
+  });
+
   const activityByMember: Record<string, MemberActivity> = {};
-  (members ?? []).forEach((m) => {
+  safeMembers.forEach((m) => {
     activityByMember[m.id] = { journalCount: 0, voiceCount: 0, photoCount: 0 };
   });
   (journalCountsRes.data ?? []).forEach((r: { author_id: string | null }) => {
@@ -130,21 +140,22 @@ export default async function OurFamilyPage() {
           </div>
           <AddMemberForm
             triggerClassName="min-h-[44px] shrink-0 rounded-full bg-[var(--primary)] px-5 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
-            linkMembers={members ?? []}
+            linkMembers={safeMembers}
           />
         </div>
       </div>
 
       <OurFamilyClient
-        members={(members ?? []) as OurFamilyMember[]}
+        members={safeMembers as OurFamilyMember[]}
         relationships={(relationships ?? []) as OurFamilyRelationship[]}
         activityByMember={activityByMember}
         aliasMap={aliasMap}
         derivedRelationshipMap={derivedRelationshipMap}
+        viewerIsAdminOrOwner={viewerIsAdminOrOwner}
       />
 
       {/* Personalize prompt — shown once until the user sets their names */}
-      {!hasPersonalized && (members ?? []).length > 1 && (
+      {!hasPersonalized && safeMembers.length > 1 && (
         <Link
           href="/dashboard/personalize"
           className="mt-8 flex items-center justify-between gap-4 rounded-2xl border border-[var(--accent)]/30 bg-[var(--accent)]/5 px-5 py-4 transition-colors hover:bg-[var(--accent)]/10"
