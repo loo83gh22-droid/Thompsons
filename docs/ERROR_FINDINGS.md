@@ -1,6 +1,6 @@
 # FamilyNest Error Handling & Observability Findings
 
-_Last audited: 2026-03-06_
+_Last audited: 2026-03-06 · All findings fixed as of 2026-03-06_
 
 Legend: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low · ✅ FIXED
 
@@ -8,7 +8,7 @@ Legend: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low · ✅ FIXED
 
 ## User-Facing Errors (U#)
 
-### U1 🔴 Raw Supabase/Resend error messages exposed to client
+### U1 ✅ FIXED Raw Supabase/Resend error messages exposed to client
 **Files:**
 - `app/api/send-welcome/route.ts` lines 68, 83–85 — `emailError.message` + raw caught error returned in JSON
 - `app/api/nest-keepers/route.ts` lines 46–47, 141–142, 265–266, 319–320 — four CRUD handlers all return `error.message`
@@ -19,7 +19,7 @@ Legend: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low · ✅ FIXED
 
 ---
 
-### U2 🟠 Stripe checkout exposes env-var names to client
+### U2 ✅ FIXED Stripe checkout exposes env-var names to client
 **File:** `app/api/stripe/checkout/route.ts` line 49
 **Code:** `error: \`Stripe price not configured … Set STRIPE_PRICE_${plan.toUpperCase()} env var.\``
 **Consequence:** Tells anyone who sends a bad plan name exactly which env vars are expected.
@@ -27,7 +27,7 @@ Legend: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low · ✅ FIXED
 
 ---
 
-### U3 🟡 24 / 31 dashboard modules have no `error.tsx` boundary
+### U3 ✅ FIXED 24 / 31 dashboard modules have no `error.tsx` boundary
 **Missing boundaries in:** achievements, artwork, awards, family-tree, favourites, feedback, import, journal, members, messages, music, onboarding, one-line, our-family, personalize, pets, photos, recipes, relationships, settings, sports, stories, time-capsules, timeline, traditions, trophy-case, voice-memos, workout
 **Has boundary:** `app/dashboard/error.tsx` (generic), `map/error.tsx`, `events/error.tsx`
 **Consequence:** An unhandled render error in any of these modules crashes the entire dashboard layout for the user.
@@ -35,14 +35,14 @@ Legend: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low · ✅ FIXED
 
 ---
 
-### U4 🔵 18 dashboard modules have no `loading.tsx` skeleton
+### U4 ✅ FIXED 18 dashboard modules have no `loading.tsx` skeleton
 **Missing:** achievements, artwork, awards, family-tree, favourites, feedback, import, members, messages, music, onboarding, one-line, personalize, relationships, settings, sports, trophy-case, workout
 **Consequence:** Blank page flash while data loads.
 **Fix:** Add minimal loading skeletons.
 
 ---
 
-### U5 🟠 Member invite email failures are silently swallowed — user thinks invite was sent
+### U5 ✅ FIXED Member invite email failures are silently swallowed — user thinks invite was sent
 **File:** `app/dashboard/members/actions.ts` lines 273–278 and 422–430
 **Code:** `catch { /* Non-blocking */ }` — no return value change, no log
 **Consequence:** Invite email silently fails; admin believes invite was dispatched.
@@ -52,14 +52,14 @@ Legend: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low · ✅ FIXED
 
 ## Silent Failures (F#)
 
-### F1 🔴 Stripe webhook: unhandled event types return HTTP 200 — Stripe marks as delivered
+### F1 ✅ FIXED Stripe webhook: unhandled event types return HTTP 200 — Stripe marks as delivered
 **File:** `app/api/stripe/webhook/route.ts` lines 362–374
 **Consequence:** Any new Stripe event type not in the handler's switch/if chain silently succeeds. Stripe will not retry; the event is lost.
 **Fix:** Add a default branch that returns `{ status: 400 }` (or 202 with a log) for unknown event types.
 
 ---
 
-### F2 🟠 Cron endpoints return HTTP 200 even when internal errors occur
+### F2 ✅ FIXED Cron endpoints return HTTP 200 even when internal errors occur
 **Files:**
 - `app/api/notifications/route.ts` line 763 — always `NextResponse.json(results)` with no status check on `results.errors`
 - `app/api/daily-report/route.ts` line 259 — always `{ success: true }` regardless of query failures
@@ -69,7 +69,7 @@ Legend: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low · ✅ FIXED
 
 ---
 
-### F3 🟠 Contact confirmation email swallowed with no log
+### F3 ✅ FIXED Contact confirmation email swallowed with no log
 **File:** `app/api/contact/route.ts` lines 61–71
 **Code:** `catch { /* Confirmation failure is non-fatal */ }` — empty catch, no `console.error`
 **Consequence:** If Resend is down, users never receive the confirmation email and support has no visibility.
@@ -77,7 +77,7 @@ Legend: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low · ✅ FIXED
 
 ---
 
-### F4 🟠 Export ZIP failure swallowed with no log
+### F4 ✅ FIXED Export ZIP failure swallowed with no log
 **File:** `app/api/export/route.ts` lines 124–129
 **Code:** `catch { return NextResponse.json({ error: "Internal server error" }, { status: 500 }) }` — no logging
 **Consequence:** ZIP generation failures are invisible to operators.
@@ -85,7 +85,7 @@ Legend: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low · ✅ FIXED
 
 ---
 
-### F5 🟡 Junction-table inserts (journal / stories / voice-memos) have no error handling
+### F5 ✅ FIXED Junction-table inserts (journal / stories / voice-memos) have no error handling
 **Files:**
 - `app/dashboard/journal/actions.ts` lines 115–120, 216–223 — `journal_entry_members`, `travel_location_members` inserts
 - `app/dashboard/journal/actions.ts` lines 381–389 — delete-then-insert; if insert fails, associations are permanently lost
@@ -97,7 +97,7 @@ Legend: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low · ✅ FIXED
 
 ---
 
-### F6 🟡 Geocoding failures are completely silent (no logs)
+### F6 ✅ FIXED Geocoding failures are completely silent (no logs)
 **Files:**
 - `app/dashboard/journal/actions.ts` lines 225–227, 509–511
 - `app/dashboard/members/actions.ts` lines 264–266
@@ -108,7 +108,7 @@ Legend: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low · ✅ FIXED
 
 ---
 
-### F7 🟡 Storage rollback on journal photo/video insert failure — removal errors not logged
+### F7 ✅ FIXED Storage rollback on journal photo/video insert failure — removal errors not logged
 **File:** `app/dashboard/journal/actions.ts` lines 266–270, 316–320
 **Consequence:** If the storage `.remove()` call in the rollback path fails, the file is orphaned in storage and storage bytes are not decremented. No log.
 **Fix:** Check the `error` return from `.remove()` and log it.
