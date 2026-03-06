@@ -5,7 +5,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { findOrCreateLocationCluster } from "@/src/lib/locationClustering";
-import { getFamilyPlan, journalEntryLimit, canUploadVideos, enforceStorageLimit, addStorageUsage } from "@/src/lib/plans";
+import { getFamilyPlan, journalEntryLimit, canUploadVideos, enforceStorageLimit, addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
 import { VIDEO_LIMITS } from "@/src/lib/constants";
 import { getFormString } from "@/src/lib/validation/schemas";
 import { validateSchema } from "@/src/lib/validation/errors";
@@ -261,8 +261,14 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
         entry_id: entry.id,
         url: photoUrl,
         sort_order: i,
+        file_size_bytes: file.size,
       });
-      if (photoErr) continue;
+      if (photoErr) {
+        // Rollback: storage upload succeeded but DB insert failed (W6)
+        await supabase.storage.from("journal-photos").remove([path]);
+        await subtractStorageUsage(supabase, activeFamilyId, file.size);
+        continue;
+      }
 
       await supabase.from("home_mosaic_photos").insert({
         family_id: activeFamilyId,
@@ -299,7 +305,7 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
       // Track storage
       await addStorageUsage(supabase, activeFamilyId, file.size);
 
-      await supabase.from("journal_videos").insert({
+      const { error: videoErr } = await supabase.from("journal_videos").insert({
         family_id: activeFamilyId,
         entry_id: entry.id,
         url: `/api/storage/journal-videos/${path}`,
@@ -307,6 +313,11 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
         sort_order: i,
         uploaded_by: myMember?.id || null,
       });
+      if (videoErr) {
+        // Rollback: storage upload succeeded but DB insert failed (W6)
+        await supabase.storage.from("journal-videos").remove([path]);
+        await subtractStorageUsage(supabase, activeFamilyId, file.size);
+      }
     } catch {
       // Skip failed video — entry is still saved
     }
@@ -647,6 +658,14 @@ export async function deleteJournalPhoto(photoId: string, entryId?: string) {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
+  // Fetch before deleting so we can clean up storage (W1)
+  const { data: photo } = await supabase
+    .from("journal_photos")
+    .select("url, file_size_bytes")
+    .eq("id", photoId)
+    .eq("family_id", activeFamilyId)
+    .single();
+
   const { error } = await supabase
     .from("journal_photos")
     .delete()
@@ -654,8 +673,26 @@ export async function deleteJournalPhoto(photoId: string, entryId?: string) {
     .eq("family_id", activeFamilyId);
 
   if (error) throw error;
+
+  // Remove file from storage and clean up mosaic reference (W1)
+  if (photo?.url) {
+    const storagePath = photo.url.replace("/api/storage/journal-photos/", "");
+    await supabase.storage.from("journal-photos").remove([storagePath]);
+    // Delete the matching home_mosaic_photos row (same URL)
+    await supabase
+      .from("home_mosaic_photos")
+      .delete()
+      .eq("url", photo.url)
+      .eq("family_id", activeFamilyId);
+  }
+  if (photo?.file_size_bytes && photo.file_size_bytes > 0) {
+    await subtractStorageUsage(supabase, activeFamilyId, photo.file_size_bytes);
+  }
+
   revalidatePath("/dashboard/journal");
   if (entryId) revalidatePath(`/dashboard/journal/${entryId}/edit`);
+  revalidatePath("/");
+  revalidatePath("/dashboard/photos");
 }
 
 export async function addJournalPerspective(
@@ -888,13 +925,15 @@ export async function deleteJournalVideo(videoId: string, entryId?: string) {
 
   if (error) throw error;
 
-  // Remove storage object and decrement counter
+  // Remove storage object and decrement counter (W10)
   if (videoRow?.url) {
     const storagePath = videoRow.url.replace("/api/storage/journal-videos/", "");
-    await supabase.storage.from("journal-videos").remove([storagePath]);
+    const { error: storageErr } = await supabase.storage.from("journal-videos").remove([storagePath]);
+    if (storageErr) {
+      console.error("[deleteJournalVideo] storage removal failed:", storageErr.message);
+    }
   }
   if (videoRow?.file_size_bytes && activeFamilyId) {
-    const { subtractStorageUsage } = await import("@/src/lib/plans");
     await subtractStorageUsage(supabase, activeFamilyId, videoRow.file_size_bytes);
   }
 

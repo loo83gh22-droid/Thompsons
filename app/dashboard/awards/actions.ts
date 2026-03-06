@@ -3,7 +3,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
-import { enforceStorageLimit, addStorageUsage } from "@/src/lib/plans";
+import { enforceStorageLimit, addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
 import crypto from "crypto";
 
 export type AwardResult = { success: true; id: string } | { success: false; error: string };
@@ -74,14 +74,20 @@ export async function createAward(formData: FormData): Promise<AwardResult> {
           .upload(path, file, { upsert: true });
         if (uploadError) continue;
         await addStorageUsage(supabase, activeFamilyId, file.size);
-        await supabase.from("award_files").insert({
-          family_id: activeFamilyId,
-          award_id: award.id,
-          url: `/api/storage/award-files/${path}`,
-          file_type: detectFileType(file),
-          file_name: file.name,
-          sort_order: i,
+        const { error: fileErr } = await supabase.from("award_files").insert({
+          family_id:       activeFamilyId,
+          award_id:        award.id,
+          url:             `/api/storage/award-files/${path}`,
+          file_type:       detectFileType(file),
+          file_name:       file.name,
+          sort_order:      i,
+          file_size_bytes: file.size,
         });
+        if (fileErr) {
+          // Rollback: DB insert failed after storage upload succeeded (W7)
+          await supabase.storage.from("award-files").remove([path]);
+          await subtractStorageUsage(supabase, activeFamilyId, file.size);
+        }
       } catch { /* skip bad files */ }
     }
 
@@ -160,14 +166,20 @@ export async function updateAward(
             .upload(path, file, { upsert: true });
           if (uploadError) continue;
           await addStorageUsage(supabase, activeFamilyId, file.size);
-          await supabase.from("award_files").insert({
-            family_id: activeFamilyId,
-            award_id: awardId,
-            url: `/api/storage/award-files/${path}`,
-            file_type: detectFileType(file),
-            file_name: file.name,
-            sort_order: existing + i,
+          const { error: fileErr } = await supabase.from("award_files").insert({
+            family_id:       activeFamilyId,
+            award_id:        awardId,
+            url:             `/api/storage/award-files/${path}`,
+            file_type:       detectFileType(file),
+            file_name:       file.name,
+            sort_order:      existing + i,
+            file_size_bytes: file.size,
           });
+          if (fileErr) {
+            // Rollback: DB insert failed after storage upload succeeded (W7)
+            await supabase.storage.from("award-files").remove([path]);
+            await subtractStorageUsage(supabase, activeFamilyId, file.size);
+          }
         } catch { /* skip */ }
       }
     }
@@ -192,16 +204,18 @@ export async function deleteAward(awardId: string): Promise<{ error?: string }> 
     const { activeFamilyId } = await getActiveFamilyId(supabase);
     if (!activeFamilyId) return { error: "No active family" };
 
-    // Get files to clean up storage
+    // Get files to clean up storage and decrement counter (W5)
     const { data: files } = await supabase
       .from("award_files")
-      .select("url")
+      .select("url, file_size_bytes")
       .eq("award_id", awardId)
       .eq("family_id", activeFamilyId);
 
     if (files && files.length > 0) {
       const paths = files.map((f) => f.url.replace("/api/storage/award-files/", ""));
       await supabase.storage.from("award-files").remove(paths);
+      const totalBytes = files.reduce((s, f) => s + (f.file_size_bytes ?? 0), 0);
+      if (totalBytes > 0) await subtractStorageUsage(supabase, activeFamilyId, totalBytes);
     }
 
     // Get member IDs for revalidation before deleting
@@ -241,7 +255,7 @@ export async function deleteAwardFile(
 
     const { data: file } = await supabase
       .from("award_files")
-      .select("url")
+      .select("url, file_size_bytes")
       .eq("id", fileId)
       .eq("family_id", activeFamilyId)
       .single();
@@ -256,6 +270,11 @@ export async function deleteAwardFile(
       .delete()
       .eq("id", fileId)
       .eq("family_id", activeFamilyId);
+
+    // Decrement storage counter (W5)
+    if (file?.file_size_bytes && file.file_size_bytes > 0) {
+      await subtractStorageUsage(supabase, activeFamilyId, file.file_size_bytes);
+    }
 
     revalidatePath(`/dashboard/awards/${memberId}/${awardId}`);
     return {};

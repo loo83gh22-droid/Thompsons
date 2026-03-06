@@ -135,7 +135,11 @@ export async function removeVoiceMemo(id: string) {
   if (row?.audio_url) {
     const path = pathFromAudioUrl(row.audio_url);
     if (path) {
-      await supabase.storage.from("voice-memos").remove([path]);
+      const { error: storageErr } = await supabase.storage.from("voice-memos").remove([path]);
+      if (storageErr) {
+        console.error("[removeVoiceMemo] storage removal failed:", storageErr.message);
+        // Continue with DB deletion — counter will still be decremented (W11)
+      }
     }
   }
 

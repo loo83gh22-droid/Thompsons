@@ -3,7 +3,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
-import { enforceStorageLimit, addStorageUsage, getFamilyPlan, canSharePublicly } from "@/src/lib/plans";
+import { enforceStorageLimit, addStorageUsage, subtractStorageUsage, getFamilyPlan, canSharePublicly } from "@/src/lib/plans";
 import crypto from "crypto";
 import { Resend } from "resend";
 import { createAdminClient } from "@/src/lib/supabase/admin";
@@ -66,12 +66,18 @@ export async function createArtworkPiece(formData: FormData): Promise<ArtworkPie
           .upload(path, file, { upsert: true });
         if (uploadError) continue;
         await addStorageUsage(supabase, activeFamilyId, file.size);
-        await supabase.from("artwork_photos").insert({
+        const { error: photoErr } = await supabase.from("artwork_photos").insert({
           family_id: activeFamilyId,
           piece_id: piece.id,
           url: `/api/storage/artwork-photos/${path}`,
           sort_order: i,
+          file_size_bytes: file.size,
         });
+        if (photoErr) {
+          // Rollback: DB insert failed after storage upload succeeded (W8)
+          await supabase.storage.from("artwork-photos").remove([path]);
+          await subtractStorageUsage(supabase, activeFamilyId, file.size);
+        }
       } catch { /* skip bad photos */ }
     }
 
@@ -142,12 +148,18 @@ export async function updateArtworkPiece(
             .upload(path, file, { upsert: true });
           if (uploadError) continue;
           await addStorageUsage(supabase, activeFamilyId, file.size);
-          await supabase.from("artwork_photos").insert({
+          const { error: photoErr } = await supabase.from("artwork_photos").insert({
             family_id: activeFamilyId,
             piece_id: pieceId,
             url: `/api/storage/artwork-photos/${path}`,
             sort_order: existing + i,
+            file_size_bytes: file.size,
           });
+          if (photoErr) {
+            // Rollback: DB insert failed after storage upload succeeded (W8)
+            await supabase.storage.from("artwork-photos").remove([path]);
+            await subtractStorageUsage(supabase, activeFamilyId, file.size);
+          }
         } catch { /* skip */ }
       }
     }
@@ -522,6 +534,14 @@ export async function deleteArtworkPhoto(photoId: string, pieceId: string, membe
     const { activeFamilyId } = await getActiveFamilyId(supabase);
     if (!activeFamilyId) return { error: "No active family" };
 
+    // Fetch before deleting so we can clean up storage (W3)
+    const { data: photo } = await supabase
+      .from("artwork_photos")
+      .select("url, file_size_bytes")
+      .eq("id", photoId)
+      .eq("family_id", activeFamilyId)
+      .single();
+
     const { error } = await supabase
       .from("artwork_photos")
       .delete()
@@ -529,6 +549,15 @@ export async function deleteArtworkPhoto(photoId: string, pieceId: string, membe
       .eq("family_id", activeFamilyId);
 
     if (error) return { error: error.message };
+
+    // Remove file from storage and decrement counter (W3)
+    if (photo?.url) {
+      const storagePath = photo.url.replace("/api/storage/artwork-photos/", "");
+      await supabase.storage.from("artwork-photos").remove([storagePath]);
+    }
+    if (photo?.file_size_bytes && photo.file_size_bytes > 0) {
+      await subtractStorageUsage(supabase, activeFamilyId, photo.file_size_bytes);
+    }
 
     revalidatePath(`/dashboard/artwork/${memberId}/${pieceId}`);
     return {};

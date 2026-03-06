@@ -3,7 +3,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
-import { enforceStorageLimit, addStorageUsage } from "@/src/lib/plans";
+import { enforceStorageLimit, addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
 
 export async function addPhoto(file: File, takenAt?: string) {
   const supabase = await createClient();
@@ -54,11 +54,17 @@ export async function addPhoto(file: File, takenAt?: string) {
       sort_order: nextOrder,
       uploaded_by: myMember?.id || null,
       taken_at: takenAt || null,
+      file_size_bytes: file.size,
     })
     .select("id, url, sort_order, taken_at, created_at")
     .single();
 
-  if (insertError) throw insertError;
+  if (insertError) {
+    // Rollback: DB insert failed after storage upload succeeded (W2)
+    await supabase.storage.from("home-mosaic").remove([path]);
+    await subtractStorageUsage(supabase, activeFamilyId, file.size);
+    throw insertError;
+  }
 
   revalidatePath("/");
   revalidatePath("/dashboard/photos");
@@ -74,6 +80,14 @@ export async function removePhoto(id: string) {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
+  // Fetch before deleting so we can clean up storage (W2)
+  const { data: photo } = await supabase
+    .from("home_mosaic_photos")
+    .select("url, file_size_bytes")
+    .eq("id", id)
+    .eq("family_id", activeFamilyId)
+    .single();
+
   const { error } = await supabase
     .from("home_mosaic_photos")
     .delete()
@@ -81,6 +95,15 @@ export async function removePhoto(id: string) {
     .eq("family_id", activeFamilyId);
 
   if (error) throw error;
+
+  // Remove file from storage and decrement counter (W2)
+  if (photo?.url) {
+    const storagePath = photo.url.replace("/api/storage/home-mosaic/", "");
+    await supabase.storage.from("home-mosaic").remove([storagePath]);
+  }
+  if (photo?.file_size_bytes && photo.file_size_bytes > 0) {
+    await subtractStorageUsage(supabase, activeFamilyId, photo.file_size_bytes);
+  }
 
   revalidatePath("/");
   revalidatePath("/dashboard/photos");
