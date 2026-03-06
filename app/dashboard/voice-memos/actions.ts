@@ -71,9 +71,10 @@ export async function insertVoiceMemo(data: VoiceMemoInsert) {
   // Insert junction table rows for all selected members
   const ids = data.memberIds?.filter(Boolean) ?? [];
   if (row?.id && ids.length > 0) {
-    await supabase.from("voice_memo_members").insert(
+    const { error: junctionErr } = await supabase.from("voice_memo_members").insert(
       ids.map((memberId) => ({ voice_memo_id: row.id, family_member_id: memberId }))
     );
+    if (junctionErr) console.error("[insertVoiceMemo] voice_memo_members insert failed:", junctionErr.message);
   }
 
   revalidatePath("/dashboard/voice-memos");

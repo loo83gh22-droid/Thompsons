@@ -261,8 +261,8 @@ export async function addFamilyMember(
           is_birth_place: true,
         });
       }
-    } catch {
-      // Geocoding failed
+    } catch (geoErr) {
+      console.warn("[addFamilyMember] Geocoding failed:", geoErr);
     }
   }
 
@@ -404,8 +404,8 @@ export async function updateFamilyMember(
           is_birth_place: true,
         });
       }
-    } catch {
-      // Geocoding failed - birth place saved on member, just no map pin
+    } catch (geoErr) {
+      console.warn("[updateFamilyMember] Geocoding failed:", geoErr);
     }
   }
 

@@ -62,9 +62,10 @@ export async function createStory(
   // Insert junction table rows for all selected members
   const ids = memberIds?.filter(Boolean) ?? [];
   if (ids.length > 0) {
-    await supabase.from("family_story_members").insert(
+    const { error: junctionErr } = await supabase.from("family_story_members").insert(
       ids.map((memberId) => ({ story_id: row.id, family_member_id: memberId }))
     );
+    if (junctionErr) console.error("[createStory] family_story_members insert failed:", junctionErr.message);
   }
 
   return { id: row.id };

@@ -126,12 +126,13 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
 
     // Insert junction table rows for all selected members
     if (input.member_ids.length > 0) {
-      await supabase.from("journal_entry_members").insert(
+      const { error: junctionErr } = await supabase.from("journal_entry_members").insert(
         input.member_ids.map((memberId: string) => ({
           journal_entry_id: entry.id,
           family_member_id: memberId,
         }))
       );
+      if (junctionErr) console.error("[createJournalEntry] journal_entry_members insert failed:", junctionErr.message);
     }
 
   // If location provided, geocode (if needed) and create map pin with clustering
@@ -228,16 +229,18 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
 
         // Insert junction table rows for travel location members
         if (travelLoc?.id && input.member_ids.length > 0) {
-          await supabase.from("travel_location_members").insert(
+          const { error: locJunctionErr } = await supabase.from("travel_location_members").insert(
             input.member_ids.map((memberId: string) => ({
               travel_location_id: travelLoc.id,
               family_member_id: memberId,
             }))
           );
+          if (locJunctionErr) console.error("[createJournalEntry] travel_location_members insert failed:", locJunctionErr.message);
         }
       }
-    } catch {
+    } catch (geoErr) {
       // Geocoding failed - journal entry still saved, just no map pin
+      console.warn("[createJournalEntry] Geocoding failed:", geoErr);
     }
   }
 
@@ -279,7 +282,8 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
       });
       if (photoErr) {
         // Rollback: storage upload succeeded but DB insert failed (W6)
-        await supabase.storage.from("journal-photos").remove([path]);
+        const { error: removeErr } = await supabase.storage.from("journal-photos").remove([path]);
+        if (removeErr) console.error("[createJournalEntry] Photo rollback remove failed:", removeErr.message);
         await subtractStorageUsage(supabase, activeFamilyId, file.size);
         continue;
       }
@@ -329,7 +333,8 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
       });
       if (videoErr) {
         // Rollback: storage upload succeeded but DB insert failed (W6)
-        await supabase.storage.from("journal-videos").remove([path]);
+        const { error: removeErr } = await supabase.storage.from("journal-videos").remove([path]);
+        if (removeErr) console.error("[createJournalEntry] Video rollback remove failed:", removeErr.message);
         await subtractStorageUsage(supabase, activeFamilyId, file.size);
       }
     } catch {
@@ -394,12 +399,13 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
   // Update junction table: delete old, insert new
   await supabase.from("journal_entry_members").delete().eq("journal_entry_id", entryId);
   if (input.member_ids.length > 0) {
-    await supabase.from("journal_entry_members").insert(
+    const { error: junctionErr } = await supabase.from("journal_entry_members").insert(
       input.member_ids.map((memberId: string) => ({
         journal_entry_id: entryId,
         family_member_id: memberId,
       }))
     );
+    if (junctionErr) console.error("[updateJournalEntry] journal_entry_members insert failed:", junctionErr.message);
   }
 
   // Allow author override (writing on behalf of someone)
@@ -512,16 +518,18 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
 
         // Insert junction table rows for travel location members
         if (travelLoc?.id && input.member_ids.length > 0) {
-          await supabase.from("travel_location_members").insert(
+          const { error: locJunctionErr } = await supabase.from("travel_location_members").insert(
             input.member_ids.map((memberId: string) => ({
               travel_location_id: travelLoc.id,
               family_member_id: memberId,
             }))
           );
+          if (locJunctionErr) console.error("[updateJournalEntry] travel_location_members insert failed:", locJunctionErr.message);
         }
       }
-    } catch {
+    } catch (geoErr) {
       // Geocoding failed – entry updated, map pin may be missing
+      console.warn("[updateJournalEntry] Geocoding failed:", geoErr);
     }
   }
 
