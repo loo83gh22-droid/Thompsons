@@ -21,7 +21,13 @@ export async function MosaicBackground({ activeFamilyId }: { activeFamilyId: str
       .order("taken_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false })
       .limit(PHOTO_LIMITS.mosaicDisplayLimit);
-    urls = (photos || []).map((p) => p.url);
+    urls = (photos || []).map((p) => {
+      // Serve thumbnails via Supabase image transforms — tiles are max 280px wide
+      if (p.url && p.url.includes("supabase.co")) {
+        return `${p.url}?width=400&quality=70&resize=cover`;
+      }
+      return p.url;
+    });
   } catch {
     // Supabase unavailable - use fallback
   }
@@ -55,7 +61,7 @@ export async function MosaicBackground({ activeFamilyId }: { activeFamilyId: str
                   alt=""
                   role="presentation"
                   fill
-                  unoptimized
+                  sizes="280px"
                   className="object-cover"
                 />
               </div>

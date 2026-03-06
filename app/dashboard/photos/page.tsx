@@ -22,7 +22,8 @@ export default async function PhotosPage() {
     .select("id, url, sort_order, taken_at, created_at")
     .eq("family_id", activeFamilyId)
     .order("taken_at", { ascending: true, nullsFirst: false })
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true })
+    .limit(500);
 
   return (
     <div>

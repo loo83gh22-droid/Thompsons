@@ -32,7 +32,8 @@ export default async function JournalPage() {
     `)
     .eq("family_id", activeFamilyId)
     .order("trip_date", { ascending: false, nullsFirst: false })
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(50);
 
   // Batch fetch photos, videos, and perspective counts
   const photosByEntryId = new Map<string, { id: string; url: string; caption: string | null }[]>();

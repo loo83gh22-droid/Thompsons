@@ -201,7 +201,7 @@ function MemberRow({
           {/* Photo */}
           <div className="flex items-center gap-3">
             {displayPhoto ? (
-              <img src={displayPhoto} alt="" className="h-10 w-10 rounded-full object-cover ring-2 ring-[var(--border)]" />
+              <img src={displayPhoto} alt="" loading="lazy" className="h-10 w-10 rounded-full object-cover ring-2 ring-[var(--border)]" />
             ) : (
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent)]/20 text-xs font-semibold text-[var(--accent)]">{initials(member.name)}</div>
             )}

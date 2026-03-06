@@ -34,7 +34,8 @@ export default async function VoiceMemosPage() {
         recorded_for:family_members!recorded_for_id(name, nickname, relationship)
       `)
       .eq("family_id", activeFamilyId)
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(100),
     supabase
       .from("family_members")
       .select("id, name, nickname, relationship")

@@ -26,7 +26,8 @@ export default async function StoriesPage() {
     `)
     .eq("family_id", activeFamilyId)
     .eq("published", true)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(100);
 
   return (
     <div>
