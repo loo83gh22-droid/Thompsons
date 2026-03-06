@@ -167,6 +167,11 @@ export async function PUT(request: Request) {
     if (!activeFamilyId)
       return NextResponse.json({ error: "No active family" }, { status: 400 });
 
+    // Nest Keepers is Legacy-only (G11 — was missing from PUT)
+    const plan = await getFamilyPlan(supabase, activeFamilyId);
+    if (!canManageNestKeepers(plan.planType))
+      return NextResponse.json({ error: "Nest Keepers requires the Legacy plan." }, { status: 403 });
+
     // Only the family owner can update Nest Keepers
     const { data: callerMember } = await supabase
       .from("family_members")

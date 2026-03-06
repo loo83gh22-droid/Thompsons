@@ -3,6 +3,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/src/lib/requireRole";
+import { enforceStorageLimit, addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
 
 export type AddAchievementData = {
   familyMemberId?: string;
@@ -26,6 +27,9 @@ export async function addAchievement(
 
   let attachmentUrl: string | null = null;
   if (file && file.size > 0) {
+    // Enforce storage limit before upload (G6)
+    await enforceStorageLimit(supabase, activeFamilyId, file.size);
+
     const ext = file.name.split(".").pop() || "jpg";
     const path = `${crypto.randomUUID()}.${ext}`;
 
@@ -34,6 +38,9 @@ export async function addAchievement(
       .upload(path, file, { upsert: true });
 
     if (uploadError) throw uploadError;
+
+    // Track storage after successful upload
+    await addStorageUsage(supabase, activeFamilyId, file.size);
 
     attachmentUrl = `/api/storage/achievements/${path}`;
   }
@@ -78,7 +85,29 @@ export async function removeAchievement(id: string) {
   // Only owners and adults can delete achievements.
   const { familyId: activeFamilyId } = await requireRole(supabase, user.id, ["owner", "adult"]);
 
+  // Fetch the attachment URL so we can remove it from storage (B5)
+  const { data: row } = await supabase
+    .from("achievements")
+    .select("attachment_url")
+    .eq("id", id)
+    .eq("family_id", activeFamilyId)
+    .single();
+
   const { error } = await supabase.from("achievements").delete().eq("id", id).eq("family_id", activeFamilyId);
   if (error) throw error;
+
+  // Remove the file from storage and decrement the counter
+  if (row?.attachment_url) {
+    const storagePath = row.attachment_url.replace("/api/storage/achievements/", "");
+    const { data: fileInfo } = await supabase.storage.from("achievements").list("", {
+      search: storagePath,
+    });
+    const fileSize = fileInfo?.[0]?.metadata?.size ?? 0;
+    await supabase.storage.from("achievements").remove([storagePath]);
+    if (fileSize > 0) {
+      await subtractStorageUsage(supabase, activeFamilyId, fileSize);
+    }
+  }
+
   revalidatePath("/dashboard/achievements");
 }

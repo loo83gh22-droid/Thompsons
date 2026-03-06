@@ -61,6 +61,32 @@ export async function POST(request: Request) {
 
     const familyId = member?.family_id ?? "";
 
+    // B2: Create-or-retrieve Stripe customer to avoid duplicates.
+    // If the family already has a stripe_customer_id, reuse it; otherwise create a new one.
+    let stripeCustomerId: string | undefined;
+    if (familyId) {
+      const { data: family } = await supabase
+        .from("families")
+        .select("stripe_customer_id")
+        .eq("id", familyId)
+        .single();
+
+      if (family?.stripe_customer_id) {
+        stripeCustomerId = family.stripe_customer_id;
+      } else if (user.email) {
+        // Create a new customer and persist the ID immediately
+        const customer = await stripe.customers.create({
+          email: user.email,
+          metadata: { family_id: familyId, user_id: user.id },
+        });
+        stripeCustomerId = customer.id;
+        await supabase
+          .from("families")
+          .update({ stripe_customer_id: stripeCustomerId })
+          .eq("id", familyId);
+      }
+    }
+
     // Storage add-ons require an active paid plan
     if (isStorageAddon(plan)) {
       const { data: family } = await supabase
@@ -105,7 +131,9 @@ export async function POST(request: Request) {
     }
 
     const session = await stripe.checkout.sessions.create({
-      customer_email: user.email,
+      ...(stripeCustomerId
+        ? { customer: stripeCustomerId }
+        : { customer_email: user.email }),
       mode: isOneTime ? "payment" : "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
       metadata: sharedMeta,

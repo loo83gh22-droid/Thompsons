@@ -23,6 +23,25 @@ async function activatePlan(
 ) {
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+  // B3: Cross-check that the customer ID matches the one stored for this family.
+  // This prevents a metadata-mismatch from activating the wrong family's plan.
+  const { data: existingFamily } = await supabase
+    .from("families")
+    .select("stripe_customer_id")
+    .eq("id", familyId)
+    .single();
+
+  if (
+    existingFamily?.stripe_customer_id &&
+    existingFamily.stripe_customer_id !== stripeCustomerId
+  ) {
+    console.error(
+      `activatePlan: customer ID mismatch for family ${familyId}. ` +
+        `Expected ${existingFamily.stripe_customer_id}, got ${stripeCustomerId}. Aborting.`
+    );
+    return;
+  }
+
   const now = new Date().toISOString();
   const oneYearFromNow = new Date(
     Date.now() + 365 * 24 * 60 * 60 * 1000
@@ -281,6 +300,29 @@ export async function POST(request: Request) {
               priceUsd
             );
           }
+        }
+        break;
+      }
+
+      // ── Subscription updated (plan change / trial end / quantity change) ──
+      case "customer.subscription.updated": {
+        const subscription = event.data.object as Stripe.Subscription;
+        const meta = subscription.metadata ?? {};
+        const familyId = meta.family_id;
+        const plan = meta.plan;
+
+        if (!familyId || !plan) break;
+
+        if (plan === "annual" && subscription.status === "active") {
+          await activatePlan(
+            familyId,
+            "annual",
+            subscription.customer as string,
+            subscription.id
+          );
+        } else if (subscription.status === "canceled" || subscription.status === "unpaid") {
+          // Treat a degraded status as cancellation — deactivatePlan will handle it
+          await deactivatePlan(subscription.id);
         }
         break;
       }

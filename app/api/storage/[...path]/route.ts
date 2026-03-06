@@ -12,6 +12,7 @@ const ALLOWED_BUCKETS = new Set([
   "sports-photos",
   "favourite-photos",
   "death-box-files",
+  "achievements",
 ]);
 
 /**

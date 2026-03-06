@@ -3,6 +3,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
+import { enforceStorageLimit, addStorageUsage } from "@/src/lib/plans";
 
 export type FavouriteCategory = "books" | "movies" | "shows" | "music" | "toys" | "games" | "recipes";
 
@@ -19,13 +20,24 @@ function revalidateAll(category?: FavouriteCategory) {
   }
 }
 
-async function uploadFavouritePhoto(supabase: Awaited<ReturnType<typeof createClient>>, photo: File): Promise<string> {
+async function uploadFavouritePhoto(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  photo: File,
+  familyId: string
+): Promise<string> {
+  // Enforce storage limit before upload (G5)
+  await enforceStorageLimit(supabase, familyId, photo.size);
+
   const ext = photo.name.split(".").pop() || "jpg";
   const path = `${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage
     .from("favourite-photos")
     .upload(path, photo, { upsert: true });
   if (error) throw error;
+
+  // Track storage after successful upload
+  await addStorageUsage(supabase, familyId, photo.size);
+
   return `/api/storage/favourite-photos/${path}`;
 }
 
@@ -46,7 +58,7 @@ export async function addFavourite(
 
   let photoUrl: string | null = null;
   if (photo && photo.size > 0) {
-    photoUrl = await uploadFavouritePhoto(supabase, photo);
+    photoUrl = await uploadFavouritePhoto(supabase, photo, activeFamilyId);
   }
 
   const { error } = await supabase.from("favourites").insert({
@@ -79,7 +91,7 @@ export async function updateFavourite(
   if (data.clearPhoto) {
     photoUrl = null as unknown as undefined;
   } else if (data.photo && data.photo.size > 0) {
-    photoUrl = await uploadFavouritePhoto(supabase, data.photo);
+    photoUrl = await uploadFavouritePhoto(supabase, data.photo, activeFamilyId);
   }
 
   const update: Record<string, unknown> = {

@@ -4,6 +4,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { findOrCreateLocationCluster } from "@/src/lib/locationClustering";
+import { getFamilyPlan, canEditMap } from "@/src/lib/plans";
 
 /**
  * Resolve the family ID to use: prefer the explicit parameter from the client,
@@ -16,6 +17,83 @@ async function resolveFamilyId(
   if (explicitFamilyId) return explicitFamilyId;
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   return activeFamilyId;
+}
+
+export type AddTravelLocationInput = {
+  locationName: string;
+  lat: number;
+  lng: number;
+  countryCode?: string | null;
+  locationKind?: "travel" | "lived" | "vacation" | "memorable_event" | "other";
+  locationLabel?: string | null;
+  yearVisited?: number | null;
+  tripDate?: string | null;
+  tripDateEnd?: string | null;
+  notes?: string | null;
+  memberIds?: string[];
+};
+
+/** Add a travel location — server-side gate enforces canEditMap (G1). */
+export async function addTravelLocation(
+  input: AddTravelLocationInput
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return { error: "No active family" };
+
+  // Server-side plan gate — cannot be bypassed via client
+  const plan = await getFamilyPlan(supabase, activeFamilyId);
+  if (!canEditMap(plan.planType)) {
+    return { error: "Map editing requires the Full Nest or Legacy plan." };
+  }
+
+  const locationClusterId = await findOrCreateLocationCluster(supabase, activeFamilyId, {
+    latitude: input.lat,
+    longitude: input.lng,
+    location_name: input.locationName,
+    date: input.tripDate ? new Date(input.tripDate) : new Date(),
+  }).catch(() => null);
+
+  const { data: locRow, error: insertError } = await supabase
+    .from("travel_locations")
+    .insert({
+      family_id: activeFamilyId,
+      family_member_id: input.memberIds?.[0] || null,
+      lat: input.lat,
+      lng: input.lng,
+      location_name: input.locationName,
+      year_visited: input.yearVisited ?? null,
+      trip_date: input.tripDate ?? null,
+      trip_date_end: input.tripDateEnd ?? null,
+      notes: input.notes ?? null,
+      country_code: input.countryCode ?? null,
+      is_place_lived: input.locationKind === "lived",
+      location_type:
+        input.locationKind === "vacation" ? "vacation"
+          : input.locationKind === "memorable_event" ? "memorable_event"
+            : input.locationKind === "other" ? "other" : null,
+      location_label: input.locationLabel?.trim() || null,
+      location_cluster_id: locationClusterId ?? null,
+    })
+    .select("id")
+    .single();
+
+  if (insertError) return { error: insertError.message };
+
+  if (locRow?.id && (input.memberIds?.length ?? 0) > 0) {
+    await supabase.from("travel_location_members").insert(
+      input.memberIds!.map((memberId) => ({
+        travel_location_id: locRow.id,
+        family_member_id: memberId,
+      }))
+    );
+  }
+
+  revalidatePath("/dashboard/map");
+  return {};
 }
 
 /** Get number of map pins for the active family (for first-time banner). */
@@ -91,6 +169,12 @@ export async function syncBirthPlacesToMap(familyId?: string): Promise<{ added: 
   if (!user) return { added: 0, error: "Not authenticated" };
   const activeFamilyId = await resolveFamilyId(supabase, familyId);
   if (!activeFamilyId) return { added: 0, error: "No active family" };
+
+  // Server-side plan gate (G10)
+  const plan = await getFamilyPlan(supabase, activeFamilyId);
+  if (!canEditMap(plan.planType)) {
+    return { added: 0, error: "Map editing requires the Full Nest or Legacy plan." };
+  }
 
   const { data: members, error: membersError } = await supabase
     .from("family_members")

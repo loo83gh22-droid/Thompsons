@@ -199,12 +199,12 @@ export async function getOrCreateArtworkShareToken(pieceId: string): Promise<{ s
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: "Not authenticated" };
 
+    // Plan check — always enforce, never skip when activeFamilyId is null (G9)
     const { activeFamilyId } = await getActiveFamilyId(supabase);
-    if (activeFamilyId) {
-      const plan = await getFamilyPlan(supabase, activeFamilyId);
-      if (!canSharePublicly(plan.planType)) {
-        return { error: "Public sharing requires the Full Nest or Legacy plan." };
-      }
+    if (!activeFamilyId) return { error: "No active family" };
+    const plan = await getFamilyPlan(supabase, activeFamilyId);
+    if (!canSharePublicly(plan.planType)) {
+      return { error: "Public sharing requires the Full Nest or Legacy plan." };
     }
 
     const { data: piece } = await supabase
@@ -266,12 +266,12 @@ export async function toggleArtworkShare(pieceId: string): Promise<{ shareToken?
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: "Not authenticated" };
 
+    // Plan check — always enforce, never skip when activeFamilyId is null (G9)
     const { activeFamilyId } = await getActiveFamilyId(supabase);
-    if (activeFamilyId) {
-      const plan = await getFamilyPlan(supabase, activeFamilyId);
-      if (!canSharePublicly(plan.planType)) {
-        return { error: "Public sharing requires the Full Nest or Legacy plan." };
-      }
+    if (!activeFamilyId) return { error: "No active family" };
+    const plan = await getFamilyPlan(supabase, activeFamilyId);
+    if (!canSharePublicly(plan.planType)) {
+      return { error: "Public sharing requires the Full Nest or Legacy plan." };
     }
 
     const { data: piece } = await supabase

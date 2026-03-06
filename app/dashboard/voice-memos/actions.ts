@@ -3,6 +3,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
+import { enforceStorageLimit, addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
 
 export type VoiceMemoInsert = {
   title: string;
@@ -13,6 +14,8 @@ export type VoiceMemoInsert = {
   description?: string | null;
   audioUrl: string;
   durationSeconds: number;
+  /** File size in bytes — used for storage tracking. Pass 0 if unknown. */
+  fileSizeBytes?: number;
 };
 
 export async function insertVoiceMemo(data: VoiceMemoInsert) {
@@ -32,6 +35,12 @@ export async function insertVoiceMemo(data: VoiceMemoInsert) {
     .limit(1);
   const nextOrder = (last?.[0]?.sort_order ?? -1) + 1;
 
+  // Enforce storage limit before registering the (already-uploaded) audio (G4)
+  const fileBytes = data.fileSizeBytes ?? 0;
+  if (fileBytes > 0) {
+    await enforceStorageLimit(supabase, activeFamilyId, fileBytes);
+  }
+
   const { data: row, error } = await supabase.from("voice_memos").insert({
     family_id: activeFamilyId,
     family_member_id: data.recordedById,
@@ -40,10 +49,15 @@ export async function insertVoiceMemo(data: VoiceMemoInsert) {
     description: data.description?.trim().slice(0, 500) || null,
     audio_url: data.audioUrl,
     duration_seconds: data.durationSeconds,
+    file_size_bytes: fileBytes,
     recorded_date: data.recordedDate,
     sort_order: nextOrder,
     updated_at: new Date().toISOString(),
   }).select("id").single();
+
+  if (!error && fileBytes > 0) {
+    await addStorageUsage(supabase, activeFamilyId, fileBytes);
+  }
 
   if (error) throw error;
 
@@ -113,7 +127,7 @@ export async function removeVoiceMemo(id: string) {
 
   const { data: row } = await supabase
     .from("voice_memos")
-    .select("audio_url")
+    .select("audio_url, file_size_bytes")
     .eq("id", id)
     .eq("family_id", activeFamilyId)
     .single();
@@ -127,5 +141,11 @@ export async function removeVoiceMemo(id: string) {
 
   const { error } = await supabase.from("voice_memos").delete().eq("id", id).eq("family_id", activeFamilyId);
   if (error) throw error;
+
+  // Decrement storage counter (B5)
+  if (row?.file_size_bytes && row.file_size_bytes > 0) {
+    await subtractStorageUsage(supabase, activeFamilyId, row.file_size_bytes);
+  }
+
   revalidatePath("/dashboard/voice-memos");
 }

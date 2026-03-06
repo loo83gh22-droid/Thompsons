@@ -11,13 +11,12 @@ export async function toggleStoryShare(storyId: string): Promise<{ shareToken: s
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  // Plan check
+  // Plan check — always enforce, never skip when activeFamilyId is null (G9)
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (activeFamilyId) {
-    const plan = await getFamilyPlan(supabase, activeFamilyId);
-    if (!canSharePublicly(plan.planType)) {
-      throw new Error("Public sharing requires the Full Nest or Legacy plan.");
-    }
+  if (!activeFamilyId) throw new Error("No active family");
+  const plan = await getFamilyPlan(supabase, activeFamilyId);
+  if (!canSharePublicly(plan.planType)) {
+    throw new Error("Public sharing requires the Full Nest or Legacy plan.");
   }
 
   const { data: story } = await supabase
@@ -55,13 +54,12 @@ export async function toggleRecipeShare(recipeId: string): Promise<{ shareToken:
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  // Plan check
+  // Plan check — always enforce, never skip when activeFamilyId is null (G9)
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (activeFamilyId) {
-    const plan = await getFamilyPlan(supabase, activeFamilyId);
-    if (!canSharePublicly(plan.planType)) {
-      throw new Error("Public sharing requires the Full Nest or Legacy plan.");
-    }
+  if (!activeFamilyId) throw new Error("No active family");
+  const plan = await getFamilyPlan(supabase, activeFamilyId);
+  if (!canSharePublicly(plan.planType)) {
+    throw new Error("Public sharing requires the Full Nest or Legacy plan.");
   }
 
   const { data: recipe } = await supabase

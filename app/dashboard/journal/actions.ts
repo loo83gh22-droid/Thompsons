@@ -232,11 +232,12 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
   const photos = allPhotos.filter((f) => f.size > 0).slice(0, 5);
   let mosaicOrder = await getNextMosaicSortOrder(supabase, activeFamilyId);
 
-  // Check total upload size against storage limit
+  // Check total upload size against storage limit — skip photos if exceeded (G2)
   const totalUploadBytes = photos.reduce((s, f) => s + f.size, 0);
-  try { await enforceStorageLimit(supabase, activeFamilyId, totalUploadBytes); } catch { /* continue — don't block entry creation, just skip photos */ }
+  let withinStorageLimit = true;
+  try { await enforceStorageLimit(supabase, activeFamilyId, totalUploadBytes); } catch { withinStorageLimit = false; }
 
-  for (let i = 0; i < photos.length; i++) {
+  for (let i = 0; withinStorageLimit && i < photos.length; i++) {
     const file = photos[i];
     if (file.size === 0) continue;
 
@@ -767,6 +768,10 @@ export async function addJournalVideos(entryId: string, formData: FormData) {
   const vids = validVideos.slice(0, toAdd);
   const startOrder = existingCount;
 
+  // Enforce storage limit for the total batch (G3)
+  const totalVideoBytes = vids.reduce((s, f) => s + f.size, 0);
+  await enforceStorageLimit(supabase, activeFamilyId, totalVideoBytes);
+
   for (let i = 0; i < vids.length; i++) {
     const file = vids[i];
     const ext = file.name.split(".").pop() || "mp4";
@@ -838,7 +843,8 @@ export async function registerJournalVideo(
     throw new Error(`Each journal entry can have up to ${VIDEO_LIMITS.maxVideosPerJournalEntry} videos.`);
   }
 
-  // Track storage
+  // Enforce storage limit before tracking (G3)
+  await enforceStorageLimit(supabase, activeFamilyId, fileSizeBytes);
   await addStorageUsage(supabase, activeFamilyId, fileSizeBytes);
 
   // Insert DB record
@@ -866,6 +872,14 @@ export async function deleteJournalVideo(videoId: string, entryId?: string) {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
+  // Fetch the video record so we can remove the file and decrement storage (B5)
+  const { data: videoRow } = await supabase
+    .from("journal_videos")
+    .select("url, file_size_bytes")
+    .eq("id", videoId)
+    .eq("family_id", activeFamilyId)
+    .single();
+
   const { error } = await supabase
     .from("journal_videos")
     .delete()
@@ -873,6 +887,17 @@ export async function deleteJournalVideo(videoId: string, entryId?: string) {
     .eq("family_id", activeFamilyId);
 
   if (error) throw error;
+
+  // Remove storage object and decrement counter
+  if (videoRow?.url) {
+    const storagePath = videoRow.url.replace("/api/storage/journal-videos/", "");
+    await supabase.storage.from("journal-videos").remove([storagePath]);
+  }
+  if (videoRow?.file_size_bytes && activeFamilyId) {
+    const { subtractStorageUsage } = await import("@/src/lib/plans");
+    await subtractStorageUsage(supabase, activeFamilyId, videoRow.file_size_bytes);
+  }
+
   revalidatePath("/dashboard/journal");
   if (entryId) revalidatePath(`/dashboard/journal/${entryId}/edit`);
 }

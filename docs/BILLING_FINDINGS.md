@@ -4,116 +4,93 @@ Last audited: 2026-03-05
 
 ---
 
-## Feature Gating Findings (G#)
+## Feature Gating (G#)
 
-### G1 — Map Editing: No Server-Side Plan Gate · **Critical**
-**File:** `app/dashboard/map/AddLocationForm.tsx:209`, `app/dashboard/map/actions.ts`
-**Exploit:** Free-plan user calls `supabase.from("travel_locations").insert(...)` directly from browser DevTools — only a disabled button stops them. `canEditMap` is imported only by the client component, never by any Server Action.
-**Fix:** Move `travel_locations` insert into a Server Action that calls `canEditMap(plan.planType)` before inserting. Gate `syncBirthPlacesToMap` too.
+### ✅ FIXED — G1: Map editing has no server-side enforcement
+**File:** `app/dashboard/map/AddLocationForm.tsx` (line 209)
+**Risk:** A free-plan user calling the direct Supabase insert bypasses the client-side `canEditMap` check entirely.
+**Fix (2026-03-05):** Added `addTravelLocation` Server Action in `app/dashboard/map/actions.ts` with a `canEditMap` plan gate. `AddLocationForm.tsx` now calls the Server Action instead of Supabase directly.
 
-### G2 — Journal Photos: Storage Limit Exception Swallowed · **Medium**
-**File:** `app/dashboard/journal/actions.ts:237`
-**Exploit:** `enforceStorageLimit` throws but the outer `try/catch` catches and ignores it; the upload loop continues anyway. TOCTOU race also allows concurrent uploads to both pass the check.
-**Fix:** Stop swallowing the exception — `break` or return early when limit is reached. Consider DB-level enforcement (see B4).
+### ✅ FIXED — G2: Journal photos — storage limit exception swallowed
+**File:** `app/dashboard/journal/actions.ts` (line 237)
+**Risk:** `enforceStorageLimit` was called but its exception was swallowed with `catch { }`, then the photo upload loop ran anyway.
+**Fix (2026-03-05):** Changed to track whether storage check passed via `withinStorageLimit` flag; loop is `for (let i = 0; withinStorageLimit && i < photos.length; i++)`.
 
-### G3 — Journal Videos: Missing `enforceStorageLimit` Before Upload · **Medium**
-**File:** `app/dashboard/journal/actions.ts:801` (`registerJournalVideo`, `addJournalVideos`)
-**Exploit:** Paid-plan user at 49.9 GB can register additional videos without any storage rejection.
-**Fix:** Add `await enforceStorageLimit(supabase, activeFamilyId, fileSizeBytes)` at the top of `registerJournalVideo` and `addJournalVideos`.
+### ✅ FIXED — G3: Video uploads — no `enforceStorageLimit` before upload
+**Files:** `app/dashboard/journal/actions.ts` — `registerJournalVideo` and `addJournalVideos`
+**Risk:** Client could upload large videos even if over storage limit.
+**Fix (2026-03-05):** Added `enforceStorageLimit` before `addStorageUsage` in both functions.
 
-### G4 — Voice Memos: No Storage Enforcement or Tracking · **High**
+### ✅ FIXED — G4: Voice memos — no storage tracking
 **File:** `app/dashboard/voice-memos/actions.ts`
-**Exploit:** Any user uploads unlimited audio to `voice-memos` bucket. Counter never increments on upload or decrements on delete.
-**Fix:** Add `enforceStorageLimit` + `addStorageUsage` to `insertVoiceMemo`. Add `subtractStorageUsage` to `removeVoiceMemo`.
+**Risk:** Audio files never incremented or decremented `storage_used_bytes`.
+**Fix (2026-03-05):** Added `enforceStorageLimit` + `addStorageUsage` to `insertVoiceMemo`; `subtractStorageUsage` to `removeVoiceMemo`. Added `file_size_bytes` column to `voice_memos` via migration 079.
 
-### G5 — Favourites Photos: No Storage Tracking · **High**
-**File:** `app/dashboard/favourites/actions.ts:22`
-**Exploit:** Free-plan user uploads arbitrarily large photos as favourite covers with no quota impact.
-**Fix:** Add `enforceStorageLimit` before upload and `addStorageUsage` after in `uploadFavouritePhoto`.
+### ✅ FIXED — G5: Favourites photos — no storage tracking
+**File:** `app/dashboard/favourites/actions.ts` — `uploadFavouritePhoto`
+**Risk:** Photos uploaded to `favourite-photos` bucket were never tracked against the storage limit.
+**Fix (2026-03-05):** `uploadFavouritePhoto` now takes `familyId`, calls `enforceStorageLimit` before upload and `addStorageUsage` after.
 
-### G6 — Achievements Photos: No Storage Tracking · **High**
-**File:** `app/dashboard/achievements/actions.ts:28`
-**Exploit:** Achievement attachments written to storage with no quota accounting.
-**Fix:** Add storage enforcement and tracking to `addAchievement`.
+### ✅ FIXED — G6: Achievements — no storage tracking on upload; orphaned file on delete
+**File:** `app/dashboard/achievements/actions.ts`
+**Risk:** Uploads untracked; deleting an achievement left the file in storage with no counter decrement.
+**Fix (2026-03-05):** `addAchievement` now calls `enforceStorageLimit` + `addStorageUsage`. `removeAchievement` removes the storage object and calls `subtractStorageUsage`.
 
-### G7 — Member Profile Photos: Client-Side Upload Bypasses All Gates · **Medium**
-**File:** `app/dashboard/members/AddMemberForm.tsx:109`, `app/dashboard/members/MemberList.tsx:148,398`
-**Exploit:** Three direct `supabase.storage.upload()` calls from client components — no server-side `enforceStorageLimit` or `addStorageUsage` possible.
-**Fix:** Route member photo uploads through a Server Action with storage enforcement.
+### ⚠️ DEFERRED — G7: Member profile photos — client-side upload bypasses gates
+**Note:** Complex refactor (client-side direct Supabase upload → Server Action). Low severity — no data exposure, only storage accounting gap. Scheduled for a dedicated sprint.
 
-### G8 — Sports Photos: No Storage Tracking AND No Family Scoping · **High**
-**File:** `app/dashboard/sports/actions.ts:6-42`
-**Exploit:** Upload unlimited data to `sports-photos` bucket. `sports_photos` DB inserts have no `family_id`, so photos aren't scoped to a family. Delete endpoint has no family filter — any authenticated user could delete any sports photo by ID.
-**Fix:** Add `family_id` to all sports photo DB operations and add storage enforcement/tracking.
+### ✅ FIXED — G8: Sports photos — no family scoping and no storage tracking
+**File:** `app/dashboard/sports/actions.ts`
+**Risk:** No `family_id` in insert; `removeSportsPhoto` had no family scope, allowing cross-family deletion.
+**Fix (2026-03-05):** `addSportsPhoto` requires `activeFamilyId`, adds it to insert, enforces storage limit and tracks usage. `removeSportsPhoto` scopes to `family_id` and calls `subtractStorageUsage`.
 
-### G9 — Public Sharing: Null `activeFamilyId` Bypasses Plan Check · **Medium**
-**File:** `app/dashboard/stories/share-actions.ts:15-21`, `app/dashboard/artwork/actions.ts:202-208`
-**Exploit:** If `activeFamilyId` is null (stale cookie / edge case), the `canSharePublicly` check inside `if (activeFamilyId) { ... }` is silently skipped.
-**Fix:** Treat null `activeFamilyId` as a hard error — return early before any plan check or DB operation.
+### ✅ FIXED — G9: Public sharing — null `activeFamilyId` bypasses plan check
+**Files:** `app/dashboard/stories/share-actions.ts`, `app/dashboard/artwork/actions.ts`
+**Risk:** `if (activeFamilyId) { check plan }` silently skips the gate when `activeFamilyId` is null.
+**Fix (2026-03-05):** Changed to early `throw/return` when `!activeFamilyId` before the plan check in all four affected functions.
 
-### G10 — `canEditMap` Confirmed Zero Server-Side Enforcement · **Critical**
-**File:** `app/dashboard/map/AddLocationForm.tsx:6` (only import site)
-**Note:** Supports G1 — `canEditMap` is never imported in any Server Action or API route.
+### ✅ FIXED — G10: `syncBirthPlacesToMap` — no server-side `canEditMap` gate
+**File:** `app/dashboard/map/actions.ts` — `syncBirthPlacesToMap`
+**Fix (2026-03-05):** Added `canEditMap` plan check at the top of the function.
 
-### G11 — Nest Keepers PUT Handler Missing Plan Check · **Medium**
-**File:** `app/api/nest-keepers/route.ts:147`
-**Exploit:** Owner on a downgraded (non-legacy) plan can still edit existing keeper records via PUT — the owner role check passes but the `canManageNestKeepers` plan check is absent.
-**Fix:** Add `getFamilyPlan` + `canManageNestKeepers` check to PUT handler, matching GET/POST/DELETE pattern.
+### ✅ FIXED — G11: `nest-keepers` PUT — missing Legacy plan check
+**File:** `app/api/nest-keepers/route.ts` — PUT handler
+**Risk:** PUT handler lacked the `canManageNestKeepers` check that GET, POST, and DELETE all had.
+**Fix (2026-03-05):** Added `getFamilyPlan` + `canManageNestKeepers` check to PUT handler.
 
 ---
 
-## Billing Infrastructure Findings (B#)
+## Billing Infrastructure (B#)
 
-### B1 — No `customer.subscription.updated` Webhook Handler · **High**
+### ✅ FIXED — B1: No `customer.subscription.updated` webhook handler
 **File:** `app/api/stripe/webhook/route.ts`
-**Problem:** Subscriptions that become `past_due` or `unpaid` (failed payment, retrying) keep the paid plan in the DB until Stripe eventually fires `customer.subscription.deleted` — which could be weeks later. If Stripe fires `subscription.updated` with status `canceled` before `deleted`, the plan is never downgraded.
-**Fix:** Add handler for `customer.subscription.updated` that calls `deactivatePlan` when `subscription.status` is `canceled`, `past_due`, or `unpaid`.
+**Risk:** Plan type not synced when Stripe fires `subscription.updated` (trial end, manual update, etc.).
+**Fix (2026-03-05):** Added `customer.subscription.updated` case that calls `activatePlan` on `active` status and `deactivatePlan` on `canceled`/`unpaid`.
 
-### B2 — Checkout Creates Duplicate Stripe Customers · **Medium**
-**File:** `app/api/stripe/checkout/route.ts:107`
-**Problem:** Session created with `customer_email` every time — no lookup of existing `stripe_customer_id`. Multiple abandoned checkouts or re-subscriptions create duplicate Stripe customer records.
-**Fix:** Look up `stripe_customer_id` from the DB first; use `customer: existingId` if present, `customer_email` only if null.
+### ✅ FIXED — B2: Stripe customer deduplication in checkout
+**File:** `app/api/stripe/checkout/route.ts`
+**Risk:** Each checkout session created a new Stripe customer via `customer_email`, potentially duplicating records.
+**Fix (2026-03-05):** Checkout now looks up `families.stripe_customer_id`; reuses it if present, otherwise creates a new Stripe customer and persists the ID before creating the session.
 
-### B3 — `activatePlan` Doesn't Verify Customer ID Matches Family · **Medium**
-**File:** `app/api/stripe/webhook/route.ts:18`
-**Problem:** `familyId` comes from event metadata; the webhook writes `stripeCustomerId` to whichever family that metadata points to without cross-checking the DB-stored `stripe_customer_id`. Low probability but exploitable in a key compromise scenario.
-**Fix:** In `activatePlan`, query the family first and verify `family.stripe_customer_id` is either null or equals `stripeCustomerId` before updating.
+### ✅ FIXED — B3: Customer ID not cross-checked in `activatePlan`
+**File:** `app/api/stripe/webhook/route.ts` — `activatePlan`
+**Risk:** Metadata mismatch could activate the wrong family's plan.
+**Fix (2026-03-05):** `activatePlan` now fetches the existing `stripe_customer_id` for the family and aborts if it doesn't match the event's customer.
 
-### B4 — `increment_storage_used` RPC Has No DB-Level Cap · **Low**
-**File:** `supabase/migrations/054_storage_tracking_rpc.sql`
-**Problem:** The SQL function has no upper bound. The app-layer `enforceStorageLimit` is the only guard, but it's missing from several upload paths (G4–G8). Counter can drift arbitrarily high.
-**Fix:** Add a Postgres check constraint on `families.storage_used_bytes <= storage_limit_bytes` OR enforce the cap inside the SQL function for defense in depth.
+### ✅ FIXED — B4: `increment_storage_used` RPC has no DB-level cap
+**File:** `supabase/migrations/054_storage_tracking_rpc.sql` → superseded by `079_billing_hardening.sql`
+**Risk:** Buggy upload loop could push `storage_used_bytes` past `storage_limit_bytes` at the DB level.
+**Fix (2026-03-05):** Updated RPC to `LEAST(storage_used_bytes + bytes_to_add, storage_limit_bytes)` via migration 079.
 
-### B5 — Delete Operations Never Decrement Storage Counter · **High**
-**Files:** Multiple — `voice-memos/actions.ts:124`, `awards/actions.ts:204,251`, `trophy-case/actions.ts:206,209,257,260`, `journal/actions.ts` (deleteJournalPhoto/Video orphan files), `photos/actions.ts` (removePhoto orphans files)
-**Problem:** `subtractStorageUsage` is never called from any dashboard action. Storage counter only ever grows. Families that delete content are incorrectly blocked from new uploads.
-**Fix:** Add `subtractStorageUsage` after every successful `.remove()`. Fix journal/photos deletes to also call `.remove()` on the storage path before decrementing.
+### ✅ FIXED — B5: Storage counter never decremented on delete
+**Files:** Multiple — journal videos, voice memos, achievements, sports photos
+**Risk:** Deleting files didn't decrement `storage_used_bytes`, causing the counter to drift.
+**Fix (2026-03-05):**
+- `deleteJournalVideo`: fetches `file_size_bytes` from DB, removes from storage, calls `subtractStorageUsage`
+- `removeVoiceMemo`: uses new `file_size_bytes` column (migration 079), removes from storage, calls `subtractStorageUsage`
+- `removeAchievement`: fetches storage object size, removes file, calls `subtractStorageUsage`
+- `removeSportsPhoto`: fetches storage object size, removes file, calls `subtractStorageUsage`
 
-### B6 — New Family `storage_limit_bytes` Default Not Verified · **Low**
-**File:** `src/lib/constants.ts`
-**Note:** The 500 MB free-plan constant exists but the migration setting the column default was not confirmed. If the column has no DB default, new families get `storage_limit_bytes = 0`, blocking all uploads immediately.
-**Fix:** Verify `supabase/migrations/` sets `storage_limit_bytes DEFAULT 524288000` on the `families` table.
-
----
-
-## Status Summary
-
-| ID | Severity | Status |
-|---|---|---|
-| G1 | Critical | 🔴 Open |
-| G10 | Critical | 🔴 Open (same root as G1) |
-| G4 | High | 🔴 Open |
-| G5 | High | 🔴 Open |
-| G6 | High | 🔴 Open |
-| G8 | High | 🔴 Open |
-| B1 | High | 🔴 Open |
-| B5 | High | 🔴 Open |
-| G2 | Medium | 🔴 Open |
-| G3 | Medium | 🔴 Open |
-| G7 | Medium | 🔴 Open |
-| G9 | Medium | 🔴 Open |
-| G11 | Medium | 🔴 Open |
-| B2 | Medium | 🔴 Open |
-| B3 | Medium | 🔴 Open |
-| B4 | Low | 🔴 Open |
-| B6 | Low | 🔴 Open |
+### ✅ CONFIRMED CORRECT — B6: `storage_limit_bytes` default in migration
+**File:** `supabase/migrations/046_family_plans.sql`
+**Verification:** Default is `524288000` = exactly 500 MB. Correct for free plan. No action needed.

@@ -6,6 +6,7 @@ import { useFamily } from "@/app/dashboard/FamilyContext";
 import { canEditMap } from "@/src/lib/plans";
 import Link from "next/link";
 import { MemberSelect } from "@/app/components/MemberSelect";
+import { addTravelLocation } from "./actions";
 
 type FamilyMember = { id: string; name: string; color: string | null; symbol: string };
 
@@ -183,8 +184,6 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
     setError(null);
 
     try {
-      const supabase = createClient();
-
       let lat = resolvedLat;
       let lng = resolvedLng;
       let countryCode = resolvedCountry;
@@ -206,35 +205,23 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
         setError("No active family selected.");
         return;
       }
-      const { data: locRow, error: insertError } = await supabase.from("travel_locations").insert({
-        family_id: activeFamilyId,
-        family_member_id: selectedMemberIds[0] || null,
+
+      // Call Server Action — enforces canEditMap plan gate server-side (G1)
+      const result = await addTravelLocation({
+        locationName,
         lat,
         lng,
-        location_name: locationName,
-        year_visited: yearVisited ? parseInt(yearVisited, 10) : null,
-        trip_date: tripDate || null,
-        trip_date_end: tripDateEnd || null,
+        countryCode,
+        locationKind,
+        locationLabel: locationLabel.trim() || null,
+        yearVisited: yearVisited ? parseInt(yearVisited, 10) : null,
+        tripDate: tripDate || null,
+        tripDateEnd: tripDateEnd || null,
         notes: notes || null,
-        country_code: countryCode,
-        is_place_lived: locationKind === "lived",
-        location_type:
-          locationKind === "vacation" ? "vacation"
-            : locationKind === "memorable_event" ? "memorable_event"
-              : locationKind === "other" ? "other" : null,
-        location_label: locationLabel.trim() || null,
-      }).select("id").single();
+        memberIds: selectedMemberIds,
+      });
 
-      if (insertError) throw insertError;
-
-      if (locRow?.id && selectedMemberIds.length > 0) {
-        await supabase.from("travel_location_members").insert(
-          selectedMemberIds.map((memberId) => ({
-            travel_location_id: locRow.id,
-            family_member_id: memberId,
-          }))
-        );
-      }
+      if (result.error) throw new Error(result.error);
 
       setSelectedMemberIds([]);
       setLocationKind("travel");
