@@ -77,10 +77,10 @@ export const metadata: Metadata = {
     siteName: "Family Nest",
     images: [
       {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Family Nest | Your Corner of the World",
+        url: "/icon-512.png",
+        width: 512,
+        height: 512,
+        alt: "Family Nest",
       },
     ],
     locale: "en_US",
@@ -91,7 +91,7 @@ export const metadata: Metadata = {
     title: "Family Nest",
     description:
       "Document your family's life. Share it privately with the people who matter.",
-    images: ["/og-image.jpg"],
+    images: ["/icon-512.png"],
   },
 };
 

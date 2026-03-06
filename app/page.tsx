@@ -137,7 +137,7 @@ const organizationStructuredData = {
   "@type": "Organization",
   name: "Family Nest",
   url: "https://familynest.io",
-  logo: "https://familynest.io/og-image.jpg",
+  logo: "https://familynest.io/icon-512.png",
   description:
     "A private, permanent space for families to preserve their memories together.",
 };
