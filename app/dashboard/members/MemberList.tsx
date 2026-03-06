@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/client";
 import { updateFamilyMember, deleteFamilyMember } from "./actions";
+import { thumbUrl } from "@/src/lib/imageUrl";
 import { RELATIONSHIP_OPTIONS } from "./constants";
 import { toast } from "sonner";
 
@@ -201,7 +202,7 @@ function MemberRow({
           {/* Photo */}
           <div className="flex items-center gap-3">
             {displayPhoto ? (
-              <img src={displayPhoto} alt="" loading="lazy" className="h-10 w-10 rounded-full object-cover ring-2 ring-[var(--border)]" />
+              <img src={thumbUrl(displayPhoto, 80)} alt="" loading="lazy" className="h-10 w-10 rounded-full object-cover ring-2 ring-[var(--border)]" />
             ) : (
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent)]/20 text-xs font-semibold text-[var(--accent)]">{initials(member.name)}</div>
             )}
@@ -268,7 +269,7 @@ function MemberRow({
       {/* Avatar */}
       <Link href={`/dashboard/members/${member.id}`} className="shrink-0">
         {displayPhoto ? (
-          <img src={displayPhoto} alt={member.name} loading="lazy"
+          <img src={thumbUrl(displayPhoto, 80)} alt={member.name} loading="lazy"
             className={`h-10 w-10 rounded-full object-cover ring-2 ring-[var(--border)] ${isMemorial ? "grayscale" : ""}`} />
         ) : (
           <div className={`flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold ${
@@ -447,7 +448,7 @@ function MemberCard({
   const displayPhoto = photoPreview || avatarUrl;
   const photoOrInitials = displayPhoto ? (
     <img
-      src={displayPhoto}
+      src={thumbUrl(displayPhoto, 160)}
       alt={member.name}
       loading="lazy"
       className="h-20 w-20 rounded-full object-cover ring-2 ring-[var(--border)]"
@@ -478,7 +479,7 @@ function MemberCard({
                 />
               ) : avatarUrl ? (
                 <img
-                  src={avatarUrl}
+                  src={thumbUrl(avatarUrl, 160)}
                   alt={`Current profile photo of ${member.name}`}
                   loading="lazy"
                   className="h-20 w-20 rounded-full object-cover ring-2 ring-[var(--border)]"
@@ -683,7 +684,7 @@ function MemberCard({
         <div className="relative">
           {member.avatar_url ? (
             <img
-              src={member.avatar_url}
+              src={thumbUrl(member.avatar_url, 192)}
               alt={member.name}
               loading="lazy"
               className={`h-24 w-24 rounded-full object-cover ring-4 transition-all duration-300 ${

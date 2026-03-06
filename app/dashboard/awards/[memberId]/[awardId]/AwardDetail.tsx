@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { deleteAward, deleteAwardFile } from "../../actions";
 import { AwardForm } from "../new/AwardForm";
+import { thumbUrl } from "@/src/lib/imageUrl";
 
 const CATEGORY_LABELS: Record<string, string> = {
   sports: "Sports",
@@ -136,7 +137,7 @@ export function AwardDetail({
               style={{ aspectRatio: imageFiles.length === 1 ? "4/3" : "1/1" }}
             >
               <Image
-                src={file.url}
+                src={thumbUrl(file.url, 800)}
                 alt={award.title}
                 fill
                 unoptimized

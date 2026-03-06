@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
+import { thumbUrl } from "@/src/lib/imageUrl";
 
 type Photo = { id: string; url: string; caption: string | null; kind: "photo" };
 type Video = { id: string; url: string; duration_seconds: number | null; kind: "video" };
@@ -76,7 +77,7 @@ export function JournalPhotoGallery({ photos, videos, title }: JournalPhotoGalle
           >
             {item.kind === "photo" ? (
               <Image
-                src={item.url}
+                src={thumbUrl(item.url, 160)}
                 alt={item.caption || title || "Photo"}
                 fill
                 unoptimized
@@ -207,7 +208,7 @@ export function JournalPhotoGallery({ photos, videos, title }: JournalPhotoGalle
                   aria-label={`Go to item ${idx + 1}`}
                 >
                   {item.kind === "photo" ? (
-                    <Image src={item.url} alt="" fill unoptimized className="object-cover" sizes="56px" />
+                    <Image src={thumbUrl(item.url, 112)} alt="" fill unoptimized className="object-cover" sizes="56px" />
                   ) : (
                     <>
                       <video src={item.url} preload="metadata" muted playsInline className="h-full w-full object-cover" />

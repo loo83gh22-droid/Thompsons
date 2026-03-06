@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { removeFavourite, updateFavourite } from "./actions";
+import { thumbUrl } from "@/src/lib/imageUrl";
 
 type Item = {
   id: string;
@@ -247,8 +248,9 @@ export function CurrentFavourites({
             {item.photo_url && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={item.photo_url}
+                src={thumbUrl(item.photo_url, 600)}
                 alt={item.title}
+                loading="lazy"
                 className="h-36 w-full object-cover"
               />
             )}

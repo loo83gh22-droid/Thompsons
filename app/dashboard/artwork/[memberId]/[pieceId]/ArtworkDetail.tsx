@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Image from "next/image";
+import { thumbUrl } from "@/src/lib/imageUrl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -358,7 +359,7 @@ export function ArtworkDetail({
               style={{ aspectRatio: photos.length === 1 ? "4/3" : "1/1" }}
             >
               <Image
-                src={photo.url}
+                src={thumbUrl(photo.url, 800)}
                 alt={piece.title}
                 fill
                 unoptimized
