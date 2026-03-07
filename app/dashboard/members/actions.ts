@@ -146,6 +146,17 @@ export async function resendInviteEmail(
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return { success: false, error: "No active family" };
 
+  // Only owners and adults can send invite emails (mirrors addFamilyMember / updateFamilyMember).
+  const { data: caller } = await supabase
+    .from("family_members")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+  if (!caller || !["owner", "adult"].includes(caller.role)) {
+    return { success: false, error: "Only adults and owners can send invitations." };
+  }
+
   const { data: member } = await supabase
     .from("family_members")
     .select("name, contact_email, user_id, role")
@@ -183,6 +194,17 @@ export async function addFamilyMember(
   if (!user) throw new Error("Not authenticated");
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
+
+  // Only owners and adults can add family members (mirrors updateFamilyMember lines ~318-326).
+  const { data: caller } = await supabase
+    .from("family_members")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+  if (!caller || !["owner", "adult"].includes(caller.role)) {
+    throw new Error("Only adults and owners can add family members.");
+  }
 
   // Auto-detect role from birth date
   const detectedRole = detectRoleFromBirthDate(birthDate?.trim() || null);

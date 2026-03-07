@@ -1,7 +1,7 @@
 # FamilyNest Security Findings
 
-Last audited: 2026-03-05
-Last resolved: 2026-03-05
+Last audited: 2026-03-07
+Last resolved: 2026-03-07
 
 ---
 
@@ -46,6 +46,35 @@ Last resolved: 2026-03-05
 **Attack:** MIME encoding injection via crafted title in email subject header.
 **Fix applied:** Changed subject to use `safeTitle` (already HTML-escaped) instead of raw `msg.title`.
 
+### S9 — `addFamilyMember` Server Action Missing Role Check · ✅ FIXED 2026-03-07
+**File:** `app/dashboard/members/actions.ts`
+**Attack:** Any authenticated family member — including `teen` and `child` roles — could call this
+Server Action directly (bypassing UI RoleGate) to add new family members and trigger invite emails
+to non-child accounts. The action checked authentication and family membership but not the caller's
+role. By contrast, `updateFamilyMember` in the same file correctly enforced `owner`/`adult`,
+confirming the pattern existed and was simply omitted here.
+**Fix applied:** Added inline `owner`/`adult` role guard immediately after `activeFamilyId` check,
+mirroring the pattern already present in `updateFamilyMember`.
+
+### S10 — `resendInviteEmail` Server Action Missing Role Check · ✅ FIXED 2026-03-07
+**File:** `app/dashboard/members/actions.ts`
+**Attack:** Any authenticated family member could call `resendInviteEmail(memberId)` to re-send
+invite emails to pending members, burning Resend API quota. The action only verified authentication
+and family membership, not that the caller had invite permission.
+**Fix applied:** Added the same inline `owner`/`adult` role guard immediately after the
+`activeFamilyId` check.
+
+### S11 — `middleware.ts` Absent from Project Root · ℹ️ INFORMATIONAL
+**File:** (missing — referenced in `CLAUDE.md`)
+**Note:** `CLAUDE.md` says middleware refreshes Supabase sessions and protects `/dashboard/*`.
+The source file does not exist. `app/dashboard/layout.tsx:23–30` compensates with `getUser()` +
+redirect on every page load, and all API routes authenticate individually, so there is no
+exploitable auth bypass. The practical gap is that the Supabase access token is not proactively
+refreshed at the Edge; users with long-lived sessions may see transient 401s after the 1-hour
+token lifetime without a full page reload. No code change is strictly required for security, but
+adding middleware would follow the Supabase-recommended Next.js App Router pattern and eliminate
+the UX edge-case.
+
 ---
 
 ## Client-Side Findings
@@ -70,18 +99,42 @@ All references are in Route Handlers or `"use server"` actions only.
 
 ---
 
+## Confirmed Correct (2026-03-06 audit)
+
+| Surface | Finding | Status |
+|---|---|---|
+| Stripe webhook body | `request.text()` + `constructEvent()` with raw body | ✅ Correct |
+| Stripe webhook 400s | Returns 400 on signature failure | ✅ Correct |
+| Cron auth | `Authorization: Bearer <CRON_SECRET>` check, not query param | ✅ Correct |
+| Invite tokens | UUID v4 opaque tokens stored in DB; rate-limited (5/min) | ✅ Correct |
+| Dashboard auth | `layout.tsx:26-30` — `getUser()` + redirect on every load | ✅ Correct |
+| `updateFamilyMember` | Role check owner/adult at lines 318–326 | ✅ Correct |
+| All API routes (20) | Every handler checks auth before touching data | ✅ Correct |
+| Rate limiting coverage | All 8 key endpoints covered with `strictLimiter`/`defaultLimiter` | ✅ Correct |
+| `dangerouslySetInnerHTML` | Hardcoded JSON-LD only; no user input path | ✅ Correct |
+| Open redirect (callback) | `startsWith("/") && !startsWith("//")` guard | ✅ Correct |
+| Open redirect (login) | Same guard at both redirect points | ✅ Correct |
+| Service role key | Server-only files only; no client bundle exposure | ✅ Correct |
+| `localStorage` | UI flags only; no PII, tokens, or auth data | ✅ Correct |
+| Email HTML escaping | `esc()` applied to all user-supplied fields in templates | ✅ Correct |
+
+---
+
 ## Status Summary
 
 | ID | Severity | Status |
 |---|---|---|
 | S1 | High | ✅ FIXED 2026-03-05 |
 | S2 | Medium | ✅ FIXED 2026-03-05 |
+| S9 | Medium | ✅ FIXED 2026-03-07 |
+| S10 | Medium | ✅ FIXED 2026-03-07 |
 | C2 | Low | ✅ FIXED 2026-03-05 |
 | S3 | Low | ✅ FIXED 2026-03-05 |
 | S4 | Low | ✅ FIXED 2026-03-05 |
 | S5 | Low | ✅ FIXED 2026-03-05 |
 | S6 | Low | ✅ FIXED 2026-03-05 |
 | S8 | Low | ✅ FIXED 2026-03-05 |
+| S11 | Informational | No exploit path — consider adding middleware |
 | S7 | Informational | No action needed |
 | C1 | Safe | No action needed |
 | C3 | Safe | No action needed |
