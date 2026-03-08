@@ -23,6 +23,7 @@ const familyItems: { href: string; label: string; muted?: boolean }[] = [
   { href: "/dashboard/messages", label: "Messages" },
   { href: "/dashboard/events", label: "Events" },
   { href: "/dashboard/bucket-list", label: "Bucket List" },
+  { href: "/dashboard/time-capsules", label: "Time Capsules" },
 ];
 
 const memoriesItems: { href: string; label: string }[] = [
@@ -36,7 +37,6 @@ const memoriesItems: { href: string; label: string }[] = [
   { href: "/dashboard/trophy-case", label: "Trophy Case" },
   { href: "/dashboard/traditions", label: "Traditions" },
   { href: "/dashboard/voice-memos", label: "Voice Memos" },
-  { href: "/dashboard/time-capsules", label: "Time Capsules" },
 ];
 
 const favouritesItems: { href: string; label: string }[] = [
