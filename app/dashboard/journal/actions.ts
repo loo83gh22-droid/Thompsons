@@ -333,14 +333,35 @@ export async function updateJournalEntry(entryId: string, formData: FormData) {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
-  // Verify the entry belongs to the active family before allowing updates
+  // Get current user's member record for ownership check
+  const { data: myMember } = await supabase
+    .from("family_members")
+    .select("id, role")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+
+  if (!myMember) throw new Error("Family member not found.");
+
+  // Verify the entry belongs to the active family AND the current user can edit it
   const { data: existingEntry } = await supabase
     .from("journal_entries")
-    .select("family_id")
+    .select("family_id, author_id, created_by")
     .eq("id", entryId)
     .single();
+
   if (!existingEntry || existingEntry.family_id !== activeFamilyId) {
     throw new Error("Entry not found or access denied.");
+  }
+
+  // Only the owner role or the person who created the entry can edit it
+  const isOwner = myMember.role === "owner";
+  const isCreator = existingEntry.created_by
+    ? existingEntry.created_by === myMember.id
+    : existingEntry.author_id === myMember.id;
+
+  if (!isOwner && !isCreator) {
+    throw new Error("You can only edit your own journal entries.");
   }
 
   // Extract and validate FormData — deduplicate in case client sends IDs twice
@@ -687,14 +708,32 @@ export async function deleteJournalEntry(entryId: string) {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
+  const { data: myMember } = await supabase
+    .from("family_members")
+    .select("id, role")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+
+  if (!myMember) throw new Error("Family member not found.");
+
   const { data: entry, error: fetchError } = await supabase
     .from("journal_entries")
-    .select("id, family_id")
+    .select("id, family_id, author_id, created_by")
     .eq("id", entryId)
     .single();
 
   if (fetchError || !entry || entry.family_id !== activeFamilyId) {
     throw new Error("Entry not found or you don't have access.");
+  }
+
+  const isOwner = myMember.role === "owner";
+  const isCreator = entry.created_by
+    ? entry.created_by === myMember.id
+    : entry.author_id === myMember.id;
+
+  if (!isOwner && !isCreator) {
+    throw new Error("You can only delete your own journal entries.");
   }
 
   await supabase
