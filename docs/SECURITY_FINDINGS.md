@@ -1,7 +1,7 @@
 # FamilyNest Security Findings
 
 Last audited: 2026-03-07
-Last resolved: 2026-03-07
+Last resolved: 2026-03-07 (S11)
 
 ---
 
@@ -37,9 +37,13 @@ Last resolved: 2026-03-07
 **Attack:** Authenticated user could probe internal bucket names. RLS mitigated but no fast-fail.
 **Fix applied:** Added `ALLOWED_BUCKETS` set with all 10 legitimate media buckets; unknown buckets return 404.
 
-### S7 — Admin Guard Single-Layer If Proxy Misconfigured · ℹ️ INFORMATIONAL
-**File:** `app/admin/page.tsx:45-48`
-**Note:** Current layering is correct (proxy 404 + Server Component redirect). No code change needed. Ensure proxy matcher for `/admin` is never removed.
+### S7 — Admin Guard Single-Layer If Proxy Misconfigured · ℹ️ INFORMATIONAL (stronger than assessed)
+**File:** `app/admin/page.tsx:45-48`, `proxy.ts:56-61`
+**Note:** Originally assessed as "proxy 404 + Server Component redirect." On re-audit, `proxy.ts`
+actively enforces a hard 404 for all `/admin` and `/admin/*` paths unless the authenticated user's
+email matches `ADMIN_NOTIFICATION_EMAIL` — this is a positive auth check at the Edge, not just a
+redirect. Combined with the Server Component check, the admin route has two independent guards.
+No code change needed. Ensure the `proxy.ts` matcher never excludes `/admin`.
 
 ### S8 — Notification Email Subject Used Raw `msg.title` · ✅ FIXED 2026-03-05
 **File:** `app/api/notifications/route.ts:264`
@@ -64,16 +68,14 @@ and family membership, not that the caller had invite permission.
 **Fix applied:** Added the same inline `owner`/`adult` role guard immediately after the
 `activeFamilyId` check.
 
-### S11 — `middleware.ts` Absent from Project Root · ℹ️ INFORMATIONAL
-**File:** (missing — referenced in `CLAUDE.md`)
-**Note:** `CLAUDE.md` says middleware refreshes Supabase sessions and protects `/dashboard/*`.
-The source file does not exist. `app/dashboard/layout.tsx:23–30` compensates with `getUser()` +
-redirect on every page load, and all API routes authenticate individually, so there is no
-exploitable auth bypass. The practical gap is that the Supabase access token is not proactively
-refreshed at the Edge; users with long-lived sessions may see transient 401s after the 1-hour
-token lifetime without a full page reload. No code change is strictly required for security, but
-adding middleware would follow the Supabase-recommended Next.js App Router pattern and eliminate
-the UX edge-case.
+### S11 — `middleware.ts` Absent from Project Root · ✅ ALREADY RESOLVED (via proxy.ts)
+**File:** `proxy.ts`
+**Note:** Next.js 16 replaces `middleware.ts` with `proxy.ts`. The project already had a fully
+correct `proxy.ts` implementing: (1) Supabase session refresh via `supabase.auth.getUser()` with
+proper `setAll` cookie wiring; (2) `/dashboard/*` → `/login` redirect for unauthenticated users,
+preserving `?next=` path; (3) hard 404 for `/admin` unless the request user matches
+`ADMIN_NOTIFICATION_EMAIL`. S11 was a false alarm caused by auditing for `middleware.ts` without
+checking the Next.js 16 proxy equivalent. No code change needed.
 
 ---
 
@@ -134,7 +136,7 @@ All references are in Route Handlers or `"use server"` actions only.
 | S5 | Low | ✅ FIXED 2026-03-05 |
 | S6 | Low | ✅ FIXED 2026-03-05 |
 | S8 | Low | ✅ FIXED 2026-03-05 |
-| S11 | Informational | No exploit path — consider adding middleware |
+| S11 | Informational | ✅ Already resolved via proxy.ts (Next.js 16) |
 | S7 | Informational | No action needed |
 | C1 | Safe | No action needed |
 | C3 | Safe | No action needed |
