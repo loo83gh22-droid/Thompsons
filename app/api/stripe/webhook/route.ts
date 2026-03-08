@@ -3,6 +3,7 @@ import { stripe } from "@/src/lib/stripe";
 import { createClient } from "@supabase/supabase-js";
 import { PLAN_LIMITS } from "@/src/lib/constants";
 import { Resend } from "resend";
+import { esc, emailWrapper, card, ctaButton, appUrl } from "@/app/api/emails/templates/shared";
 import type Stripe from "stripe";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -208,6 +209,54 @@ async function deactivateStorageAddon(stripeSubscriptionId: string) {
   }
 }
 
+// ── Upgrade confirmation email ────────────────────────────────────────────────
+
+async function sendUpgradeEmail(familyId: string, plan: "annual" | "legacy") {
+  if (!resend) return;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+  const { data: owner } = await supabase
+    .from("family_members")
+    .select("contact_email, name, families(name)")
+    .eq("family_id", familyId)
+    .eq("role", "owner")
+    .not("contact_email", "is", null)
+    .single();
+
+  if (!owner?.contact_email) return;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const familyRecord = owner.families as any;
+  const familyName = esc(familyRecord?.name ?? "your family");
+  const ownerName = esc(owner.name ?? "there");
+  const planLabel = plan === "annual" ? "Annual Plan" : "Lifetime Plan";
+
+  const benefits =
+    plan === "annual"
+      ? ["Unlimited photos & videos", "100 GB storage", "All features unlocked", "Priority support"]
+      : ["Everything in Annual, forever", "Lifetime access — pay once", "150 GB storage", "VIP founder status"];
+
+  const benefitList = benefits
+    .map((b) => `<li style="margin:6px 0;color:#94a3b8;font-size:14px;list-style:none;padding-left:0;">✓ &nbsp;${esc(b)}</li>`)
+    .join("");
+
+  const html = emailWrapper(card(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#f0f2f8;">Welcome to the ${esc(planLabel)}! 🎉</h2>
+    <p style="margin:0 0 20px;font-size:15px;color:#94a3b8;line-height:1.6;">
+      Hi ${ownerName} — thank you! <strong style="color:#D4A843;">${familyName}</strong>'s Nest has been upgraded.
+    </p>
+    <ul style="margin:0 0 24px;padding:0;">${benefitList}</ul>
+    ${ctaButton("Open your Nest →", `${appUrl}/dashboard`)}
+  `));
+
+  await resend.emails.send({
+    from: fromEmail,
+    to: owner.contact_email,
+    subject: `You're on the ${planLabel} — welcome! 🎉`,
+    html,
+  }).catch((err) => console.error("[stripe-webhook] upgrade email error:", err));
+}
+
 // ── Webhook handler ───────────────────────────────────────────────────────────
 
 export async function POST(request: Request) {
@@ -252,6 +301,7 @@ export async function POST(request: Request) {
           }
 
           await activatePlan(familyId, "legacy", session.customer as string);
+          await sendUpgradeEmail(familyId, "legacy");
         }
         break;
       }
@@ -282,6 +332,10 @@ export async function POST(request: Request) {
             invoice.customer as string,
             subscription.id
           );
+          // Only email on first purchase, not renewals
+          if ((invoice as unknown as Record<string, unknown>).billing_reason === "subscription_create") {
+            await sendUpgradeEmail(familyId, "annual");
+          }
         } else if (
           plan === "storage_25gb" ||
           plan === "storage_75gb" ||
