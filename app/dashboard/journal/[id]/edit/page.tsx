@@ -241,6 +241,11 @@ export default function EditJournalPage() {
       setAddingVideos(false);
       return;
     }
+    const tooLarge = files.filter((f) => f.size > VIDEO_LIMITS.maxSizeBytes);
+    if (tooLarge.length > 0) {
+      setError(`"${tooLarge[0].name}" is too large. Videos must be under ${VIDEO_LIMITS.maxSizeMB} MB. Try trimming it or reducing the quality in your camera settings.`);
+      return;
+    }
     const validFiles = files.filter((f) => f.size > 0 && f.size <= VIDEO_LIMITS.maxSizeBytes);
     const totalAfter = videos.length + validFiles.length;
     if (totalAfter > VIDEO_LIMITS.maxVideosPerJournalEntry) {
@@ -633,7 +638,7 @@ export default function EditJournalPage() {
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-[var(--foreground)] file:mr-4 file:rounded-lg file:border-0 file:bg-[var(--accent)] file:px-4 file:py-2 file:font-semibold file:text-[var(--background)]"
             />
             <p className="text-xs text-[var(--muted)]">
-              Max 5 minutes, 300 MB per video. Keep the gems, not everything.
+              Max 5 minutes, 500 MB per video. Keep the gems, not everything.
             </p>
             <div className="flex gap-2">
               <button
