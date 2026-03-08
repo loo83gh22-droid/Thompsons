@@ -39,8 +39,6 @@ export default function EditJournalPage() {
     trip_date: string;
     trip_date_end: string;
     author_id: string;
-    mood: string;
-    weather: string;
   } | null>(null);
   const [photos, setPhotos] = useState<JournalPhoto[]>([]);
   const [videos, setVideos] = useState<JournalVideo[]>([]);
@@ -64,7 +62,7 @@ export default function EditJournalPage() {
         supabase.from("family_members").select("id, name, color, symbol").eq("family_id", activeFamilyId).order("name"),
         supabase
           .from("journal_entries")
-          .select("title, content, location, trip_date, trip_date_end, author_id, created_by, mood, weather")
+          .select("title, content, location, trip_date, trip_date_end, author_id, created_by")
           .eq("id", entryId)
           .single(),
         supabase
@@ -98,8 +96,6 @@ export default function EditJournalPage() {
           trip_date?: string;
           trip_date_end?: string;
           author_id?: string;
-          mood?: string | null;
-          weather?: string | null;
         };
         setEntry({
           title: e.title || "",
@@ -108,8 +104,6 @@ export default function EditJournalPage() {
           trip_date: e.trip_date ? e.trip_date.slice(0, 10) : "",
           trip_date_end: e.trip_date_end ? e.trip_date_end.slice(0, 10) : "",
           author_id: e.author_id || "",
-          mood: e.mood || "",
-          weather: e.weather || "",
         });
       }
       if (photosRes.data) setPhotos(photosRes.data as JournalPhoto[]);
@@ -153,8 +147,6 @@ export default function EditJournalPage() {
       formData.set("location", entry.location);
       formData.set("trip_date", entry.trip_date);
       formData.set("location_type", locationType);
-      if (entry.mood) formData.set("mood", entry.mood);
-      if (entry.weather) formData.set("weather", entry.weather);
       if (entry.trip_date_end) formData.set("trip_date_end", entry.trip_date_end);
       if (authorOverride) formData.set("author_override", authorOverride);
       await updateJournalEntry(entryId, formData);
@@ -479,49 +471,6 @@ export default function EditJournalPage() {
             }
             className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
           />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium text-[var(--muted)]">
-              Mood (optional)
-            </label>
-            <select
-              value={entry.mood}
-              onChange={(e) => setEntry((prev) => prev && { ...prev, mood: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
-            >
-              <option value="">— not set —</option>
-              <option value="happy">😊 Happy</option>
-              <option value="excited">🎉 Excited</option>
-              <option value="grateful">🙏 Grateful</option>
-              <option value="adventurous">🌍 Adventurous</option>
-              <option value="peaceful">😌 Peaceful</option>
-              <option value="nostalgic">💭 Nostalgic</option>
-              <option value="reflective">🤔 Reflective</option>
-              <option value="sad">😢 Sad</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-[var(--muted)]">
-              Weather (optional)
-            </label>
-            <select
-              value={entry.weather}
-              onChange={(e) => setEntry((prev) => prev && { ...prev, weather: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
-            >
-              <option value="">— not set —</option>
-              <option value="sunny">☀️ Sunny</option>
-              <option value="cloudy">⛅ Cloudy</option>
-              <option value="rainy">🌧️ Rainy</option>
-              <option value="snowy">❄️ Snowy</option>
-              <option value="windy">💨 Windy</option>
-              <option value="hot">🌡️ Hot</option>
-              <option value="cold">🥶 Cold</option>
-              <option value="perfect">✨ Perfect</option>
-            </select>
-          </div>
         </div>
 
         {error && (
