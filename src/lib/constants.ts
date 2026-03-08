@@ -15,38 +15,59 @@
 export const PLAN_LIMITS = {
   free: {
     /** Maximum journal entries allowed (null = unlimited) */
-    journalEntries: 10,
-    /** Storage limit in bytes (500 MB) */
-    storageLimitBytes: 524288000,
+    journalEntries: null, // unlimited
+    /** Maximum family members allowed (null = unlimited) */
+    maxMembers: 6,
+    /** Storage limit in bytes (1 GB) */
+    storageLimitBytes: 1073741824,
     /** Whether video uploads are permitted */
     videoUploads: false,
     /** Whether map editing (adding locations) is permitted */
     mapEditing: false,
-    /** Whether public sharing links are permitted */
-    publicSharing: false,
+    /** Public sharing is open to all tiers — it drives word-of-mouth growth */
+    publicSharing: true,
+    /** Nest Keeper designation not available on free */
+    nestKeeperManagement: false,
+    /** Inactivity succession protocol not available on free */
+    successionProtocol: false,
   },
   annual: {
     journalEntries: null, // unlimited
+    maxMembers: null, // unlimited
     storageLimitBytes: 53687091200, // 50 GB
     videoUploads: true,
     mapEditing: true,
     publicSharing: true,
+    /** Annual plans can designate a Nest Keeper */
+    nestKeeperManagement: true,
+    /** Inactivity succession protocol not available on annual */
+    successionProtocol: false,
   },
   legacy: {
     journalEntries: null, // unlimited
+    maxMembers: null, // unlimited
     storageLimitBytes: 53687091200, // 50 GB
     videoUploads: true,
     mapEditing: true,
     publicSharing: true,
-    /** Only legacy plans can manage nest keepers */
+    /** Legacy plans can designate a Nest Keeper */
     nestKeeperManagement: true,
+    /**
+     * Legacy-only inactivity succession protocol:
+     * 30 days  → check-in email to owner
+     * 60 days  → second check-in email to owner
+     * 90 days  → Nest Keepers notified, can request transfer
+     * 90 days + request → 14-day waiting period then transfer completes
+     * 6 months → automatic transfer to Nest Keeper initiates
+     */
+    successionProtocol: true,
   },
 } as const;
 
 /**
- * Default storage limit when plan data is unavailable (500 MB)
+ * Default storage limit when plan data is unavailable (1 GB)
  */
-export const DEFAULT_STORAGE_LIMIT_BYTES = 524288000;
+export const DEFAULT_STORAGE_LIMIT_BYTES = 1073741824;
 
 /* ══════════════════════════════════════════════════════════════
    MEDIA LIMITS

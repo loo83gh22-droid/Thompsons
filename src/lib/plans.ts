@@ -21,14 +21,24 @@ export function canEditMap(plan: PlanType): boolean {
   return PLAN_LIMITS[plan].mapEditing;
 }
 
-/** Whether the plan allows shareable public links */
-export function canSharePublicly(plan: PlanType): boolean {
-  return PLAN_LIMITS[plan].publicSharing;
+/** Public sharing is open to all plans — it drives word-of-mouth growth */
+export function canSharePublicly(_plan: PlanType): boolean {
+  return true;
 }
 
-/** Whether the plan allows Nest Keeper management */
+/** Whether the plan allows Nest Keeper designation (annual + legacy) */
 export function canManageNestKeepers(plan: PlanType): boolean {
-  return plan === "legacy" && PLAN_LIMITS.legacy.nestKeeperManagement === true;
+  return PLAN_LIMITS[plan].nestKeeperManagement;
+}
+
+/** Whether the plan includes the inactivity succession protocol (legacy only) */
+export function hasSuccessionProtocol(plan: PlanType): boolean {
+  return PLAN_LIMITS[plan].successionProtocol;
+}
+
+/** Max family members for a given plan (null = unlimited) */
+export function memberLimit(plan: PlanType): number | null {
+  return PLAN_LIMITS[plan].maxMembers;
 }
 
 /** Max journal entries for a given plan (null = unlimited) */
