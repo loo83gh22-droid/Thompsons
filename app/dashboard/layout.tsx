@@ -14,6 +14,7 @@ import { QuickEntryWidget } from "@/app/dashboard/QuickEntryWidget";
 import { PWAInstallBanner } from "@/app/dashboard/PWAInstallBanner";
 import { MobileBottomNav } from "@/app/components/MobileBottomNav";
 import { MosaicBackground } from "@/app/components/MosaicBackground";
+import { WhatsNewBanner } from "@/app/dashboard/WhatsNewBanner";
 
 export default async function DashboardLayout({
   children,
@@ -229,6 +230,7 @@ export default async function DashboardLayout({
             activeFamilyId={activeFamilyId}
           />
           <PWAInstallBanner />
+          <WhatsNewBanner />
           <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6">
             <AgeTransitionBanner />
           </div>

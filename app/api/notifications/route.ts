@@ -22,7 +22,7 @@ import {
   day14UpgradeEmailHtml,
   day30ReengagementEmailHtml,
 } from "@/app/api/emails/templates/drip";
-import { esc } from "@/app/api/emails/templates/shared";
+import { esc, emailWrapper, card, ctaButton, appUrl } from "@/app/api/emails/templates/shared";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -89,6 +89,7 @@ export async function GET(request: Request) {
     day30Reengagement: 0,
     graceReminders: 0,
     graceEnforced: 0,
+    storageWarnings: 0,
     errors: [] as string[],
   };
 
@@ -797,6 +798,80 @@ export async function GET(request: Request) {
     }
   } catch (err) {
     results.errors.push(`Storage grace period handler: ${err}`);
+  }
+
+  // ── 7. Storage capacity warnings (80% and 90% thresholds) ────────────────
+  try {
+    const yearMonth = todayStr.slice(0, 7); // YYYY-MM — dedup once per month per tier
+
+    const { data: allFamilies } = await supabase
+      .from("families")
+      .select("id, name, storage_used_bytes, storage_limit_bytes")
+      .gt("storage_limit_bytes", 0);
+
+    for (const family of allFamilies ?? []) {
+      const ratio = family.storage_used_bytes / family.storage_limit_bytes;
+      if (ratio < 0.8) continue;
+
+      const tier = ratio >= 0.9 ? 90 : 80;
+      const campaignType = `storage_warning_${tier}_${yearMonth}`;
+
+      const { data: owners } = await supabase
+        .from("family_members")
+        .select("id, contact_email, name")
+        .eq("family_id", family.id)
+        .eq("role", "owner")
+        .not("contact_email", "is", null);
+
+      for (const owner of owners ?? []) {
+        if (!owner.contact_email) continue;
+
+        const { data: existing } = await supabase
+          .from("email_campaigns")
+          .select("id")
+          .eq("family_member_id", owner.id)
+          .eq("campaign_type", campaignType)
+          .maybeSingle();
+
+        if (existing) continue;
+
+        const usedPercent = Math.round(ratio * 100);
+        const usedGb = (family.storage_used_bytes / (1024 ** 3)).toFixed(1);
+        const limitGb = (family.storage_limit_bytes / (1024 ** 3)).toFixed(0);
+        const urgencyLabel = tier >= 90 ? "⚠️ Almost full" : "📦 Storage heads-up";
+        const accentColor = tier >= 90 ? "#f87171" : "#fbbf24";
+
+        const html = emailWrapper(card(`
+          <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#f0f2f8;">${esc(urgencyLabel)}: ${usedPercent}% storage used</h2>
+          <p style="margin:0 0 16px;font-size:15px;color:#94a3b8;line-height:1.6;">
+            Hi ${esc(owner.name ?? "there")} — <strong style="color:#D4A843;">${esc(family.name)}</strong>'s Nest is using
+            <strong style="color:${accentColor};">${usedGb} GB</strong> of your ${limitGb} GB limit.
+          </p>
+          ${tier >= 90
+            ? `<p style="margin:0 0 20px;font-size:14px;color:#94a3b8;line-height:1.6;">You're almost at the limit. Consider upgrading your plan or removing older media so you can keep capturing memories without interruption.</p>`
+            : `<p style="margin:0 0 20px;font-size:14px;color:#94a3b8;line-height:1.6;">You're in good shape for now — just keeping you in the loop so there are no surprises.</p>`}
+          ${ctaButton("Manage storage", `${appUrl}/dashboard/settings`)}
+        `));
+
+        try {
+          await resend.emails.send({
+            from: fromEmail,
+            to: owner.contact_email,
+            subject: `${urgencyLabel}: ${family.name}'s Nest is ${usedPercent}% full`,
+            html,
+          });
+          await supabase.from("email_campaigns").insert({
+            family_member_id: owner.id,
+            campaign_type: campaignType,
+          });
+          results.storageWarnings++;
+        } catch (err) {
+          results.errors.push(`Storage warning email for family ${family.id}: ${err}`);
+        }
+      }
+    }
+  } catch (err) {
+    results.errors.push(`Storage capacity warnings: ${err}`);
   }
 
   if (results.errors.length > 0) {
