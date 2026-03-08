@@ -166,7 +166,15 @@ export default function EditJournalPage() {
     e.preventDefault();
     const form = e.currentTarget;
     const input = form.querySelector('input[name="photos"]') as HTMLInputElement;
-    const files = Array.from(input.files || []).filter((f) => f.size > 0);
+    // Deduplicate by name+size — iOS photo picker can return the same File twice
+    const seen = new Set<string>();
+    const files = Array.from(input.files || []).filter((f) => {
+      if (f.size === 0) return false;
+      const key = `${f.name}:${f.size}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
     if (files.length === 0) {
       setAddingPhotos(false);
       return;
@@ -200,7 +208,6 @@ export default function EditJournalPage() {
       if (data) setPhotos(data as JournalPhoto[]);
       input.value = "";
       setAddingPhotos(false);
-      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add photos.");
     }
@@ -215,7 +222,6 @@ export default function EditJournalPage() {
           try {
             await deleteJournalPhoto(photoId, entryId);
             setPhotos((p) => p.filter((x) => x.id !== photoId));
-            router.refresh();
           } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to remove photo.");
           }
@@ -233,6 +239,11 @@ export default function EditJournalPage() {
     const files = formData.getAll("videos") as File[];
     if (files.every((f) => f.size === 0)) {
       setAddingVideos(false);
+      return;
+    }
+    const tooLarge = files.filter((f) => f.size > VIDEO_LIMITS.maxSizeBytes);
+    if (tooLarge.length > 0) {
+      setError(`"${tooLarge[0].name}" is too large. Videos must be under ${VIDEO_LIMITS.maxSizeMB} MB. Try trimming it or reducing the quality in your camera settings.`);
       return;
     }
     const validFiles = files.filter((f) => f.size > 0 && f.size <= VIDEO_LIMITS.maxSizeBytes);
@@ -278,7 +289,6 @@ export default function EditJournalPage() {
       if (data) setVideos(data as JournalVideo[]);
       (form.querySelector('input[name="videos"]') as HTMLInputElement).value = "";
       setAddingVideos(false);
-      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add videos.");
     }
@@ -293,7 +303,6 @@ export default function EditJournalPage() {
           try {
             await deleteJournalVideo(videoId, entryId);
             setVideos((v) => v.filter((x) => x.id !== videoId));
-            router.refresh();
           } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to remove video.");
           }
@@ -526,7 +535,7 @@ export default function EditJournalPage() {
                 <button
                   type="button"
                   onClick={() => handleDeletePhoto(photo.id)}
-                  className="absolute right-2 top-2 rounded bg-black/60 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100"
+                  className="absolute right-2 top-2 rounded bg-black/60 px-2 py-1 text-xs text-white opacity-100 min-[768px]:opacity-0 min-[768px]:transition-opacity min-[768px]:group-hover:opacity-100"
                 >
                   Remove
                 </button>
@@ -629,7 +638,7 @@ export default function EditJournalPage() {
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-[var(--foreground)] file:mr-4 file:rounded-lg file:border-0 file:bg-[var(--accent)] file:px-4 file:py-2 file:font-semibold file:text-[var(--background)]"
             />
             <p className="text-xs text-[var(--muted)]">
-              Max 5 minutes, 300 MB per video. Keep the gems, not everything.
+              Max 5 minutes, 500 MB per video. Keep the gems, not everything.
             </p>
             <div className="flex gap-2">
               <button

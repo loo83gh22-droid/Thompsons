@@ -56,10 +56,10 @@ export const DEFAULT_STORAGE_LIMIT_BYTES = 524288000;
  * Video upload constraints
  */
 export const VIDEO_LIMITS = {
-  /** Maximum video file size in bytes (300 MB) */
-  maxSizeBytes: 314572800,
+  /** Maximum video file size in bytes (500 MB) */
+  maxSizeBytes: 524288000,
   /** Maximum video file size in MB (for display) */
-  maxSizeMB: 300,
+  maxSizeMB: 500,
   /** Maximum video duration in seconds (5 minutes) */
   maxDurationSeconds: 300,
   /** Maximum number of videos per journal entry */
