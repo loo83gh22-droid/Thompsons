@@ -15,6 +15,16 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ i
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return null;
 
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: myMember } = user
+    ? await supabase
+        .from("family_members")
+        .select("id, role")
+        .eq("user_id", user.id)
+        .eq("family_id", activeFamilyId)
+        .single()
+    : { data: null };
+
   const [entryRes, photosRes, videosRes] = await Promise.all([
     supabase
       .from("journal_entries")
@@ -26,6 +36,8 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ i
         trip_date,
         trip_date_end,
         created_at,
+        author_id,
+        created_by,
         family_members!author_id(name, nickname, relationship)
       `)
       .eq("id", id)
@@ -48,6 +60,12 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ i
   const entry = entryRes.data;
   const photos = photosRes.data ?? [];
   const videos = videosRes.data ?? [];
+
+  const isOwner = myMember?.role === "owner";
+  const isCreator = entry.created_by
+    ? entry.created_by === myMember?.id
+    : entry.author_id === myMember?.id;
+  const canEdit = isOwner || isCreator;
 
   const raw = entry.family_members as unknown;
   const author = Array.isArray(raw) ? raw[0] : raw;
@@ -104,15 +122,17 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ i
         </div>
       )}
 
-      <div className="mt-8 flex flex-wrap gap-2">
-        <Link
-          href={`/dashboard/journal/${id}/edit`}
-          className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-medium hover:bg-[var(--surface-hover)]"
-        >
-          Edit
-        </Link>
-        <DeleteJournalEntryButton entryId={id} title={entry.title ?? "this entry"} variant="list" />
-      </div>
+      {canEdit && (
+        <div className="mt-8 flex flex-wrap gap-2">
+          <Link
+            href={`/dashboard/journal/${id}/edit`}
+            className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-medium hover:bg-[var(--surface-hover)]"
+          >
+            Edit
+          </Link>
+          <DeleteJournalEntryButton entryId={id} title={entry.title ?? "this entry"} variant="list" />
+        </div>
+      )}
 
       <JournalPerspectives entryId={id} />
     </div>

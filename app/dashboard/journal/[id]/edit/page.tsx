@@ -28,7 +28,7 @@ export default function EditJournalPage() {
   const router = useRouter();
   const params = useParams();
   const entryId = params.id as string;
-  const { activeFamilyId } = useFamily();
+  const { activeFamilyId, currentMemberId, currentUserRole } = useFamily();
 
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
@@ -96,7 +96,19 @@ export default function EditJournalPage() {
           trip_date?: string;
           trip_date_end?: string;
           author_id?: string;
+          created_by?: string | null;
         };
+
+        // Authorization: only the owner role or the entry creator can edit
+        const isOwner = currentUserRole === "owner";
+        const isCreator = e.created_by
+          ? e.created_by === currentMemberId
+          : e.author_id === currentMemberId;
+        if (!isOwner && !isCreator) {
+          router.replace(`/dashboard/journal/${entryId}`);
+          return;
+        }
+
         setEntry({
           title: e.title || "",
           content: e.content || "",
