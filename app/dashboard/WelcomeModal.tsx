@@ -9,12 +9,10 @@ const STEP_KEY = "family-nest-welcome-step";
 export function WelcomeModal({
   familyName,
   memberCount,
-  photoCount,
   journalCount,
 }: {
   familyName: string;
   memberCount: number;
-  photoCount: number;
   journalCount: number;
 }) {
   const [open, setOpen] = useState(false);
@@ -22,9 +20,8 @@ export function WelcomeModal({
 
   // Determine step completion from real data — works across all devices/browsers
   const step0Done = memberCount >= 2;
-  const step1Done = photoCount >= 1;
-  const step2Done = journalCount >= 1;
-  const allDataDone = step0Done && step1Done && step2Done;
+  const step1Done = journalCount >= 1;
+  const allDataDone = step0Done && step1Done;
 
   const openModal = useCallback(() => {
     try {
@@ -33,13 +30,13 @@ export function WelcomeModal({
         setCurrentStep(parseInt(savedStep, 10));
       } else {
         // Start at the first incomplete step so users aren't re-prompted for done actions
-        const stepsDone = [step0Done, step1Done, step2Done];
+        const stepsDone = [step0Done, step1Done];
         const firstIncomplete = stepsDone.findIndex((d) => !d);
         if (firstIncomplete >= 0) setCurrentStep(firstIncomplete);
       }
     } catch { /* ignore */ }
     setOpen(true);
-  }, [step0Done, step1Done, step2Done]);
+  }, [step0Done, step1Done]);
 
   useEffect(() => {
     try {
@@ -110,13 +107,6 @@ export function WelcomeModal({
       action: "/dashboard/our-family",
       actionText: "Add Family Members",
       icon: "\u{1F468}\u200D\u{1F469}\u200D\u{1F467}\u200D\u{1F466}"
-    },
-    {
-      title: "Upload Your Favorite Photo",
-      description: "Your photos become part of the family mosaic and are searchable by faces, places, and dates.",
-      action: "/dashboard/photos",
-      actionText: "Upload a Photo",
-      icon: "\u{1F4F7}"
     },
     {
       title: "Write One Sentence",

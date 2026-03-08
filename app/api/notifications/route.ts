@@ -557,18 +557,16 @@ export async function GET(request: Request) {
       const { data: families } = await supabase.from("families").select("id, name");
 
       for (const family of families ?? []) {
-        const [journals, photos, voices, stories] = await Promise.all([
+        const [journals, voices, stories] = await Promise.all([
           supabase.from("journal_entries").select("id", { count: "exact", head: true }).eq("family_id", family.id).gte("created_at", weekAgo),
-          supabase.from("home_mosaic_photos").select("id", { count: "exact", head: true }).eq("family_id", family.id).gte("created_at", weekAgo),
           supabase.from("voice_memos").select("id", { count: "exact", head: true }).eq("family_id", family.id).gte("created_at", weekAgo),
           supabase.from("family_stories").select("id", { count: "exact", head: true }).eq("family_id", family.id).gte("created_at", weekAgo),
         ]);
 
         const jCount = journals.count ?? 0;
-        const pCount = photos.count ?? 0;
         const vCount = voices.count ?? 0;
         const sCount = stories.count ?? 0;
-        if (jCount + pCount + vCount + sCount === 0) continue;
+        if (jCount + vCount + sCount === 0) continue;
 
         const { data: members } = await supabase
           .from("family_members")
@@ -587,7 +585,7 @@ export async function GET(request: Request) {
               html: digestEmailHtml(
                 m.nickname?.trim() || m.name,
                 family.name,
-                { journals: jCount, photos: pCount, voices: vCount, stories: sCount }
+                { journals: jCount, voices: vCount, stories: sCount }
               ),
             });
             results.weeklyDigests++;

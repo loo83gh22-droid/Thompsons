@@ -1,6 +1,5 @@
 "use server";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
@@ -10,16 +9,6 @@ import { VIDEO_LIMITS } from "@/src/lib/constants";
 import { getFormString } from "@/src/lib/validation/schemas";
 import { validateSchema } from "@/src/lib/validation/errors";
 import { createJournalEntrySchema } from "./schemas";
-
-async function getNextMosaicSortOrder(supabase: SupabaseClient, familyId: string) {
-  const { data } = await supabase
-    .from("home_mosaic_photos")
-    .select("sort_order")
-    .eq("family_id", familyId)
-    .order("sort_order", { ascending: false })
-    .limit(1);
-  return (data?.[0]?.sort_order ?? -1) + 1;
-}
 
 export type CreateJournalResult = { success: true; id: string } | { success: false; error: string };
 
@@ -247,7 +236,6 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
   // Upload photos (max 5 per journal entry)
   const allPhotos = formData.getAll("photos") as File[];
   const photos = allPhotos.filter((f) => f.size > 0).slice(0, 5);
-  let mosaicOrder = await getNextMosaicSortOrder(supabase, activeFamilyId);
 
   // Check total upload size against storage limit — skip photos if exceeded (G2)
   const totalUploadBytes = photos.reduce((s, f) => s + f.size, 0);
@@ -288,12 +276,6 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
         continue;
       }
 
-      await supabase.from("home_mosaic_photos").insert({
-        family_id: activeFamilyId,
-        url: photoUrl,
-        sort_order: mosaicOrder++,
-        taken_at: input.trip_date || null,
-      });
     } catch {
       // Skip this photo and continue so one bad file doesn't fail the whole entry
     }
@@ -345,7 +327,7 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
     revalidatePath("/dashboard/journal");
     revalidatePath("/dashboard/map");
     revalidatePath("/");
-    revalidatePath("/dashboard/photos");
+  
     return { success: true, id: entry.id };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Something went wrong.";
@@ -562,14 +544,6 @@ export async function addJournalPhotos(entryId: string, formData: FormData) {
 
   const photos = validPhotos.slice(0, toAdd);
   const startOrder = existingCount;
-  let mosaicOrder = await getNextMosaicSortOrder(supabase, activeFamilyId);
-
-  const { data: entryRow } = await supabase
-    .from("journal_entries")
-    .select("trip_date")
-    .eq("id", entryId)
-    .single();
-  const entryTripDate = entryRow?.trip_date || null;
 
   for (let i = 0; i < photos.length; i++) {
     const file = photos[i];
@@ -593,21 +567,13 @@ export async function addJournalPhotos(entryId: string, formData: FormData) {
         url: photoUrl,
         sort_order: startOrder + i,
       });
-
-      // Also add to Photos (background mosaic)
-      await supabase.from("home_mosaic_photos").insert({
-        family_id: activeFamilyId,
-        url: photoUrl,
-        sort_order: mosaicOrder++,
-        taken_at: entryTripDate,
-      });
     }
   }
 
   revalidatePath("/dashboard/journal");
   revalidatePath(`/dashboard/journal/${entryId}`);
   revalidatePath("/");
-  revalidatePath("/dashboard/photos");
+
 }
 
 /**
@@ -646,23 +612,10 @@ export async function registerJournalPhoto(
   });
   if (photoErr) throw new Error(photoErr.message);
 
-  const mosaicOrder = await getNextMosaicSortOrder(supabase, activeFamilyId);
-  const { data: regEntryRow } = await supabase
-    .from("journal_entries")
-    .select("trip_date")
-    .eq("id", entryId)
-    .single();
-  await supabase.from("home_mosaic_photos").insert({
-    family_id: activeFamilyId,
-    url: photoUrl,
-    sort_order: mosaicOrder,
-    taken_at: regEntryRow?.trip_date || null,
-  });
-
   revalidatePath("/dashboard/journal");
   revalidatePath(`/dashboard/journal/${entryId}`);
   revalidatePath("/");
-  revalidatePath("/dashboard/photos");
+
 }
 
 export async function deleteJournalPhoto(photoId: string, entryId?: string) {
@@ -692,16 +645,10 @@ export async function deleteJournalPhoto(photoId: string, entryId?: string) {
 
   if (error) throw error;
 
-  // Remove file from storage and clean up mosaic reference (W1)
+  // Remove file from storage (W1)
   if (photo?.url) {
     const storagePath = photo.url.replace("/api/storage/journal-photos/", "");
     await supabase.storage.from("journal-photos").remove([storagePath]);
-    // Delete the matching home_mosaic_photos row (same URL)
-    await supabase
-      .from("home_mosaic_photos")
-      .delete()
-      .eq("url", photo.url)
-      .eq("family_id", activeFamilyId);
   }
   if (photo?.file_size_bytes && photo.file_size_bytes > 0) {
     await subtractStorageUsage(supabase, activeFamilyId, photo.file_size_bytes);
@@ -710,7 +657,7 @@ export async function deleteJournalPhoto(photoId: string, entryId?: string) {
   revalidatePath("/dashboard/journal");
   if (entryId) revalidatePath(`/dashboard/journal/${entryId}/edit`);
   revalidatePath("/");
-  revalidatePath("/dashboard/photos");
+
 }
 
 export async function addJournalPerspective(
