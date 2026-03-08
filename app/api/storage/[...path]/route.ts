@@ -2,6 +2,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { NextResponse } from "next/server";
 
 const ALLOWED_BUCKETS = new Set([
+  "home-mosaic",
   "journal-photos",
   "journal-videos",
   "voice-memos",

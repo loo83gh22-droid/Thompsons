@@ -51,43 +51,62 @@ function ActivityIcon({ type }: { type: ActivityItem["type"] }) {
   );
 }
 
+const ACTION_LABELS: Record<ActivityItem["type"], string> = {
+  photo: "uploaded a photo",
+  journal: "wrote a journal entry",
+  voice_memo: "recorded a voice memo",
+  message: "sent a message",
+};
+
 function ActivityCard({ item }: { item: ActivityItem }) {
   const memberLabel = item.memberName ?? "Someone";
+
+  if (item.thumbnailUrl) {
+    return (
+      <Link
+        href={item.href}
+        className="group overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] transition-all duration-200 hover:border-[var(--primary)]/40 hover:shadow-lg"
+      >
+        <div className="relative h-44 w-full overflow-hidden bg-[var(--border)]">
+          <Image
+            src={item.thumbnailUrl}
+            alt={item.title || `Photo by ${memberLabel}`}
+            fill
+            unoptimized
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+          />
+        </div>
+        <div className="p-3">
+          <p className="text-sm text-[var(--muted)]">
+            {item.type === "photo" && !item.memberName ? (
+              "A photo was added"
+            ) : (
+              <>
+                <span className="font-medium text-[var(--accent)]">{memberLabel}</span>{" "}
+                {ACTION_LABELS[item.type]}
+              </>
+            )}
+          </p>
+          {item.title && (
+            <p className="mt-0.5 truncate font-medium text-[var(--foreground)]">{item.title}</p>
+          )}
+          <p className="mt-1 text-xs text-[var(--muted)]">{formatTimeAgo(item.createdAt)}</p>
+        </div>
+      </Link>
+    );
+  }
 
   return (
     <Link
       href={item.href}
       className="group flex gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 transition-all duration-200 hover:border-[var(--primary)]/40 hover:shadow-lg md:gap-4"
     >
-      {item.type === "photo" && item.thumbnailUrl ? (
-        <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg bg-[var(--border)]">
-          <Image
-            src={item.thumbnailUrl}
-            alt={item.title || `Photo shared by ${item.memberName || "a family member"}`}
-            fill
-            unoptimized
-            className="object-cover"
-            sizes="56px"
-          />
-        </div>
-      ) : (
-        <ActivityIcon type={item.type} />
-      )}
+      <ActivityIcon type={item.type} />
       <div className="min-w-0 flex-1">
         <p className="text-sm text-[var(--muted)]">
-          {item.type === "photo" && !item.memberName ? (
-            "A photo was added"
-          ) : (
-            <>
-              <span className="font-medium text-[var(--accent)]">{memberLabel}</span>{" "}
-              {{
-                photo: "uploaded a photo",
-                journal: "wrote a journal entry",
-                voice_memo: "recorded a voice memo",
-                message: "sent a message",
-              }[item.type]}
-            </>
-          )}
+          <span className="font-medium text-[var(--accent)]">{memberLabel}</span>{" "}
+          {ACTION_LABELS[item.type]}
         </p>
         {item.title && (
           <p className="mt-0.5 truncate font-medium text-[var(--foreground)]">{item.title}</p>
