@@ -72,8 +72,7 @@ export const VIDEO_LIMITS = {
 export const PHOTO_LIMITS = {
   /** Default maximum photos per upload/entry */
   maxPhotosPerEntry: 20,
-  /** Maximum photos to display in home mosaic background */
-  mosaicDisplayLimit: 80,
+
 } as const;
 
 /**

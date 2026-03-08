@@ -29,10 +29,8 @@
   --error-border: hsl(0, 55%, 80%);
 }
 
-/* Landing page wrapper - z-index for mosaic background */
 .landing {
   position: relative;
-  z-index: 1;
   min-height: 100vh;
 }
 

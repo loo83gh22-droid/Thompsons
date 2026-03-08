@@ -13,7 +13,6 @@ import { FeedbackPromptModal } from "@/app/dashboard/FeedbackPromptModal";
 import { QuickEntryWidget } from "@/app/dashboard/QuickEntryWidget";
 import { PWAInstallBanner } from "@/app/dashboard/PWAInstallBanner";
 import { MobileBottomNav } from "@/app/components/MobileBottomNav";
-import { MosaicBackground } from "@/app/components/MosaicBackground";
 import { WhatsNewBanner } from "@/app/dashboard/WhatsNewBanner";
 
 export default async function DashboardLayout({
@@ -198,23 +197,19 @@ export default async function DashboardLayout({
 
     // Fetch onboarding counts for WelcomeModal — data-driven so it works cross-device
     let welcomeMemberCount = 0;
-    let welcomePhotoCount = 0;
     let welcomeJournalCount = 0;
     if (activeFamilyId) {
-      const [membRes, photRes, jrnlRes] = await Promise.all([
+      const [membRes, jrnlRes] = await Promise.all([
         supabase.from("family_members").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
-        supabase.from("home_mosaic_photos").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
         supabase.from("journal_entries").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       ]);
       welcomeMemberCount = membRes.count ?? 0;
-      welcomePhotoCount = photRes.count ?? 0;
       welcomeJournalCount = jrnlRes.count ?? 0;
     }
 
     return (
       <FamilyProvider activeFamilyId={activeFamilyId} families={families} currentUserRole={currentUserRole} currentMemberId={currentMemberId} planType={planType}>
-        {activeFamilyId && <MosaicBackground activeFamilyId={activeFamilyId} />}
-        <WelcomeModal familyName={familyName} memberCount={welcomeMemberCount} photoCount={welcomePhotoCount} journalCount={welcomeJournalCount} />
+        <WelcomeModal familyName={familyName} memberCount={welcomeMemberCount} journalCount={welcomeJournalCount} />
         <BirthdayPrompt />
         <FeedbackPromptModal />
         {/* Quick entry widget: desktop only — mobile uses MobileBottomNav FAB instead */}

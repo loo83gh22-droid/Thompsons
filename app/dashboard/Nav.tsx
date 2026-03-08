@@ -30,7 +30,6 @@ const memoriesItems: { href: string; label: string }[] = [
   { href: "/dashboard/timeline", label: "Timeline" },
   { href: "/dashboard/journal", label: "Journal" },
   { href: "/dashboard/one-line", label: "One Line A Day" },
-  { href: "/dashboard/photos", label: "Photos" },
   { href: "/dashboard/stories", label: "Stories" },
   { href: "/dashboard/recipes", label: "Recipes" },
   { href: "/dashboard/artwork", label: "Artwork" },

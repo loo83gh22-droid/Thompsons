@@ -45,7 +45,7 @@ export default async function TimelinePage({
     (tlAliasRows ?? []).map((a: { target_member_id: string; label: string }) => [a.target_member_id, a.label])
   );
 
-  const [journalRes, voiceRes, timeCapsulesRes, photosRes, messagesRes, storiesRes, eventsRes, recipesRes, traditionsRes] = await Promise.all([
+  const [journalRes, voiceRes, timeCapsulesRes, messagesRes, storiesRes, eventsRes, recipesRes, traditionsRes] = await Promise.all([
     supabase
       .from("journal_entries")
       .select("id, title, content, trip_date, created_at, author_id, family_members!author_id(id, name, relationship)")
@@ -62,12 +62,6 @@ export default async function TimelinePage({
     supabase
       .from("time_capsules")
       .select("id, title, created_at, from_family_member_id, family_members!from_family_member_id(id, name, relationship)")
-      .eq("family_id", activeFamilyId)
-      .order("created_at", { ascending: false })
-      .limit(QUERY_LIMITS.timelineItemsPerType),
-    supabase
-      .from("home_mosaic_photos")
-      .select("id, url, created_at")
       .eq("family_id", activeFamilyId)
       .order("created_at", { ascending: false })
       .limit(QUERY_LIMITS.timelineItemsPerType),
@@ -154,21 +148,6 @@ export default async function TimelinePage({
       authorMemberId: row.from_family_member_id ?? null,
       thumbnailUrl: null,
       href: `/dashboard/time-capsules/${row.id}`,
-    });
-  }
-
-  for (const row of photosRes.data ?? []) {
-    items.push({
-      id: row.id,
-      date: row.created_at?.slice(0, 10) ?? "",
-      type: "photo",
-      title: "Family photo",
-      description: null,
-      authorName: null,
-      authorRelationship: null,
-      authorMemberId: null,
-      thumbnailUrl: row.url ?? null,
-      href: "/dashboard/photos",
     });
   }
 

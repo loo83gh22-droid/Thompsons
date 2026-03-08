@@ -2,7 +2,6 @@ import Link from "next/link";
 
 type Stats = {
   memberCount: number;
-  photoCount: number;
   journalCount: number;
   voiceMemoCount: number;
   timeCapsuleCount: number;
@@ -60,14 +59,6 @@ export function DashboardStats({ stats }: { stats: Stats }) {
           plural="members"
           description="sharing this space"
           href="/dashboard/our-family"
-        />
-        <StatCard
-          count={stats.photoCount}
-          icon="📷"
-          singular="photo"
-          plural="photos"
-          description="moments captured"
-          href="/dashboard/photos"
         />
         <StatCard
           count={stats.journalCount}

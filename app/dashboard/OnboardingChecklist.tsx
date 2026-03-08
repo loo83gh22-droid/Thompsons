@@ -30,13 +30,11 @@ function setCookie(name: string, value: string, days: number) {
 
 export function OnboardingChecklist({
   memberCount,
-  photoCount,
   journalCount,
   storyCount,
   voiceMemoCount,
 }: {
   memberCount: number;
-  photoCount: number;
   journalCount: number;
   storyCount: number;
   voiceMemoCount: number;
@@ -87,14 +85,6 @@ export function OnboardingChecklist({
       href: "/dashboard/our-family",
       icon: "👨‍👩‍👧‍👦",
       done: memberCount >= 2, // They're already 1 (themselves), so 2+ means they added someone
-    },
-    {
-      id: "photo",
-      label: "Upload a photo",
-      description: "Add a family photo to your mosaic background.",
-      href: "/dashboard/photos",
-      icon: "📷",
-      done: photoCount >= 1,
     },
     {
       id: "journal",

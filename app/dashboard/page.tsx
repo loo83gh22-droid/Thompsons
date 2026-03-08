@@ -28,7 +28,6 @@ export default async function DashboardPage() {
 
   let stats = {
     memberCount: 0,
-    photoCount: 0,
     journalCount: 0,
     voiceMemoCount: 0,
     timeCapsuleCount: 0,
@@ -49,13 +48,11 @@ export default async function DashboardPage() {
   if (activeFamilyId) {
     const [
       membersRes,
-      photosRes,
       journalRes,
       voiceRes,
       capsulesRes,
       storiesRes,
       eventsRes,
-      photosActivity,
       journalActivity,
       voiceActivity,
       messagesActivity,
@@ -64,13 +61,11 @@ export default async function DashboardPage() {
       allJournalForOTDRes,
     ] = await Promise.all([
       supabase.from("family_members").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
-      supabase.from("home_mosaic_photos").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("journal_entries").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("voice_memos").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("time_capsules").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("family_stories").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId).eq("published", true),
       supabase.from("family_events").select("id, title, event_date, category").eq("family_id", activeFamilyId).gte("event_date", todayDate.toISOString().slice(0, 10)).order("event_date", { ascending: true }).limit(3),
-      supabase.from("home_mosaic_photos").select("id, url, created_at, family_members!uploaded_by(id, name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("journal_entries").select("id, title, trip_date, created_at, family_members!author_id(id, name, relationship), journal_photos(url, sort_order)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("voice_memos").select("id, title, created_at, duration_seconds, family_members!family_member_id(id, name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("family_messages").select("id, title, created_at, family_members!sender_id(id, name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
@@ -104,7 +99,6 @@ export default async function DashboardPage() {
 
     stats = {
       memberCount: membersRes.count ?? 0,
-      photoCount: photosRes.count ?? 0,
       journalCount: journalRes.count ?? 0,
       voiceMemoCount: voiceRes.count ?? 0,
       timeCapsuleCount: capsulesRes.count ?? 0,
@@ -117,22 +111,6 @@ export default async function DashboardPage() {
     const one = <T,>(x: T | T[] | null): T | null => (x == null ? null : Array.isArray(x) ? x[0] ?? null : x);
 
     type MemberJoin = { id: string; name: string; relationship: string | null } | { id: string; name: string; relationship: string | null }[] | null;
-
-    const photoRows = (photosActivity.data ?? []).map((p: { id: string; url: string; created_at: string; family_members: MemberJoin }) => {
-      const uploader = one(p.family_members);
-      return {
-        type: "photo" as const,
-        id: p.id,
-        memberId: uploader?.id ?? null,
-        createdAt: p.created_at,
-        title: null,
-        thumbnailUrl: p.url,
-        memberName: resolveName(uploader?.id ?? null, uploader?.name ?? null),
-        memberRelationship: uploader?.relationship ?? null,
-        durationSeconds: null,
-        href: "/dashboard/photos",
-      };
-    });
 
     const journalRows = (journalActivity.data ?? []).map((j: { id: string; title: string; trip_date?: string | null; created_at: string; family_members: MemberJoin; journal_photos?: { url: string; sort_order: number | null }[] | null }) => {
       const author = one(j.family_members);
@@ -185,7 +163,7 @@ export default async function DashboardPage() {
       };
     });
 
-    const combined = [...photoRows.filter((p) => p.memberName !== null), ...journalRows, ...voiceRows, ...messageRows].sort(
+    const combined = [...journalRows, ...voiceRows, ...messageRows].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
     activityHasMore = combined.length > QUERY_LIMITS.recentActivity;
@@ -315,9 +293,6 @@ export default async function DashboardPage() {
 
     // Filter combined activity to user-relevant memories (compare by member ID)
     const userRelevantActivity = combined.filter((item) => {
-      // Photos: include all
-      if (item.type === "photo") return true;
-
       // Journal: created by user OR user added perspective
       if (item.type === "journal") {
         return (
@@ -373,7 +348,6 @@ export default async function DashboardPage() {
           <div className="mt-6">
             <OnboardingChecklist
               memberCount={stats.memberCount}
-              photoCount={stats.photoCount}
               journalCount={stats.journalCount}
               storyCount={stats.storyCount}
               voiceMemoCount={stats.voiceMemoCount}
