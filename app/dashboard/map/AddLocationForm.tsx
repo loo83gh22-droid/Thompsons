@@ -278,7 +278,7 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
           <label className="block text-sm font-medium text-[var(--muted)]">Type</label>
           <div className="mt-2 flex flex-wrap gap-3">
             {([
-              ["travel", "Travel / visit"],
+              ["travel", "Visit / trip"],
               ["lived", "Homes (lived here)"],
               ["vacation", "Vacation"],
               ["memorable_event", "Memorable event"],
