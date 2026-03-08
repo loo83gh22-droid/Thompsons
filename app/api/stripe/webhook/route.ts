@@ -182,30 +182,34 @@ async function deactivateStorageAddon(stripeSubscriptionId: string) {
 
     const isOverLimit = family.storage_used_bytes > newLimitBytes;
 
-    await resend.emails.send({
-      from: fromEmail,
-      to: emails,
-      subject: `Your ${addon.label} storage add-on has been cancelled`,
-      html: `
-        <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px">
-          <h2 style="color:#1a1a1a">Storage add-on cancelled</h2>
-          <p>Your <strong>${addon.label}</strong> storage add-on for <strong>${family.name}</strong> has been cancelled.</p>
-          ${isOverLimit ? `
-          <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:16px;margin:20px 0">
-            <strong>⚠️ Action required by ${graceDate}</strong>
-            <p style="margin:8px 0 0">You are currently using <strong>${usedGb} GB</strong> but your new limit will be <strong>${newLimitGb} GB</strong>.
-            Please reduce your storage before ${graceDate}.</p>
-            <p style="margin:8px 0 0">After that date, Family Nest will remove your largest media files (photos and videos) to bring your account within its limit.
-            <strong>Text memories (journal entries, stories, recipes) will never be deleted.</strong></p>
+    // Send individually — avoids exposing the full recipient list to Resend
+    // in a single call (which would reveal family member email addresses).
+    for (const to of emails) {
+      await resend.emails.send({
+        from: fromEmail,
+        to,
+        subject: `Your ${addon.label} storage add-on has been cancelled`,
+        html: `
+          <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px">
+            <h2 style="color:#1a1a1a">Storage add-on cancelled</h2>
+            <p>Your <strong>${addon.label}</strong> storage add-on for <strong>${family.name}</strong> has been cancelled.</p>
+            ${isOverLimit ? `
+            <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:16px;margin:20px 0">
+              <strong>⚠️ Action required by ${graceDate}</strong>
+              <p style="margin:8px 0 0">You are currently using <strong>${usedGb} GB</strong> but your new limit will be <strong>${newLimitGb} GB</strong>.
+              Please reduce your storage before ${graceDate}.</p>
+              <p style="margin:8px 0 0">After that date, Family Nest will remove your largest media files (photos and videos) to bring your account within its limit.
+              <strong>Text memories (journal entries, stories, recipes) will never be deleted.</strong></p>
+            </div>
+            <p><a href="https://www.familynest.io/dashboard/settings" style="background:#e53e3e;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block">Manage my storage</a></p>
+            ` : `
+            <p style="color:#38a169">✅ Your current usage (${usedGb} GB) is within your new limit of ${newLimitGb} GB. No action needed.</p>
+            `}
+            <p style="color:#666;font-size:13px;margin-top:24px">The Family Nest Team</p>
           </div>
-          <p><a href="https://www.familynest.io/dashboard/settings" style="background:#e53e3e;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block">Manage my storage</a></p>
-          ` : `
-          <p style="color:#38a169">✅ Your current usage (${usedGb} GB) is within your new limit of ${newLimitGb} GB. No action needed.</p>
-          `}
-          <p style="color:#666;font-size:13px;margin-top:24px">The Family Nest Team</p>
-        </div>
-      `,
-    });
+        `,
+      });
+    }
   }
 }
 

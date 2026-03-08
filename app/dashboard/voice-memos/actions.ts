@@ -97,7 +97,20 @@ export async function updateVoiceMemo(id: string, data: VoiceMemoUpdate) {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
-  const { error } = await supabase
+  // Resolve current member — used to enforce creator-or-privileged-role check.
+  const { data: currentMember } = await supabase
+    .from("family_members")
+    .select("id, role")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+  if (!currentMember) throw new Error("Member not found");
+
+  const isPrivileged = ["owner", "adult"].includes(currentMember.role);
+
+  // Build the update query. owner/adult can edit any memo in the family;
+  // teen/child can only edit memos they recorded themselves.
+  const query = supabase
     .from("voice_memos")
     .update({
       family_member_id: data.recordedById,
@@ -109,6 +122,10 @@ export async function updateVoiceMemo(id: string, data: VoiceMemoUpdate) {
     })
     .eq("id", id)
     .eq("family_id", activeFamilyId);
+
+  const { error } = isPrivileged
+    ? await query
+    : await query.eq("family_member_id", currentMember.id);
 
   if (error) throw error;
   revalidatePath("/dashboard/voice-memos");
@@ -133,12 +150,31 @@ export async function removeVoiceMemo(id: string) {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
-  const { data: row } = await supabase
+  // Resolve current member for creator-or-privileged-role check.
+  const { data: currentMember } = await supabase
+    .from("family_members")
+    .select("id, role")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+  if (!currentMember) throw new Error("Member not found");
+
+  const isPrivileged = ["owner", "adult"].includes(currentMember.role);
+
+  // Fetch the memo — restrict to creator for teen/child, any for owner/adult.
+  const memoQuery = supabase
     .from("voice_memos")
     .select("audio_url, file_size_bytes")
     .eq("id", id)
-    .eq("family_id", activeFamilyId)
-    .single();
+    .eq("family_id", activeFamilyId);
+
+  const { data: row } = isPrivileged
+    ? await memoQuery.single()
+    : await memoQuery.eq("family_member_id", currentMember.id).single();
+
+  // If the row wasn't found (non-privileged user trying to delete someone
+  // else's memo) bail out silently — nothing to clean up.
+  if (!row) return;
 
   if (row?.audio_url) {
     const path = pathFromAudioUrl(row.audio_url);
