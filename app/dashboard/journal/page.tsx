@@ -19,6 +19,16 @@ export default async function JournalPage() {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return null;
 
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: myMember } = user
+    ? await supabase
+        .from("family_members")
+        .select("id, role")
+        .eq("user_id", user.id)
+        .eq("family_id", activeFamilyId)
+        .single()
+    : { data: null };
+
   const { data: entries } = await supabase
     .from("journal_entries")
     .select(`
@@ -28,6 +38,8 @@ export default async function JournalPage() {
       location,
       trip_date,
       created_at,
+      author_id,
+      created_by,
       family_members!author_id (name, nickname, relationship)
     `)
     .eq("family_id", activeFamilyId)
@@ -169,26 +181,37 @@ export default async function JournalPage() {
                   )}
 
                   {/* Actions row */}
-                  <div className="mt-4 flex flex-wrap items-center gap-2">
-                    {perspectiveCount > 0 && (
-                      <span className="rounded-full bg-[var(--accent)]/15 px-2.5 py-0.5 text-xs font-medium text-[var(--accent)]">
-                        {perspectiveCount} perspective{perspectiveCount !== 1 ? "s" : ""}
-                      </span>
-                    )}
-                    <div className="ml-auto flex items-center gap-2">
-                      <Link
-                        href={`/dashboard/journal/${entry.id}/edit`}
-                        className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm font-medium hover:bg-[var(--surface-hover)]"
-                      >
-                        Edit
-                      </Link>
-                      <DeleteJournalEntryButton
-                        entryId={entry.id}
-                        title={entry.title ?? "this entry"}
-                        variant="list"
-                      />
-                    </div>
-                  </div>
+                  {(() => {
+                    const isOwner = myMember?.role === "owner";
+                    const isCreator = entry.created_by
+                      ? entry.created_by === myMember?.id
+                      : entry.author_id === myMember?.id;
+                    const canEdit = isOwner || isCreator;
+                    return (
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        {perspectiveCount > 0 && (
+                          <span className="rounded-full bg-[var(--accent)]/15 px-2.5 py-0.5 text-xs font-medium text-[var(--accent)]">
+                            {perspectiveCount} perspective{perspectiveCount !== 1 ? "s" : ""}
+                          </span>
+                        )}
+                        {canEdit && (
+                          <div className="ml-auto flex items-center gap-2">
+                            <Link
+                              href={`/dashboard/journal/${entry.id}/edit`}
+                              className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm font-medium hover:bg-[var(--surface-hover)]"
+                            >
+                              Edit
+                            </Link>
+                            <DeleteJournalEntryButton
+                              entryId={entry.id}
+                              title={entry.title ?? "this entry"}
+                              variant="list"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Unified media thumbnails — photos + videos, click to open lightbox */}
