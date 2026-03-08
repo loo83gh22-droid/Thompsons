@@ -127,7 +127,7 @@ export default async function DashboardPage() {
         memberName: resolveName(author?.id ?? null, author?.name ?? null),
         memberRelationship: author?.relationship ?? null,
         durationSeconds: null,
-        href: `/dashboard/journal/${j.id}/edit`,
+        href: `/dashboard/journal/${j.id}`,
       };
     });
 
@@ -261,7 +261,7 @@ export default async function DashboardPage() {
           title: j.title,
           memberName: resolveName(author?.id ?? null, author?.name ?? null),
           createdAt: j.created_at,
-          href: `/dashboard/journal/${j.id}/edit`,
+          href: `/dashboard/journal/${j.id}`,
           yearsAgo,
         };
       });

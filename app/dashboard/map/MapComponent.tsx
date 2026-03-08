@@ -268,12 +268,12 @@ function ClusterPopupContent({
               role="button"
               tabIndex={0}
               onClick={() => {
-                if (l.journal_entry_id) onNavigate(`/dashboard/journal/${l.journal_entry_id}/edit`);
+                if (l.journal_entry_id) onNavigate(`/dashboard/journal/${l.journal_entry_id}`);
               }}
               onKeyDown={(e) => {
                 if ((e.key === "Enter" || e.key === " ") && l.journal_entry_id) {
                   e.preventDefault();
-                  onNavigate(`/dashboard/journal/${l.journal_entry_id}/edit`);
+                  onNavigate(`/dashboard/journal/${l.journal_entry_id}`);
                 }
               }}
               style={{
