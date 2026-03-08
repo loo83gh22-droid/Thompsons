@@ -60,36 +60,49 @@ Vercel auto-deploys from `main` branch. Both domains serve the same deployment.
 
 ### When completing tasks:
 
-**Every task MUST end with code committed, pushed, and a PR created (or merged to main).** Do not leave changes uncommitted or only on a local branch. The site is not live until it reaches `main`.
+**⚠️ The site has real users. NEVER push directly to `main`. All work goes through feature branches and must be approved locally before shipping.**
 
-1. **Always commit changes** when a task is done:
+#### Standard workflow (feature branch → local review → approve → merge):
+
+1. **Create a feature branch** at the start of every task:
+   ```bash
+   git checkout -b feature/<short-name>
+   ```
+
+2. **Build and verify locally** using `preview_start` / Chrome MCP screenshots.
+
+3. **Commit changes** when the feature is ready for review:
    ```bash
    git add .
    git commit -m "Description of changes
 
-   Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+   Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
    ```
 
-2. **Apply any new Supabase migrations** before pushing:
-   - Use the Supabase MCP `apply_migration` tool for any new/changed SQL migrations
-   - Project ID: `tstbngohenxrbqroejth`
-   - This ensures the database schema is up to date before the new code goes live
-
-3. **Push and create a PR** (or push directly to `main` if on `main`):
+4. **Push the branch and open a PR** targeting `main`:
    ```bash
-   git push -u origin <branch-name>
+   git push -u origin feature/<short-name>
+   gh pr create --title "..." --body "..."
    ```
-   - If on a feature branch, always create a GitHub PR targeting `main`
-   - Share the PR URL with the user so they can merge it
+   - Share the PR URL with the user
+   - Share the **Vercel preview URL** (auto-generated for every branch) so the user can review on a real deployed environment
 
-4. **Vercel auto-deploys** from the `main` branch (2-3 minutes)
+5. **🔔 ALWAYS remind the user at the end of every task:**
+   > "Ready for your review! Preview URL: [url] — let me know when you're happy and I'll merge it to main."
+
+6. **Only merge to main after explicit user approval** ("looks good", "ship it", "merge it", etc.)
+   ```bash
+   gh pr merge --merge
+   ```
+   Then remind the user: "Merged! Vercel will deploy to production in ~2 minutes."
 
 ### Database Migrations:
 
-**Always apply migrations automatically via the Supabase MCP `apply_migration` tool** when pushing changes that include schema updates. This is the standard workflow — no manual SQL editor steps needed.
+**Apply migrations at PR approval time, not at branch creation** — unless the migration is purely additive (new table, new nullable column) in which case it's safe to apply early.
 
+- Use the Supabase MCP `apply_migration` tool
 - Project ID: `tstbngohenxrbqroejth`
-- Migrations are applied before `git push` so the DB is ready when Vercel deploys the new code.
+- Always note in the PR description which migrations are included and whether they are additive-safe or must wait for merge
 
 **Fallback (if MCP is unavailable):**
 ```bash

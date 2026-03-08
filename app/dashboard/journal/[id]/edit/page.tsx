@@ -410,6 +410,23 @@ export default function EditJournalPage() {
             <p className="mt-1 text-xs text-[var(--muted)]">
               Add a location to create a pin on the Family Map.
             </p>
+            {entry.location.trim() && (
+              <div className="mt-3">
+                <label className="block text-sm font-medium text-[var(--muted)]">
+                  What kind of trip was this?
+                </label>
+                <select
+                  value={locationType}
+                  onChange={(e) => setLocationType(e.target.value as "visit" | "vacation" | "memorable_event")}
+                  className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+                >
+                  <option value="visit">Visit / trip</option>
+                  <option value="vacation">Vacation</option>
+                  <option value="memorable_event">Memorable event (wedding, sports, etc.)</option>
+                </select>
+                <p className="mt-1 text-xs text-[var(--muted)]">Sets the pin color on the Family Map.</p>
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--muted)]">
@@ -440,24 +457,6 @@ export default function EditJournalPage() {
             />
           </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-[var(--muted)]">
-            Map pin type
-          </label>
-          <select
-            value={locationType}
-            onChange={(e) => setLocationType(e.target.value as "visit" | "vacation" | "memorable_event")}
-            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
-          >
-            <option value="visit">Just a visit</option>
-            <option value="vacation">Vacation</option>
-            <option value="memorable_event">Memorable event (wedding, sports, etc.)</option>
-          </select>
-          <p className="mt-1 text-xs text-[var(--muted)]">
-            Changes the symbol on the family map when this entry has a location.
-          </p>
-        </div>
-
         <div>
           <label className="block text-sm font-medium text-[var(--muted)]">
             Your story
