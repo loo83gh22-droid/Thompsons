@@ -4,7 +4,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { findOrCreateLocationCluster } from "@/src/lib/locationClustering";
-import { getFamilyPlan, journalEntryLimit, canUploadVideos, enforceStorageLimit, addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
+import { getFamilyPlan, canUploadVideos, enforceStorageLimit, addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
 import { VIDEO_LIMITS } from "@/src/lib/constants";
 import { getFormString } from "@/src/lib/validation/schemas";
 import { validateSchema } from "@/src/lib/validation/errors";
@@ -23,21 +23,8 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
     const { activeFamilyId } = await getActiveFamilyId(supabase);
     if (!activeFamilyId) return { success: false, error: "No active family" };
 
-    // Enforce journal entry limit for free tier
+    // Journal entries are unlimited on all plans
     const plan = await getFamilyPlan(supabase, activeFamilyId);
-    const limit = journalEntryLimit(plan.planType);
-    if (limit !== null) {
-      const { count } = await supabase
-        .from("journal_entries")
-        .select("id", { count: "exact", head: true })
-        .eq("family_id", activeFamilyId);
-      if ((count ?? 0) >= limit) {
-        return {
-          success: false,
-          error: `Free plan allows up to ${limit} journal entries. Upgrade to unlock unlimited entries.`,
-        };
-      }
-    }
 
     // Extract and validate FormData — deduplicate in case client sends IDs twice
     const memberIds = [...new Set(formData.getAll("member_ids").map(String).filter(Boolean))];

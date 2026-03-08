@@ -6,6 +6,7 @@ import { Resend } from "resend";
 import { getActiveFamilyId, getActiveFamilyName } from "@/src/lib/family";
 import { ensureBirthdayEventForMember } from "@/app/dashboard/events/actions";
 import { detectRoleFromBirthDate, type MemberRole } from "@/src/lib/roles";
+import { getFamilyPlan, memberLimit } from "@/src/lib/plans";
 import crypto from "crypto";
 
 /** Send invite email (server-only; no public API). */
@@ -204,6 +205,21 @@ export async function addFamilyMember(
     .single();
   if (!caller || !["owner", "adult"].includes(caller.role)) {
     throw new Error("Only adults and owners can add family members.");
+  }
+
+  // Enforce member limit for free plans
+  const plan = await getFamilyPlan(supabase, activeFamilyId);
+  const limit = memberLimit(plan.planType);
+  if (limit !== null) {
+    const { count } = await supabase
+      .from("family_members")
+      .select("id", { count: "exact", head: true })
+      .eq("family_id", activeFamilyId);
+    if ((count ?? 0) >= limit) {
+      throw new Error(
+        `Your free plan supports up to ${limit} family members. Upgrade to The Full Nest to add unlimited members.`
+      );
+    }
   }
 
   // Auto-detect role from birth date
