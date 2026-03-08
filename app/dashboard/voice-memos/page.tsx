@@ -22,6 +22,7 @@ export default async function VoiceMemosPage() {
         title,
         description,
         audio_url,
+        photo_url,
         duration_seconds,
         recorded_date,
         created_at,

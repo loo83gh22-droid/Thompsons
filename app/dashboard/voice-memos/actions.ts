@@ -18,6 +18,7 @@ export type VoiceMemoInsert = {
   fileSizeBytes?: number;
   /** Client-generated UUID to prevent duplicate inserts on network retry. */
   idempotencyKey?: string | null;
+  photoUrl?: string | null;
 };
 
 export async function insertVoiceMemo(data: VoiceMemoInsert) {
@@ -50,6 +51,7 @@ export async function insertVoiceMemo(data: VoiceMemoInsert) {
     title: data.title.trim().slice(0, 100),
     description: data.description?.trim().slice(0, 500) || null,
     audio_url: data.audioUrl,
+    photo_url: data.photoUrl ?? null,
     duration_seconds: data.durationSeconds,
     file_size_bytes: fileBytes,
     recorded_date: data.recordedDate,
@@ -86,6 +88,7 @@ export type VoiceMemoUpdate = {
   recordedForId?: string | null;
   recordedDate: string;
   description?: string | null;
+  photoUrl?: string | null;
 };
 
 export async function updateVoiceMemo(id: string, data: VoiceMemoUpdate) {
@@ -118,6 +121,7 @@ export async function updateVoiceMemo(id: string, data: VoiceMemoUpdate) {
       title: data.title.trim().slice(0, 100),
       description: data.description?.trim().slice(0, 500) || null,
       recorded_date: data.recordedDate,
+      ...("photoUrl" in data ? { photo_url: data.photoUrl ?? null } : {}),
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
@@ -131,9 +135,14 @@ export async function updateVoiceMemo(id: string, data: VoiceMemoUpdate) {
   revalidatePath("/dashboard/voice-memos");
 }
 
-function pathFromAudioUrl(audioUrl: string): string | null {
+function pathFromVoiceMemoUrl(url: string): string | null {
+  if (!url) return null;
+  // Proxied format: /api/storage/voice-memos/{path}
+  const proxied = url.match(/^\/api\/storage\/voice-memos\/(.+)$/);
+  if (proxied) return proxied[1];
+  // Full Supabase storage URL
   try {
-    const u = new URL(audioUrl);
+    const u = new URL(url);
     const match = u.pathname.match(/\/storage\/v1\/object\/public\/voice-memos\/(.+)$/);
     return match ? match[1] : null;
   } catch {
@@ -164,7 +173,7 @@ export async function removeVoiceMemo(id: string) {
   // Fetch the memo — restrict to creator for teen/child, any for owner/adult.
   const memoQuery = supabase
     .from("voice_memos")
-    .select("audio_url, file_size_bytes")
+    .select("audio_url, photo_url, file_size_bytes")
     .eq("id", id)
     .eq("family_id", activeFamilyId);
 
@@ -176,14 +185,20 @@ export async function removeVoiceMemo(id: string) {
   // else's memo) bail out silently — nothing to clean up.
   if (!row) return;
 
+  const pathsToDelete: string[] = [];
   if (row?.audio_url) {
-    const path = pathFromAudioUrl(row.audio_url);
-    if (path) {
-      const { error: storageErr } = await supabase.storage.from("voice-memos").remove([path]);
-      if (storageErr) {
-        console.error("[removeVoiceMemo] storage removal failed:", storageErr.message);
-        // Continue with DB deletion — counter will still be decremented (W11)
-      }
+    const path = pathFromVoiceMemoUrl(row.audio_url);
+    if (path) pathsToDelete.push(path);
+  }
+  if (row?.photo_url) {
+    const path = pathFromVoiceMemoUrl(row.photo_url);
+    if (path) pathsToDelete.push(path);
+  }
+  if (pathsToDelete.length > 0) {
+    const { error: storageErr } = await supabase.storage.from("voice-memos").remove(pathsToDelete);
+    if (storageErr) {
+      console.error("[removeVoiceMemo] storage removal failed:", storageErr.message);
+      // Continue with DB deletion — counter will still be decremented
     }
   }
 

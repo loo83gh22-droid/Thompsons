@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/client";
 import { VOICE_MEMO_LIMITS } from "@/src/lib/constants";
@@ -35,6 +35,10 @@ export function AddVoiceMemoForm({
   const [recordedDate, setRecordedDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [description, setDescription] = useState("");
 
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
+
   const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
   const [recording, setRecording] = useState(false);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
@@ -45,6 +49,31 @@ export function AddVoiceMemoForm({
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const recordSecondsRef = useRef(0);
+
+  const clearPhoto = useCallback(() => {
+    setPhotoFile(null);
+    if (photoPreviewUrl) {
+      URL.revokeObjectURL(photoPreviewUrl);
+      setPhotoPreviewUrl(null);
+    }
+    if (photoInputRef.current) photoInputRef.current.value = "";
+  }, [photoPreviewUrl]);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Photo must be under 10 MB.");
+      return;
+    }
+    if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+    setPhotoFile(file);
+    setPhotoPreviewUrl(URL.createObjectURL(file));
+  };
 
   const resetRecording = () => {
     setRecordedBlob(null);
@@ -73,6 +102,7 @@ export function AddVoiceMemoForm({
     setDescription("");
     setError(null);
     setIdempotencyKey(crypto.randomUUID());
+    clearPhoto();
   };
 
   useEffect(() => {
@@ -191,11 +221,24 @@ export function AddVoiceMemoForm({
       const path = `${user.id}_${Date.now()}.${ext}`;
       const file = new File([recordedBlob], `recording.${ext}`, { type: recordedBlob.type });
 
-      setUploadProgress(30);
+      setUploadProgress(20);
       const { error: uploadError } = await supabase.storage.from("voice-memos").upload(path, file, {
         upsert: true,
       });
       if (uploadError) throw uploadError;
+
+      setUploadProgress(50);
+
+      let photoUrl: string | null = null;
+      if (photoFile) {
+        const photoExt = photoFile.name.split(".").pop() ?? "jpg";
+        const photoPath = `photo_${user.id}_${Date.now()}.${photoExt}`;
+        const { error: photoUploadError } = await supabase.storage
+          .from("voice-memos")
+          .upload(photoPath, photoFile, { upsert: true });
+        if (photoUploadError) throw photoUploadError;
+        photoUrl = `/api/storage/voice-memos/${photoPath}`;
+      }
 
       setUploadProgress(70);
 
@@ -208,8 +251,9 @@ export function AddVoiceMemoForm({
         description: description.trim().slice(0, 500) || null,
         audioUrl: `/api/storage/voice-memos/${path}`,
         durationSeconds: durationSeconds,
-        fileSizeBytes: recordedBlob.size,
+        fileSizeBytes: recordedBlob.size + (photoFile?.size ?? 0),
         idempotencyKey,
+        photoUrl,
       });
 
       setUploadProgress(100);
@@ -399,6 +443,46 @@ export function AddVoiceMemoForm({
                       rows={3}
                       placeholder="e.g., This was her favorite bedtime story to read"
                       className="input-base mt-1 min-h-[80px] resize-y"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--muted)]">
+                      Add a photo (optional)
+                    </label>
+                    {photoPreviewUrl ? (
+                      <div className="relative mt-1 overflow-hidden rounded-lg border border-[var(--border)]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={photoPreviewUrl}
+                          alt="Photo preview"
+                          className="max-h-48 w-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={clearPhoto}
+                          className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+                          aria-label="Remove photo"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => photoInputRef.current?.click()}
+                        className="mt-1 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--muted)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
+                      >
+                        📷 Choose a photo
+                      </button>
+                    )}
+                    <input
+                      ref={photoInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                      className="sr-only"
+                      aria-label="Choose photo"
                     />
                   </div>
                 </div>

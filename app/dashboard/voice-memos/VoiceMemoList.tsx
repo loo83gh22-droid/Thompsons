@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/src/lib/supabase/client";
 import { removeVoiceMemo, updateVoiceMemo } from "./actions";
 import { transcribeVoiceMemo } from "./transcribe";
 import { EmptyStateGuide } from "@/app/components/EmptyStateGuide";
@@ -13,6 +14,7 @@ type VoiceMemo = {
   title: string;
   description: string | null;
   audio_url: string;
+  photo_url: string | null;
   duration_seconds: number | null;
   recorded_date: string | null;
   created_at: string;
@@ -186,6 +188,19 @@ export function VoiceMemoList({
                 <p className="mt-2.5 line-clamp-2 text-sm text-[var(--muted)]">{memo.description}</p>
               )}
 
+              {/* Photo */}
+              {memo.photo_url && (
+                <div className="mt-3 overflow-hidden rounded-lg border border-[var(--border)]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={memo.photo_url}
+                    alt=""
+                    className="max-h-64 w-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              )}
+
               {/* Audio player */}
               <div className="mt-3 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2">
                 <audio
@@ -293,6 +308,29 @@ function EditVoiceMemoModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Photo state — tracks whether the saved photo_url should be kept/removed/replaced
+  const [photoUrl, setPhotoUrl] = useState<string | null>(memo.photo_url);
+  const [newPhotoFile, setNewPhotoFile] = useState<File | null>(null);
+  const [newPhotoPreview, setNewPhotoPreview] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { setError("Please select an image file."); return; }
+    if (file.size > 10 * 1024 * 1024) { setError("Photo must be under 10 MB."); return; }
+    if (newPhotoPreview) URL.revokeObjectURL(newPhotoPreview);
+    setNewPhotoFile(file);
+    setNewPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const removePhoto = useCallback(() => {
+    setPhotoUrl(null);
+    setNewPhotoFile(null);
+    if (newPhotoPreview) { URL.revokeObjectURL(newPhotoPreview); setNewPhotoPreview(null); }
+    if (photoInputRef.current) photoInputRef.current.value = "";
+  }, [newPhotoPreview]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) {
@@ -306,12 +344,29 @@ function EditVoiceMemoModal({
     setLoading(true);
     setError(null);
     try {
+      let finalPhotoUrl: string | null = photoUrl;
+
+      // Upload new photo if one was selected
+      if (newPhotoFile) {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const photoExt = newPhotoFile.name.split(".").pop() ?? "jpg";
+        const photoPath = `photo_${user.id}_${Date.now()}.${photoExt}`;
+        const { error: uploadErr } = await supabase.storage
+          .from("voice-memos")
+          .upload(photoPath, newPhotoFile, { upsert: true });
+        if (uploadErr) throw uploadErr;
+        finalPhotoUrl = `/api/storage/voice-memos/${photoPath}`;
+      }
+
       await updateVoiceMemo(memo.id, {
         title: title.trim().slice(0, 100),
         recordedById,
         recordedForId: recordedForId || null,
         recordedDate,
         description: description.trim().slice(0, 500) || null,
+        photoUrl: finalPhotoUrl,
       });
       onSaved();
     } catch (err) {
@@ -421,6 +476,54 @@ function EditVoiceMemoModal({
                 className="input-base mt-1 min-h-[80px] resize-y"
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted)]">Photo</label>
+              {(newPhotoPreview ?? photoUrl) ? (
+                <div className="relative mt-1 overflow-hidden rounded-lg border border-[var(--border)]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={newPhotoPreview ?? photoUrl!}
+                    alt="Photo preview"
+                    className="max-h-48 w-full object-cover"
+                  />
+                  <div className="absolute right-2 top-2 flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => photoInputRef.current?.click()}
+                      className="flex h-7 items-center gap-1 rounded-full bg-black/60 px-2 text-xs text-white hover:bg-black/80"
+                    >
+                      Replace
+                    </button>
+                    <button
+                      type="button"
+                      onClick={removePhoto}
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+                      aria-label="Remove photo"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => photoInputRef.current?.click()}
+                  className="mt-1 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--muted)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
+                >
+                  📷 Add a photo
+                </button>
+              )}
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
+                className="sr-only"
+                aria-label="Choose photo"
+              />
+            </div>
+
             {error && (
               <p className="text-sm text-red-600" role="alert">
                 {error}
