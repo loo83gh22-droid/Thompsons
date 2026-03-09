@@ -131,8 +131,8 @@ export default function BlogPage() {
             Ready to start preserving your family&apos;s memories?
           </h2>
           <p className="mb-8 text-[var(--muted)]">
-            FamilyNest is free to start. Invite your whole family — no app store
-            required.
+            Invite your whole family — no app store required. Start on the free
+            plan and upgrade whenever you&apos;re ready.
           </p>
           <Link
             href="/login?mode=signup"

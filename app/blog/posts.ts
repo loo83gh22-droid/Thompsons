@@ -164,7 +164,7 @@ export const posts: BlogPost[] = [
       {
         type: "cta",
         heading: "Start your family's private space — free",
-        body: "No credit card required. The free plan gets your whole family up and running, and you can upgrade whenever you're ready.",
+        body: "The free plan gets your whole family up and running. Upgrade to unlock unlimited entries, videos, voice memos, and more.",
         buttonText: "Start Your Family Nest",
         href: "/login?mode=signup",
       },
@@ -309,7 +309,7 @@ export const posts: BlogPost[] = [
       {
         type: "cta",
         heading: "Start preserving your family's memories",
-        body: "Free to get started. Invite your parents, grandparents, and kids — everyone contributes their own memories, and nothing gets buried.",
+        body: "Invite your parents, grandparents, and kids — everyone contributes their own memories, and nothing gets buried. Start on the free plan and upgrade whenever you're ready.",
         buttonText: "Start Your Family Nest",
         href: "/login?mode=signup",
       },
@@ -500,7 +500,7 @@ export const posts: BlogPost[] = [
       {
         type: "cta",
         heading: "Create your first family time capsule",
-        body: "Free to start. Write a letter, record a voice memo, or seal a memory for a future date. Your family will be glad you did.",
+        body: "Write a letter, record a voice memo, or seal a memory for a future date. Your family will be glad you did.",
         buttonText: "Start Your Family Nest",
         href: "/login?mode=signup",
       },
