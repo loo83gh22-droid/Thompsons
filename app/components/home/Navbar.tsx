@@ -55,6 +55,12 @@ export function Navbar() {
             Gift
           </Link>
           <Link
+            href="/blog"
+            className="text-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+          >
+            Blog
+          </Link>
+          <Link
             href="/contact"
             className="text-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
           >
@@ -123,6 +129,13 @@ export function Navbar() {
             >
               <Gift className="h-3.5 w-3.5" />
               Gift
+            </Link>
+            <Link
+              href="/blog"
+              className="text-sm text-[var(--muted)]"
+              onClick={() => setMobileOpen(false)}
+            >
+              Blog
             </Link>
             <Link
               href="/contact"

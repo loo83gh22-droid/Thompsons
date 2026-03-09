@@ -50,7 +50,7 @@ const bangers = Bangers({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://familynest.io"),
-  title: "Family Nest | Private. Permanent. Yours.",
+  title: "Family Nest | Private Family Journal & Memory App",
   description:
     "A private space for families to document their lives together. Journals, photos, videos, voice memos, and more. Not social media. A family heirloom.",
   alternates: {
