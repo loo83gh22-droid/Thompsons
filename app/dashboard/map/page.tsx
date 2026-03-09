@@ -4,7 +4,7 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import { AddLocationForm } from "./AddLocationForm";
 import { MapFirstVisitBanner } from "./MapFirstVisitBanner";
-import { rebuildLocationClusters, syncBirthPlacesToMap } from "./actions";
+import { syncBirthPlacesToMap } from "./actions";
 import { useFamily } from "@/app/dashboard/FamilyContext";
 import type { MapFilter } from "./MapComponent";
 
@@ -39,27 +39,12 @@ const LEGEND = [
 
 export default function MapPage() {
   const { activeFamilyId } = useFamily();
-  const [rebuilding, setRebuilding] = useState(false);
-  const [rebuildMessage, setRebuildMessage] = useState<string | null>(null);
   const [syncingBirth, setSyncingBirth] = useState(false);
   const [syncBirthMessage, setSyncBirthMessage] = useState<string | null>(null);
   const [filter, setFilter] = useState<MapFilter>(DEFAULT_FILTER);
 
   function toggleFilter(key: keyof MapFilter) {
     setFilter((prev) => ({ ...prev, [key]: !prev[key] }));
-  }
-
-  async function handleRebuildClusters() {
-    setRebuilding(true);
-    setRebuildMessage(null);
-    try {
-      const { updated, error } = await rebuildLocationClusters(activeFamilyId ?? undefined);
-      if (error) setRebuildMessage(`Error: ${error}`);
-      else setRebuildMessage(updated > 0 ? `Re-clustered ${updated} pin(s). Map refreshed.` : "No pins to cluster.");
-      window.dispatchEvent(new Event("map-refresh"));
-    } finally {
-      setRebuilding(false);
-    }
   }
 
   async function handleSyncBirthPlaces() {
@@ -98,16 +83,8 @@ export default function MapPage() {
             >
               {syncingBirth ? "Syncing…" : "Sync birth places to map"}
             </button>
-            <button
-              type="button"
-              onClick={handleRebuildClusters}
-              disabled={rebuilding}
-              className="min-h-[44px] rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] disabled:opacity-50"
-            >
-              {rebuilding ? "Rebuilding…" : "Rebuild clusters"}
-            </button>
-            {(rebuildMessage || syncBirthMessage) && (
-              <span className="text-sm text-[var(--muted)]">{syncBirthMessage ?? rebuildMessage}</span>
+            {syncBirthMessage && (
+              <span className="text-sm text-[var(--muted)]">{syncBirthMessage}</span>
             )}
           </div>
         </div>
