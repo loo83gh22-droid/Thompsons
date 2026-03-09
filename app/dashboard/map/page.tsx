@@ -4,7 +4,6 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import { AddLocationForm } from "./AddLocationForm";
 import { MapFirstVisitBanner } from "./MapFirstVisitBanner";
-import { syncBirthPlacesToMap } from "./actions";
 import { useFamily } from "@/app/dashboard/FamilyContext";
 import type { MapFilter } from "./MapComponent";
 
@@ -38,26 +37,11 @@ const LEGEND = [
 
 
 export default function MapPage() {
-  const { activeFamilyId } = useFamily();
-  const [syncingBirth, setSyncingBirth] = useState(false);
-  const [syncBirthMessage, setSyncBirthMessage] = useState<string | null>(null);
+  const { activeFamilyId: _activeFamilyId } = useFamily();
   const [filter, setFilter] = useState<MapFilter>(DEFAULT_FILTER);
 
   function toggleFilter(key: keyof MapFilter) {
     setFilter((prev) => ({ ...prev, [key]: !prev[key] }));
-  }
-
-  async function handleSyncBirthPlaces() {
-    setSyncingBirth(true);
-    setSyncBirthMessage(null);
-    try {
-      const { added, error } = await syncBirthPlacesToMap(activeFamilyId ?? undefined);
-      if (error) setSyncBirthMessage(`Error: ${error}`);
-      else setSyncBirthMessage(added > 0 ? `Added ${added} birth place(s) to the map.` : "All birth places already on map.");
-      window.dispatchEvent(new Event("map-refresh"));
-    } finally {
-      setSyncingBirth(false);
-    }
   }
 
   return (
@@ -70,22 +54,11 @@ export default function MapPage() {
               Family Map
             </h1>
             <p className="mt-2 text-[var(--muted)]">
-              Birth places, homes, vacations, and memorable events. Add locations in journal entries or below. Use &quot;Sync birth places to map&quot; if member birth places don&apos;t appear.
+              Birth places, homes, vacations, and memorable events. Add locations in journal entries or below.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <AddLocationForm />
-            <button
-              type="button"
-              onClick={handleSyncBirthPlaces}
-              disabled={syncingBirth}
-              className="min-h-[44px] rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] disabled:opacity-50"
-            >
-              {syncingBirth ? "Syncing…" : "Sync birth places to map"}
-            </button>
-            {syncBirthMessage && (
-              <span className="text-sm text-[var(--muted)]">{syncBirthMessage}</span>
-            )}
           </div>
         </div>
 
