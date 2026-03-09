@@ -317,7 +317,67 @@ export function AddVoiceMemoForm({
           <div className="max-h-[calc(100vh-8rem)] overflow-y-auto p-4 sm:p-6 space-y-6">
             {step === "record" && (
               <>
-                <div className="flex flex-col items-center justify-center py-6">
+                {/* Photo picker — select before recording so you can speak to it */}
+                <div>
+                  <p className="mb-2 text-sm font-medium text-[var(--muted)]">
+                    Add a photo to speak to <span className="font-normal text-[var(--muted)]">(optional — pick it first, then record)</span>
+                  </p>
+                  {photoPreviewUrl ? (
+                    <div className="relative overflow-hidden rounded-xl border border-[var(--border)] shadow-sm">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photoPreviewUrl}
+                        alt="Recording photo"
+                        className="max-h-52 w-full object-cover"
+                      />
+                      {!recording && (
+                        <div className="absolute right-2 top-2 flex gap-1">
+                          <button
+                            type="button"
+                            onClick={() => photoInputRef.current?.click()}
+                            className="flex h-7 items-center gap-1 rounded-full bg-black/60 px-2 text-xs text-white hover:bg-black/80"
+                          >
+                            Replace
+                          </button>
+                          <button
+                            type="button"
+                            onClick={clearPhoto}
+                            className="flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+                            aria-label="Remove photo"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
+                      {recording && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-3 py-2">
+                          <p className="text-center text-xs font-medium text-white">
+                            🎙️ Recording — speak about this photo
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => photoInputRef.current?.click()}
+                      disabled={recording}
+                      className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--muted)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      📷 Choose a photo to speak to
+                    </button>
+                  )}
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoChange}
+                    className="sr-only"
+                    aria-label="Choose photo"
+                  />
+                </div>
+
+                <div className="flex flex-col items-center justify-center py-4">
                   <div className="text-3xl font-mono font-semibold tabular-nums text-[var(--foreground)]" aria-live="polite">
                     {formatTime(recordSeconds)}
                   </div>
@@ -448,7 +508,7 @@ export function AddVoiceMemoForm({
 
                   <div>
                     <label className="block text-sm font-medium text-[var(--muted)]">
-                      Add a photo (optional)
+                      Photo
                     </label>
                     {photoPreviewUrl ? (
                       <div className="relative mt-1 overflow-hidden rounded-lg border border-[var(--border)]">
@@ -458,14 +518,23 @@ export function AddVoiceMemoForm({
                           alt="Photo preview"
                           className="max-h-48 w-full object-cover"
                         />
-                        <button
-                          type="button"
-                          onClick={clearPhoto}
-                          className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
-                          aria-label="Remove photo"
-                        >
-                          ×
-                        </button>
+                        <div className="absolute right-2 top-2 flex gap-1">
+                          <button
+                            type="button"
+                            onClick={() => photoInputRef.current?.click()}
+                            className="flex h-7 items-center gap-1 rounded-full bg-black/60 px-2 text-xs text-white hover:bg-black/80"
+                          >
+                            Replace
+                          </button>
+                          <button
+                            type="button"
+                            onClick={clearPhoto}
+                            className="flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+                            aria-label="Remove photo"
+                          >
+                            ×
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <button
@@ -473,7 +542,7 @@ export function AddVoiceMemoForm({
                         onClick={() => photoInputRef.current?.click()}
                         className="mt-1 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--muted)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
                       >
-                        📷 Choose a photo
+                        📷 Add a photo
                       </button>
                     )}
                     <input
