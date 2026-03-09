@@ -258,7 +258,13 @@ function ClusterPopupContent({
       <div style={{ maxHeight: 260, overflowY: "auto" }}>
         {sorted.map((l) => {
           const member = Array.isArray(l.family_members) ? l.family_members[0] : l.family_members;
-          const title = l.notes || "Journal entry";
+          const title =
+            l.is_birth_place ? "Birth place"
+            : l.is_place_lived ? "Place lived"
+            : l.location_type === "vacation" ? (l.notes || "Vacation")
+            : l.location_type === "memorable_event" ? (l.notes || "Memorable event")
+            : l.location_type === "other" ? (l.notes || l.location_label || "Other")
+            : l.notes || "Journal entry";
           const dateStr = l.trip_date
             ? format(new Date(l.trip_date + "T12:00:00"), "MMMM d, yyyy")
             : l.year_visited ? String(l.year_visited) : "";
