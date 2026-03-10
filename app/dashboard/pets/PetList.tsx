@@ -79,6 +79,37 @@ function petAge(birthday: string | null, passedDate: string | null) {
   return `${years} year${years !== 1 ? "s" : ""} old`;
 }
 
+/** Parse a date string that may be YYYY-MM-DD, YYYY-MM, YYYY, or free text. Returns epoch ms or null. */
+function parseLooseDate(d: string | null): number | null {
+  if (!d) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return new Date(d + "T00:00:00").getTime();
+  if (/^\d{4}-\d{2}$/.test(d)) return new Date(d + "-01T00:00:00").getTime();
+  if (/^\d{4}$/.test(d)) return new Date(d + "-01-01T00:00:00").getTime();
+  // Free text like "March 2019" — try native parser
+  const t = Date.parse(d);
+  return Number.isNaN(t) ? null : t;
+}
+
+/** Sort living pets: by adopted_date or birthday (earliest first), no-date pets last (alphabetical). */
+function sortLiving(a: Pet, b: Pet): number {
+  const da = parseLooseDate(a.adopted_date) ?? parseLooseDate(a.birthday);
+  const db = parseLooseDate(b.adopted_date) ?? parseLooseDate(b.birthday);
+  if (da && db) return da - db;       // earliest first
+  if (da && !db) return -1;           // dated before undated
+  if (!da && db) return 1;
+  return a.name.localeCompare(b.name); // both undated → alphabetical
+}
+
+/** Sort deceased pets: by passed_date (most recent first), no-date pets last (alphabetical). */
+function sortDeceased(a: Pet, b: Pet): number {
+  const da = parseLooseDate(a.passed_date);
+  const db = parseLooseDate(b.passed_date);
+  if (da && db) return db - da;       // most recent first
+  if (da && !db) return -1;           // dated before undated
+  if (!da && db) return 1;
+  return a.name.localeCompare(b.name); // both undated → alphabetical
+}
+
 function ownerLabel(owners: PetOwner[]): string {
   // Use first names only to keep the label compact
   const names = owners
@@ -138,8 +169,8 @@ export function PetList({ pets }: { pets: Pet[] }) {
     );
   }
 
-  const current    = pets.filter((p) => !p.has_passed);
-  const remembered = pets.filter((p) => p.has_passed);
+  const current    = pets.filter((p) => !p.has_passed).sort(sortLiving);
+  const remembered = pets.filter((p) => p.has_passed).sort(sortDeceased);
 
   return (
     <>
