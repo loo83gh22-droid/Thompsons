@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
-import { updatePet } from "./actions";
+import { updatePet, type UploadedPhotoMeta } from "./actions";
 
 type Member   = { id: string; name: string };
 type PetPhoto = { id: string; url: string; sort_order: number };
@@ -116,6 +116,27 @@ export function EditPetForm({ pet, onClose }: { pet: EditablePet; onClose: () =>
     setLoading(true);
     setError(null);
     try {
+      const supabase = createClient();
+
+      // Upload new photos client-side directly to Supabase storage
+      const uploadedMeta: UploadedPhotoMeta[] = [];
+      for (const file of newPhotos) {
+        const ext = file.name.split(".").pop() || "jpg";
+        const storagePath = `${pet.id}/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("pet-photos")
+          .upload(storagePath, file, { upsert: true });
+        if (uploadError) {
+          console.error("Photo upload failed:", uploadError.message);
+          continue;
+        }
+        uploadedMeta.push({
+          url: `/api/storage/pet-photos/${storagePath}`,
+          storagePath,
+          fileSize: file.size,
+        });
+      }
+
       const fd = new FormData();
       fd.set("name",         name.trim());
       fd.set("species",      species);
@@ -127,7 +148,7 @@ export function EditPetForm({ pet, onClose }: { pet: EditablePet; onClose: () =>
       fd.set("description",  description.trim());
       ownerIds.forEach((id) => fd.append("owner_member_ids[]", id));
       photosToDelete.forEach((id) => fd.append("delete_photo_ids[]", id));
-      newPhotos.forEach((f) => fd.append("new_photos", f));
+      fd.set("new_photos_meta", JSON.stringify(uploadedMeta));
 
       const result = await updatePet(pet.id, fd);
       if (!result.success) { setError(result.error); return; }

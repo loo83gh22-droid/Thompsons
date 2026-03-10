@@ -3,10 +3,16 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
-import { enforceStorageLimit, addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
-import crypto from "crypto";
+import { addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
 
 export type PetResult = { success: true; id: string } | { success: false; error: string };
+
+/** Photo metadata from client-side uploads (photos already in Supabase storage) */
+export type UploadedPhotoMeta = {
+  url: string;           // e.g. "/api/storage/pet-photos/..."
+  storagePath: string;   // e.g. "<petId>/<uuid>.jpg"
+  fileSize: number;
+};
 
 export async function addPet(formData: FormData): Promise<PetResult> {
   try {
@@ -26,6 +32,10 @@ export async function addPet(formData: FormData): Promise<PetResult> {
     const passedDate  = (formData.get("passed_date") as string)?.trim() || null;
     const description = (formData.get("description") as string)?.trim() || null;
     const ownerMemberIds = formData.getAll("owner_member_ids[]") as string[];
+
+    // Photos already uploaded client-side — just metadata
+    const photosJson = formData.get("photos_meta") as string | null;
+    const photosMeta: UploadedPhotoMeta[] = photosJson ? JSON.parse(photosJson) : [];
 
     if (!name) return { success: false, error: "Pet name is required." };
 
@@ -69,38 +79,22 @@ export async function addPet(formData: FormData): Promise<PetResult> {
       );
     }
 
-    // Upload photos (up to 5)
-    const allPhotos = formData.getAll("photos") as File[];
-    const photos = allPhotos.filter((f) => f.size > 0).slice(0, 5);
-
-    const totalBytes = photos.reduce((s, f) => s + f.size, 0);
-    if (totalBytes > 0) {
-      try { await enforceStorageLimit(supabase, activeFamilyId, totalBytes); } catch { /* skip photos */ }
-    }
-
-    for (let i = 0; i < photos.length; i++) {
-      const file = photos[i];
-      try {
-        const ext = file.name.split(".").pop() || "jpg";
-        const path = `${pet.id}/${crypto.randomUUID()}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from("pet-photos")
-          .upload(path, file, { upsert: true });
-        if (uploadError) continue;
-        await addStorageUsage(supabase, activeFamilyId, file.size);
-        const { error: photoErr } = await supabase.from("pet_photos").insert({
-          family_id:       activeFamilyId,
-          pet_id:          pet.id,
-          url:             `/api/storage/pet-photos/${path}`,
-          sort_order:      i,
-          file_size_bytes: file.size,
-        });
-        if (photoErr) {
-          // Rollback: DB insert failed after storage upload succeeded (W9)
-          await supabase.storage.from("pet-photos").remove([path]);
-          await subtractStorageUsage(supabase, activeFamilyId, file.size);
-        }
-      } catch { /* skip bad photos */ }
+    // Save photo records (files already in storage from client upload)
+    for (let i = 0; i < photosMeta.length; i++) {
+      const meta = photosMeta[i];
+      const { error: photoErr } = await supabase.from("pet_photos").insert({
+        family_id:       activeFamilyId,
+        pet_id:          pet.id,
+        url:             meta.url,
+        sort_order:      i,
+        file_size_bytes: meta.fileSize,
+      });
+      if (photoErr) {
+        // Rollback: DB insert failed — remove orphaned file from storage
+        await supabase.storage.from("pet-photos").remove([meta.storagePath]);
+      } else {
+        await addStorageUsage(supabase, activeFamilyId, meta.fileSize);
+      }
     }
 
     revalidatePath("/dashboard/pets");
@@ -129,6 +123,10 @@ export async function updatePet(petId: string, formData: FormData): Promise<PetR
     const description = (formData.get("description") as string)?.trim() || null;
     const ownerMemberIds = formData.getAll("owner_member_ids[]") as string[];
     const photoIdsToDelete = formData.getAll("delete_photo_ids[]") as string[];
+
+    // New photos already uploaded client-side — just metadata
+    const newPhotosJson = formData.get("new_photos_meta") as string | null;
+    const newPhotosMeta: UploadedPhotoMeta[] = newPhotosJson ? JSON.parse(newPhotosJson) : [];
 
     if (!name) return { success: false, error: "Pet name is required." };
 
@@ -188,44 +186,27 @@ export async function updatePet(petId: string, formData: FormData): Promise<PetR
       }
     }
 
-    // Upload new photos (respecting 5-photo cap)
+    // Save new photo records (files already in storage from client upload)
     const { count: existingCount } = await supabase
       .from("pet_photos")
       .select("id", { count: "exact", head: true })
       .eq("pet_id", petId);
 
-    const slots = Math.max(0, 5 - (existingCount ?? 0));
-    const allNewPhotos = formData.getAll("new_photos") as File[];
-    const newPhotos = allNewPhotos.filter((f) => f.size > 0).slice(0, slots);
-
-    const totalBytes = newPhotos.reduce((s, f) => s + f.size, 0);
-    if (totalBytes > 0) {
-      try { await enforceStorageLimit(supabase, activeFamilyId, totalBytes); } catch { /* skip */ }
-    }
-
-    for (let i = 0; i < newPhotos.length; i++) {
-      const file = newPhotos[i];
-      try {
-        const ext = file.name.split(".").pop() || "jpg";
-        const path = `${petId}/${crypto.randomUUID()}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from("pet-photos")
-          .upload(path, file, { upsert: true });
-        if (uploadError) continue;
-        await addStorageUsage(supabase, activeFamilyId, file.size);
-        const { error: photoErr } = await supabase.from("pet_photos").insert({
-          family_id:       activeFamilyId,
-          pet_id:          petId,
-          url:             `/api/storage/pet-photos/${path}`,
-          sort_order:      (existingCount ?? 0) + i,
-          file_size_bytes: file.size,
-        });
-        if (photoErr) {
-          // Rollback: DB insert failed after storage upload succeeded (W9)
-          await supabase.storage.from("pet-photos").remove([path]);
-          await subtractStorageUsage(supabase, activeFamilyId, file.size);
-        }
-      } catch { /* skip */ }
+    for (let i = 0; i < newPhotosMeta.length; i++) {
+      const meta = newPhotosMeta[i];
+      const { error: photoErr } = await supabase.from("pet_photos").insert({
+        family_id:       activeFamilyId,
+        pet_id:          petId,
+        url:             meta.url,
+        sort_order:      (existingCount ?? 0) + i,
+        file_size_bytes: meta.fileSize,
+      });
+      if (photoErr) {
+        // Rollback: DB insert failed — remove orphaned file from storage
+        await supabase.storage.from("pet-photos").remove([meta.storagePath]);
+      } else {
+        await addStorageUsage(supabase, activeFamilyId, meta.fileSize);
+      }
     }
 
     revalidatePath("/dashboard/pets");
