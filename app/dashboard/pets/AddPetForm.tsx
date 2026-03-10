@@ -86,9 +86,8 @@ export function AddPetForm() {
       const supabase = createClient();
 
       // Upload photos client-side directly to Supabase storage
-      const uploadedMeta: UploadedPhotoMeta[] = [];
       const tempPetId = crypto.randomUUID(); // temporary folder ID for new pet
-      for (const file of photos) {
+      const uploads = photos.map(async (file) => {
         const ext = file.name.split(".").pop() || "jpg";
         const storagePath = `${tempPetId}/${crypto.randomUUID()}.${ext}`;
         const { error: uploadError } = await supabase.storage
@@ -96,14 +95,12 @@ export function AddPetForm() {
           .upload(storagePath, file, { upsert: true });
         if (uploadError) {
           console.error("Photo upload failed:", uploadError.message);
-          continue;
+          return null;
         }
-        uploadedMeta.push({
-          url: `/api/storage/pet-photos/${storagePath}`,
-          storagePath,
-          fileSize: file.size,
-        });
-      }
+        return { url: `/api/storage/pet-photos/${storagePath}`, storagePath, fileSize: file.size };
+      });
+      const results = await Promise.all(uploads);
+      const uploadedMeta: UploadedPhotoMeta[] = results.filter((r): r is UploadedPhotoMeta => r !== null);
 
       const fd = new FormData();
       fd.set("name",         name.trim());

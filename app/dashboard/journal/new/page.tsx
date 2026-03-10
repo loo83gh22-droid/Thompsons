@@ -115,22 +115,39 @@ export default function NewJournalPage() {
                 ...photoFiles.slice(0, coverPhotoIndex),
                 ...photoFiles.slice(coverPhotoIndex + 1),
               ];
-      orderedPhotos.forEach((file) => formData.append("photos", file));
+
+      // Upload photos client-side directly to Supabase storage
+      const supabase = createClient();
+      const tempEntryId = crypto.randomUUID();
+      const photoUploads = orderedPhotos.map(async (file) => {
+        const ext = file.name.split(".").pop() || "jpg";
+        const storagePath = `${tempEntryId}/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("journal-photos")
+          .upload(storagePath, file, { upsert: true });
+        if (uploadError) {
+          console.error("Photo upload failed:", uploadError.message);
+          return null;
+        }
+        return { url: `/api/storage/journal-photos/${storagePath}`, storagePath, fileSize: file.size };
+      });
+      const photoResults = await Promise.all(photoUploads);
+      const uploadedPhotosMeta = photoResults.filter((r): r is { url: string; storagePath: string; fileSize: number } => r !== null);
+      formData.set("photos_meta", JSON.stringify(uploadedPhotosMeta));
 
       const result = await createJournalEntry(formData);
       if (result?.success) {
         setIdempotencyKey(crypto.randomUUID());
         if (videoFiles.length > 0) {
-          const supabase = createClient();
-          for (const file of videoFiles) {
+          await Promise.all(videoFiles.map(async (file) => {
             const ext = file.name.split(".").pop() || "mp4";
             const storagePath = `${result.id}/${crypto.randomUUID()}.${ext}`;
             const { error: uploadError } = await supabase.storage
               .from("journal-videos")
               .upload(storagePath, file, { upsert: true });
-            if (uploadError) continue;
+            if (uploadError) return;
             await registerJournalVideo(result.id, `/api/storage/journal-videos/${storagePath}`, storagePath, file.size, null);
-          }
+          }));
         }
         const hadLocation = !!(location.name?.trim() || (location.latitude && location.longitude));
         window.location.href = hadLocation ? "/dashboard/journal?addedToMap=1" : "/dashboard/journal";
