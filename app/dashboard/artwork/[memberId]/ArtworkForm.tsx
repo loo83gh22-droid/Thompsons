@@ -3,7 +3,9 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { createClient } from "@/src/lib/supabase/client";
 import { createArtworkPiece, updateArtworkPiece } from "../actions";
+import type { UploadedFileMeta } from "@/src/lib/uploadedFileMeta";
 
 const MEDIUMS = [
   { value: "", label: "— Select medium —" },
@@ -114,16 +116,38 @@ export function ArtworkForm({
     e.preventDefault();
     setError(null);
 
-    const fd = new FormData();
-    fd.set("family_member_id", memberId);
-    fd.set("title", title);
-    fd.set("description", description);
-    fd.set("medium", medium);
-    fd.set("date_created", dateCreated);
-    if (ageDisplay != null) fd.set("age_when_created", String(ageDisplay));
-    for (const file of selectedFiles) fd.append("photos", file);
-
     startTransition(async () => {
+      // Upload photos client-side to Supabase storage
+      const supabase = createClient();
+      const folderId = pieceId ?? crypto.randomUUID();
+      const uploadedMeta: UploadedFileMeta[] = [];
+
+      for (const file of selectedFiles) {
+        const ext = file.name.split(".").pop() || "jpg";
+        const storagePath = `${folderId}/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("artwork-photos")
+          .upload(storagePath, file, { upsert: true });
+        if (uploadError) {
+          console.error("Photo upload failed:", uploadError.message);
+          continue;
+        }
+        uploadedMeta.push({
+          url: `/api/storage/artwork-photos/${storagePath}`,
+          storagePath,
+          fileSize: file.size,
+        });
+      }
+
+      const fd = new FormData();
+      fd.set("family_member_id", memberId);
+      fd.set("title", title);
+      fd.set("description", description);
+      fd.set("medium", medium);
+      fd.set("date_created", dateCreated);
+      if (ageDisplay != null) fd.set("age_when_created", String(ageDisplay));
+      fd.set("photos_meta", JSON.stringify(uploadedMeta));
+
       const result = pieceId
         ? await updateArtworkPiece(pieceId, fd)
         : await createArtworkPiece(fd);
