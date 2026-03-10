@@ -58,8 +58,8 @@ export function AddPetForm() {
   }
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []).slice(0, 5 - photos.length);
-    const next = [...photos, ...files].slice(0, 5);
+    const files = Array.from(e.target.files ?? []).slice(0, 20 - photos.length);
+    const next = [...photos, ...files].slice(0, 20);
     setPhotos(next);
     setPhotoPreviews(next.map((f) => URL.createObjectURL(f)));
   }
@@ -287,7 +287,7 @@ export function AddPetForm() {
 
         {/* Photos */}
         <div>
-          <label className="block text-sm font-medium text-[var(--muted)]">Photos (up to 5)</label>
+          <label className="block text-sm font-medium text-[var(--muted)]">Photos (up to 20)</label>
           {photoPreviews.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
               {photoPreviews.map((src, i) => (
@@ -305,7 +305,7 @@ export function AddPetForm() {
               ))}
             </div>
           )}
-          {photos.length < 5 && (
+          {photos.length < 20 && (
             <button
               type="button"
               onClick={() => fileRef.current?.click()}

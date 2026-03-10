@@ -23,6 +23,7 @@ export default async function PetsPage() {
       passed_date,
       description,
       pet_owners(member_id, member:family_members(name)),
+      cover_photo_id,
       pet_photos(id, url, sort_order)
     `)
     .eq("family_id", activeFamilyId)

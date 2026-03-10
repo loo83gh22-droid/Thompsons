@@ -123,6 +123,7 @@ export async function updatePet(petId: string, formData: FormData): Promise<PetR
     const description = (formData.get("description") as string)?.trim() || null;
     const ownerMemberIds = formData.getAll("owner_member_ids[]") as string[];
     const photoIdsToDelete = formData.getAll("delete_photo_ids[]") as string[];
+    const coverPhotoId = (formData.get("cover_photo_id") as string) || null;
 
     // New photos already uploaded client-side — just metadata
     const newPhotosJson = formData.get("new_photos_meta") as string | null;
@@ -142,6 +143,7 @@ export async function updatePet(petId: string, formData: FormData): Promise<PetR
         has_passed:   hasPassed,
         passed_date:  hasPassed ? (passedDate || null) : null,
         description,
+        cover_photo_id: coverPhotoId,
       })
       .eq("id", petId)
       .eq("family_id", activeFamilyId);

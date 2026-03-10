@@ -44,6 +44,7 @@ type Pet = {
   has_passed: boolean;
   passed_date: string | null;
   description: string | null;
+  cover_photo_id: string | null;
   pet_owners: PetOwner[];
   pet_photos: PetPhoto[];
 };
@@ -237,6 +238,7 @@ function PetCard({
   const emoji  = SPECIES_EMOJI[pet.species] ?? "🐾";
   const color  = SPECIES_COLORS[pet.species] ?? "#64748b";
   const photos = [...pet.pet_photos].sort((a, b) => a.sort_order - b.sort_order);
+  const coverPhoto = (pet.cover_photo_id && photos.find((p) => p.id === pet.cover_photo_id)) || photos[0];
   const age    = petAge(pet.birthday, pet.passed_date);
   const label  = ownerLabel(pet.pet_owners);
 
@@ -253,10 +255,10 @@ function PetCard({
           <div style={{ backgroundColor: color }} className="h-[3px] w-full flex-shrink-0" />
           <div
             className="relative h-72 w-full cursor-pointer overflow-hidden bg-[var(--background)]"
-            onClick={() => onPhotoClick(photos[0].url)}
+            onClick={() => onPhotoClick(coverPhoto.url)}
           >
             <Image
-              src={photos[0].url}
+              src={coverPhoto.url}
               alt={pet.name}
               fill
               className="object-cover transition-transform hover:scale-105"
