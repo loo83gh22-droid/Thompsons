@@ -44,6 +44,7 @@ type Pet = {
   has_passed: boolean;
   passed_date: string | null;
   description: string | null;
+  cover_photo_id: string | null;
   pet_owners: PetOwner[];
   pet_photos: PetPhoto[];
 };
@@ -76,6 +77,37 @@ function petAge(birthday: string | null, passedDate: string | null) {
   if (totalMonths < 2) return "a few months old";
   if (totalMonths < 24) return `${totalMonths} months old`;
   return `${years} year${years !== 1 ? "s" : ""} old`;
+}
+
+/** Parse a date string that may be YYYY-MM-DD, YYYY-MM, YYYY, or free text. Returns epoch ms or null. */
+function parseLooseDate(d: string | null): number | null {
+  if (!d) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return new Date(d + "T00:00:00").getTime();
+  if (/^\d{4}-\d{2}$/.test(d)) return new Date(d + "-01T00:00:00").getTime();
+  if (/^\d{4}$/.test(d)) return new Date(d + "-01-01T00:00:00").getTime();
+  // Free text like "March 2019" — try native parser
+  const t = Date.parse(d);
+  return Number.isNaN(t) ? null : t;
+}
+
+/** Sort living pets: by adopted_date or birthday (earliest first), no-date pets last (alphabetical). */
+function sortLiving(a: Pet, b: Pet): number {
+  const da = parseLooseDate(a.adopted_date) ?? parseLooseDate(a.birthday);
+  const db = parseLooseDate(b.adopted_date) ?? parseLooseDate(b.birthday);
+  if (da && db) return da - db;       // earliest first
+  if (da && !db) return -1;           // dated before undated
+  if (!da && db) return 1;
+  return a.name.localeCompare(b.name); // both undated → alphabetical
+}
+
+/** Sort deceased pets: by passed_date (most recent first), no-date pets last (alphabetical). */
+function sortDeceased(a: Pet, b: Pet): number {
+  const da = parseLooseDate(a.passed_date);
+  const db = parseLooseDate(b.passed_date);
+  if (da && db) return db - da;       // most recent first
+  if (da && !db) return -1;           // dated before undated
+  if (!da && db) return 1;
+  return a.name.localeCompare(b.name); // both undated → alphabetical
 }
 
 function ownerLabel(owners: PetOwner[]): string {
@@ -137,8 +169,8 @@ export function PetList({ pets }: { pets: Pet[] }) {
     );
   }
 
-  const current    = pets.filter((p) => !p.has_passed);
-  const remembered = pets.filter((p) => p.has_passed);
+  const current    = pets.filter((p) => !p.has_passed).sort(sortLiving);
+  const remembered = pets.filter((p) => p.has_passed).sort(sortDeceased);
 
   return (
     <>
@@ -237,6 +269,7 @@ function PetCard({
   const emoji  = SPECIES_EMOJI[pet.species] ?? "🐾";
   const color  = SPECIES_COLORS[pet.species] ?? "#64748b";
   const photos = [...pet.pet_photos].sort((a, b) => a.sort_order - b.sort_order);
+  const coverPhoto = (pet.cover_photo_id && photos.find((p) => p.id === pet.cover_photo_id)) || photos[0];
   const age    = petAge(pet.birthday, pet.passed_date);
   const label  = ownerLabel(pet.pet_owners);
 
@@ -253,10 +286,10 @@ function PetCard({
           <div style={{ backgroundColor: color }} className="h-[3px] w-full flex-shrink-0" />
           <div
             className="relative h-72 w-full cursor-pointer overflow-hidden bg-[var(--background)]"
-            onClick={() => onPhotoClick(photos[0].url)}
+            onClick={() => onPhotoClick(coverPhoto.url)}
           >
             <Image
-              src={photos[0].url}
+              src={coverPhoto.url}
               alt={pet.name}
               fill
               className="object-cover transition-transform hover:scale-105"

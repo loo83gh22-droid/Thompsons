@@ -58,8 +58,8 @@ export function AddPetForm() {
   }
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []).slice(0, 5 - photos.length);
-    const next = [...photos, ...files].slice(0, 5);
+    const files = Array.from(e.target.files ?? []).slice(0, 20 - photos.length);
+    const next = [...photos, ...files].slice(0, 20);
     setPhotos(next);
     setPhotoPreviews(next.map((f) => URL.createObjectURL(f)));
   }
@@ -86,9 +86,8 @@ export function AddPetForm() {
       const supabase = createClient();
 
       // Upload photos client-side directly to Supabase storage
-      const uploadedMeta: UploadedPhotoMeta[] = [];
       const tempPetId = crypto.randomUUID(); // temporary folder ID for new pet
-      for (const file of photos) {
+      const uploads = photos.map(async (file) => {
         const ext = file.name.split(".").pop() || "jpg";
         const storagePath = `${tempPetId}/${crypto.randomUUID()}.${ext}`;
         const { error: uploadError } = await supabase.storage
@@ -96,14 +95,12 @@ export function AddPetForm() {
           .upload(storagePath, file, { upsert: true });
         if (uploadError) {
           console.error("Photo upload failed:", uploadError.message);
-          continue;
+          return null;
         }
-        uploadedMeta.push({
-          url: `/api/storage/pet-photos/${storagePath}`,
-          storagePath,
-          fileSize: file.size,
-        });
-      }
+        return { url: `/api/storage/pet-photos/${storagePath}`, storagePath, fileSize: file.size };
+      });
+      const results = await Promise.all(uploads);
+      const uploadedMeta: UploadedPhotoMeta[] = results.filter((r): r is UploadedPhotoMeta => r !== null);
 
       const fd = new FormData();
       fd.set("name",         name.trim());
@@ -290,7 +287,7 @@ export function AddPetForm() {
 
         {/* Photos */}
         <div>
-          <label className="block text-sm font-medium text-[var(--muted)]">Photos (up to 5)</label>
+          <label className="block text-sm font-medium text-[var(--muted)]">Photos (up to 20)</label>
           {photoPreviews.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
               {photoPreviews.map((src, i) => (
@@ -308,7 +305,7 @@ export function AddPetForm() {
               ))}
             </div>
           )}
-          {photos.length < 5 && (
+          {photos.length < 20 && (
             <button
               type="button"
               onClick={() => fileRef.current?.click()}

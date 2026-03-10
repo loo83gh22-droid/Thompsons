@@ -21,6 +21,7 @@ export type EditablePet = {
   has_passed: boolean;
   passed_date: string | null;
   description: string | null;
+  cover_photo_id: string | null;
   pet_owners: PetOwner[];
   pet_photos: PetPhoto[];
 };
@@ -61,6 +62,7 @@ export function EditPetForm({ pet, onClose }: { pet: EditablePet; onClose: () =>
   const [photosToDelete, setPhotosToDelete] = useState<string[]>([]);
   const [newPhotos,      setNewPhotos]      = useState<File[]>([]);
   const [newPreviews,    setNewPreviews]    = useState<string[]>([]);
+  const [coverPhotoId,   setCoverPhotoId]   = useState<string | null>(pet.cover_photo_id);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -94,9 +96,9 @@ export function EditPetForm({ pet, onClose }: { pet: EditablePet; onClose: () =>
   }
 
   function handleNewPhotos(e: React.ChangeEvent<HTMLInputElement>) {
-    const remaining = 5 - (sortedExisting.length - photosToDelete.length) - newPhotos.length;
+    const remaining = 20 - (sortedExisting.length - photosToDelete.length) - newPhotos.length;
     const files = Array.from(e.target.files ?? []).slice(0, remaining);
-    const next = [...newPhotos, ...files].slice(0, 5);
+    const next = [...newPhotos, ...files].slice(0, 20);
     setNewPhotos(next);
     setNewPreviews(next.map((f) => URL.createObjectURL(f)));
   }
@@ -119,8 +121,7 @@ export function EditPetForm({ pet, onClose }: { pet: EditablePet; onClose: () =>
       const supabase = createClient();
 
       // Upload new photos client-side directly to Supabase storage
-      const uploadedMeta: UploadedPhotoMeta[] = [];
-      for (const file of newPhotos) {
+      const uploads = newPhotos.map(async (file) => {
         const ext = file.name.split(".").pop() || "jpg";
         const storagePath = `${pet.id}/${crypto.randomUUID()}.${ext}`;
         const { error: uploadError } = await supabase.storage
@@ -128,14 +129,12 @@ export function EditPetForm({ pet, onClose }: { pet: EditablePet; onClose: () =>
           .upload(storagePath, file, { upsert: true });
         if (uploadError) {
           console.error("Photo upload failed:", uploadError.message);
-          continue;
+          return null;
         }
-        uploadedMeta.push({
-          url: `/api/storage/pet-photos/${storagePath}`,
-          storagePath,
-          fileSize: file.size,
-        });
-      }
+        return { url: `/api/storage/pet-photos/${storagePath}`, storagePath, fileSize: file.size };
+      });
+      const results = await Promise.all(uploads);
+      const uploadedMeta: UploadedPhotoMeta[] = results.filter((r): r is UploadedPhotoMeta => r !== null);
 
       const fd = new FormData();
       fd.set("name",         name.trim());
@@ -149,6 +148,7 @@ export function EditPetForm({ pet, onClose }: { pet: EditablePet; onClose: () =>
       ownerIds.forEach((id) => fd.append("owner_member_ids[]", id));
       photosToDelete.forEach((id) => fd.append("delete_photo_ids[]", id));
       fd.set("new_photos_meta", JSON.stringify(uploadedMeta));
+      if (coverPhotoId) fd.set("cover_photo_id", coverPhotoId);
 
       const result = await updatePet(pet.id, fd);
       if (!result.success) { setError(result.error); return; }
@@ -318,19 +318,29 @@ export function EditPetForm({ pet, onClose }: { pet: EditablePet; onClose: () =>
           {/* Photos */}
           <div>
             <label className="block text-sm font-medium text-[var(--muted)]">
-              Photos ({totalPhotoCount}/5)
+              Photos ({totalPhotoCount}/20)
             </label>
 
             {/* Existing photos */}
             {sortedExisting.length > 0 && (
               <div className="mt-2">
-                <p className="text-xs text-[var(--muted)] mb-1.5">Tap × to remove a photo</p>
+                <p className="text-xs text-[var(--muted)] mb-1.5">Tap a photo to set it as the card image. Tap × to remove.</p>
                 <div className="flex flex-wrap gap-2">
                   {sortedExisting.map((ph) => {
                     const markedForDelete = photosToDelete.includes(ph.id);
+                    const isCover = coverPhotoId === ph.id || (!coverPhotoId && ph.id === sortedExisting[0]?.id);
                     return (
                       <div key={ph.id} className="relative">
-                        <div className={`relative h-20 w-20 overflow-hidden rounded-lg border ${markedForDelete ? "opacity-30 border-red-300" : "border-[var(--border)]"}`}>
+                        <div
+                          className={`relative h-20 w-20 overflow-hidden rounded-lg border-2 cursor-pointer ${
+                            markedForDelete
+                              ? "opacity-30 border-red-300"
+                              : isCover
+                              ? "border-[var(--accent)] ring-2 ring-[var(--accent)]/30"
+                              : "border-[var(--border)]"
+                          }`}
+                          onClick={() => { if (!markedForDelete) setCoverPhotoId(ph.id); }}
+                        >
                           <Image
                             src={ph.url}
                             alt=""
@@ -338,6 +348,11 @@ export function EditPetForm({ pet, onClose }: { pet: EditablePet; onClose: () =>
                             className="object-cover"
                             unoptimized
                           />
+                          {isCover && !markedForDelete && (
+                            <span className="absolute bottom-0.5 left-0.5 rounded bg-[var(--accent)] px-1 py-0.5 text-[9px] font-bold text-white leading-none">
+                              COVER
+                            </span>
+                          )}
                         </div>
                         <button
                           type="button"
@@ -376,7 +391,7 @@ export function EditPetForm({ pet, onClose }: { pet: EditablePet; onClose: () =>
             )}
 
             {/* Add new photos button */}
-            {totalPhotoCount < 5 && (
+            {totalPhotoCount < 20 && (
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}

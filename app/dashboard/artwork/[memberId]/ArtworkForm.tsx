@@ -120,9 +120,7 @@ export function ArtworkForm({
       // Upload photos client-side to Supabase storage
       const supabase = createClient();
       const folderId = pieceId ?? crypto.randomUUID();
-      const uploadedMeta: UploadedFileMeta[] = [];
-
-      for (const file of selectedFiles) {
+      const uploads = selectedFiles.map(async (file) => {
         const ext = file.name.split(".").pop() || "jpg";
         const storagePath = `${folderId}/${crypto.randomUUID()}.${ext}`;
         const { error: uploadError } = await supabase.storage
@@ -130,14 +128,12 @@ export function ArtworkForm({
           .upload(storagePath, file, { upsert: true });
         if (uploadError) {
           console.error("Photo upload failed:", uploadError.message);
-          continue;
+          return null;
         }
-        uploadedMeta.push({
-          url: `/api/storage/artwork-photos/${storagePath}`,
-          storagePath,
-          fileSize: file.size,
-        });
-      }
+        return { url: `/api/storage/artwork-photos/${storagePath}`, storagePath, fileSize: file.size };
+      });
+      const results = await Promise.all(uploads);
+      const uploadedMeta = results.filter((r) => r !== null) as UploadedFileMeta[];
 
       const fd = new FormData();
       fd.set("family_member_id", memberId);

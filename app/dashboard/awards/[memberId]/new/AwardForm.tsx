@@ -132,9 +132,7 @@ export function AwardForm({
       const supabase = createClient();
       const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp", "heic", "avif"];
       const folderId = awardId ?? crypto.randomUUID();
-      const uploadedMeta: UploadedFileMeta[] = [];
-
-      for (const file of selectedFiles) {
+      const uploads = selectedFiles.map(async (file) => {
         const ext = file.name.split(".").pop() || "bin";
         const storagePath = `${folderId}/${crypto.randomUUID()}.${ext}`;
         const { error: uploadError } = await supabase.storage
@@ -142,17 +140,19 @@ export function AwardForm({
           .upload(storagePath, file, { upsert: true });
         if (uploadError) {
           console.error("File upload failed:", uploadError.message);
-          continue;
+          return null;
         }
         const isImage = file.type.startsWith("image/") || IMAGE_EXTS.includes(ext.toLowerCase());
-        uploadedMeta.push({
+        return {
           url: `/api/storage/award-files/${storagePath}`,
           storagePath,
           fileSize: file.size,
           fileName: file.name,
           fileType: isImage ? "image" : "document",
-        });
-      }
+        };
+      });
+      const results = await Promise.all(uploads);
+      const uploadedMeta = results.filter((r) => r !== null) as UploadedFileMeta[];
 
       const fd = new FormData();
       fd.set("title", title);
