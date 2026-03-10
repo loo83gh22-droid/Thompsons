@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
-import { addPet } from "./actions";
+import { addPet, type UploadedPhotoMeta } from "./actions";
 
 type Member = { id: string; name: string };
 
@@ -83,6 +83,28 @@ export function AddPetForm() {
     setLoading(true);
     setError(null);
     try {
+      const supabase = createClient();
+
+      // Upload photos client-side directly to Supabase storage
+      const uploadedMeta: UploadedPhotoMeta[] = [];
+      const tempPetId = crypto.randomUUID(); // temporary folder ID for new pet
+      for (const file of photos) {
+        const ext = file.name.split(".").pop() || "jpg";
+        const storagePath = `${tempPetId}/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("pet-photos")
+          .upload(storagePath, file, { upsert: true });
+        if (uploadError) {
+          console.error("Photo upload failed:", uploadError.message);
+          continue;
+        }
+        uploadedMeta.push({
+          url: `/api/storage/pet-photos/${storagePath}`,
+          storagePath,
+          fileSize: file.size,
+        });
+      }
+
       const fd = new FormData();
       fd.set("name",         name.trim());
       fd.set("species",      species);
@@ -93,7 +115,7 @@ export function AddPetForm() {
       fd.set("passed_date",  hasPassed ? passedDate : "");
       fd.set("description",  description.trim());
       ownerIds.forEach((id) => fd.append("owner_member_ids[]", id));
-      photos.forEach((f) => fd.append("photos", f));
+      fd.set("photos_meta",  JSON.stringify(uploadedMeta));
 
       const result = await addPet(fd);
       if (!result.success) { setError(result.error); return; }

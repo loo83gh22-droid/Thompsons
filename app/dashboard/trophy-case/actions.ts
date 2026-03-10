@@ -3,18 +3,10 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
-import { enforceStorageLimit, addStorageUsage } from "@/src/lib/plans";
-import crypto from "crypto";
+import { addStorageUsage } from "@/src/lib/plans";
+import type { UploadedFileMeta } from "@/src/lib/uploadedFileMeta";
 
 export type TrophyResult = { success: true; id: string } | { success: false; error: string };
-
-const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp", "heic", "avif"];
-
-function detectFileType(file: File): "image" | "document" {
-  if (file.type.startsWith("image/")) return "image";
-  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
-  return IMAGE_EXTS.includes(ext) ? "image" : "document";
-}
 
 export async function createTrophy(formData: FormData): Promise<TrophyResult> {
   try {
@@ -54,33 +46,26 @@ export async function createTrophy(formData: FormData): Promise<TrophyResult> {
       memberIds.map((memberId) => ({ award_id: trophy.id, family_member_id: memberId }))
     );
 
-    const allFiles = formData.getAll("files") as File[];
-    const files = allFiles.filter((f) => f.size > 0).slice(0, 5);
+    // Save file records (files already uploaded client-side to Supabase storage)
+    const filesJson = formData.get("files_meta") as string | null;
+    const filesMeta: UploadedFileMeta[] = filesJson ? JSON.parse(filesJson) : [];
 
-    const totalBytes = files.reduce((s, f) => s + f.size, 0);
-    if (totalBytes > 0) {
-      try { await enforceStorageLimit(supabase, activeFamilyId, totalBytes); } catch { /* skip files, don't fail trophy creation */ }
-    }
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      try {
-        const ext = file.name.split(".").pop() || "bin";
-        const path = `${trophy.id}/${crypto.randomUUID()}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from("award-files")
-          .upload(path, file, { upsert: true });
-        if (uploadError) continue;
-        await addStorageUsage(supabase, activeFamilyId, file.size);
-        await supabase.from("award_files").insert({
-          family_id: activeFamilyId,
-          award_id: trophy.id,
-          url: `/api/storage/award-files/${path}`,
-          file_type: detectFileType(file),
-          file_name: file.name,
-          sort_order: i,
-        });
-      } catch { /* skip bad files */ }
+    for (let i = 0; i < filesMeta.length; i++) {
+      const meta = filesMeta[i];
+      const { error: fileErr } = await supabase.from("award_files").insert({
+        family_id:       activeFamilyId,
+        award_id:        trophy.id,
+        url:             meta.url,
+        file_type:       meta.fileType || "document",
+        file_name:       meta.fileName || null,
+        sort_order:      i,
+        file_size_bytes: meta.fileSize,
+      });
+      if (fileErr) {
+        await supabase.storage.from("award-files").remove([meta.storagePath]);
+      } else {
+        await addStorageUsage(supabase, activeFamilyId, meta.fileSize);
+      }
     }
 
     revalidatePath("/dashboard/trophy-case");
@@ -135,36 +120,33 @@ export async function updateTrophy(
       memberIds.map((memberId) => ({ award_id: trophyId, family_member_id: memberId }))
     );
 
-    const allFiles = formData.getAll("files") as File[];
-    const newFiles = allFiles.filter((f) => f.size > 0);
+    // Save new file records (files already uploaded client-side to Supabase storage)
+    const newFilesJson = formData.get("files_meta") as string | null;
+    const newFilesMeta: UploadedFileMeta[] = newFilesJson ? JSON.parse(newFilesJson) : [];
 
-    if (newFiles.length > 0) {
+    if (newFilesMeta.length > 0) {
       const { count } = await supabase
         .from("award_files")
         .select("id", { count: "exact", head: true })
         .eq("award_id", trophyId);
       const existing = count ?? 0;
-      const toAdd = newFiles.slice(0, Math.max(0, 5 - existing));
 
-      for (let i = 0; i < toAdd.length; i++) {
-        const file = toAdd[i];
-        try {
-          const ext = file.name.split(".").pop() || "bin";
-          const path = `${trophyId}/${crypto.randomUUID()}.${ext}`;
-          const { error: uploadError } = await supabase.storage
-            .from("award-files")
-            .upload(path, file, { upsert: true });
-          if (uploadError) continue;
-          await addStorageUsage(supabase, activeFamilyId, file.size);
-          await supabase.from("award_files").insert({
-            family_id: activeFamilyId,
-            award_id: trophyId,
-            url: `/api/storage/award-files/${path}`,
-            file_type: detectFileType(file),
-            file_name: file.name,
-            sort_order: existing + i,
-          });
-        } catch { /* skip */ }
+      for (let i = 0; i < newFilesMeta.length; i++) {
+        const meta = newFilesMeta[i];
+        const { error: fileErr } = await supabase.from("award_files").insert({
+          family_id:       activeFamilyId,
+          award_id:        trophyId,
+          url:             meta.url,
+          file_type:       meta.fileType || "document",
+          file_name:       meta.fileName || null,
+          sort_order:      existing + i,
+          file_size_bytes: meta.fileSize,
+        });
+        if (fileErr) {
+          await supabase.storage.from("award-files").remove([meta.storagePath]);
+        } else {
+          await addStorageUsage(supabase, activeFamilyId, meta.fileSize);
+        }
       }
     }
 

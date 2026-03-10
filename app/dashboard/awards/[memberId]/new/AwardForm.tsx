@@ -3,7 +3,9 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { createClient } from "@/src/lib/supabase/client";
 import { createAward, updateAward } from "../../actions";
+import type { UploadedFileMeta } from "@/src/lib/uploadedFileMeta";
 
 const CATEGORIES = [
   { value: "sports", label: "Sports" },
@@ -125,16 +127,42 @@ export function AwardForm({
     e.preventDefault();
     setError(null);
 
-    const fd = new FormData();
-    fd.set("title", title);
-    fd.set("description", description);
-    fd.set("category", category);
-    fd.set("awarded_by", awardedBy);
-    fd.set("award_date", awardDate);
-    for (const id of selectedMemberIds) fd.append("member_ids", id);
-    for (const file of selectedFiles) fd.append("files", file);
-
     startTransition(async () => {
+      // Upload files client-side to Supabase storage
+      const supabase = createClient();
+      const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp", "heic", "avif"];
+      const folderId = awardId ?? crypto.randomUUID();
+      const uploadedMeta: UploadedFileMeta[] = [];
+
+      for (const file of selectedFiles) {
+        const ext = file.name.split(".").pop() || "bin";
+        const storagePath = `${folderId}/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("award-files")
+          .upload(storagePath, file, { upsert: true });
+        if (uploadError) {
+          console.error("File upload failed:", uploadError.message);
+          continue;
+        }
+        const isImage = file.type.startsWith("image/") || IMAGE_EXTS.includes(ext.toLowerCase());
+        uploadedMeta.push({
+          url: `/api/storage/award-files/${storagePath}`,
+          storagePath,
+          fileSize: file.size,
+          fileName: file.name,
+          fileType: isImage ? "image" : "document",
+        });
+      }
+
+      const fd = new FormData();
+      fd.set("title", title);
+      fd.set("description", description);
+      fd.set("category", category);
+      fd.set("awarded_by", awardedBy);
+      fd.set("award_date", awardDate);
+      for (const id of selectedMemberIds) fd.append("member_ids", id);
+      fd.set("files_meta", JSON.stringify(uploadedMeta));
+
       const result = awardId
         ? await updateAward(awardId, fd)
         : await createAward(fd);
