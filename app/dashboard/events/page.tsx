@@ -28,19 +28,21 @@ export default async function EventsPage() {
   let events: EventRow[] = [];
   let members: { id: string; name: string }[] = [];
 
-  const membersRes = await supabase
-    .from("family_members")
-    .select("id, name")
-    .eq("family_id", activeFamilyId)
-    .order("name");
-  members = (membersRes.data ?? []) as { id: string; name: string }[];
-
   try {
-    const eventsRes = await supabase
-      .from("family_events")
-      .select("id, title, description, event_date, recurring, category, created_by, created_at, family_members!created_by(name)")
-      .eq("family_id", activeFamilyId)
-      .order("event_date", { ascending: true });
+    // Run members and events queries in parallel
+    const [membersRes, eventsRes] = await Promise.all([
+      supabase
+        .from("family_members")
+        .select("id, name")
+        .eq("family_id", activeFamilyId)
+        .order("name"),
+      supabase
+        .from("family_events")
+        .select("id, title, description, event_date, recurring, category, created_by, created_at, family_members!created_by(name)")
+        .eq("family_id", activeFamilyId)
+        .order("event_date", { ascending: true }),
+    ]);
+    members = (membersRes.data ?? []) as { id: string; name: string }[];
 
     if (eventsRes.error) {
       events = [];

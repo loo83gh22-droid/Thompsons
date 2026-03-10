@@ -13,37 +13,39 @@ export default async function BucketListPage() {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return null;
 
-  // Current member
-  const { data: currentMember } = await supabase
-    .from("family_members")
-    .select("id, name, role")
-    .eq("user_id", user.id)
-    .eq("family_id", activeFamilyId)
-    .single();
+  // Run independent queries in parallel
+  const [currentMemberRes, allMembersRes, itemsRes] = await Promise.all([
+    supabase
+      .from("family_members")
+      .select("id, name, role")
+      .eq("user_id", user.id)
+      .eq("family_id", activeFamilyId)
+      .single(),
+    supabase
+      .from("family_members")
+      .select("id, name, nickname, role")
+      .eq("family_id", activeFamilyId)
+      .order("name"),
+    supabase
+      .from("bucket_list_items")
+      .select(`
+        id, title, description, scope, is_private, status,
+        category, target_date, completed_at, completed_note,
+        sort_order, created_at,
+        added_by,
+        added_by_member:family_members!added_by(id, name, nickname)
+      `)
+      .eq("family_id", activeFamilyId)
+      .order("status")
+      .order("sort_order")
+      .order("created_at"),
+  ]);
 
+  const currentMember = currentMemberRes.data;
   if (!currentMember) return null;
 
-  // All family members (for personal lists sidebar)
-  const { data: allMembers } = await supabase
-    .from("family_members")
-    .select("id, name, nickname, role")
-    .eq("family_id", activeFamilyId)
-    .order("name");
-
-  // All bucket list items visible to this user (RLS handles privacy)
-  const { data: items } = await supabase
-    .from("bucket_list_items")
-    .select(`
-      id, title, description, scope, is_private, status,
-      category, target_date, completed_at, completed_note,
-      sort_order, created_at,
-      added_by,
-      added_by_member:family_members!added_by(id, name, nickname)
-    `)
-    .eq("family_id", activeFamilyId)
-    .order("status")
-    .order("sort_order")
-    .order("created_at");
+  const allMembers = allMembersRes.data;
+  const items = itemsRes.data;
 
   // All cheers for this family's items
   const itemIds = (items ?? []).map((i) => i.id);

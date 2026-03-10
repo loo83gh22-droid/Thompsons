@@ -18,7 +18,7 @@ function JournalPreview() {
     <div className="relative h-full w-full overflow-hidden">
       {/* Hero photo — fills the whole preview area */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={MARKETING_PHOTOS[2]} alt="" className="h-full w-full object-cover" />
+      <img src={MARKETING_PHOTOS[2]} alt="" width={400} height={300} className="h-full w-full object-cover" />
 
       {/* Gradient overlay — fades bottom to dark so text reads clearly */}
       <div
@@ -56,6 +56,8 @@ function JournalPreview() {
               key={i}
               src={src}
               alt=""
+              width={36}
+              height={36}
               className="h-9 w-9 rounded object-cover"
               style={{ border: "1.5px solid rgba(255,255,255,0.5)" }}
             />
