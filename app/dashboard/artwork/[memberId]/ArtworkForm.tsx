@@ -6,6 +6,7 @@ import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/client";
 import { createArtworkPiece, updateArtworkPiece } from "../actions";
 import type { UploadedFileMeta } from "@/src/lib/uploadedFileMeta";
+import { compressImages } from "@/src/lib/compressImage";
 
 const MEDIUMS = [
   { value: "", label: "— Select medium —" },
@@ -62,6 +63,7 @@ export function ArtworkForm({
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -117,10 +119,13 @@ export function ArtworkForm({
     setError(null);
 
     startTransition(async () => {
-      // Upload photos client-side to Supabase storage
+      // Compress & upload photos client-side to Supabase storage
       const supabase = createClient();
       const folderId = pieceId ?? crypto.randomUUID();
-      const uploads = selectedFiles.map(async (file) => {
+      setUploadProgress("Compressing photos…");
+      const compressed = await compressImages(selectedFiles);
+      let done = 0;
+      const uploads = compressed.map(async (file) => {
         const ext = file.name.split(".").pop() || "jpg";
         const storagePath = `${folderId}/${crypto.randomUUID()}.${ext}`;
         const { error: uploadError } = await supabase.storage
@@ -130,9 +135,12 @@ export function ArtworkForm({
           console.error("Photo upload failed:", uploadError.message);
           return null;
         }
+        done++;
+        setUploadProgress(`Uploading… ${done}/${compressed.length}`);
         return { url: `/api/storage/artwork-photos/${storagePath}`, storagePath, fileSize: file.size };
       });
       const results = await Promise.all(uploads);
+      setUploadProgress(null);
       const uploadedMeta = results.filter((r) => r !== null) as UploadedFileMeta[];
 
       const fd = new FormData();
@@ -183,7 +191,6 @@ export function ArtworkForm({
                 src={photo.url}
                 alt="Artwork photo"
                 fill
-                unoptimized
                 className="object-cover"
                 sizes="96px"
               />
@@ -309,7 +316,7 @@ export function ArtworkForm({
           disabled={isPending}
           className="min-h-[44px] rounded-full bg-[var(--primary)] px-6 py-2.5 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 disabled:opacity-60"
         >
-          {isPending ? "Saving…" : pieceId ? "Save changes" : "Save artwork"}
+          {uploadProgress ?? (isPending ? "Saving…" : pieceId ? "Save changes" : "Save artwork")}
         </button>
         <button
           type="button"

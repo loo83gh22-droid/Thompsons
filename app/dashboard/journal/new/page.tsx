@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
@@ -12,6 +13,7 @@ import PhotoUpload from "@/app/components/PhotoUpload";
 import { extractMetadataFromMultiplePhotos } from "@/src/lib/exifExtractor";
 import { canUploadVideos } from "@/src/lib/plans";
 import { MemberSelect } from "@/app/components/MemberSelect";
+import { compressImages } from "@/src/lib/compressImage";
 
 type FamilyMember = { id: string; name: string; color: string | null; symbol: string };
 type DateValue = Date | DateRange;
@@ -23,6 +25,7 @@ function formatDateTitle(d: DateValue): string {
 
 
 export default function NewJournalPage() {
+  const router = useRouter();
   const { activeFamilyId, planType, currentMemberId } = useFamily();
   const videosAllowed = canUploadVideos(planType);
   const [members, setMembers] = useState<FamilyMember[]>([]);
@@ -30,6 +33,7 @@ export default function NewJournalPage() {
     currentMemberId ? [currentMemberId] : []
   );
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [prompts, setPrompts] = useState<string[]>([]);
   const [isGeneratingPrompts, setIsGeneratingPrompts] = useState(false);
@@ -116,10 +120,14 @@ export default function NewJournalPage() {
                 ...photoFiles.slice(coverPhotoIndex + 1),
               ];
 
-      // Upload photos client-side directly to Supabase storage
+      // Compress & upload photos client-side directly to Supabase storage
       const supabase = createClient();
       const tempEntryId = crypto.randomUUID();
-      const photoUploads = orderedPhotos.map(async (file) => {
+      const compressedPhotos = orderedPhotos.length > 0
+        ? (setUploadProgress("Compressing photos…"), await compressImages(orderedPhotos))
+        : [];
+      let uploadedCount = 0;
+      const photoUploads = compressedPhotos.map(async (file) => {
         const ext = file.name.split(".").pop() || "jpg";
         const storagePath = `${tempEntryId}/${crypto.randomUUID()}.${ext}`;
         const { error: uploadError } = await supabase.storage
@@ -129,16 +137,21 @@ export default function NewJournalPage() {
           console.error("Photo upload failed:", uploadError.message);
           return null;
         }
+        uploadedCount++;
+        setUploadProgress(`Uploading photos… ${uploadedCount}/${compressedPhotos.length}`);
         return { url: `/api/storage/journal-photos/${storagePath}`, storagePath, fileSize: file.size };
       });
       const photoResults = await Promise.all(photoUploads);
       const uploadedPhotosMeta = photoResults.filter((r): r is { url: string; storagePath: string; fileSize: number } => r !== null);
       formData.set("photos_meta", JSON.stringify(uploadedPhotosMeta));
 
+      setUploadProgress("Saving entry…");
       const result = await createJournalEntry(formData);
       if (result?.success) {
         setIdempotencyKey(crypto.randomUUID());
         if (videoFiles.length > 0) {
+          let videoCount = 0;
+          setUploadProgress(`Uploading videos… 0/${videoFiles.length}`);
           await Promise.all(videoFiles.map(async (file) => {
             const ext = file.name.split(".").pop() || "mp4";
             const storagePath = `${result.id}/${crypto.randomUUID()}.${ext}`;
@@ -147,10 +160,13 @@ export default function NewJournalPage() {
               .upload(storagePath, file, { upsert: true });
             if (uploadError) return;
             await registerJournalVideo(result.id, `/api/storage/journal-videos/${storagePath}`, storagePath, file.size, null);
+            videoCount++;
+            setUploadProgress(`Uploading videos… ${videoCount}/${videoFiles.length}`);
           }));
         }
+        setUploadProgress(null);
         const hadLocation = !!(location.name?.trim() || (location.latitude && location.longitude));
-        window.location.href = hadLocation ? "/dashboard/journal?addedToMap=1" : "/dashboard/journal";
+        router.push(hadLocation ? "/dashboard/journal?addedToMap=1" : "/dashboard/journal");
         return;
       }
       setError(result?.error ?? "Something went wrong.");
@@ -164,6 +180,7 @@ export default function NewJournalPage() {
       setError(message);
     } finally {
       setLoading(false);
+      setUploadProgress(null);
     }
   }
 
@@ -395,7 +412,7 @@ export default function NewJournalPage() {
             disabled={loading || members.length === 0 || selectedMemberIds.length === 0}
             className="min-h-[48px] flex-1 rounded-full bg-[var(--primary)] px-6 py-3 font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 sm:flex-none"
           >
-            {loading ? "Saving…" : "Save entry"}
+            {uploadProgress ?? (loading ? "Saving…" : "Save entry")}
           </button>
           <Link
             href="/dashboard/journal"

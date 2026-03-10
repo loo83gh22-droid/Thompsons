@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
 import { addPet, type UploadedPhotoMeta } from "./actions";
+import { compressImages } from "@/src/lib/compressImage";
 
 type Member = { id: string; name: string };
 
@@ -24,6 +25,7 @@ export function AddPetForm() {
   const { activeFamilyId } = useFamily();
   const [open, setOpen]       = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
   const [error, setError]     = useState<string | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
 
@@ -85,9 +87,12 @@ export function AddPetForm() {
     try {
       const supabase = createClient();
 
-      // Upload photos client-side directly to Supabase storage
-      const tempPetId = crypto.randomUUID(); // temporary folder ID for new pet
-      const uploads = photos.map(async (file) => {
+      // Compress & upload photos client-side directly to Supabase storage
+      const tempPetId = crypto.randomUUID();
+      setUploadProgress("Compressing photos…");
+      const compressed = await compressImages(photos);
+      let done = 0;
+      const uploads = compressed.map(async (file) => {
         const ext = file.name.split(".").pop() || "jpg";
         const storagePath = `${tempPetId}/${crypto.randomUUID()}.${ext}`;
         const { error: uploadError } = await supabase.storage
@@ -97,9 +102,12 @@ export function AddPetForm() {
           console.error("Photo upload failed:", uploadError.message);
           return null;
         }
+        done++;
+        setUploadProgress(`Uploading… ${done}/${compressed.length}`);
         return { url: `/api/storage/pet-photos/${storagePath}`, storagePath, fileSize: file.size };
       });
       const results = await Promise.all(uploads);
+      setUploadProgress(null);
       const uploadedMeta: UploadedPhotoMeta[] = results.filter((r): r is UploadedPhotoMeta => r !== null);
 
       const fd = new FormData();
@@ -333,7 +341,7 @@ export function AddPetForm() {
           disabled={loading}
           className="rounded-full bg-[var(--primary)] px-5 py-2 font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
         >
-          {loading ? "Saving..." : "Add pet"}
+          {uploadProgress ?? (loading ? "Saving..." : "Add pet")}
         </button>
         <button
           type="button"

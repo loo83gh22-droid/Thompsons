@@ -11,32 +11,36 @@ export default async function RecipesPage() {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return null;
 
-  const { data: recipes } = await supabase
-    .from("recipes")
-    .select(`
-      id,
-      title,
-      story,
-      occasions,
-      taught_by,
-      taught_by_member:family_members!taught_by(name),
-      recipe_photo_links(journal_photos(id, url))
-    `)
-    .eq("family_id", activeFamilyId)
-    .order("sort_order");
-
-  const { data: members } = await supabase
-    .from("family_members")
-    .select("id, name")
-    .eq("family_id", activeFamilyId)
-    .order("name");
-
-  const { data: journalPhotos } = await supabase
-    .from("journal_photos")
-    .select("id, url, caption, journal_entries(title, trip_date)")
-    .eq("family_id", activeFamilyId)
-    .order("id", { ascending: false })
-    .limit(50);
+  // Run all three independent queries in parallel
+  const [recipesRes, membersRes, journalPhotosRes] = await Promise.all([
+    supabase
+      .from("recipes")
+      .select(`
+        id,
+        title,
+        story,
+        occasions,
+        taught_by,
+        taught_by_member:family_members!taught_by(name),
+        recipe_photo_links(journal_photos(id, url))
+      `)
+      .eq("family_id", activeFamilyId)
+      .order("sort_order"),
+    supabase
+      .from("family_members")
+      .select("id, name")
+      .eq("family_id", activeFamilyId)
+      .order("name"),
+    supabase
+      .from("journal_photos")
+      .select("id, url, caption, journal_entries(title, trip_date)")
+      .eq("family_id", activeFamilyId)
+      .order("id", { ascending: false })
+      .limit(50),
+  ]);
+  const recipes = recipesRes.data;
+  const members = membersRes.data;
+  const journalPhotos = journalPhotosRes.data;
 
   return (
     <div>

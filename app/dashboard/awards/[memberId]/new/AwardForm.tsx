@@ -6,6 +6,7 @@ import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/client";
 import { createAward, updateAward } from "../../actions";
 import type { UploadedFileMeta } from "@/src/lib/uploadedFileMeta";
+import { compressImages } from "@/src/lib/compressImage";
 
 const CATEGORIES = [
   { value: "sports", label: "Sports" },
@@ -50,6 +51,7 @@ export function AwardForm({
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -128,11 +130,14 @@ export function AwardForm({
     setError(null);
 
     startTransition(async () => {
-      // Upload files client-side to Supabase storage
+      // Compress images & upload files client-side to Supabase storage
       const supabase = createClient();
       const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp", "heic", "avif"];
       const folderId = awardId ?? crypto.randomUUID();
-      const uploads = selectedFiles.map(async (file) => {
+      setUploadProgress("Compressing…");
+      const compressed = await compressImages(selectedFiles);
+      let done = 0;
+      const uploads = compressed.map(async (file) => {
         const ext = file.name.split(".").pop() || "bin";
         const storagePath = `${folderId}/${crypto.randomUUID()}.${ext}`;
         const { error: uploadError } = await supabase.storage
@@ -142,6 +147,8 @@ export function AwardForm({
           console.error("File upload failed:", uploadError.message);
           return null;
         }
+        done++;
+        setUploadProgress(`Uploading… ${done}/${compressed.length}`);
         const isImage = file.type.startsWith("image/") || IMAGE_EXTS.includes(ext.toLowerCase());
         return {
           url: `/api/storage/award-files/${storagePath}`,
@@ -152,6 +159,7 @@ export function AwardForm({
         };
       });
       const results = await Promise.all(uploads);
+      setUploadProgress(null);
       const uploadedMeta = results.filter((r) => r !== null) as UploadedFileMeta[];
 
       const fd = new FormData();
@@ -211,7 +219,6 @@ export function AwardForm({
                   src={file.url}
                   alt="Award file"
                   fill
-                  unoptimized
                   className="object-cover"
                   sizes="96px"
                 />
@@ -412,7 +419,7 @@ export function AwardForm({
           disabled={isPending}
           className="min-h-[44px] rounded-full bg-[var(--primary)] px-6 py-2.5 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 disabled:opacity-60"
         >
-          {isPending ? "Saving…" : awardId ? "Save changes" : "Save award"}
+          {uploadProgress ?? (isPending ? "Saving…" : awardId ? "Save changes" : "Save award")}
         </button>
         <button
           type="button"

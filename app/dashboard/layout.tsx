@@ -169,40 +169,35 @@ export default async function DashboardLayout({
     // lookup failure denies access rather than silently granting adult rights.
     let currentUserRole: "owner" | "adult" | "teen" | "child" = "teen";
     let currentMemberId: string | null = null;
-    if (activeFamilyId) {
-      const { data: myMember } = await supabase
-        .from("family_members")
-        .select("id, role")
-        .eq("user_id", user.id)
-        .eq("family_id", activeFamilyId)
-        .single();
-      if (myMember) {
-        currentUserRole = (myMember.role as typeof currentUserRole) || "teen";
-        currentMemberId = myMember.id;
-      }
-    }
-
-    // Get family plan type
     let planType: "free" | "annual" | "legacy" = "free";
     let playlistId: string | null = null;
-    if (activeFamilyId) {
-      const { data: familyRow } = await supabase
-        .from("families")
-        .select("plan_type, spotify_playlist_id")
-        .eq("id", activeFamilyId)
-        .single();
-      if (familyRow?.plan_type) planType = familyRow.plan_type as typeof planType;
-      playlistId = familyRow?.spotify_playlist_id?.trim() || null;
-    }
-
-    // Fetch onboarding counts for WelcomeModal — data-driven so it works cross-device
     let welcomeMemberCount = 0;
     let welcomeJournalCount = 0;
+
     if (activeFamilyId) {
-      const [membRes, jrnlRes] = await Promise.all([
+      // Run all independent queries in parallel to avoid waterfall
+      const [myMemberRes, familyRowRes, membRes, jrnlRes] = await Promise.all([
+        supabase
+          .from("family_members")
+          .select("id, role")
+          .eq("user_id", user.id)
+          .eq("family_id", activeFamilyId)
+          .single(),
+        supabase
+          .from("families")
+          .select("plan_type, spotify_playlist_id")
+          .eq("id", activeFamilyId)
+          .single(),
         supabase.from("family_members").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
         supabase.from("journal_entries").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       ]);
+
+      if (myMemberRes.data) {
+        currentUserRole = (myMemberRes.data.role as typeof currentUserRole) || "teen";
+        currentMemberId = myMemberRes.data.id;
+      }
+      if (familyRowRes.data?.plan_type) planType = familyRowRes.data.plan_type as typeof planType;
+      playlistId = familyRowRes.data?.spotify_playlist_id?.trim() || null;
       welcomeMemberCount = membRes.count ?? 0;
       welcomeJournalCount = jrnlRes.count ?? 0;
     }

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
 import { updatePet, type UploadedPhotoMeta } from "./actions";
+import { compressImages } from "@/src/lib/compressImage";
 
 type Member   = { id: string; name: string };
 type PetPhoto = { id: string; url: string; sort_order: number };
@@ -41,6 +42,7 @@ export function EditPetForm({ pet, onClose }: { pet: EditablePet; onClose: () =>
   const router = useRouter();
   const { activeFamilyId } = useFamily();
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
   const [error, setError]     = useState<string | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
 
@@ -120,8 +122,11 @@ export function EditPetForm({ pet, onClose }: { pet: EditablePet; onClose: () =>
     try {
       const supabase = createClient();
 
-      // Upload new photos client-side directly to Supabase storage
-      const uploads = newPhotos.map(async (file) => {
+      // Compress & upload new photos client-side directly to Supabase storage
+      setUploadProgress("Compressing photos…");
+      const compressed = await compressImages(newPhotos);
+      let done = 0;
+      const uploads = compressed.map(async (file) => {
         const ext = file.name.split(".").pop() || "jpg";
         const storagePath = `${pet.id}/${crypto.randomUUID()}.${ext}`;
         const { error: uploadError } = await supabase.storage
@@ -131,9 +136,12 @@ export function EditPetForm({ pet, onClose }: { pet: EditablePet; onClose: () =>
           console.error("Photo upload failed:", uploadError.message);
           return null;
         }
+        done++;
+        setUploadProgress(`Uploading… ${done}/${compressed.length}`);
         return { url: `/api/storage/pet-photos/${storagePath}`, storagePath, fileSize: file.size };
       });
       const results = await Promise.all(uploads);
+      setUploadProgress(null);
       const uploadedMeta: UploadedPhotoMeta[] = results.filter((r): r is UploadedPhotoMeta => r !== null);
 
       const fd = new FormData();
@@ -346,7 +354,6 @@ export function EditPetForm({ pet, onClose }: { pet: EditablePet; onClose: () =>
                             alt=""
                             fill
                             className="object-cover"
-                            unoptimized
                           />
                           {isCover && !markedForDelete && (
                             <span className="absolute bottom-0.5 left-0.5 rounded bg-[var(--accent)] px-1 py-0.5 text-[9px] font-bold text-white leading-none">
@@ -419,7 +426,7 @@ export function EditPetForm({ pet, onClose }: { pet: EditablePet; onClose: () =>
               disabled={loading}
               className="rounded-full bg-[var(--primary)] px-5 py-2 font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
             >
-              {loading ? "Saving..." : "Save changes"}
+              {uploadProgress ?? (loading ? "Saving..." : "Save changes")}
             </button>
             <button
               type="button"
