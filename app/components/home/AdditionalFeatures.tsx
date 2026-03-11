@@ -1,26 +1,16 @@
 import {
   Users,
-  MessageCircle,
-  Trophy,
-  Star,
   Gift,
   Search,
-  Link2,
   Smile,
-  Music,
   Smartphone,
 } from "lucide-react";
 
 const additionalFeatures = [
   { label: "Multi-Family Support", icon: Users },
-  { label: "Family Messages", icon: MessageCircle },
-  { label: "Sports & Activities", icon: Trophy },
-  { label: "Family Traditions", icon: Star },
+  { label: "Kid Accounts", icon: Smile },
   { label: "Birthday Reminders", icon: Gift },
   { label: "Global Search", icon: Search },
-  { label: "Shareable Links", icon: Link2 },
-  { label: "Kid Accounts", icon: Smile },
-  { label: "Family Spotify", icon: Music },
   { label: "Works on Any Device — iOS, Android & Web", icon: Smartphone },
 ];
 

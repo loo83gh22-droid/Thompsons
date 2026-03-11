@@ -10,6 +10,16 @@ const faqs = [
       "Absolutely. Your Family Nest is completely private by default. Only family members you invite can see your content. We use bank-level encryption, and your data is stored on secure US-based servers. Unlike social media, we never sell your data or show ads.",
   },
   {
+    question: "Can I give this as a gift?",
+    answer:
+      "Absolutely — and it makes an incredible one. Start a Nest, upload some family photos to get it going, then invite the family. Many people wrap the login details on a card for Christmas or Mother\u2019s Day. The Legacy plan is especially popular as a gift since it\u2019s a one-time purchase that lasts forever.",
+  },
+  {
+    question: "Will my family actually use this?",
+    answer:
+      "That\u2019s the number one concern we hear \u2014 and the answer is yes. The Nest is designed so everyone can contribute on their own terms. Dad posts a fishing photo, Grandma shares a recipe, the kids add a silly video. You don\u2019t have to be the family archivist. Once one person starts, others jump in naturally.",
+  },
+  {
     question: "Can I be in more than one family?",
     answer:
       "Yes! This is one of the most popular features for grandparents. If your son starts a Nest and your daughter starts a different one, you can be a member of both. You'll see all your families when you log in and can switch between them with one click. You only need one account — no matter how many families you belong to.",
@@ -33,16 +43,6 @@ const faqs = [
     question: "Who pays — me or the person who starts the Nest?",
     answer:
       "Only the Nest creator picks a plan. Everyone else joins for free. So if your daughter starts a Nest and invites you, you don't pay anything. If you want to start your own Nest too, that one would have its own plan (the free tier is a great starting point).",
-  },
-  {
-    question: "Can I give this as a gift?",
-    answer:
-      "Absolutely — and it makes an incredible one. Start a Nest, upload some family photos to get it going, then invite the family. Many people wrap the login details on a card for Christmas or Mother\u2019s Day. The Legacy plan is especially popular as a gift since it\u2019s a one-time purchase that lasts forever.",
-  },
-  {
-    question: "Will my family actually use this?",
-    answer:
-      "That\u2019s the number one concern we hear \u2014 and the answer is yes. The Nest is designed so everyone can contribute on their own terms. Dad posts a fishing photo, Grandma shares a recipe, the kids add a silly video. You don\u2019t have to be the family archivist. Once one person starts, others jump in naturally.",
   },
   {
     question: "Can I import my existing photos?",

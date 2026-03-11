@@ -1,6 +1,7 @@
 import { Navbar } from "./components/home/Navbar";
 import { HeroSection } from "./components/home/HeroSection";
 import { HowItWorks } from "./components/home/HowItWorks";
+import { PersonaSection } from "./components/home/PersonaSection";
 import { FeaturesBento } from "./components/home/FeaturesBento";
 import { AdditionalFeatures } from "./components/home/AdditionalFeatures";
 import { Testimonials } from "./components/home/Testimonials";
@@ -169,6 +170,7 @@ export default function HomePage() {
       <main>
         <HeroSection />
         <HowItWorks />
+        <PersonaSection />
         <FeaturesBento />
         <AdditionalFeatures />
         <Testimonials />
