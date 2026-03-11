@@ -49,6 +49,14 @@ const testimonials = [
     role: "Parents of four",
     scenario: "The Thing That Actually Stuck",
   },
+  {
+    quote:
+      "We started our Nest on our honeymoon. Every trip, every recipe we\u2019ve tried, every dumb inside joke — it\u2019s all in one place. We sealed a time capsule for our fifth anniversary. Way better than scrolling back through 10,000 photos looking for that one night in Portugal.",
+    name: "Sarah & James M.",
+    location: "Denver, CO",
+    role: "Married 3 years",
+    scenario: "Started as Two",
+  },
 ];
 
 function StarRating() {
@@ -87,7 +95,7 @@ export function Testimonials() {
             What families are saying
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg" style={{ color: "var(--muted)" }}>
-            From grandmothers to dads to the kid who finally got Grandpa into the water.
+            From newlyweds to grandmothers to the kid who finally got Grandpa into the water.
           </p>
           <p className="mt-2 text-xs" style={{ color: "var(--muted)", opacity: 0.6 }}>
             Stories represent typical customer experiences.
