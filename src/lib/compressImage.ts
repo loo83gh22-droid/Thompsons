@@ -20,6 +20,11 @@ export async function compressImage(
       useWebWorker: true,
       preserveExif: true,
     });
+    // The library may return a Blob without a name on some mobile browsers.
+    // Ensure we always return a File with the original name preserved.
+    if (!compressed.name) {
+      return new File([compressed], file.name, { type: compressed.type });
+    }
     return compressed;
   } catch {
     // If compression fails, return the original
