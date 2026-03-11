@@ -45,6 +45,11 @@ const faqs = [
       "Only the Nest creator picks a plan. Everyone else joins for free. So if your daughter starts a Nest and invites you, you don't pay anything. If you want to start your own Nest too, that one would have its own plan (the free tier is a great starting point).",
   },
   {
+    question: "Is this only for big families?",
+    answer:
+      "Not at all. Plenty of couples use Family Nest as their private shared space \u2014 for trips, recipes, journals, and time capsules. It\u2019s your story together, in one place. When your family grows, everything\u2019s already waiting.",
+  },
+  {
     question: "Can I import my existing photos?",
     answer:
       "Yes! You can bulk upload photos from your phone, computer, Google Photos, or iCloud. We support all common formats (JPG, PNG, HEIC) and organize them automatically by date and family member.",

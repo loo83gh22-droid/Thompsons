@@ -23,7 +23,7 @@ export function HeroSection() {
                 className="max-w-lg text-lg leading-relaxed"
                 style={{ color: "var(--muted)" }}
               >
-                One private place for every photo, journal entry, voice memo, and recipe — where grandparents, parents, and kids all belong.
+                One private place for every photo, journal entry, voice memo, and recipe — where couples, their children, and grandparents all belong.
               </p>
             </div>
 

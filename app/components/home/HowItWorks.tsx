@@ -13,7 +13,7 @@ const steps = [
     number: "2",
     title: "Invite your family",
     description:
-      "Send invites to your parents, your kids, grandparents — the people who matter most. They join with one click and can save it to their home screen — no app store needed.",
+      "Send invites to your partner, your parents, the grandparents — or keep it just the two of you. They join with one click and can save it to their home screen — no app store needed.",
   },
   {
     icon: Heart,
@@ -81,7 +81,7 @@ export function HowItWorks() {
         </div>
 
         <p className="mt-10 text-center text-sm" style={{ color: "var(--muted)" }}>
-          Grandparent? Your child can start the Nest and invite you — you just sign up and you&apos;re in.
+          Just the two of you? That counts. A family of twenty? Also counts.
           <br />
           You can belong to multiple nests, one for each side of the family.
         </p>

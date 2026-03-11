@@ -1,7 +1,15 @@
-import { Heart, Camera, Gift } from "lucide-react";
+import { Heart, Camera, Gift, Users } from "lucide-react";
 import Link from "next/link";
 
 const personas = [
+  {
+    icon: Users,
+    label: "For couples",
+    headline: "Your private story, not a public highlight reel",
+    description:
+      "Document date nights, trips, inside jokes, and the little moments that make you you. Build a shared recipe book. Seal time capsules for your anniversary. When your family grows, everything\u2019s already here.",
+    cta: { text: "Start free", href: "/login?mode=signup" },
+  },
   {
     icon: Heart,
     label: "For grandparents",
@@ -51,7 +59,7 @@ export function PersonaSection() {
           </h2>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {personas.map((persona) => (
             <div
               key={persona.label}

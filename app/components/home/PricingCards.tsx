@@ -6,7 +6,7 @@ const plans = [
     name: "The Nest",
     price: "Free",
     period: "",
-    description: "Dip your toes in. Start preserving for free.",
+    description: "Perfect for couples or families just getting started.",
     features: ["10 journal entries", "500 MB storage", "Family tree", "Map view"],
     cta: "Get Started Free",
     featured: false,
