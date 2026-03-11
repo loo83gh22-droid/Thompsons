@@ -3,19 +3,19 @@ import { Star } from "lucide-react";
 const testimonials = [
   {
     quote:
-      "I open the Nest with my morning coffee. New photos from the grandkids, a voice memo from my daughter, a recipe someone finally wrote down. No passwords to remember. No confusing feeds. Just my family.",
-    name: "Margaret T.",
-    location: "Columbus, OH",
-    role: "Grandmother of 7",
-    scenario: "The Grandma Test",
-  },
-  {
-    quote:
       "I set up the Nest, uploaded 20 years of our favourite family photos, invited everyone, and wrapped the login on a card. My mom cried. My wife said it was the best gift I'd ever given. It cost less than a large bouquet of flowers.",
     name: "Daniel R.",
     location: "Portland, OR",
     role: "Dad & Nest creator",
     scenario: "The Dad Who Nailed Christmas",
+  },
+  {
+    quote:
+      "I open the Nest with my morning coffee. New photos from the grandkids, a voice memo from my daughter, a recipe someone finally wrote down. No passwords to remember. No confusing feeds. Just my family.",
+    name: "Margaret T.",
+    location: "Columbus, OH",
+    role: "Grandmother of 7",
+    scenario: "The Grandma Test",
   },
   {
     quote:

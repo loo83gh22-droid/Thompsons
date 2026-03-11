@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, MapPin, Camera, Mic, Heart, Users, Shield, ChevronDown } from "lucide-react";
+import { ArrowRight, Gift, BookOpen, MapPin, Camera, Mic, Heart, Users, Shield, ChevronDown } from "lucide-react";
 
 export function HeroSection() {
   return (
@@ -17,16 +17,13 @@ export function HeroSection() {
                   textWrap: "balance",
                 }}
               >
-                Your whole family&apos;s favorite place on the internet
+                Stop losing family memories to group chats and forgotten photo albums
               </h1>
               <p
                 className="max-w-lg text-lg leading-relaxed"
                 style={{ color: "var(--muted)" }}
               >
-                Group chats get messy. Social media isn&apos;t private. FamilyNest gives
-                grandparents, parents, teens, and kids one beautiful, private space — for
-                journals, photos, voice memos, recipes, and more. Join or start a nest,
-                all from one account.
+                One private place for every photo, journal entry, voice memo, and recipe — where grandparents, parents, and kids all belong.
               </p>
             </div>
 
@@ -40,10 +37,21 @@ export function HeroSection() {
                     color: "#fff",
                   }}
                 >
-                  Start Your Family Nest
+                  Create Your Nest — Free
                   <ArrowRight className="h-4 w-4" />
                 </Link>
-
+                <Link
+                  href="/gift"
+                  className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-4 text-base font-semibold transition-all duration-200 hover:brightness-95 hover:-translate-y-0.5"
+                  style={{
+                    backgroundColor: "var(--secondary)",
+                    color: "var(--foreground)",
+                    border: "1px solid var(--border)",
+                  }}
+                >
+                  <Gift className="h-4 w-4" style={{ color: "var(--primary)" }} />
+                  Give as a Gift
+                </Link>
               </div>
               <p className="text-sm" style={{ color: "var(--muted)" }}>
                 Already have a Nest?{" "}

@@ -33,18 +33,18 @@ const plans = [
     name: "The Legacy",
     price: "$349",
     period: " one-time",
-    description: "The forever gift. Pay once, keep it for generations.",
+    description: "The most thoughtful gift you\u2019ll give this year.",
     features: [
-      "Lifetime access",
+      "Lifetime access — no subscription, ever",
       "50 GB storage",
       "Hand it down to the next generation",
       "Full data export",
-      "Everything in Full Nest",
+      "Everything in Full Nest, forever",
     ],
-    cta: "Give Your Family a Legacy",
+    cta: "Give as a Gift — $349",
     featured: true,
     ctaStyle: "primary" as "muted" | "accent" | "primary",
-    note: "Makes a perfect holiday or Mother\u2019s Day gift",
+    note: "Wrap the login on a card. The whole family joins free.",
   },
 ];
 
