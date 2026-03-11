@@ -22,11 +22,24 @@ export interface AdminReportStats {
   membersWithAccounts: number;
   conversionPct: number;
   totalStorageGB: string;
+  avgFamilySize: number;
+  costPerFamily: number;
+  estMonthlyCost: number;
 
   // Last 24 h
   newFamilies24h: number;
   newMembers24h: number;
   newContent24h: number;
+  // Per-content-type 24h
+  newJournal24h: number;
+  newPhotos24h: number;
+  newStories24h: number;
+  newVoice24h: number;
+  newRecipes24h: number;
+  newEvents24h: number;
+  newCapsules24h: number;
+  newAchievements24h: number;
+  newArtwork24h: number;
 
   // Last 7 d
   newFamilies7d: number;
@@ -45,6 +58,21 @@ export interface AdminReportStats {
   achievements: number;
   artwork: number;
   totalContentItems: number;
+
+  // Inactive families (no content in 7 days)
+  inactiveFamilies: Array<{
+    name: string;
+    plan: string;
+    joinedAgo: string;
+  }>;
+
+  // Storage warnings (≥80% usage)
+  storageWarnings: Array<{
+    name: string;
+    used: string;
+    limit: string;
+    pct: number;
+  }>;
 
   // Families list (brief)
   families: Array<{
@@ -128,6 +156,12 @@ export function adminReportEmailHtml(stats: AdminReportStats): string {
         ${statBlock("Members", stats.totalMembers, `${stats.membersWithAccounts} with login`)}
         ${statBlock("Storage", stats.totalStorageGB)}
       </tr>
+      <tr>
+        ${statBlock("Avg Family Size", stats.avgFamilySize, "members")}
+        ${statBlock("Est. Monthly Cost", `$${stats.estMonthlyCost}`)}
+        ${statBlock("Cost / Family", `$${stats.costPerFamily.toFixed(2)}`, "per month")}
+        ${statBlock("Content Items", stats.totalContentItems)}
+      </tr>
     </table>
   </td></tr>
 
@@ -138,8 +172,33 @@ export function adminReportEmailHtml(stats: AdminReportStats): string {
       <tr>
         ${statBlock("New Families", stats.newFamilies24h)}
         ${statBlock("New Members", stats.newMembers24h)}
-        ${statBlock("Content Items", stats.newContent24h)}
+        ${statBlock("Total Content", stats.newContent24h)}
       </tr>
+    </table>
+  </td></tr>
+  <tr><td style="background:#1e293b;border-radius:10px;padding:16px;margin-top:4px;">
+    <p style="color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 8px;font-weight:600;">24h Content Breakdown</p>
+    <table width="100%" cellpadding="0" cellspacing="0">
+      ${[
+        ["📔 Journals", stats.newJournal24h],
+        ["🖼️ Photos", stats.newPhotos24h],
+        ["📖 Stories", stats.newStories24h],
+        ["🎙️ Voice Memos", stats.newVoice24h],
+        ["🍽️ Recipes", stats.newRecipes24h],
+        ["📅 Events", stats.newEvents24h],
+        ["💌 Capsules", stats.newCapsules24h],
+        ["🏆 Achievements", stats.newAchievements24h],
+        ["🎨 Artwork", stats.newArtwork24h],
+      ]
+        .filter(([, count]) => Number(count) > 0)
+        .map(
+          ([label, count]) => `
+      <tr>
+        <td style="color:#94a3b8;font-size:12px;padding:3px 0;">${label}</td>
+        <td style="text-align:right;color:#e2e8f0;font-size:12px;font-weight:600;">+${Number(count).toLocaleString()}</td>
+      </tr>`
+        )
+        .join("") || '<tr><td style="color:#475569;font-size:12px;padding:3px 0;font-style:italic;">No new content in the last 24 hours</td></tr>'}
     </table>
   </td></tr>
 
@@ -236,6 +295,42 @@ export function adminReportEmailHtml(stats: AdminReportStats): string {
       </tr>
     </table>
   </td></tr>
+
+  <!-- Inactive families -->
+  ${stats.inactiveFamilies.length > 0 ? `
+  ${sectionHeader(`Inactive Families — No Activity in 7 Days (${stats.inactiveFamilies.length})`)}
+  <tr><td style="background:#1e293b;border-radius:10px;padding:16px;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      ${stats.inactiveFamilies
+        .map(
+          (f) => `
+      <tr>
+        <td style="color:#f87171;font-size:12px;padding:4px 0;">${esc(f.name)}</td>
+        <td style="padding:4px 6px;">${planPill(f.plan)}</td>
+        <td style="text-align:right;color:#64748b;font-size:11px;">Joined ${esc(f.joinedAgo)}</td>
+      </tr>`
+        )
+        .join("")}
+    </table>
+  </td></tr>` : ""}
+
+  <!-- Storage warnings -->
+  ${stats.storageWarnings.length > 0 ? `
+  ${sectionHeader(`Storage Warnings (${stats.storageWarnings.length})`)}
+  <tr><td style="background:#1e293b;border-radius:10px;padding:16px;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      ${stats.storageWarnings
+        .map(
+          (w) => `
+      <tr>
+        <td style="color:${w.pct >= 95 ? "#f87171" : "#fbbf24"};font-size:12px;padding:4px 0;">${esc(w.name)}</td>
+        <td style="text-align:right;color:#e2e8f0;font-size:12px;font-weight:600;">${w.pct}%</td>
+        <td style="text-align:right;color:#64748b;font-size:11px;padding-left:8px;">${esc(w.used)} / ${esc(w.limit)}</td>
+      </tr>`
+        )
+        .join("")}
+    </table>
+  </td></tr>` : ""}
 
   <!-- Families table -->
   ${sectionHeader(`All Families (${stats.families.length})`)}
