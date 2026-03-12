@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import MetaPixel from "@/app/components/MetaPixel";
 import {
   Inter,
   DM_Sans,
@@ -125,6 +126,7 @@ export default function RootLayout({
       <body className="antialiased">
         {children}
         <Toaster richColors theme="system" position="bottom-right" />
+        <MetaPixel />
         <Analytics />
         <SpeedInsights />
       </body>
