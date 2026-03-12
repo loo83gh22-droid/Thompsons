@@ -222,7 +222,7 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
 
   // Upload photos (max 5 per journal entry)
   const allPhotos = formData.getAll("photos") as File[];
-  const photos = allPhotos.filter((f) => f.size > 0).slice(0, 5);
+  const photos = allPhotos.filter((f) => f.size > 0).slice(0, 20);
 
   // Check total upload size against storage limit — skip photos if exceeded (G2)
   const totalUploadBytes = photos.reduce((s, f) => s + f.size, 0);
@@ -540,7 +540,7 @@ export async function addJournalPhotos(entryId: string, formData: FormData) {
     .eq("entry_id", entryId);
 
   const existingCount = count ?? 0;
-  const JOURNAL_PHOTO_LIMIT = 5;
+  const JOURNAL_PHOTO_LIMIT = 20;
   if (existingCount >= JOURNAL_PHOTO_LIMIT) {
     throw new Error(`Each journal entry can have up to ${JOURNAL_PHOTO_LIMIT} photos.`);
   }
@@ -599,7 +599,7 @@ export async function registerJournalPhoto(
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
-  const JOURNAL_PHOTO_LIMIT = 5;
+  const JOURNAL_PHOTO_LIMIT = 20;
   const { count } = await supabase
     .from("journal_photos")
     .select("id", { count: "exact", head: true })
@@ -612,18 +612,41 @@ export async function registerJournalPhoto(
   await addStorageUsage(supabase, activeFamilyId, fileSizeBytes);
 
   const photoUrl = `/api/storage/journal-photos/${storagePath}`;
-  const { error: photoErr } = await supabase.from("journal_photos").insert({
+  const { data: photoRow, error: photoErr } = await supabase.from("journal_photos").insert({
     family_id: activeFamilyId,
     entry_id: entryId,
     url: photoUrl,
     sort_order: existingCount,
-  });
+  }).select("id").single();
   if (photoErr) throw new Error(photoErr.message);
 
   revalidatePath("/dashboard/journal");
   revalidatePath(`/dashboard/journal/${entryId}`);
   revalidatePath("/");
 
+  return photoRow?.id ?? null;
+}
+
+/**
+ * Set a photo as the cover photo for a journal entry.
+ */
+export async function setJournalCoverPhoto(entryId: string, photoId: string | null) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
+  const { error } = await supabase
+    .from("journal_entries")
+    .update({ cover_photo_id: photoId })
+    .eq("id", entryId)
+    .eq("family_id", activeFamilyId);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard/journal");
+  revalidatePath(`/dashboard/journal/${entryId}`);
 }
 
 export async function deleteJournalPhoto(photoId: string, entryId?: string) {

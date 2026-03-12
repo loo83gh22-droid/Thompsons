@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
-import { createJournalEntry, registerJournalVideo } from "../actions";
+import { createJournalEntry, registerJournalPhoto, registerJournalVideo, setJournalCoverPhoto } from "../actions";
 import { generateJournalPrompts } from "../prompts";
 import DatePicker, { type DateRange } from "@/app/components/DatePicker";
 import LocationInput from "@/app/components/LocationInput";
@@ -149,6 +149,32 @@ export default function NewJournalPage() {
       const result = await createJournalEntry(formData);
       if (result?.success) {
         setIdempotencyKey(crypto.randomUUID());
+
+        // Register uploaded photos in the DB and set cover photo
+        if (uploadedPhotosMeta.length > 0) {
+          let photoRegCount = 0;
+          setUploadProgress(`Registering photos… 0/${uploadedPhotosMeta.length}`);
+          const registeredPhotoIds: string[] = [];
+          for (const meta of uploadedPhotosMeta) {
+            try {
+              const photoId = await registerJournalPhoto(result.id, meta.storagePath, meta.fileSize);
+              if (photoId) registeredPhotoIds.push(photoId);
+            } catch (err) {
+              console.error("Photo registration failed:", err);
+            }
+            photoRegCount++;
+            setUploadProgress(`Registering photos… ${photoRegCount}/${uploadedPhotosMeta.length}`);
+          }
+          // Set first photo as cover
+          if (registeredPhotoIds.length > 0) {
+            try {
+              await setJournalCoverPhoto(result.id, registeredPhotoIds[0]);
+            } catch (err) {
+              console.error("Cover photo set failed:", err);
+            }
+          }
+        }
+
         if (videoFiles.length > 0) {
           let videoCount = 0;
           setUploadProgress(`Uploading videos… 0/${videoFiles.length}`);
@@ -272,8 +298,8 @@ export default function NewJournalPage() {
           <PhotoUpload
             onChange={handlePhotoChange}
             onVideoChange={handleVideoChange}
-            maxFiles={5}
-            maxVideos={2}
+            maxFiles={20}
+            maxVideos={5}
             allowVideos={videosAllowed}
           />
           {!videosAllowed && (
