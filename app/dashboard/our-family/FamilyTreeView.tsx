@@ -136,8 +136,8 @@ function buildTree(
   // ── Phase 2: Merge floating roots into multi-parent entries ────────────────
   // A "floating root" has 0 rendered children because its expected children
   // were already claimed by another root's subtree (blended family pattern).
-  // e.g. Ma+Rick both have ME! as a child, but ME! was claimed by Dad's subtree.
-  // Solution: group Dad+Brenda and Ma+Rick as parentCouples above ME!'s node.
+  // The shared child may be the `member` OR the `spouse` of a node — we must
+  // search both positions and group all floating roots that share a child.
 
   function findNodeById(
     node: TreeMemberNode,
@@ -147,6 +147,21 @@ function buildTree(
     for (const child of node.children) {
       const found = findNodeById(child, targetId);
       if (found) return found;
+    }
+    return null;
+  }
+
+  /** Like findNodeById but also checks spouse / coParent positions. */
+  function findNodeByIdOrSpouse(
+    node: TreeMemberNode,
+    targetId: string
+  ): { found: TreeMemberNode; asSpouse: boolean } | null {
+    if (node.member.id === targetId) return { found: node, asSpouse: false };
+    if (node.spouse?.id === targetId || node.coParent?.id === targetId)
+      return { found: node, asSpouse: true };
+    for (const child of node.children) {
+      const result = findNodeByIdOrSpouse(child, targetId);
+      if (result) return result;
     }
     return null;
   }
@@ -166,57 +181,117 @@ function buildTree(
   const mergedIds = new Set<string>();
   const multiParentEntries: RootEntry[] = [];
 
+  // Group floating roots by the child they expected to own
+  const childToFloating = new Map<string, TreeMemberNode[]>();
   for (const floatingRoot of rootNodes) {
-    if (mergedIds.has(floatingRoot.member.id)) continue;
-    if (floatingRoot.children.length > 0) continue; // not floating
-
-    // Collect all expected children of this root (primary + spouse)
+    if (floatingRoot.children.length > 0) continue;
     const expectedChildIds = [
       ...getChildIds(floatingRoot.member.id),
       ...(floatingRoot.spouse ? getChildIds(floatingRoot.spouse.id) : []),
     ];
-    if (expectedChildIds.length === 0) continue;
+    for (const cId of expectedChildIds) {
+      if (!childToFloating.has(cId)) childToFloating.set(cId, []);
+      const group = childToFloating.get(cId)!;
+      if (!group.some((g) => g.member.id === floatingRoot.member.id)) {
+        group.push(floatingRoot);
+      }
+    }
+  }
 
-    // Find which other root node already owns one of these children
-    const sharedChildId = expectedChildIds[0];
+  for (const [sharedChildId, floatingRoots] of childToFloating) {
+    if (floatingRoots.every((fr) => mergedIds.has(fr.member.id))) continue;
+
+    // Find which root owns this shared child (check member AND spouse positions)
     let ownerRoot: TreeMemberNode | null = null;
-    let sharedChildNode: TreeMemberNode | null = null;
+    let targetNode: TreeMemberNode | null = null;
+    let foundAsSpouse = false;
 
     for (const otherRoot of rootNodes) {
-      if (otherRoot.member.id === floatingRoot.member.id) continue;
+      if (floatingRoots.some((fr) => fr.member.id === otherRoot.member.id)) continue;
       if (mergedIds.has(otherRoot.member.id)) continue;
-      const found = findNodeById(otherRoot, sharedChildId);
-      if (found) {
+
+      const result = findNodeByIdOrSpouse(otherRoot, sharedChildId);
+      if (result) {
         ownerRoot = otherRoot;
-        sharedChildNode = found;
+        targetNode = result.found;
+        foundAsSpouse = result.asSpouse;
         break;
       }
     }
 
-    if (!ownerRoot || !sharedChildNode) continue;
-
-    // Detach sharedChildNode from the owner's subtree
-    const parentOfShared = findParentNode(ownerRoot, sharedChildId);
-    if (parentOfShared) {
-      parentOfShared.children = parentOfShared.children.filter(
-        (c) => c.member.id !== sharedChildId
-      );
+    // Also check already-created multi-parent entries
+    if (!targetNode) {
+      for (const entry of multiParentEntries) {
+        if (entry.kind !== "multi-parent") continue;
+        const result = findNodeByIdOrSpouse(entry.child, sharedChildId);
+        if (result) {
+          for (const fr of floatingRoots) {
+            if (mergedIds.has(fr.member.id)) continue;
+            entry.parentCouples.push({ member: fr.member, spouse: fr.spouse });
+            mergedIds.add(fr.member.id);
+          }
+          targetNode = result.found;
+          break;
+        }
+      }
+      if (targetNode) continue; // folded into existing entry
+      continue; // not found anywhere
     }
 
-    // Build the multi-parent entry: ownerRoot couple first, floatingRoot couple second
-    const parentCouples: ParentCouple[] = [
-      { member: ownerRoot.member, spouse: ownerRoot.spouse },
-      { member: floatingRoot.member, spouse: floatingRoot.spouse },
-    ];
+    const parentCouples: ParentCouple[] = [];
+    let childNode: TreeMemberNode;
 
-    multiParentEntries.push({
-      kind: "multi-parent",
-      parentCouples,
-      child: sharedChildNode,
-    });
+    if (foundAsSpouse) {
+      // The shared child is the SPOUSE of targetNode.member.
+      // targetNode is the couple node — detach it from its parent and promote
+      // all grandparents as parentCouples above the couple.
+      childNode = targetNode;
 
-    mergedIds.add(ownerRoot.member.id);
-    mergedIds.add(floatingRoot.member.id);
+      const parentOfCouple = findParentNode(ownerRoot!, targetNode.member.id);
+      if (parentOfCouple) {
+        parentOfCouple.children = parentOfCouple.children.filter(
+          (c) => c.member.id !== targetNode!.member.id
+        );
+        if (parentOfCouple.coParent) {
+          parentCouples.push({ member: parentOfCouple.coParent, spouse: null });
+        }
+        parentCouples.push({
+          member: parentOfCouple.member,
+          spouse: parentOfCouple.spouse,
+        });
+      }
+      mergedIds.add(ownerRoot!.member.id);
+    } else {
+      // Child found as a node member — detach it (existing behaviour)
+      childNode = targetNode;
+
+      const parentOfShared = findParentNode(ownerRoot!, sharedChildId);
+      if (parentOfShared) {
+        parentOfShared.children = parentOfShared.children.filter(
+          (c) => c.member.id !== sharedChildId
+        );
+      }
+      parentCouples.push({
+        member: ownerRoot!.member,
+        spouse: ownerRoot!.spouse,
+      });
+      mergedIds.add(ownerRoot!.member.id);
+    }
+
+    // Add every floating root as a parent couple
+    for (const fr of floatingRoots) {
+      if (mergedIds.has(fr.member.id)) continue;
+      parentCouples.push({ member: fr.member, spouse: fr.spouse });
+      mergedIds.add(fr.member.id);
+    }
+
+    if (parentCouples.length > 0) {
+      multiParentEntries.push({
+        kind: "multi-parent",
+        parentCouples,
+        child: childNode,
+      });
+    }
   }
 
   // ── Phase 3: Collect final entries ────────────────────────────────────────
