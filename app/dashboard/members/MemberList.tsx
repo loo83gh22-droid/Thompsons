@@ -22,6 +22,8 @@ export type Member = {
   avatar_url: string | null;
   is_deceased: boolean;
   death_date: string | null;
+  is_remembered: boolean;
+  passed_date: string | null;
 };
 
 function initials(name: string): string {
@@ -106,6 +108,7 @@ function MemberRow({
   const [avatarUrl, setAvatarUrl] = useState<string | null>(member.avatar_url);
   const [isDeceased, setIsDeceased] = useState(member.is_deceased);
   const [deathDate, setDeathDate] = useState(member.death_date ?? "");
+  const [isRemembered, setIsRemembered] = useState(member.is_remembered);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -153,7 +156,7 @@ function MemberRow({
       const result = await updateFamilyMember(
         member.id, name.trim(), relationship.trim(), email.trim() || "",
         birthDate || "", birthPlace.trim() || "", nickname.trim() || null,
-        finalAvatarUrl, isDeceased, deathDate || null
+        finalAvatarUrl, isDeceased, deathDate || null, isRemembered
       );
       setAvatarUrl(finalAvatarUrl);
       clearNewPhoto();
@@ -183,7 +186,7 @@ function MemberRow({
 
   const displayPhoto = photoPreview || avatarUrl;
   const shortBirthday = formatBirthdayShort(member.birth_date);
-  const isMemorial = member.is_deceased;
+  const isMemorial = member.is_deceased || member.is_remembered;
   const status = member.user_id
     ? "signed_in"
     : member.contact_email?.trim() ? "pending" : null;
@@ -292,7 +295,7 @@ function MemberRow({
           {member.nickname && (
             <span className="text-xs italic text-[var(--muted)]">&ldquo;{member.nickname}&rdquo;</span>
           )}
-          {isMemorial && <span className="text-xs text-slate-400">🕊️</span>}
+          {isMemorial && <span className="text-xs text-slate-400" title={member.is_remembered ? "In our hearts" : "In loving memory"}>🕊️</span>}
         </div>
         {label && (
           <p className="truncate text-xs text-[var(--muted)]">{label}</p>
@@ -356,6 +359,7 @@ function MemberCard({
   const [avatarUrl, setAvatarUrl] = useState<string | null>(member.avatar_url);
   const [isDeceased, setIsDeceased] = useState(member.is_deceased);
   const [deathDate, setDeathDate] = useState(member.death_date ?? "");
+  const [isRemembered, setIsRemembered] = useState(member.is_remembered);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -411,7 +415,8 @@ function MemberCard({
         nickname.trim() || null,
         finalAvatarUrl,
         isDeceased,
-        deathDate || null
+        deathDate || null,
+        isRemembered
       );
       setAvatarUrl(finalAvatarUrl);
       clearNewPhoto();
@@ -625,7 +630,7 @@ function MemberCard({
       ? "pending"
       : null;
 
-  const isMemorial = member.is_deceased;
+  const isMemorial = member.is_deceased || member.is_remembered;
 
   return (
     <div
@@ -671,11 +676,13 @@ function MemberCard({
         </button>
       </div>
 
-      {/* In loving memory badge */}
+      {/* In loving memory / In our hearts badge */}
       {isMemorial && (
         <div className="mb-3 flex items-center justify-center gap-1.5">
           <span className="text-base">🕊️</span>
-          <span className="text-xs font-medium tracking-wide text-slate-500 dark:text-slate-400">In loving memory</span>
+          <span className={`text-xs font-medium tracking-wide ${member.is_remembered ? "text-stone-500 dark:text-stone-400" : "text-slate-500 dark:text-slate-400"}`}>
+            {member.is_remembered ? "In our hearts" : "In loving memory"}
+          </span>
         </div>
       )}
 

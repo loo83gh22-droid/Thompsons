@@ -93,6 +93,7 @@ export function MemberDetailsPanel({
   const [editAvatarUrl, setEditAvatarUrl] = useState<string | null>(member.avatar_url);
   const [editIsDeceased, setEditIsDeceased] = useState(member.is_deceased);
   const [editDeathDate, setEditDeathDate] = useState(member.death_date ?? "");
+  const [editIsRemembered, setEditIsRemembered] = useState(member.is_remembered ?? false);
   const [editPhotoFile, setEditPhotoFile] = useState<File | null>(null);
   const [editPhotoPreview, setEditPhotoPreview] = useState<string | null>(null);
   const [editLoading, setEditLoading] = useState(false);
@@ -109,6 +110,7 @@ export function MemberDetailsPanel({
     setEditAvatarUrl(member.avatar_url);
     setEditIsDeceased(member.is_deceased);
     setEditDeathDate(member.death_date ?? "");
+    setEditIsRemembered(member.is_remembered ?? false);
     setEditPhotoFile(null);
     setEditPhotoPreview(null);
     setEditMessage(null);
@@ -156,6 +158,7 @@ export function MemberDetailsPanel({
         finalAvatarUrl,
         editIsDeceased,
         editDeathDate || null,
+        editIsRemembered,
       );
       setEditAvatarUrl(finalAvatarUrl);
       setEditPhotoFile(null);
@@ -302,11 +305,17 @@ export function MemberDetailsPanel({
               <input type="text" value={editBirthPlace} onChange={(e) => setEditBirthPlace(e.target.value)} className="input-base mt-1 w-full" placeholder="e.g. Vancouver, BC" />
             </div>
             <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-hover)]/40 p-3">
-              <label className="flex cursor-pointer items-center gap-2.5">
-                <input type="checkbox" checked={editIsDeceased} onChange={(e) => setEditIsDeceased(e.target.checked)} className="h-4 w-4 rounded border-[var(--border)] accent-[var(--accent)]" />
-                <span className="text-sm font-medium text-[var(--foreground)]">This person has passed away</span>
+              <label className="flex cursor-pointer items-start gap-2.5">
+                <input type="checkbox" checked={editIsRemembered} onChange={(e) => {
+                  setEditIsRemembered(e.target.checked);
+                  if (e.target.checked) setEditIsDeceased(true);
+                }} className="mt-0.5 h-4 w-4 rounded border-[var(--border)] accent-[var(--accent)]" />
+                <div>
+                  <span className="text-sm font-medium text-[var(--foreground)]">This person is remembered</span>
+                  <p className="mt-0.5 text-xs text-[var(--muted)]">For family members who have passed, or who will never use the app.</p>
+                </div>
               </label>
-              {editIsDeceased && (
+              {editIsRemembered && (
                 <div className="mt-3">
                   <label className="block text-sm font-medium text-[var(--muted)]">Date of passing (optional)</label>
                   <input type="date" value={editDeathDate} onChange={(e) => setEditDeathDate(e.target.value)} className="input-base mt-1 w-full" />
@@ -335,10 +344,22 @@ export function MemberDetailsPanel({
                 src={member.avatar_url}
                 alt={member.name}
                 loading="lazy"
-                className="h-[120px] w-[120px] rounded-full object-cover shadow-md"
+                className={`h-[120px] w-[120px] rounded-full object-cover shadow-md ring-4 ${
+                  (member.is_remembered || member.is_deceased)
+                    ? "ring-stone-300/40 grayscale-[30%]"
+                    : status === "signed_in"
+                      ? "ring-emerald-400/20"
+                      : status === "pending_invitation"
+                        ? "ring-amber-400/20"
+                        : "ring-transparent"
+                }`}
               />
             ) : (
-              <div className="flex h-[120px] w-[120px] items-center justify-center rounded-full bg-[var(--accent)]/30 text-3xl font-semibold text-[var(--accent)]">
+              <div className={`flex h-[120px] w-[120px] items-center justify-center rounded-full text-3xl font-semibold ring-4 ${
+                (member.is_remembered || member.is_deceased)
+                  ? "bg-stone-200/30 text-stone-500 ring-stone-300/40 dark:bg-stone-800/30 dark:text-stone-400"
+                  : "bg-[var(--accent)]/30 text-[var(--accent)] ring-transparent"
+              }`}>
                 {initials(member.name)}
               </div>
             )}
@@ -382,8 +403,17 @@ export function MemberDetailsPanel({
             </p>
           )}
           <p className="text-[var(--muted)]">
-            <span className="font-medium text-[var(--foreground)]">Status:</span> {STATUS_LABELS[status]}
+            <span className="font-medium text-[var(--foreground)]">Status:</span>{" "}
+            {(member.is_remembered || member.is_deceased)
+              ? <span className="text-stone-500 dark:text-stone-400">Remembered with love</span>
+              : STATUS_LABELS[status]}
           </p>
+          {(member.is_remembered || member.is_deceased) && (member.passed_date || member.death_date) && (
+            <p className="text-[var(--muted)]">
+              <span className="font-medium text-[var(--foreground)]">Passed:</span>{" "}
+              {formatDateOnly(member.passed_date || member.death_date!)}
+            </p>
+          )}
           {memberSince && (
             <p className="text-[var(--muted)]">
               <span className="font-medium text-[var(--foreground)]">Member since:</span> {memberSince}

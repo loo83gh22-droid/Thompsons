@@ -29,6 +29,7 @@ export function AddMemberForm({
   const [open, setOpen] = useState(false);
   const [isDeceased, setIsDeceased] = useState(false);
   const [deathDate, setDeathDate] = useState("");
+  const [isRemembered, setIsRemembered] = useState(false);
   const [links, setLinks] = useState<{ type: "spouse" | "child" | "parent"; memberId: string }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -61,6 +62,7 @@ export function AddMemberForm({
     setBirthPlace("");
     setIsDeceased(false);
     setDeathDate("");
+    setIsRemembered(false);
     setLinks([]);
     setError(null);
     clearPhoto();
@@ -120,7 +122,8 @@ export function AddMemberForm({
         nickname.trim() || null,
         avatarUrl,
         isDeceased,
-        deathDate || null
+        deathDate || null,
+        isRemembered
       );
 
       const validLinks = links.filter((l) => l.memberId);
@@ -292,17 +295,24 @@ export function AddMemberForm({
               </div>
 
               <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-hover)]/40 p-3">
-                <label className="flex cursor-pointer items-center gap-2.5">
+                <label className="flex cursor-pointer items-start gap-2.5">
                   <input
                     type="checkbox"
-                    checked={isDeceased}
-                    onChange={(e) => setIsDeceased(e.target.checked)}
-                    className="h-4 w-4 rounded border-[var(--border)] accent-[var(--accent)]"
+                    checked={isRemembered}
+                    onChange={(e) => {
+                      setIsRemembered(e.target.checked);
+                      if (e.target.checked) setIsDeceased(true);
+                    }}
+                    className="mt-0.5 h-4 w-4 rounded border-[var(--border)] accent-[var(--accent)]"
                   />
-                  <span className="text-sm font-medium text-[var(--foreground)]">This person has passed away</span>
+                  <div>
+                    <span className="text-sm font-medium text-[var(--foreground)]">This person is remembered</span>
+                    <p className="mt-0.5 text-xs text-[var(--muted)]">
+                      For family members who have passed, or who will never use the app. Their memories, photos and stories still live here.
+                    </p>
+                  </div>
                 </label>
-                <p className="mt-1 text-xs text-[var(--muted)] pl-6.5">Creates a memorial placeholder card — no login or invite needed.</p>
-                {isDeceased && (
+                {isRemembered && (
                   <div className="mt-3">
                     <label htmlFor="am-death-date" className="block text-sm font-medium text-[var(--muted)]">
                       Date of passing <span className="text-[var(--muted)]">(optional)</span>

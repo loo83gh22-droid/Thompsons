@@ -6,6 +6,10 @@
  *   adult  – full access to create/edit content for self and children.
  *   teen   – 13-17. Can create own content, limited management.
  *   child  – under 13. No login. Adults post on their behalf.
+ *
+ * Note: "remembered" members (deceased or intentionally offline) are identified
+ * by the is_remembered boolean on family_members, NOT by role. Their role still
+ * reflects who they were (adult/child etc.) for content attribution purposes.
  */
 
 export type MemberRole = "owner" | "adult" | "teen" | "child";
