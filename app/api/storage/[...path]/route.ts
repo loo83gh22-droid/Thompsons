@@ -66,18 +66,28 @@ export async function GET(
     return new NextResponse("Not Found", { status: 404 });
   }
 
-  // 4. Fetch the file server-side using the signed URL — never exposed to browser
-  const upstream = await fetch(signedData.signedUrl);
-  if (!upstream.ok) {
+  // 4. Fetch the file server-side using the signed URL — never exposed to browser.
+  //    Forward the Range header so <audio>/<video> elements can seek and play.
+  const fetchHeaders: HeadersInit = {};
+  const rangeHeader = _request.headers.get("range");
+  if (rangeHeader) {
+    fetchHeaders["Range"] = rangeHeader;
+  }
+
+  const upstream = await fetch(signedData.signedUrl, { headers: fetchHeaders });
+  if (!upstream.ok && upstream.status !== 206) {
     return new NextResponse("Not Found", { status: upstream.status });
   }
 
   // 5. Stream back with safe cache headers
   const contentType = upstream.headers.get("content-type") ?? "application/octet-stream";
   const contentLength = upstream.headers.get("content-length");
+  const contentRange = upstream.headers.get("content-range");
 
   const headers = new Headers({
     "Content-Type": contentType,
+    // Always advertise Range support so audio/video elements work
+    "Accept-Ranges": "bytes",
     // Cache for 1 hour on the browser — files are immutable once stored
     "Cache-Control": "private, max-age=3600",
     "X-Content-Type-Options": "nosniff",
@@ -86,9 +96,12 @@ export async function GET(
   if (contentLength) {
     headers.set("Content-Length", contentLength);
   }
+  if (contentRange) {
+    headers.set("Content-Range", contentRange);
+  }
 
   return new NextResponse(upstream.body, {
-    status: 200,
+    status: upstream.status, // 200 for full, 206 for partial
     headers,
   });
 }
