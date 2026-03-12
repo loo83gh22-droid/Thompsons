@@ -8,11 +8,10 @@ export const metadata: Metadata = {
 import { createClient } from "@/src/lib/supabase/server";
 import { formatDateOnly } from "@/src/lib/date";
 import { getActiveFamilyId } from "@/src/lib/family";
-import { DeleteJournalEntryButton } from "./DeleteJournalEntryButton";
 import { EmptyState } from "@/app/dashboard/components/EmptyState";
 import { AddedToMapBanner } from "./AddedToMapBanner";
-import { JournalPhotoGallery } from "./JournalPhotoGallery";
 import { ScrollToTop } from "./ScrollToTop";
+import { JournalListClient, type JournalEntryData, type FamilyMemberInfo } from "./JournalListClient";
 
 export default async function JournalPage() {
   const supabase = await createClient();
@@ -29,6 +28,13 @@ export default async function JournalPage() {
         .single()
     : { data: null };
 
+  // Fetch all family members for the filter dropdown
+  const { data: allMembers } = await supabase
+    .from("family_members")
+    .select("id, name, nickname")
+    .eq("family_id", activeFamilyId)
+    .order("name");
+
   const { data: entries } = await supabase
     .from("journal_entries")
     .select(`
@@ -40,20 +46,23 @@ export default async function JournalPage() {
       created_at,
       author_id,
       created_by,
+      cover_photo_id,
       family_members!author_id (name, nickname, relationship)
     `)
     .eq("family_id", activeFamilyId)
     .order("trip_date", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false })
-    .limit(50);
+    .limit(200);
 
-  // Batch fetch photos, videos, and perspective counts
+  // Batch fetch photos, videos, perspective counts, and member junctions
   const photosByEntryId = new Map<string, { id: string; url: string; caption: string | null }[]>();
   const videosByEntryId = new Map<string, { id: string; url: string; duration_seconds: number | null }[]>();
   const perspectiveCountByEntryId = new Map<string, number>();
+  const membersByEntryId = new Map<string, string[]>();
+
   if (entries && entries.length > 0) {
     const entryIds = entries.map((e) => e.id);
-    const [photosRes, videosRes, perspectivesRes] = await Promise.all([
+    const [photosRes, videosRes, perspectivesRes, junctionRes] = await Promise.all([
       supabase
         .from("journal_photos")
         .select("id, url, caption, entry_id")
@@ -66,31 +75,88 @@ export default async function JournalPage() {
         .in("entry_id", entryIds)
         .order("entry_id")
         .order("sort_order"),
-      supabase.from("journal_perspectives").select("id, journal_entry_id").in("journal_entry_id", entryIds),
+      supabase
+        .from("journal_perspectives")
+        .select("id, journal_entry_id")
+        .in("journal_entry_id", entryIds),
+      supabase
+        .from("journal_entry_members")
+        .select("journal_entry_id, family_member_id")
+        .in("journal_entry_id", entryIds),
     ]);
-    const photos = photosRes.data ?? [];
-    const videos = videosRes.data ?? [];
-    const perspectives = perspectivesRes.data ?? [];
-    for (const p of photos) {
+
+    for (const p of photosRes.data ?? []) {
       if (p.entry_id) {
         const list = photosByEntryId.get(p.entry_id) ?? [];
         list.push({ id: p.id, url: p.url, caption: p.caption });
         photosByEntryId.set(p.entry_id, list);
       }
     }
-    for (const v of videos) {
+    for (const v of videosRes.data ?? []) {
       if (v.entry_id) {
         const list = videosByEntryId.get(v.entry_id) ?? [];
         list.push({ id: v.id, url: v.url, duration_seconds: v.duration_seconds });
         videosByEntryId.set(v.entry_id, list);
       }
     }
-    for (const p of perspectives) {
+    for (const p of perspectivesRes.data ?? []) {
       if (p.journal_entry_id) {
-        perspectiveCountByEntryId.set(p.journal_entry_id, (perspectiveCountByEntryId.get(p.journal_entry_id) ?? 0) + 1);
+        perspectiveCountByEntryId.set(
+          p.journal_entry_id,
+          (perspectiveCountByEntryId.get(p.journal_entry_id) ?? 0) + 1
+        );
+      }
+    }
+    for (const j of junctionRes.data ?? []) {
+      if (j.journal_entry_id) {
+        const list = membersByEntryId.get(j.journal_entry_id) ?? [];
+        list.push(j.family_member_id);
+        membersByEntryId.set(j.journal_entry_id, list);
       }
     }
   }
+
+  // Build serializable entry data
+  const entryData: JournalEntryData[] = (entries ?? []).map((entry) => {
+    const raw = entry.family_members as unknown;
+    const author = Array.isArray(raw) ? raw[0] : raw;
+    const displayName = author?.nickname?.trim() || author?.name;
+    const rel = author?.relationship?.trim();
+    const authorLabel = displayName ? (rel ? `${displayName} (${rel})` : displayName) : null;
+
+    const dateFormatted = entry.trip_date
+      ? formatDateOnly(entry.trip_date)
+      : new Date(entry.created_at).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+
+    return {
+      id: entry.id,
+      title: entry.title,
+      content: entry.content,
+      location: entry.location,
+      trip_date: entry.trip_date,
+      created_at: entry.created_at,
+      author_id: entry.author_id,
+      created_by: entry.created_by,
+      cover_photo_id: entry.cover_photo_id,
+      authorLabel,
+      authorMemberId: entry.author_id,
+      dateFormatted,
+      photos: photosByEntryId.get(entry.id) ?? [],
+      videos: videosByEntryId.get(entry.id) ?? [],
+      perspectiveCount: perspectiveCountByEntryId.get(entry.id) ?? 0,
+      memberIds: membersByEntryId.get(entry.id) ?? [],
+    };
+  });
+
+  const membersInfo: FamilyMemberInfo[] = (allMembers ?? []).map((m) => ({
+    id: m.id,
+    name: m.name,
+    nickname: m.nickname,
+  }));
 
   return (
     <div>
@@ -115,116 +181,22 @@ export default async function JournalPage() {
         </Link>
       </div>
 
-      <div className="mt-4 space-y-6">
-        {!entries?.length ? (
-          <EmptyState
-            icon="📔"
-            headline="Your first entry is waiting to be written"
-            description="Trips, birthdays, regular Tuesdays that turned into something — it all belongs here. Future you will be so glad you started."
-            actionLabel="+ Write your first entry"
-            actionHref="/dashboard/journal/new"
-          />
-        ) : (
-          entries.map((entry) => {
-            const photos = photosByEntryId.get(entry.id) ?? [];
-            const videos = videosByEntryId.get(entry.id) ?? [];
-            const perspectiveCount = perspectiveCountByEntryId.get(entry.id) ?? 0;
-
-            const date = entry.trip_date
-              ? formatDateOnly(entry.trip_date)
-              : new Date(entry.created_at).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                });
-
-            const raw = entry.family_members as unknown;
-            const author = Array.isArray(raw) ? raw[0] : raw;
-            const displayName = author?.nickname?.trim() || author?.name;
-            const rel = author?.relationship?.trim();
-            const authorLabel = displayName ? (rel ? `${displayName} (${rel})` : displayName) : null;
-
-            return (
-              <article
-                key={entry.id}
-                className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] transition-shadow hover:shadow-md"
-              >
-                {/* Card body */}
-                <div className="p-5 sm:p-6">
-                  {/* Metadata row */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <time className="text-sm text-[var(--muted)]" dateTime={entry.trip_date || entry.created_at}>
-                      {date}
-                    </time>
-                    {entry.location && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--secondary)] px-2 py-0.5 text-xs text-[var(--foreground)]">
-                        📍 {entry.location}
-                      </span>
-                    )}
-                    {authorLabel && (
-                      <span className="text-sm text-[var(--muted)]">· by {authorLabel}</span>
-                    )}
-                  </div>
-
-                  {/* Title */}
-                  <h2 className="mt-2 font-display text-xl font-semibold text-[var(--foreground)]">
-                    <Link href={`/dashboard/journal/${entry.id}`} className="hover:text-[var(--accent)]">
-                      {entry.title}
-                    </Link>
-                  </h2>
-
-                  {/* Content preview */}
-                  {entry.content && (
-                    <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-[var(--foreground)]/80">
-                      {entry.content}
-                    </p>
-                  )}
-
-                  {/* Actions row */}
-                  {(() => {
-                    const isOwner = myMember?.role === "owner";
-                    const isCreator = entry.created_by
-                      ? entry.created_by === myMember?.id
-                      : entry.author_id === myMember?.id;
-                    const canEdit = isOwner || isCreator;
-                    return (
-                      <div className="mt-4 flex flex-wrap items-center gap-2">
-                        {perspectiveCount > 0 && (
-                          <span className="rounded-full bg-[var(--accent)]/15 px-2.5 py-0.5 text-xs font-medium text-[var(--accent)]">
-                            {perspectiveCount} perspective{perspectiveCount !== 1 ? "s" : ""}
-                          </span>
-                        )}
-                        {canEdit && (
-                          <div className="ml-auto flex items-center gap-2">
-                            <Link
-                              href={`/dashboard/journal/${entry.id}/edit`}
-                              className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm font-medium hover:bg-[var(--surface-hover)]"
-                            >
-                              Edit
-                            </Link>
-                            <DeleteJournalEntryButton
-                              entryId={entry.id}
-                              title={entry.title ?? "this entry"}
-                              variant="list"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* Unified media thumbnails — photos + videos, click to open lightbox */}
-                {(photos.length > 0 || videos.length > 0) && (
-                  <div className="border-t border-[var(--border)]">
-                    <JournalPhotoGallery photos={photos} videos={videos} title={entry.title || "Photo"} />
-                  </div>
-                )}
-              </article>
-            );
-          })
-        )}
-      </div>
+      {!entries?.length ? (
+        <EmptyState
+          icon="📔"
+          headline="Your first entry is waiting to be written"
+          description="Trips, birthdays, regular Tuesdays that turned into something — it all belongs here. Future you will be so glad you started."
+          actionLabel="+ Write your first entry"
+          actionHref="/dashboard/journal/new"
+        />
+      ) : (
+        <JournalListClient
+          entries={entryData}
+          members={membersInfo}
+          myMemberId={myMember?.id ?? null}
+          myRole={myMember?.role ?? null}
+        />
+      )}
     </div>
   );
 }

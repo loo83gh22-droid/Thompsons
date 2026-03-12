@@ -84,7 +84,7 @@ export const VIDEO_LIMITS = {
   /** Maximum video duration in seconds (5 minutes) */
   maxDurationSeconds: 300,
   /** Maximum number of videos per journal entry */
-  maxVideosPerJournalEntry: 2,
+  maxVideosPerJournalEntry: 5,
 } as const;
 
 /**

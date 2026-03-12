@@ -14,6 +14,7 @@ import {
   deleteJournalPhoto,
   registerJournalVideo,
   deleteJournalVideo,
+  setJournalCoverPhoto,
 } from "../../actions";
 import { DeleteJournalEntryButton } from "../../DeleteJournalEntryButton";
 import { JournalPerspectives } from "../../JournalPerspectives";
@@ -45,6 +46,7 @@ export default function EditJournalPage() {
   const [locationType, setLocationType] = useState<"visit" | "vacation" | "memorable_event">("visit");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [coverPhotoId, setCoverPhotoId] = useState<string | null>(null);
   const [addingPhotos, setAddingPhotos] = useState(false);
   const [addingVideos, setAddingVideos] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +64,7 @@ export default function EditJournalPage() {
         supabase.from("family_members").select("id, name, color, symbol").eq("family_id", activeFamilyId).order("name"),
         supabase
           .from("journal_entries")
-          .select("title, content, location, trip_date, trip_date_end, author_id, created_by")
+          .select("title, content, location, trip_date, trip_date_end, author_id, created_by, cover_photo_id")
           .eq("id", entryId)
           .single(),
         supabase
@@ -97,6 +99,7 @@ export default function EditJournalPage() {
           trip_date_end?: string;
           author_id?: string;
           created_by?: string | null;
+          cover_photo_id?: string | null;
         };
 
         // Authorization: only the owner role or the entry creator can edit
@@ -119,6 +122,10 @@ export default function EditJournalPage() {
         });
       }
       if (photosRes.data) setPhotos(photosRes.data as JournalPhoto[]);
+      if (entryRes.data) {
+        const ed = entryRes.data as { cover_photo_id?: string | null };
+        if (ed.cover_photo_id) setCoverPhotoId(ed.cover_photo_id);
+      }
       if (videosRes.data) setVideos(videosRes.data as JournalVideo[]);
       // Load selected members from junction table, fall back to author_id
       const junctionIds = (junctionRes.data || []).map((r: { family_member_id: string }) => r.family_member_id);
@@ -172,7 +179,7 @@ export default function EditJournalPage() {
     }
   }
 
-  const JOURNAL_PHOTO_LIMIT = 5;
+  const JOURNAL_PHOTO_LIMIT = 20;
 
   async function handleAddPhotos(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -530,29 +537,60 @@ export default function EditJournalPage() {
         </h2>
 
         {photos.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-4">
-            {photos.map((photo) => (
-              <div
-                key={photo.id}
-                className="group relative h-40 w-40 overflow-hidden rounded-lg"
-              >
-                <Image
-                  src={photo.url}
-                  alt={photo.caption || "Photo"}
-                  fill
-                  unoptimized
-                  className="object-cover"
-                  sizes="160px"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleDeletePhoto(photo.id)}
-                  className="absolute right-2 top-2 rounded bg-black/60 px-2 py-1 text-xs text-white opacity-100 min-[768px]:opacity-0 min-[768px]:transition-opacity min-[768px]:group-hover:opacity-100"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
+          <div className="mt-4">
+            <p className="mb-2 text-xs text-[var(--muted)]">
+              Click the star to set a photo as the journal card cover.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              {photos.map((photo) => {
+                const isCover = coverPhotoId === photo.id;
+                return (
+                  <div
+                    key={photo.id}
+                    className={`group relative h-40 w-40 overflow-hidden rounded-lg border-2 ${
+                      isCover ? "border-[var(--accent)]" : "border-transparent"
+                    }`}
+                  >
+                    <Image
+                      src={photo.url}
+                      alt={photo.caption || "Photo"}
+                      fill
+                      unoptimized
+                      className="object-cover"
+                      sizes="160px"
+                    />
+                    {/* Cover badge */}
+                    {isCover && (
+                      <div className="absolute left-1.5 top-1.5 flex items-center gap-1 rounded-md bg-[var(--accent)] px-2 py-0.5 text-xs font-medium text-[var(--background)]">
+                        ★ Cover
+                      </div>
+                    )}
+                    {/* Set cover button */}
+                    {!isCover && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setCoverPhotoId(photo.id);
+                          await setJournalCoverPhoto(entryId, photo.id);
+                          toast.success("Cover photo updated");
+                        }}
+                        className="absolute left-1.5 bottom-1.5 flex items-center gap-1 rounded-md bg-black/60 px-2 py-0.5 text-xs font-medium text-white hover:bg-[var(--accent)] transition-colors"
+                        title="Set as cover photo"
+                      >
+                        ★ Cover
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleDeletePhoto(photo.id)}
+                      className="absolute right-1.5 top-1.5 rounded bg-black/60 px-2 py-1 text-xs text-white opacity-100 min-[768px]:opacity-0 min-[768px]:transition-opacity min-[768px]:group-hover:opacity-100"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
