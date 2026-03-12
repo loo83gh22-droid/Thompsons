@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { UI_DISPLAY } from "@/src/lib/constants";
+import { CalendarDrillDown } from "@/app/components/CalendarDrillDown";
 import type { TimelineItem } from "./types";
 
 const TYPE_LABELS: Record<TimelineItem["type"], string> = {
@@ -34,22 +35,6 @@ function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, "0")}`;
-}
-
-function groupByMonthYear(items: TimelineItem[], oldestFirst: boolean): { key: string; label: string; items: TimelineItem[] }[] {
-  const map = new Map<string, TimelineItem[]>();
-  for (const item of items) {
-    const key = item.date.slice(0, 7);
-    if (!map.has(key)) map.set(key, []);
-    map.get(key)!.push(item);
-  }
-  const keys = Array.from(map.keys()).sort((a, b) => (oldestFirst ? (a > b ? 1 : -1) : (b > a ? 1 : -1)));
-  return keys.map((key) => {
-    const [y, m] = key.split("-");
-    const date = new Date(parseInt(y, 10), parseInt(m, 10) - 1, 1);
-    const label = date.toLocaleString("default", { month: "long", year: "numeric" });
-    return { key, label, items: map.get(key)! };
-  });
 }
 
 type Member = { id: string; name: string };
@@ -141,6 +126,35 @@ function TimelineItemRow({
   );
 }
 
+function TimelineCompactRow({ item }: { item: TimelineItem }) {
+  return (
+    <Link
+      href={item.href}
+      className="group flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-[var(--surface-hover)]"
+    >
+      {item.thumbnailUrl ? (
+        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-[var(--surface)]">
+          <Image src={item.thumbnailUrl} alt="" fill unoptimized className="object-cover" sizes="40px" />
+        </div>
+      ) : (
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[var(--surface)] text-lg">
+          {TYPE_ICONS[item.type]}
+        </div>
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-[var(--foreground)] group-hover:text-[var(--accent)]">
+          {item.title}
+        </p>
+        <p className="truncate text-xs text-[var(--muted)]">
+          {item.date}
+          {` · ${TYPE_LABELS[item.type]}`}
+          {authorDisplay(item) ? ` · ${authorDisplay(item)}` : ""}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
 export function TimelineClient({
   initialItems,
   members,
@@ -157,8 +171,6 @@ export function TimelineClient({
   const [filterMemberId, setFilterMemberId] = useState<string>(initialFilterMemberId ?? "");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
-  const [displayCount, setDisplayCount] = useState<number>(UI_DISPLAY.timelinePageSize);
-
   const filtered = useMemo(() => {
     let list = [...initialItems];
     if (filterType) list = list.filter((i) => i.type === filterType);
@@ -169,9 +181,13 @@ export function TimelineClient({
     return list;
   }, [initialItems, filterType, filterMemberId, dateFrom, dateTo, sortOldestFirst]);
 
-  const visibleItems = useMemo(() => filtered.slice(0, displayCount), [filtered, displayCount]);
-  const grouped = useMemo(() => groupByMonthYear(visibleItems, sortOldestFirst), [visibleItems, sortOldestFirst]);
-  const hasMore = displayCount < filtered.length;
+  const recentItems = filtered.slice(0, UI_DISPLAY.recentFullCardCount);
+  const olderItems = filtered.slice(UI_DISPLAY.recentFullCardCount);
+
+  const getItemDate = useCallback(
+    (item: TimelineItem) => new Date(item.date),
+    []
+  );
 
   return (
     <div className="mt-8 space-y-8">
@@ -302,37 +318,24 @@ export function TimelineClient({
             </div>
           )
         ) : (
-          <div className="mt-6 flex flex-col gap-8">
-            {grouped.map(({ key, label, items: groupItems }) => (
-              <section key={key}>
-                <h2 className="sticky top-0 z-10 mb-3 bg-[var(--background)]/95 py-1 font-display text-lg font-semibold text-[var(--foreground)] backdrop-blur sm:bg-transparent sm:backdrop-blur-none">
-                  {label}
-                </h2>
-                <ul className="flex flex-col gap-3">
-                  {groupItems.map((item) => (
-                    <TimelineItemRow
-                      key={`${item.type}-${item.id}`}
-                      item={item}
-                      typeLabels={TYPE_LABELS}
-                      typeIcons={TYPE_ICONS}
-                      formatDuration={formatDuration}
-                    />
-                  ))}
-                </ul>
-              </section>
-            ))}
-            {hasMore && (
-              <div className="flex justify-center py-4">
-                <button
-                  type="button"
-                  onClick={() => setDisplayCount((c) => c + UI_DISPLAY.timelinePageSize)}
-                  className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--accent)]/50 hover:bg-[var(--surface-hover)]"
-                >
-                  Load more
-                </button>
-              </div>
-            )}
-          </div>
+          <>
+            <ul className="mt-6 flex flex-col gap-3">
+              {recentItems.map((item) => (
+                <TimelineItemRow
+                  key={`${item.type}-${item.id}`}
+                  item={item}
+                  typeLabels={TYPE_LABELS}
+                  typeIcons={TYPE_ICONS}
+                  formatDuration={formatDuration}
+                />
+              ))}
+            </ul>
+            <CalendarDrillDown
+              items={olderItems}
+              getDate={getItemDate}
+              renderCompactRow={(item) => <TimelineCompactRow item={item} />}
+            />
+          </>
         )}
       </section>
     </div>

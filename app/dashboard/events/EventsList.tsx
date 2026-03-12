@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { deleteEvent, updateEvent } from "./actions";
 import { getCategoryLabel, getCategoryColor } from "./constants";
 import { EVENT_CATEGORIES } from "./constants";
 import { toast } from "sonner";
+import { UI_DISPLAY } from "@/src/lib/constants";
+import { CalendarDrillDown } from "@/app/components/CalendarDrillDown";
 
 type Invitee = { family_member_id: string; family_members: { id: string; name: string } | { id: string; name: string }[] | null };
 
@@ -48,7 +50,7 @@ function daysUntil(iso: string): string {
   return formatDateShort(iso);
 }
 
-function groupEvents(events: EventRow[]): { label: string; events: EventRow[] }[] {
+function groupEvents(events: EventRow[]): { futureGroups: { label: string; events: EventRow[] }[]; pastEvents: EventRow[] } {
   const today = new Date().toISOString().slice(0, 10);
   const weekEnd = new Date();
   weekEnd.setDate(weekEnd.getDate() + 7);
@@ -69,12 +71,34 @@ function groupEvents(events: EventRow[]): { label: string; events: EventRow[] }[
     else upcoming.push(e);
   }
 
-  const groups: { label: string; events: EventRow[] }[] = [];
-  if (thisWeek.length) groups.push({ label: "This Week", events: thisWeek });
-  if (thisMonth.length) groups.push({ label: "This Month", events: thisMonth });
-  if (upcoming.length) groups.push({ label: "Upcoming", events: upcoming });
-  if (past.length) groups.push({ label: "Past Events", events: past });
-  return groups;
+  const futureGroups: { label: string; events: EventRow[] }[] = [];
+  if (thisWeek.length) futureGroups.push({ label: "This Week", events: thisWeek });
+  if (thisMonth.length) futureGroups.push({ label: "This Month", events: thisMonth });
+  if (upcoming.length) futureGroups.push({ label: "Upcoming", events: upcoming });
+  // Sort past events newest-first
+  past.sort((a, b) => (b.event_date > a.event_date ? 1 : -1));
+  return { futureGroups, pastEvents: past };
+}
+
+function EventCompactRow({ event }: { event: EventRow }) {
+  return (
+    <div className="group flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-[var(--surface-hover)]">
+      <span
+        className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border text-xs font-medium ${getCategoryColor(event.category)}`}
+      >
+        {getCategoryLabel(event.category).slice(0, 3)}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-[var(--foreground)] group-hover:text-[var(--accent)]">
+          {event.title}
+        </p>
+        <p className="truncate text-xs text-[var(--muted)]">
+          {formatDateShort(event.event_date)}
+          {event.recurring === "annual" ? " · Annual" : ""}
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export function EventsList({
@@ -104,17 +128,24 @@ export function EventsList({
     });
   }
 
-  const groups = groupEvents(events);
+  const { futureGroups, pastEvents } = groupEvents(events);
+  const recentPast = pastEvents.slice(0, UI_DISPLAY.recentFullCardCount);
+  const olderPast = pastEvents.slice(UI_DISPLAY.recentFullCardCount);
+
+  const getEventDate = useCallback(
+    (e: EventRow) => new Date(e.event_date + "T12:00:00"),
+    []
+  );
 
   return (
     <div className="space-y-8">
-      {groups.map(({ label, events: groupEvents }) => (
+      {futureGroups.map(({ label, events: groupEvts }) => (
         <section key={label}>
           <h2 className="font-display text-lg font-semibold text-[var(--foreground)] mb-3">
             {label}
           </h2>
           <ul className="space-y-3">
-            {groupEvents.map((e) => (
+            {groupEvts.map((e) => (
               <EventCard
                 key={e.id}
                 event={e}
@@ -126,6 +157,32 @@ export function EventsList({
           </ul>
         </section>
       ))}
+
+      {recentPast.length > 0 && (
+        <section>
+          <h2 className="font-display text-lg font-semibold text-[var(--foreground)] mb-3">
+            Past Events
+          </h2>
+          <ul className="space-y-3">
+            {recentPast.map((e) => (
+              <EventCard
+                key={e.id}
+                event={e}
+                onEdit={() => setEditingId(e.id)}
+                onDelete={() => handleDelete(e.id)}
+                deleting={deletingId === e.id}
+              />
+            ))}
+          </ul>
+          <CalendarDrillDown
+            items={olderPast}
+            getDate={getEventDate}
+            renderCompactRow={(event) => <EventCompactRow event={event} />}
+            sectionLabel="Earlier events"
+            countLabel={(n) => `${n} ${n === 1 ? "event" : "events"}`}
+          />
+        </section>
+      )}
 
       {editingId && (
         <EditEventModal

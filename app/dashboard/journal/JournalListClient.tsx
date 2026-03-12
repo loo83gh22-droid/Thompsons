@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { thumbUrl } from "@/src/lib/imageUrl";
+import { UI_DISPLAY } from "@/src/lib/constants";
+import { CalendarDrillDown } from "@/app/components/CalendarDrillDown";
 import { JournalPhotoGallery } from "./JournalPhotoGallery";
 import { DeleteJournalEntryButton } from "./DeleteJournalEntryButton";
 
@@ -43,75 +45,61 @@ interface JournalListClientProps {
 
 /* ── Helpers ───────────────────────────────────────────────── */
 
-function entryDate(entry: JournalEntryData): Date {
-  return new Date(entry.trip_date || entry.created_at);
-}
-
 function formatDayLabel(dateStr: string): string {
   const d = new Date(dateStr);
   return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
 
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-
-/* ── Calendar structure ───────────────────────────────────── */
-
-type CalendarYear = {
-  year: number;
-  months: CalendarMonth[];
-  entryCount: number;
-};
-
-type CalendarMonth = {
-  month: number;
-  label: string;
-  entries: JournalEntryData[];
-};
-
-function buildCalendar(entries: JournalEntryData[]): CalendarYear[] {
-  const yearMap = new Map<number, Map<number, JournalEntryData[]>>();
-
-  for (const entry of entries) {
-    const d = entryDate(entry);
-    const y = d.getFullYear();
-    const m = d.getMonth();
-    if (!yearMap.has(y)) yearMap.set(y, new Map());
-    const monthMap = yearMap.get(y)!;
-    if (!monthMap.has(m)) monthMap.set(m, []);
-    monthMap.get(m)!.push(entry);
+function getCoverUrl(entry: JournalEntryData): string | null {
+  if (entry.cover_photo_id) {
+    const coverPhoto = entry.photos.find((p) => p.id === entry.cover_photo_id);
+    if (coverPhoto) return coverPhoto.url;
   }
-
-  const years: CalendarYear[] = [];
-  for (const [year, monthMap] of yearMap) {
-    const months: CalendarMonth[] = [];
-    let entryCount = 0;
-    for (const [month, monthEntries] of monthMap) {
-      months.push({ month, label: MONTH_NAMES[month], entries: monthEntries });
-      entryCount += monthEntries.length;
-    }
-    months.sort((a, b) => b.month - a.month);
-    years.push({ year, months, entryCount });
-  }
-  years.sort((a, b) => b.year - a.year);
-  return years;
+  if (entry.photos.length > 0) return entry.photos[0].url;
+  return null;
 }
 
-/* ── Chevron icon ─────────────────────────────────────────── */
+/* ── Compact row for calendar drill-down ──────────────────── */
 
-function ChevronIcon({ open }: { open: boolean }) {
+function JournalCompactRow({ entry }: { entry: JournalEntryData }) {
+  const coverUrl = getCoverUrl(entry);
   return (
-    <svg
-      className={`h-4 w-4 shrink-0 text-[var(--muted)] transition-transform duration-200 ${open ? "rotate-90" : ""}`}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
+    <Link
+      href={`/dashboard/journal/${entry.id}`}
+      className="group flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-[var(--surface-hover)]"
     >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-    </svg>
+      {coverUrl ? (
+        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-[var(--surface)]">
+          <Image
+            src={thumbUrl(coverUrl, 80)}
+            alt=""
+            fill
+            unoptimized
+            className="object-cover"
+            sizes="40px"
+          />
+        </div>
+      ) : (
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[var(--surface)] text-lg">
+          📔
+        </div>
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-[var(--foreground)] group-hover:text-[var(--accent)]">
+          {entry.title || "Untitled"}
+        </p>
+        <p className="truncate text-xs text-[var(--muted)]">
+          {formatDayLabel(entry.trip_date || entry.created_at)}
+          {entry.location ? ` · 📍 ${entry.location}` : ""}
+          {entry.authorLabel ? ` · ${entry.authorLabel}` : ""}
+        </p>
+      </div>
+      {entry.photos.length > 0 && (
+        <span className="shrink-0 text-xs text-[var(--muted)]">
+          {entry.photos.length} 📷
+        </span>
+      )}
+    </Link>
   );
 }
 
@@ -124,10 +112,7 @@ export function JournalListClient({
   myRole,
 }: JournalListClientProps) {
   const [filterMemberId, setFilterMemberId] = useState<string>("all");
-  const [expandedYears, setExpandedYears] = useState<Set<number>>(new Set());
-  const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
 
-  // Filter entries by selected member
   const filteredEntries = useMemo(() => {
     if (filterMemberId === "all") return entries;
     return entries.filter(
@@ -137,21 +122,13 @@ export function JournalListClient({
     );
   }, [entries, filterMemberId]);
 
-  // Split into recent (full view) and older (calendar)
-  const recentEntries = filteredEntries.slice(0, 10);
-  const olderEntries = filteredEntries.slice(10);
+  const recentEntries = filteredEntries.slice(0, UI_DISPLAY.recentFullCardCount);
+  const olderEntries = filteredEntries.slice(UI_DISPLAY.recentFullCardCount);
 
-  // Build calendar structure for older entries
-  const calendar = useMemo(() => buildCalendar(olderEntries), [olderEntries]);
-
-  function getCoverUrl(entry: JournalEntryData): string | null {
-    if (entry.cover_photo_id) {
-      const coverPhoto = entry.photos.find((p) => p.id === entry.cover_photo_id);
-      if (coverPhoto) return coverPhoto.url;
-    }
-    if (entry.photos.length > 0) return entry.photos[0].url;
-    return null;
-  }
+  const getEntryDate = useCallback(
+    (e: JournalEntryData) => new Date(e.trip_date || e.created_at),
+    []
+  );
 
   function canEdit(entry: JournalEntryData): boolean {
     const isOwner = myRole === "owner";
@@ -159,24 +136,6 @@ export function JournalListClient({
       ? entry.created_by === myMemberId
       : entry.author_id === myMemberId;
     return isOwner || isCreator;
-  }
-
-  function toggleYear(year: number) {
-    setExpandedYears((prev) => {
-      const next = new Set(prev);
-      if (next.has(year)) next.delete(year);
-      else next.add(year);
-      return next;
-    });
-  }
-
-  function toggleMonth(key: string) {
-    setExpandedMonths((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
   }
 
   return (
@@ -327,118 +286,12 @@ export function JournalListClient({
         </div>
       )}
 
-      {/* Older entries - calendar drill-down: Year > Month > entries */}
-      {calendar.length > 0 && (
-        <div className="mt-10">
-          <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-[var(--muted)]">
-            Earlier entries
-          </h2>
-          <div className="space-y-1">
-            {calendar.map(({ year, months, entryCount }) => {
-              const yearOpen = expandedYears.has(year);
-              return (
-                <div key={year}>
-                  {/* Year row */}
-                  <button
-                    type="button"
-                    onClick={() => toggleYear(year)}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-[var(--surface-hover)]"
-                  >
-                    <ChevronIcon open={yearOpen} />
-                    <span className="font-display text-lg font-semibold text-[var(--foreground)]">
-                      {year}
-                    </span>
-                    <span className="ml-auto text-sm text-[var(--muted)]">
-                      {entryCount} {entryCount === 1 ? "entry" : "entries"}
-                    </span>
-                  </button>
-
-                  {/* Months under this year */}
-                  {yearOpen && (
-                    <div className="ml-4 space-y-0.5 border-l border-[var(--border)] pl-3">
-                      {months.map(({ month, label, entries: monthEntries }) => {
-                        const monthKey = `${year}-${month}`;
-                        const monthOpen = expandedMonths.has(monthKey);
-                        return (
-                          <div key={monthKey}>
-                            {/* Month row */}
-                            <button
-                              type="button"
-                              onClick={() => toggleMonth(monthKey)}
-                              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition-colors hover:bg-[var(--surface-hover)]"
-                            >
-                              <ChevronIcon open={monthOpen} />
-                              <span className="font-medium text-[var(--foreground)]">
-                                {label}
-                              </span>
-                              <span className="ml-auto text-xs text-[var(--muted)]">
-                                {monthEntries.length}
-                              </span>
-                            </button>
-
-                            {/* Entries under this month */}
-                            {monthOpen && (
-                              <div className="ml-4 space-y-1 border-l border-[var(--border)] py-1 pl-3">
-                                {monthEntries.map((entry) => {
-                                  const coverUrl = getCoverUrl(entry);
-                                  return (
-                                    <Link
-                                      key={entry.id}
-                                      href={`/dashboard/journal/${entry.id}`}
-                                      className="group flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-[var(--surface-hover)]"
-                                    >
-                                      {/* Tiny thumbnail */}
-                                      {coverUrl ? (
-                                        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-[var(--surface)]">
-                                          <Image
-                                            src={thumbUrl(coverUrl, 80)}
-                                            alt=""
-                                            fill
-                                            unoptimized
-                                            className="object-cover"
-                                            sizes="40px"
-                                          />
-                                        </div>
-                                      ) : (
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[var(--surface)] text-lg">
-                                          📔
-                                        </div>
-                                      )}
-
-                                      {/* Entry info */}
-                                      <div className="min-w-0 flex-1">
-                                        <p className="truncate text-sm font-medium text-[var(--foreground)] group-hover:text-[var(--accent)]">
-                                          {entry.title || "Untitled"}
-                                        </p>
-                                        <p className="truncate text-xs text-[var(--muted)]">
-                                          {formatDayLabel(entry.trip_date || entry.created_at)}
-                                          {entry.location ? ` · 📍 ${entry.location}` : ""}
-                                          {entry.authorLabel ? ` · ${entry.authorLabel}` : ""}
-                                        </p>
-                                      </div>
-
-                                      {/* Photo count badge */}
-                                      {entry.photos.length > 0 && (
-                                        <span className="shrink-0 text-xs text-[var(--muted)]">
-                                          {entry.photos.length} 📷
-                                        </span>
-                                      )}
-                                    </Link>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* Older entries - calendar drill-down */}
+      <CalendarDrillDown
+        items={olderEntries}
+        getDate={getEntryDate}
+        renderCompactRow={(entry) => <JournalCompactRow entry={entry} />}
+      />
     </div>
   );
 }

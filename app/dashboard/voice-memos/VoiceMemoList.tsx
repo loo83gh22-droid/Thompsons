@@ -6,6 +6,8 @@ import { createClient } from "@/src/lib/supabase/client";
 import { removeVoiceMemo, updateVoiceMemo } from "./actions";
 import { transcribeVoiceMemo } from "./transcribe";
 import { EmptyStateGuide } from "@/app/components/EmptyStateGuide";
+import { UI_DISPLAY } from "@/src/lib/constants";
+import { CalendarDrillDown } from "@/app/components/CalendarDrillDown";
 
 type MemberRow = { name: string; nickname: string | null; relationship: string | null };
 
@@ -56,6 +58,28 @@ function MicIcon() {
   );
 }
 
+function VoiceMemoCompactRow({ memo }: { memo: VoiceMemo }) {
+  const by = one(memo.recorded_by);
+  const byName = by ? (by.nickname?.trim() || by.name) : "Unknown";
+  return (
+    <div className="group flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-[var(--surface-hover)]">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[var(--surface)] text-lg">
+        🎙️
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-[var(--foreground)] group-hover:text-[var(--accent)]">
+          {memo.title}
+        </p>
+        <p className="truncate text-xs text-[var(--muted)]">
+          {formatDate(memo.recorded_date ?? memo.created_at)}
+          {memo.duration_seconds != null ? ` · ${formatDuration(memo.duration_seconds)}` : ""}
+          {` · ${byName}`}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function VoiceMemoList({
   memos,
   currentUserMemberId,
@@ -94,9 +118,17 @@ export function VoiceMemoList({
     );
   }
 
+  const recentMemos = memos.slice(0, UI_DISPLAY.recentFullCardCount);
+  const olderMemos = memos.slice(UI_DISPLAY.recentFullCardCount);
+
+  const getMemoDate = useCallback(
+    (m: VoiceMemo) => new Date(m.recorded_date ?? m.created_at),
+    []
+  );
+
   return (
     <div className="space-y-4">
-      {memos.map((memo) => {
+      {recentMemos.map((memo) => {
         const by = one(memo.recorded_by);
         const forMember = one(memo.recorded_for);
         const byDisplayName = by ? (by.nickname?.trim() || by.name) : null;
@@ -271,6 +303,14 @@ export function VoiceMemoList({
           </article>
         );
       })}
+
+      <CalendarDrillDown
+        items={olderMemos}
+        getDate={getMemoDate}
+        renderCompactRow={(memo) => <VoiceMemoCompactRow memo={memo} />}
+        sectionLabel="Earlier voice memos"
+        countLabel={(n) => `${n} ${n === 1 ? "memo" : "memos"}`}
+      />
 
       {editingId && (
         <EditVoiceMemoModal
