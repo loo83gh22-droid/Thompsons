@@ -159,6 +159,9 @@ export const UI_DISPLAY = {
   /** Items per page in timeline pagination */
   timelinePageSize: 30,
 
+  /** Number of recent items to show as full cards before calendar drill-down */
+  recentFullCardCount: 10,
+
   /** Event window for "upcoming events" in milliseconds (30 days) */
   upcomingEventWindowMs: 30 * 24 * 60 * 60 * 1000,
 
