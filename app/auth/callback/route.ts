@@ -20,7 +20,7 @@ export async function GET(request: Request) {
         const { data: { user } } = await supabase.auth.getUser();
         if (user?.email) {
           const adminClient = createAdminClient();
-          // Capture linked rows so we can send a "member joined" notification to the family owner
+          // Capture returned rows so we can send a "member joined" notification to the family owner
           const { data: linkedMembers } = await adminClient
             .from('family_members')
             .update({ user_id: user.id })

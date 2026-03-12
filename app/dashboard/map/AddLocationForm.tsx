@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
+import { canEditMap } from "@/src/lib/plans";
+import Link from "next/link";
 import { MemberSelect } from "@/app/components/MemberSelect";
 import { addTravelLocation } from "./actions";
 
@@ -16,7 +18,8 @@ type GeocodeSuggestion = {
 };
 
 export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
-  const { activeFamilyId } = useFamily();
+  const { activeFamilyId, planType } = useFamily();
+  const mapEditAllowed = canEditMap(planType);
   const [open, setOpen] = useState(false);
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(false);
@@ -203,7 +206,7 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
         return;
       }
 
-      // Call Server Action — enforces map location limit server-side
+      // Call Server Action — enforces canEditMap plan gate server-side (G1)
       const result = await addTravelLocation({
         locationName,
         lat,
@@ -239,6 +242,15 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (!mapEditAllowed) {
+    return (
+      <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
+        Map is view-only on the free plan.{" "}
+        <Link href="/pricing" className="text-[var(--accent)] hover:underline">Upgrade</Link> to add locations.
+      </div>
+    );
   }
 
   if (!open) {
