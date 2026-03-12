@@ -67,11 +67,11 @@ export default async function TimeCapsulesPage() {
     receivedFromJunction = data ?? [];
   }
 
-  const received = [...receivedLegacy, ...receivedFromJunction];
+  const allReceived = [...receivedLegacy, ...receivedFromJunction];
 
   // Check passing status for senders who have unlock_on_passing capsules
   const senderIdsToCheck = new Set<string>();
-  for (const r of [...sent, ...received]) {
+  for (const r of [...sent, ...allReceived]) {
     if (r.unlock_on_passing && "from_family_member_id" in r && r.from_family_member_id) {
       senderIdsToCheck.add(r.from_family_member_id);
     }
@@ -95,6 +95,10 @@ export default async function TimeCapsulesPage() {
     const passingUnlocked = letter.unlock_on_passing && letter.from_family_member_id && passedSenders.has(letter.from_family_member_id);
     return dateUnlocked || !!passingUnlocked;
   }
+
+  // Only show received capsules that are unlocked — locked ones stay hidden
+  // so the recipient doesn't know the surprise exists until the delivery date.
+  const received = allReceived.filter(isUnlocked);
 
   return (
     <div>

@@ -84,6 +84,12 @@ export default async function TimeCapsulePage({
   const passingUnlocked = meta.unlock_on_passing && senderPassed;
   const unlocked = dateUnlocked || passingUnlocked;
 
+  // Recipients must not see a locked capsule at all — it ruins the surprise.
+  // Only the sender can view a sealed capsule (to confirm it exists / delete it).
+  if (!unlocked && !isSender) {
+    redirect("/dashboard/time-capsules");
+  }
+
   // Privacy: only sender + recipients can see content. Others see metadata only.
   const canSeeContent = isSender || isRecipient;
 
