@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { UpgradeButton } from "./UpgradeButton";
 import { PaymentCancelledBanner } from "./PaymentCancelledBanner";
 import { StorageAddonButton } from "./StorageAddonButton";
+import { PricingPixelEvent } from "./PricingPixelEvent";
 
 export const metadata: Metadata = {
   title: "Pricing — Family Nest",
@@ -122,6 +123,7 @@ const pricingFaqJsonLd = {
 export default function PricingPage() {
   return (
     <div className="relative min-h-screen">
+      <PricingPixelEvent />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingFaqJsonLd) }}

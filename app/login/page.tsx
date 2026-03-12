@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { LogoMark } from "@/app/components/LogoMark";
 import { createClient } from "@/src/lib/supabase/client";
 import { RELATIONSHIP_OPTIONS } from "@/app/dashboard/members/constants";
+import { fbqTrack } from "@/app/components/MetaPixel";
 
 function LoginForm() {
   const router = useRouter();
@@ -85,6 +86,7 @@ function LoginForm() {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Signup failed");
+        fbqTrack("CompleteRegistration", { content_name: "Invited Signup" });
         setSignUpSuccess(true);
       } else if (isSignUp) {
         // Use our custom signup API to send branded confirmation email
@@ -102,6 +104,7 @@ function LoginForm() {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Signup failed");
+        fbqTrack("CompleteRegistration", { content_name: "Organic Signup" });
         setSignUpSuccess(true);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
