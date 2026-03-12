@@ -108,9 +108,9 @@ export default async function TimeCapsulesPage() {
             Write letters to future versions of family members. Seal them until a date — like &quot;Read this when you turn 18.&quot;
           </p>
         </div>
-        <div className="shrink-0">
-          <AddTimeCapsuleForm />
-        </div>
+      </div>
+      <div className="mb-8">
+        <AddTimeCapsuleForm />
       </div>
 
       <div className="space-y-12">
