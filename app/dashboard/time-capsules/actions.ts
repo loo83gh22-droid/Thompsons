@@ -3,6 +3,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
+import { getFamilyPlan, checkFeatureLimit } from "@/src/lib/plans";
 
 export async function createTimeCapsule(
   toFamilyMemberId: string,
@@ -17,6 +18,11 @@ export async function createTimeCapsule(
   if (!user) throw new Error("Not authenticated");
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
+
+  // Enforce time capsule limit
+  const plan = await getFamilyPlan(supabase, activeFamilyId);
+  const limitError = await checkFeatureLimit(supabase, activeFamilyId, plan.planType, "timeCapsules", "time_capsules");
+  if (limitError) throw new Error(limitError);
 
   const { data: myMember } = await supabase
     .from("family_members")

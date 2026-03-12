@@ -14,18 +14,21 @@
  */
 export const PLAN_LIMITS = {
   free: {
-    /** Maximum journal entries allowed (null = unlimited) */
-    journalEntries: null, // unlimited
+    /** Maximum instances per feature (null = unlimited) */
+    journalEntries: 5,
+    stories: 3,
+    recipes: 3,
+    timeCapsules: 2,
+    voiceMemos: 3,
+    traditions: 3,
+    events: 5,
+    mapLocations: 20,
+    /** Max videos per journal entry */
+    videosPerEntry: 1,
     /** Maximum family members allowed (null = unlimited) */
     maxMembers: 6,
-    /** Storage limit in bytes (1 GB) */
-    storageLimitBytes: 1073741824,
-    /** Whether video uploads are permitted */
-    videoUploads: false,
-    /** Whether map editing (adding locations) is permitted */
-    mapEditing: false,
-    /** Public sharing is open to all tiers — it drives word-of-mouth growth */
-    publicSharing: true,
+    /** Storage limit in bytes (500 MB) */
+    storageLimitBytes: 524288000,
     /** Nest Keeper designation not available on free */
     nestKeeperManagement: false,
     /** Inactivity succession protocol not available on free */
@@ -33,11 +36,16 @@ export const PLAN_LIMITS = {
   },
   annual: {
     journalEntries: null, // unlimited
+    stories: null,
+    recipes: null,
+    timeCapsules: null,
+    voiceMemos: null,
+    traditions: null,
+    events: null,
+    mapLocations: null,
+    videosPerEntry: 2,
     maxMembers: null, // unlimited
     storageLimitBytes: 53687091200, // 50 GB
-    videoUploads: true,
-    mapEditing: true,
-    publicSharing: true,
     /** Annual plans can designate a Nest Keeper */
     nestKeeperManagement: true,
     /** Inactivity succession protocol not available on annual */
@@ -45,11 +53,16 @@ export const PLAN_LIMITS = {
   },
   legacy: {
     journalEntries: null, // unlimited
+    stories: null,
+    recipes: null,
+    timeCapsules: null,
+    voiceMemos: null,
+    traditions: null,
+    events: null,
+    mapLocations: null,
+    videosPerEntry: 2,
     maxMembers: null, // unlimited
     storageLimitBytes: 53687091200, // 50 GB
-    videoUploads: true,
-    mapEditing: true,
-    publicSharing: true,
     /** Legacy plans can designate a Nest Keeper */
     nestKeeperManagement: true,
     /**

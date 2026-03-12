@@ -3,7 +3,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
-import { enforceStorageLimit, addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
+import { getFamilyPlan, checkFeatureLimit, enforceStorageLimit, addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
 
 export type VoiceMemoInsert = {
   title: string;
@@ -29,6 +29,11 @@ export async function insertVoiceMemo(data: VoiceMemoInsert) {
   if (!user) throw new Error("Not authenticated");
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
+
+  // Enforce voice memo limit
+  const plan = await getFamilyPlan(supabase, activeFamilyId);
+  const limitError = await checkFeatureLimit(supabase, activeFamilyId, plan.planType, "voiceMemos", "voice_memos");
+  if (limitError) throw new Error(limitError);
 
   const { data: last } = await supabase
     .from("voice_memos")

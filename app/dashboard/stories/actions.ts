@@ -4,6 +4,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { validateSchema } from "@/src/lib/validation/errors";
 import { createStorySchema, updateStorySchema } from "./schemas";
+import { getFamilyPlan, checkFeatureLimit } from "@/src/lib/plans";
 
 export async function createStory(
   title: string,
@@ -35,6 +36,11 @@ export async function createStory(
   if (!user) return { error: "Not authenticated" };
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return { error: "No family" };
+
+  // Enforce story limit
+  const plan = await getFamilyPlan(supabase, activeFamilyId);
+  const limitError = await checkFeatureLimit(supabase, activeFamilyId, plan.planType, "stories", "family_stories");
+  if (limitError) return { error: limitError };
 
   const { data: myMember } = await supabase
     .from("family_members")

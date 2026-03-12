@@ -2,6 +2,7 @@
 
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
+import { getFamilyPlan, checkFeatureLimit } from "@/src/lib/plans";
 
 export async function createEvent(
   title: string,
@@ -16,6 +17,11 @@ export async function createEvent(
   if (!user) return { error: "Not authenticated" };
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return { error: "No family" };
+
+  // Enforce event limit
+  const plan = await getFamilyPlan(supabase, activeFamilyId);
+  const limitError = await checkFeatureLimit(supabase, activeFamilyId, plan.planType, "events", "family_events");
+  if (limitError) return { error: limitError };
 
   const { data: myMember } = await supabase
     .from("family_members")

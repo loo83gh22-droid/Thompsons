@@ -4,7 +4,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { findOrCreateLocationCluster } from "@/src/lib/locationClustering";
-import { getFamilyPlan, canEditMap } from "@/src/lib/plans";
+import { getFamilyPlan, checkFeatureLimit } from "@/src/lib/plans";
 
 /**
  * Resolve the family ID to use: prefer the explicit parameter from the client,
@@ -33,7 +33,7 @@ export type AddTravelLocationInput = {
   memberIds?: string[];
 };
 
-/** Add a travel location — server-side gate enforces canEditMap (G1). */
+/** Add a travel location — server-side gate enforces map location limit. */
 export async function addTravelLocation(
   input: AddTravelLocationInput
 ): Promise<{ error?: string }> {
@@ -46,9 +46,8 @@ export async function addTravelLocation(
 
   // Server-side plan gate — cannot be bypassed via client
   const plan = await getFamilyPlan(supabase, activeFamilyId);
-  if (!canEditMap(plan.planType)) {
-    return { error: "Map editing requires the Full Nest or Legacy plan." };
-  }
+  const limitError = await checkFeatureLimit(supabase, activeFamilyId, plan.planType, "mapLocations", "travel_locations");
+  if (limitError) return { error: limitError };
 
   const locationClusterId = await findOrCreateLocationCluster(supabase, activeFamilyId, {
     latitude: input.lat,
@@ -170,11 +169,10 @@ export async function syncBirthPlacesToMap(familyId?: string): Promise<{ added: 
   const activeFamilyId = await resolveFamilyId(supabase, familyId);
   if (!activeFamilyId) return { added: 0, error: "No active family" };
 
-  // Server-side plan gate (G10)
+  // Server-side plan gate — enforce map location limit
   const plan = await getFamilyPlan(supabase, activeFamilyId);
-  if (!canEditMap(plan.planType)) {
-    return { added: 0, error: "Map editing requires the Full Nest or Legacy plan." };
-  }
+  const limitError = await checkFeatureLimit(supabase, activeFamilyId, plan.planType, "mapLocations", "travel_locations");
+  if (limitError) return { added: 0, error: limitError };
 
   const { data: members, error: membersError } = await supabase
     .from("family_members")
