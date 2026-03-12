@@ -8,6 +8,7 @@ import { createClient } from "@/src/lib/supabase/client";
 import { createStory, updateStory } from "./actions";
 import { RichTextToolbar } from "./RichTextToolbar";
 import { MemberSelect } from "@/app/components/MemberSelect";
+import { VoiceDictation } from "@/app/components/VoiceDictation";
 
 type Member = { id: string; name: string };
 
@@ -185,9 +186,18 @@ export function StoryForm({
       </div>
 
       <div>
-        <label htmlFor="story-content" className="block text-sm font-medium text-[var(--muted)]">
-          Story
-        </label>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <label htmlFor="story-content" className="block text-sm font-medium text-[var(--muted)]">
+            Story
+          </label>
+          <VoiceDictation
+            onTranscript={(text) => {
+              setContent((prev) => prev + text);
+              textareaRef.current?.focus();
+            }}
+            disabled={loading}
+          />
+        </div>
         <RichTextToolbar value={content} onChange={setContent} textareaRef={textareaRef} />
         <textarea
           id="story-content"
