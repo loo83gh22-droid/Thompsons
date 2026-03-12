@@ -338,23 +338,16 @@ function statusType(m: OurFamilyMember): "signed_in" | "pending_invitation" | "n
 }
 
 function StatusDot({ member }: { member: OurFamilyMember }) {
+  // No status dot for remembered or deceased members
+  if (member.is_remembered || member.is_deceased) return null;
   const status = statusType(member);
-  const color =
-    status === "signed_in"
-      ? "bg-emerald-500"
-      : status === "pending_invitation"
-        ? "bg-amber-500"
-        : "bg-[var(--muted)]";
+  // No status dot for members without accounts
+  if (status === "no_account") return null;
+  const color = status === "signed_in" ? "bg-emerald-500" : "bg-amber-500";
   return (
     <span
-      className={`absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-[var(--surface)] ${color}`}
-      title={
-        status === "signed_in"
-          ? "Signed In"
-          : status === "pending_invitation"
-            ? "Pending Invitation"
-            : "No account"
-      }
+      className={`absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-[var(--surface)] ${color} ${status === "signed_in" ? "animate-pulse" : ""}`}
+      title={status === "signed_in" ? "Signed In" : "Pending Invitation"}
       aria-hidden
     />
   );
@@ -370,6 +363,20 @@ function MemberCard({
   onClick: () => void;
 }) {
   const accentColor = memberColor(member.id);
+  const isRemembered = member.is_remembered || member.is_deceased;
+  // Warm stone tones for remembered members
+  const cardAccent = isRemembered ? "#8b7355" : accentColor;
+
+  // Year range for remembered members (e.g. "1942 - 2019")
+  let yearRange: string | null = null;
+  if (isRemembered) {
+    const birthYear = member.birth_date ? new Date(member.birth_date + "T12:00:00").getFullYear() : null;
+    const passedDate = member.passed_date || member.death_date;
+    const passedYear = passedDate ? new Date(passedDate + "T12:00:00").getFullYear() : null;
+    if (birthYear && passedYear) yearRange = `${birthYear} \u2013 ${passedYear}`;
+    else if (birthYear) yearRange = `b. ${birthYear}`;
+  }
+
   return (
     <button
       type="button"
@@ -377,30 +384,33 @@ function MemberCard({
       title={member.relationship ?? undefined}
       className={`group flex flex-col items-center rounded-xl border bg-[var(--surface)] p-3 transition-all duration-150 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
         selected ? "shadow-lg scale-[1.03]" : "shadow-sm hover:scale-[1.02]"
-      }`}
+      } ${isRemembered ? "opacity-85" : ""}`}
       style={{
-        borderColor: selected ? accentColor : "var(--border)",
+        borderColor: selected ? cardAccent : "var(--border)",
         borderWidth: selected ? 2 : 1,
         minWidth: "104px",
-        boxShadow: selected ? `0 0 0 3px ${accentColor}22, 0 4px 12px rgba(0,0,0,0.1)` : undefined,
+        boxShadow: selected ? `0 0 0 3px ${cardAccent}22, 0 4px 12px rgba(0,0,0,0.1)` : undefined,
       }}
     >
       {/* Avatar */}
       <div
         className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full transition-all"
-        style={{ outline: `2px solid ${accentColor}44`, outlineOffset: 2 }}
+        style={{ outline: `2px solid ${cardAccent}44`, outlineOffset: 2 }}
       >
         {member.avatar_url ? (
           <img
             src={member.avatar_url}
             alt={member.name}
             loading="lazy"
-            className="h-full w-full object-cover"
+            className={`h-full w-full object-cover ${isRemembered ? "grayscale-[30%]" : ""}`}
           />
         ) : (
           <div
             className="flex h-full w-full items-center justify-center text-lg font-bold"
-            style={{ backgroundColor: accentColor + "28", color: accentColor }}
+            style={{
+              backgroundColor: isRemembered ? "#8b735528" : accentColor + "28",
+              color: isRemembered ? "#8b7355" : accentColor,
+            }}
           >
             {initials(member.name)}
           </div>
@@ -409,19 +419,23 @@ function MemberCard({
       </div>
 
       {/* Name */}
-      <span className="mt-2 max-w-[100px] truncate text-center text-sm font-semibold text-[var(--foreground)]">
+      <span className={`mt-2 max-w-[100px] truncate text-center text-sm font-semibold ${isRemembered ? "text-stone-500 dark:text-stone-400" : "text-[var(--foreground)]"}`}>
         {member.nickname?.trim() || member.name}
       </span>
 
-      {/* Relationship label */}
-      {member.relationship && (
+      {/* "In our hearts" or year range for remembered members */}
+      {isRemembered ? (
+        <span className="mt-1 rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-500 dark:bg-stone-800/40 dark:text-stone-400">
+          {yearRange || "In our hearts"}
+        </span>
+      ) : member.relationship ? (
         <span
           className="mt-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
           style={{ backgroundColor: accentColor + "18", color: accentColor }}
         >
           {member.relationship}
         </span>
-      )}
+      ) : null}
     </button>
   );
 }
