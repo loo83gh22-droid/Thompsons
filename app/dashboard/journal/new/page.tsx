@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/client";
@@ -14,6 +14,7 @@ import { extractMetadataFromMultiplePhotos } from "@/src/lib/exifExtractor";
 import { videosPerEntryLimit } from "@/src/lib/plans";
 import { MemberSelect } from "@/app/components/MemberSelect";
 import { compressImages } from "@/src/lib/compressImage";
+import { VoiceDictation } from "@/app/components/VoiceDictation";
 
 type FamilyMember = { id: string; name: string; color: string | null; symbol: string };
 type DateValue = Date | DateRange;
@@ -38,6 +39,8 @@ export default function NewJournalPage() {
   const [prompts, setPrompts] = useState<string[]>([]);
   const [isGeneratingPrompts, setIsGeneratingPrompts] = useState(false);
   const [showOptionals, setShowOptionals] = useState(false);
+  const [content, setContent] = useState("");
+  const contentRef = useRef<HTMLTextAreaElement>(null);
 
   const [date, setDate] = useState<DateValue>(() => new Date());
   const [location, setLocation] = useState<{ name: string; latitude: number; longitude: number }>({
@@ -95,7 +98,7 @@ export default function NewJournalPage() {
       const rawTitle = (form.elements.namedItem("title") as HTMLInputElement | null)?.value.trim() ?? "";
       formData.set("title", rawTitle || formatDateTitle(date));
 
-      formData.set("content", (form.elements.namedItem("content") as HTMLTextAreaElement).value);
+      formData.set("content", content);
       const startDate = date instanceof Date ? date : date.start;
       const endDate = date instanceof Date ? null : date.end;
       formData.set("trip_date", startDate.toISOString().split("T")[0]);
@@ -240,10 +243,18 @@ export default function NewJournalPage() {
 
         {/* Story — front and center */}
         <div>
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
             <label className="block text-sm font-medium text-[var(--muted)]">
               Your story
             </label>
+            <div className="flex flex-wrap items-center gap-3">
+              <VoiceDictation
+                onTranscript={(text) => {
+                  setContent((prev) => prev + text);
+                  contentRef.current?.focus();
+                }}
+                disabled={loading}
+              />
             <button
               type="button"
               onClick={async () => {
@@ -263,6 +274,7 @@ export default function NewJournalPage() {
             >
               {isGeneratingPrompts ? "Generating…" : "✨ Ideas"}
             </button>
+            </div>
           </div>
           {prompts.length > 0 && (
             <div className="mb-2 space-y-1">
@@ -271,9 +283,9 @@ export default function NewJournalPage() {
                   key={i}
                   type="button"
                   onClick={() => {
-                    const textarea = document.querySelector<HTMLTextAreaElement>('textarea[name="content"]');
-                    if (textarea) { textarea.value = prompt + " "; textarea.focus(); }
+                    setContent(prompt + " ");
                     setPrompts([]);
+                    contentRef.current?.focus();
                   }}
                   className="block w-full text-left rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-colors"
                 >
@@ -286,11 +298,19 @@ export default function NewJournalPage() {
             </div>
           )}
           <textarea
+            ref={contentRef}
             name="content"
             rows={6}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
             className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none text-base"
             placeholder="What happened? What did you see? What will you remember?"
           />
+          {content.length === 0 && (
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              Tip: tap <strong>Dictate</strong> to speak your story instead of typing.
+            </p>
+          )}
         </div>
 
         {/* Photos */}
