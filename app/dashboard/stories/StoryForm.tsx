@@ -4,8 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { createClient } from "@/src/lib/supabase/client";
-import { createStory, updateStory } from "./actions";
+import { createStory, updateStory, uploadStoryCover } from "./actions";
 import { RichTextToolbar } from "./RichTextToolbar";
 import { MemberSelect } from "@/app/components/MemberSelect";
 import { VoiceDictation } from "@/app/components/VoiceDictation";
@@ -69,14 +68,10 @@ export function StoryForm({
     setCoverUploading(true);
     setError(null);
     try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from("story-covers").upload(path, file, { upsert: true });
-      if (uploadError) throw uploadError;
-      setCoverUrl(`/api/storage/story-covers/${path}`);
+      const fd = new FormData();
+      fd.append("file", file);
+      const { url } = await uploadStoryCover(fd);
+      setCoverUrl(url);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Cover upload failed");
     } finally {

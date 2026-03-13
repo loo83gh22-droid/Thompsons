@@ -23,8 +23,10 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
     const { activeFamilyId } = await getActiveFamilyId(supabase);
     if (!activeFamilyId) return { success: false, error: "No active family" };
 
-    // Journal entries are unlimited on all plans
+    // Enforce journal entry limit for the family's plan
     const plan = await getFamilyPlan(supabase, activeFamilyId);
+    const limitError = await checkFeatureLimit(supabase, activeFamilyId, plan.planType, "journalEntries", "journal_entries");
+    if (limitError) return { success: false, error: limitError };
 
     // Extract and validate FormData — deduplicate in case client sends IDs twice
     const memberIds = [...new Set(formData.getAll("member_ids").map(String).filter(Boolean))];

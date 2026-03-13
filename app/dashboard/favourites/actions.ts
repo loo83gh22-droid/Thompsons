@@ -3,7 +3,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
-import { enforceStorageLimit, addStorageUsage } from "@/src/lib/plans";
+import { enforceStorageLimit, addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
 
 export type FavouriteCategory = "books" | "movies" | "shows" | "music" | "toys" | "games" | "recipes";
 
@@ -17,6 +17,28 @@ function revalidateAll(category?: FavouriteCategory) {
     for (const cat of ALL_CATEGORIES) {
       revalidatePath(`/dashboard/favourites/${cat}`);
     }
+  }
+}
+
+/** Remove a favourite photo from storage and decrement the storage counter (G17) */
+async function removeFavouritePhoto(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  photoUrl: string,
+  familyId: string,
+): Promise<void> {
+  const storagePath = photoUrl.replace("/api/storage/favourite-photos/", "");
+  if (!storagePath || storagePath === photoUrl) return;
+
+  // Get file size before removal
+  const { data: fileList } = await supabase.storage
+    .from("favourite-photos")
+    .list("", { search: storagePath });
+  const fileSize = fileList?.[0]?.metadata?.size ?? 0;
+
+  await supabase.storage.from("favourite-photos").remove([storagePath]);
+
+  if (fileSize > 0) {
+    await subtractStorageUsage(supabase, familyId, fileSize);
   }
 }
 
@@ -87,6 +109,19 @@ export async function updateFavourite(
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
+  // If replacing or clearing photo, clean up the old one from storage (G17)
+  if (data.clearPhoto || (data.photo && data.photo.size > 0)) {
+    const { data: existing } = await supabase
+      .from("favourites")
+      .select("photo_url")
+      .eq("id", id)
+      .eq("family_id", activeFamilyId)
+      .single();
+    if (existing?.photo_url) {
+      await removeFavouritePhoto(supabase, existing.photo_url, activeFamilyId);
+    }
+  }
+
   let photoUrl: string | undefined = undefined;
   if (data.clearPhoto) {
     photoUrl = null as unknown as undefined;
@@ -121,9 +156,20 @@ export async function removeFavourite(id: string) {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
+  // Clean up photo from storage before soft-deleting (G17)
+  const { data: existing } = await supabase
+    .from("favourites")
+    .select("photo_url")
+    .eq("id", id)
+    .eq("family_id", activeFamilyId)
+    .single();
+  if (existing?.photo_url) {
+    await removeFavouritePhoto(supabase, existing.photo_url, activeFamilyId);
+  }
+
   const { error } = await supabase
     .from("favourites")
-    .update({ removed_at: new Date().toISOString() })
+    .update({ removed_at: new Date().toISOString(), photo_url: null })
     .eq("id", id)
     .eq("family_id", activeFamilyId);
 
