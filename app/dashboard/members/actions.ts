@@ -189,7 +189,8 @@ export async function addFamilyMember(
   avatarUrl: string | null = null,
   isDeceased: boolean = false,
   deathDate: string | null = null,
-  isRemembered: boolean = false
+  isRemembered: boolean = false,
+  passedDate: string = ""
 ): Promise<{ id?: string; birthdayEventAdded?: boolean }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -242,7 +243,7 @@ export async function addFamilyMember(
       is_deceased: isDeceased,
       death_date: deathDate?.trim() || null,
       is_remembered: isRemembered,
-      passed_date: isRemembered && deathDate?.trim() ? deathDate.trim() : null,
+      passed_date: passedDate?.trim() || null,
     })
     .select("id")
     .single();
@@ -347,7 +348,8 @@ export async function updateFamilyMember(
   avatarUrl: string | null = null,
   isDeceased: boolean = false,
   deathDate: string | null = null,
-  isRemembered: boolean = false
+  isRemembered: boolean = false,
+  passedDate: string = ""
 ): Promise<{ birthdayEventAdded?: boolean }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -380,7 +382,7 @@ export async function updateFamilyMember(
       is_deceased: isDeceased,
       death_date: deathDate?.trim() || null,
       is_remembered: isRemembered,
-      passed_date: isRemembered && deathDate?.trim() ? deathDate.trim() : null,
+      passed_date: passedDate?.trim() || null,
     })
     .eq("id", id)
     .eq("family_id", activeFamilyId);

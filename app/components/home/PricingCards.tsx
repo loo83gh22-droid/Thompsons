@@ -35,13 +35,13 @@ const plans = [
     period: " one-time",
     description: "The most thoughtful gift you\u2019ll give this year.",
     features: [
-      "Lifetime access — no subscription, ever",
+      "Lifetime access. No subscription, ever",
       "50 GB storage",
       "Hand it down to the next generation",
       "Full data export",
       "Everything in Full Nest, forever",
     ],
-    cta: "Give as a Gift — $349",
+    cta: "Give as a Gift ($349)",
     featured: true,
     ctaStyle: "primary" as "muted" | "accent" | "primary",
     note: "Wrap the login on a card. The whole family joins free.",
@@ -74,7 +74,7 @@ export function PricingCards() {
             Start free. Upgrade whenever you&apos;re ready. No pressure.
           </p>
           <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
-            Only the Nest creator picks a plan — everyone else joins for free.
+            Only the Nest creator picks a plan. Everyone else joins for free.
             <br />
             Members can belong to unlimited Nests with one account.
           </p>
@@ -195,7 +195,7 @@ export function PricingCards() {
             <span style={{ color: "var(--foreground)", fontWeight: 500 }}>
               Every plan includes full data export
             </span>{" "}
-            — we never hold your family&apos;s history hostage.
+            . We never hold your family&apos;s history hostage.
           </p>
         </div>
       </div>

@@ -131,7 +131,7 @@ export default async function TimeCapsulesPage() {
               <EmptyState
                 icon="💌"
                 headline="No letters for you yet"
-                description="When family members write you a letter for the future, it will appear here and unlock on the date they set."
+                description="Nothing yet. When someone writes you a letter for the future, it'll show up here. Patience."
               />
             ) : (
               received.map((letter) => {

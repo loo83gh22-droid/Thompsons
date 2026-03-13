@@ -170,7 +170,7 @@ export default async function JournalPage() {
         <div className="min-w-0">
           <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">Journal</h1>
           <p className="mt-2 text-[var(--muted)]">
-            Stories and photos from trips, birthdays, celebrations. Anyone can add their perspective to an entry.
+            The big moments, the small ones, and the ones you&apos;ll argue about later. Everyone can add their side.
           </p>
         </div>
         <Link

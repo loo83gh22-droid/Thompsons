@@ -137,7 +137,7 @@ export default async function OurFamilyPage() {
               Our Family
             </h1>
             <p className="mt-2 text-[var(--muted)]">
-              See your family connections and manage members
+              Your people. The whole beautiful crew.
             </p>
           </div>
           <AddMemberForm
@@ -166,7 +166,7 @@ export default async function OurFamilyPage() {
             <span className="text-2xl">✨</span>
             <div>
               <p className="text-sm font-semibold text-[var(--foreground)]">Make your Nest personal</p>
-              <p className="text-xs text-[var(--muted)]">Set the names you use for each family member — takes 30 seconds</p>
+              <p className="text-xs text-[var(--muted)]">Set the names you actually call each other. Gramps, Papa Bear, whatever works.</p>
             </div>
           </div>
           <span className="shrink-0 text-sm font-medium text-[var(--accent)]">Personalize →</span>

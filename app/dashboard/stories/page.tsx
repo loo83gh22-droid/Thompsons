@@ -37,7 +37,7 @@ export default async function StoriesPage() {
             Family Stories
           </h1>
           <p className="mt-2 text-[var(--muted)]">
-            Longer-form family history, advice, and memorable moments
+            The ones that get better every time someone tells them.
           </p>
         </div>
         <Link

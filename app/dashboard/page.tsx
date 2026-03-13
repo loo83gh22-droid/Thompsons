@@ -361,7 +361,7 @@ export default async function DashboardPage() {
                   Recent Activity
                 </h2>
                 <p className="mt-0.5 text-sm text-[var(--muted)]">
-                  See what your family has been up to
+                  Here&apos;s what everyone&apos;s been up to lately
                 </p>
               </div>
               <Link

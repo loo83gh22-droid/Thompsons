@@ -14,14 +14,14 @@ export function FinalCTA() {
               textWrap: "balance",
             }}
           >
-            Ready to start preserving your story?
+            Your family&apos;s story is already happening. Start keeping it.
           </h2>
           <p
             className="mb-10 text-lg leading-relaxed"
             style={{ color: "var(--muted)" }}
           >
             It takes 30 seconds to set up. Whether it&apos;s just the two of you or three
-            generations deep — everyone belongs. Already been invited? Just sign
+            generations deep, everyone belongs. Already been invited? Just sign
             up and you&apos;ll find your Nest waiting for you.
           </p>
 
@@ -52,7 +52,7 @@ export function FinalCTA() {
               className="mt-4 text-sm"
               style={{ color: "var(--muted)", fontStyle: "italic" }}
             >
-              Just the two of you? That counts. Or give it as a gift — the one they&apos;ll actually keep forever.{" "}
+              Just the two of you? That counts. Or give it as a gift. The one they&apos;ll actually keep forever.{" "}
               <Link
                 href="#pricing"
                 className="underline underline-offset-4 transition-colors"

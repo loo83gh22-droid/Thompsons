@@ -13,14 +13,14 @@ const steps = [
     number: "2",
     title: "Invite your family",
     description:
-      "Send invites to your partner, your parents, the grandparents — or keep it just the two of you. They join with one click and can save it to their home screen — no app store needed.",
+      "Send invites to your partner, your parents, the grandparents, or keep it just the two of you. They join with one click and can save it to their home screen. No app store needed.",
   },
   {
     icon: Heart,
     number: "3",
     title: "Start preserving together",
     description:
-      "Everyone adds their own memories — you don't have to do it all. When Dad posts from the fishing trip or Grandma shares a recipe, the Nest fills itself.",
+      "Everyone adds their own memories. You don't have to do it all. When Dad posts from the fishing trip or Grandma shares a recipe, the Nest fills itself.",
   },
 ];
 

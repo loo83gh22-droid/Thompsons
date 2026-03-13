@@ -44,7 +44,7 @@ export default async function FeedbackPage() {
           Feedback
         </h1>
         <p className="mt-2 text-[var(--muted)]">
-          Help us make your family site even better
+          Got an idea? A gripe? All feedback welcome and you can bet you&apos;ll get some action on it.
         </p>
       </div>
 

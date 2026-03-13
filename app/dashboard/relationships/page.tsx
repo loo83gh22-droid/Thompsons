@@ -29,7 +29,7 @@ export default async function RelationshipsPage() {
         Family Web
       </h1>
       <p className="mt-2 text-[var(--muted)]">
-        See how everyone is connected. Click a member to view their relationships and contributions.
+        See how everyone is connected. Click someone to see their story in the family.
       </p>
 
       {!members?.length ? (

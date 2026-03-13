@@ -156,7 +156,8 @@ function MemberRow({
       const result = await updateFamilyMember(
         member.id, name.trim(), relationship.trim(), email.trim() || "",
         birthDate || "", birthPlace.trim() || "", nickname.trim() || null,
-        finalAvatarUrl, isDeceased, deathDate || null, isRemembered
+        finalAvatarUrl, isDeceased, deathDate || null, isRemembered,
+        member.passed_date || deathDate || ""
       );
       setAvatarUrl(finalAvatarUrl);
       clearNewPhoto();
@@ -416,7 +417,8 @@ function MemberCard({
         finalAvatarUrl,
         isDeceased,
         deathDate || null,
-        isRemembered
+        isRemembered,
+        member.passed_date || deathDate || ""
       );
       setAvatarUrl(finalAvatarUrl);
       clearNewPhoto();

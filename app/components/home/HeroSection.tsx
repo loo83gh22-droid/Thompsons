@@ -23,7 +23,7 @@ export function HeroSection() {
                 className="max-w-lg text-lg leading-relaxed"
                 style={{ color: "var(--muted)" }}
               >
-                One private place for every photo, journal entry, voice memo, and recipe — where couples, their children, and grandparents all belong.
+                One private place for every photo, journal entry, voice memo, and recipe. Where couples, their children, and grandparents all belong.
               </p>
             </div>
 
@@ -37,7 +37,7 @@ export function HeroSection() {
                     color: "#fff",
                   }}
                 >
-                  Create Your Nest — Free
+                  Create Your Nest (Free)
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link

@@ -21,7 +21,7 @@ const tiers = [
     plan: "free" as const,
     price: "Free",
     priceSub: null,
-    description: "Try every feature — no credit card needed.",
+    description: "Try every feature. No credit card needed.",
     features: [
       "Up to 6 family members",
       "Journal (up to 5 entries)",
@@ -40,7 +40,7 @@ const tiers = [
     ],
     cta: "Get Started",
     ctaHref: "/login?mode=signup",
-    ctaNote: "Every feature included — upgrade for unlimited",
+    ctaNote: "Every feature included. Upgrade for unlimited.",
     highlighted: false,
   },
   {
@@ -70,7 +70,7 @@ const tiers = [
     plan: "legacy" as const,
     price: "$349",
     priceSub: " one-time",
-    priceBreakdown: "Just $7/year over 50 years — true lifetime value",
+    priceBreakdown: "Just $7/year over 50 years. True lifetime value.",
     description: "Lifetime access. Pass it down.",
     badge: "Best Value",
     features: [
@@ -78,7 +78,7 @@ const tiers = [
       "Unlimited members & 50 GB storage",
       "Storage add-ons available",
       "Nest Keeper designation",
-      "Inactivity succession — Nest Keepers notified at 90 days, auto-transfer at 6 months",
+      "Inactivity succession: Nest Keepers notified at 90 days, auto-transfer at 6 months",
       "All future features included",
       "One payment, yours forever",
     ],
@@ -93,7 +93,7 @@ const faqs = [
   {
     question: "Which plan is right for me?",
     answer:
-      "Start with The Nest (Free) — all the core features, up to 6 members and 1 GB of storage. When your family grows past 6, you want to add videos, or you need more space, upgrade to The Full Nest ($79/year). If you're committed to preserving your family's memories for decades and want lifetime access with succession protection, The Legacy ($349 one-time) is the best long-term value.",
+      "Start with The Nest (Free). All the core features, up to 6 members and 1 GB of storage. When your family grows past 6, you want to add videos, or you need more space, upgrade to The Full Nest ($79/year). If you're committed to preserving your family's memories for decades and want lifetime access with succession protection, The Legacy ($349 one-time) is the best long-term value.",
   },
   {
     question: "What happens if the platform shuts down?",
@@ -108,7 +108,7 @@ const faqs = [
   {
     question: "How does ownership transfer work?",
     answer:
-      "Annual and Legacy members can designate a Nest Keeper — a trusted family member who can inherit full admin rights. Legacy members also get our inactivity succession protocol: we check in with the account owner at 30 and 60 days of inactivity, notify the Nest Keeper at 90 days, and automatically initiate a transfer at 6 months — ensuring your family's memories are never lost.",
+      "Annual and Legacy members can designate a Nest Keeper, a trusted family member who can inherit full admin rights. Legacy members also get our inactivity succession protocol: we check in with the account owner at 30 and 60 days of inactivity, notify the Nest Keeper at 90 days, and automatically initiate a transfer at 6 months. Your family's memories are never lost.",
   },
 ];
 
@@ -141,10 +141,10 @@ export default function PricingPage() {
         {/* Header */}
         <div className="text-center">
           <h1 className="font-display text-4xl font-bold tracking-tight text-[var(--foreground)] sm:text-5xl md:text-6xl">
-            Simple, transparent pricing
+            What it costs. No surprises.
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-[var(--muted)]">
-            Start free. Upgrade when your family is ready for more.
+            Start free. If you want more space and features, we&apos;ll be here.
           </p>
         </div>
 
@@ -244,7 +244,7 @@ export default function PricingPage() {
               Need more room?
             </h2>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              Add a storage pack to any paid plan — billed annually, cancel any time.
+              Add a storage pack to any paid plan. Billed annually, cancel any time.
             </p>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-3">
@@ -281,7 +281,7 @@ export default function PricingPage() {
               <span className="mt-0.5 text-lg" aria-hidden="true">💡</span>
               <p className="text-sm text-[var(--muted)]">
                 <span className="font-medium text-[var(--foreground)]">Using a lot of space?</span>{" "}
-                Before adding storage, it&apos;s worth checking your uploads — a single unedited video can
+                Before adding storage, it&apos;s worth checking your uploads. A single unedited video can
                 be several gigabytes. Deleting large videos you&apos;ve already watched, or photos that
                 didn&apos;t quite make the cut, is often the quickest way to free up room without spending
                 a penny.

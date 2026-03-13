@@ -54,7 +54,7 @@ export default function MapPage() {
               Family Map
             </h1>
             <p className="mt-2 text-[var(--muted)]">
-              Birth places, homes, vacations, and memorable events. Add locations in journal entries or below.
+              Where you&apos;ve lived, where you&apos;ve been, and where that one road trip went sideways.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">

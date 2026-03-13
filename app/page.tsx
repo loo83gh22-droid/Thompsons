@@ -38,12 +38,12 @@ const faqStructuredData = {
       name: "Can I be in more than one family?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes! This is one of the most popular features for grandparents. If your son starts a Nest and your daughter starts a different one, you can be a member of both. You only need one account — no matter how many families you belong to.",
+        text: "Yes! This is one of the most popular features for grandparents. If your son starts a Nest and your daughter starts a different one, you can be a member of both. You only need one account, no matter how many families you belong to.",
       },
     },
     {
       "@type": "Question",
-      name: "I'm a grandparent — is this easy enough for me?",
+      name: "I'm a grandparent. Is this easy enough for me?",
       acceptedAnswer: {
         "@type": "Answer",
         text: "Absolutely. We designed Family Nest with grandparents in mind from day one. Big buttons, clear labels, and no confusing settings. If you can check email, you can use the Nest.",
@@ -51,7 +51,7 @@ const faqStructuredData = {
     },
     {
       "@type": "Question",
-      name: "Who pays — me or the person who starts the Nest?",
+      name: "Who pays, me or the person who starts the Nest?",
       acceptedAnswer: {
         "@type": "Answer",
         text: "Only the Nest creator picks a plan. Everyone else joins for free. Members can belong to unlimited Nests with one account.",

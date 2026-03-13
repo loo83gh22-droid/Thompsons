@@ -123,7 +123,8 @@ export function AddMemberForm({
         avatarUrl,
         isDeceased,
         deathDate || null,
-        isRemembered
+        isRemembered,
+        deathDate || ""
       );
 
       const validLinks = links.filter((l) => l.memberId);
