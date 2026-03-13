@@ -63,7 +63,12 @@ export async function addPhoto(file: File, caption?: string) {
     .select("id, url, sort_order, caption")
     .single();
 
-  if (insertError) throw insertError;
+  if (insertError) {
+    // Rollback: remove orphaned file and undo storage counter (W15)
+    await supabase.storage.from("home-mosaic").remove([path]);
+    await subtractStorageUsage(supabase, activeFamilyId, file.size);
+    throw insertError;
+  }
 
   revalidatePath("/");
   revalidatePath("/dashboard/photos");

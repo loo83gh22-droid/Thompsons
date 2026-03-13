@@ -3,7 +3,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
-import { addStorageUsage } from "@/src/lib/plans";
+import { addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
 import type { UploadedFileMeta } from "@/src/lib/uploadedFileMeta";
 
 export type TrophyResult = { success: true; id: string } | { success: false; error: string };
@@ -171,7 +171,7 @@ export async function deleteTrophy(trophyId: string): Promise<{ error?: string }
 
     const { data: files } = await supabase
       .from("award_files")
-      .select("url")
+      .select("url, file_size_bytes")
       .eq("award_id", trophyId)
       .eq("family_id", activeFamilyId);
 
@@ -189,6 +189,12 @@ export async function deleteTrophy(trophyId: string): Promise<{ error?: string }
       }
       if (achievementPaths.length > 0) {
         await supabase.storage.from("achievements").remove(achievementPaths);
+      }
+
+      // Decrement storage counter for all removed files (W16)
+      const totalBytes = files.reduce((sum, f) => sum + (f.file_size_bytes ?? 0), 0);
+      if (totalBytes > 0) {
+        await subtractStorageUsage(supabase, activeFamilyId, totalBytes);
       }
     }
 
@@ -228,7 +234,7 @@ export async function deleteTrophyFile(
 
     const { data: file } = await supabase
       .from("award_files")
-      .select("url")
+      .select("url, file_size_bytes")
       .eq("id", fileId)
       .eq("family_id", activeFamilyId)
       .single();
@@ -240,6 +246,11 @@ export async function deleteTrophyFile(
       } else if (file.url.startsWith("/api/storage/achievements/")) {
         const path = file.url.replace("/api/storage/achievements/", "");
         await supabase.storage.from("achievements").remove([path]);
+      }
+
+      // Decrement storage counter (W16)
+      if (file.file_size_bytes > 0) {
+        await subtractStorageUsage(supabase, activeFamilyId, file.file_size_bytes);
       }
     }
 

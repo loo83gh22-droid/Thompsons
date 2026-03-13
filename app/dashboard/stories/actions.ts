@@ -4,7 +4,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { validateSchema } from "@/src/lib/validation/errors";
 import { createStorySchema, updateStorySchema } from "./schemas";
-import { getFamilyPlan, checkFeatureLimit, enforceStorageLimit, addStorageUsage } from "@/src/lib/plans";
+import { getFamilyPlan, checkFeatureLimit, enforceStorageLimit, addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
 
 export async function createStory(
   title: string,
@@ -118,6 +118,36 @@ export async function deleteStory(id: string) {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return { error: "No family" };
+
+  // Clean up cover image from storage before deleting (W17)
+  const { data: story } = await supabase
+    .from("family_stories")
+    .select("cover_url")
+    .eq("id", id)
+    .eq("family_id", activeFamilyId)
+    .single();
+
+  if (story?.cover_url) {
+    const match = story.cover_url.match(/\/api\/storage\/story-covers\/(.+)$/);
+    if (match) {
+      const storagePath = match[1];
+      // Get file size for counter decrement
+      const parts = storagePath.split("/");
+      const dir = parts.slice(0, -1).join("/");
+      const fileName = parts[parts.length - 1];
+      const { data: fileList } = await supabase.storage
+        .from("story-covers")
+        .list(dir, { search: fileName });
+      const fileSize = fileList?.[0]?.metadata?.size ?? 0;
+
+      await supabase.storage.from("story-covers").remove([storagePath]);
+
+      if (fileSize > 0) {
+        await subtractStorageUsage(supabase, activeFamilyId, fileSize);
+      }
+    }
+  }
+
   const { error } = await supabase.from("family_stories").delete().eq("id", id).eq("family_id", activeFamilyId);
   return { error: error?.message };
 }
