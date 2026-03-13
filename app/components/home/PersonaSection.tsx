@@ -23,7 +23,7 @@ const personas = [
     label: "For parents",
     headline: "Stop being the family archivist",
     description:
-      "Everyone contributes on their own terms \u2014 Dad posts from the fishing trip, the kids add a silly video, Grandma shares her recipes.",
+      "Everyone contributes on their own terms. Dad posts from the fishing trip, the kids add a silly video, Grandma shares her recipes.",
     cta: { text: "Start free", href: "/login?mode=signup" },
   },
   {
