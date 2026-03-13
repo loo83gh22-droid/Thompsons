@@ -369,7 +369,7 @@ export async function sendArtworkShareEmail(
     const storagePath = photos[0].url.replace("/api/storage/artwork-photos/", "");
     const { data: signed } = await admin.storage
       .from("artwork-photos")
-      .createSignedUrl(storagePath, 60 * 60 * 24 * 30); // 30 days
+      .createSignedUrl(storagePath, 60 * 60 * 48); // 48 hours
     photoEmailUrl = signed?.signedUrl ?? null;
   }
 

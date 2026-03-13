@@ -1,5 +1,6 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { checkHttpRateLimit, defaultLimiter } from "@/src/lib/httpRateLimit";
 
 const ALLOWED_BUCKETS = new Set([
   "home-mosaic",
@@ -33,6 +34,9 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
+  const limited = await checkHttpRateLimit(_request, defaultLimiter);
+  if (limited) return limited;
+
   // 1. Auth check — reject unauthenticated requests immediately
   const supabase = await createClient();
   const {

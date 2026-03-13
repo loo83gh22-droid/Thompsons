@@ -45,6 +45,8 @@ export async function updateBucketListStatus(id: string, status: BucketListStatu
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
 
   const updates: Record<string, unknown> = { status };
   if (status === "completed") {
@@ -58,7 +60,8 @@ export async function updateBucketListStatus(id: string, status: BucketListStatu
   const { error } = await supabase
     .from("bucket_list_items")
     .update(updates)
-    .eq("id", id);
+    .eq("id", id)
+    .eq("family_id", activeFamilyId);
 
   if (error) throw error;
   revalidatePath("/dashboard/bucket-list");
@@ -74,6 +77,8 @@ export async function updateBucketListItem(id: string, data: {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
 
   const updates: Record<string, unknown> = {};
   if (data.title !== undefined) updates.title = data.title.trim();
@@ -85,7 +90,8 @@ export async function updateBucketListItem(id: string, data: {
   const { error } = await supabase
     .from("bucket_list_items")
     .update(updates)
-    .eq("id", id);
+    .eq("id", id)
+    .eq("family_id", activeFamilyId);
 
   if (error) throw error;
   revalidatePath("/dashboard/bucket-list");
@@ -95,11 +101,14 @@ export async function deleteBucketListItem(id: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
 
   const { error } = await supabase
     .from("bucket_list_items")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("family_id", activeFamilyId);
 
   if (error) throw error;
   revalidatePath("/dashboard/bucket-list");
@@ -109,6 +118,17 @@ export async function toggleCheer(itemId: string, memberId: string, currentlyChe
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
+  // Verify the item belongs to this family before cheering
+  const { data: item } = await supabase
+    .from("bucket_list_items")
+    .select("id")
+    .eq("id", itemId)
+    .eq("family_id", activeFamilyId)
+    .single();
+  if (!item) throw new Error("Item not found");
 
   if (currentlyCheered) {
     await supabase
