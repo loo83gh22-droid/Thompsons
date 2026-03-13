@@ -30,7 +30,7 @@ const faqStructuredData = {
       name: "What happens if I stop paying?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "You can downgrade to the Free plan anytime and keep your first 10 journal entries and 500 MB of photos forever. No data is ever deleted when you downgrade. If you choose the Legacy plan, you own it for life\u2014no recurring payments, ever.",
+        text: "You can downgrade to the Free plan anytime and keep your first 10 journal entries and 500 MB of photos forever. No data is ever deleted when you downgrade. If you choose the Legacy plan, you own it for life. No recurring payments, ever.",
       },
     },
     {
@@ -62,7 +62,7 @@ const faqStructuredData = {
       name: "How is this different from Google Photos or iCloud?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Google Photos and iCloud store photos, but Family Nest preserves your family's story. You get journals, voice memos, recipes, traditions, family trees, and a timeline\u2014all in one place. Plus, it's designed for sharing across generations, not just storing files.",
+        text: "Google Photos and iCloud store photos, but Family Nest preserves your family's story. You get journals, voice memos, recipes, traditions, family trees, and a timeline, all in one place. Plus, it's designed for sharing across generations, not just storing files.",
       },
     },
     {
@@ -78,7 +78,7 @@ const faqStructuredData = {
       name: "Will my family actually use this?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "That\u2019s the number one concern we hear \u2014 and the answer is yes. The Nest is designed so everyone can contribute on their own terms. Dad posts a fishing photo, Grandma shares a recipe, the kids add a silly video. You don\u2019t have to be the family archivist. Once one person starts, others jump in naturally.",
+        text: "That\u2019s the number one concern we hear, and the answer is yes. The Nest is designed so everyone can contribute on their own terms. Dad posts a fishing photo, Grandma shares a recipe, the kids add a silly video. You don\u2019t have to be the family archivist. Once one person starts, others jump in naturally.",
       },
     },
     {

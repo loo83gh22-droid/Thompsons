@@ -17,7 +17,7 @@ const CATEGORIES: { value: FeedbackCategory; label: string; icon: string; descri
 const PLACEHOLDERS: Record<FeedbackCategory, { subject: string; body: string }> = {
   feature_request: { subject: "What would you like to see?", body: "Describe the feature and how it would help your family..." },
   bug_report: { subject: "What went wrong?", body: "What happened? What did you expect to happen instead?" },
-  question: { subject: "What do you need help with?", body: "Ask away \u2014 we\u2019re happy to help..." },
+  question: { subject: "What do you need help with?", body: "Ask away, we\u2019re happy to help..." },
   compliment: { subject: "What\u2019s working well?", body: "Tell us what you enjoy about the site..." },
   other: { subject: "What\u2019s on your mind?", body: "Share your thoughts..." },
 };

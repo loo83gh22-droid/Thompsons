@@ -17,7 +17,7 @@ const faqs = [
   {
     question: "Will my family actually use this?",
     answer:
-      "That\u2019s the number one concern we hear \u2014 and the answer is yes. The Nest is designed so everyone can contribute on their own terms. Dad posts a fishing photo, Grandma shares a recipe, the kids add a silly video. You don\u2019t have to be the family archivist. Once one person starts, others jump in naturally.",
+      "That\u2019s the number one concern we hear, and the answer is yes. The Nest is designed so everyone can contribute on their own terms. Dad posts a fishing photo, Grandma shares a recipe, the kids add a silly video. You don\u2019t have to be the family archivist. Once one person starts, others jump in naturally.",
   },
   {
     question: "Can I be in more than one family?",
@@ -47,7 +47,7 @@ const faqs = [
   {
     question: "Is this only for big families?",
     answer:
-      "Not at all. Plenty of couples use Family Nest as their private shared space \u2014 for trips, recipes, journals, and time capsules. It\u2019s your story together, in one place. When your family grows, everything\u2019s already waiting.",
+      "Not at all. Plenty of couples use Family Nest as their private shared space: trips, recipes, journals, and time capsules. It\u2019s your story together, in one place. When your family grows, everything\u2019s already waiting.",
   },
   {
     question: "Can I import my existing photos?",
