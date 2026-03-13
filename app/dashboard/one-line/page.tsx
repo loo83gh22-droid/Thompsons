@@ -21,31 +21,44 @@ export default async function OneLinePage() {
   const todayMonth = todayDate.getMonth() + 1;
   const todayDay = todayDate.getDate();
 
-  // Fetch up to 5 years of entries for this user
-  const fiveYearsAgo = new Date();
-  fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+  // Fetch today's entry (with content) and date-only index for streak/calendar
+  const [todayRes, datesRes] = await Promise.all([
+    supabase
+      .from("one_line_entries")
+      .select("id, entry_date, content")
+      .eq("user_id", user.id)
+      .eq("entry_date", today)
+      .maybeSingle(),
+    supabase
+      .from("one_line_entries")
+      .select("id, entry_date")
+      .eq("user_id", user.id)
+      .gte("entry_date", new Date(todayDate.getFullYear() - 5, todayDate.getMonth(), todayDate.getDate()).toISOString().split("T")[0])
+      .order("entry_date", { ascending: false })
+      .limit(1825),
+  ]);
 
-  const { data: allEntries } = await supabase
-    .from("one_line_entries")
-    .select("id, entry_date, content")
-    .eq("user_id", user.id)
-    .gte("entry_date", fiveYearsAgo.toISOString().split("T")[0])
-    .order("entry_date", { ascending: false });
+  const todayEntry = todayRes.data ?? null;
+  const entries = datesRes.data ?? [];
 
-  const entries = allEntries ?? [];
-
-  // Today's entry
-  const todayEntry = entries.find((e) => e.entry_date === today) ?? null;
-
-  // "On this day" — same month/day in prior years
-  const onThisDay = entries.filter((e) => {
+  // "On this day" -- same month/day in prior years (need content for these)
+  const onThisDayDates = entries.filter((e) => {
     if (e.entry_date === today) return false;
-    // Parse without timezone conversion
     const parts = e.entry_date.split("-");
     const m = parseInt(parts[1], 10);
     const d = parseInt(parts[2], 10);
     return m === todayMonth && d === todayDay;
   });
+
+  // Fetch content for "on this day" entries (at most 4 prior years)
+  let onThisDay: { id: string; entry_date: string; content: string }[] = [];
+  if (onThisDayDates.length > 0) {
+    const { data } = await supabase
+      .from("one_line_entries")
+      .select("id, entry_date, content")
+      .in("id", onThisDayDates.map((e) => e.id));
+    onThisDay = (data ?? []) as typeof onThisDay;
+  }
 
   // Streak: consecutive days ending at today (or yesterday if today not written)
   const entryDates = new Set(entries.map((e) => e.entry_date));

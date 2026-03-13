@@ -372,6 +372,48 @@ export default function MapComponent({ filter }: { filter?: MapFilter } = {}) {
     });
   }, [filteredLocations]);
 
+  // Memoize pin icon objects and fit-bounds positions to avoid regenerating
+  // SVG data URIs and Leaflet icon instances on every render.
+  const fitPositions = useMemo(
+    () => clusterPins.map((c) => c.pos),
+    [clusterPins]
+  );
+
+  const pinData = useMemo(
+    () =>
+      clusterPins.map(({ locs, pos }) => {
+        const loc = locs[0];
+        const member = Array.isArray(loc.family_members)
+          ? loc.family_members[0]
+          : loc.family_members;
+        const isFamily = member?.name === "Family";
+        const isBirthPlace = loc.is_birth_place === true;
+        const isPlaceLived = loc.is_place_lived === true;
+        const locationType = loc.location_type ?? null;
+        const symbol =
+          isBirthPlace ? "balloons"
+            : isPlaceLived ? "house"
+              : locationType === "memorable_event" ? "memorable_event"
+                : locationType === "vacation" ? "vacation"
+                  : locationType === "other" ? "circle"
+                    : isFamily ? "star" : "pin";
+        const color = PIN_TYPE_COLORS[symbol] || "#3b82f6";
+        const dateLabel =
+          loc.trip_date
+            ? new Date(loc.trip_date + "T12:00:00").getFullYear().toString()
+            : loc.year_visited ? loc.year_visited.toString() : "";
+        const iconUrl = createPinSvgUrl(color, symbol, dateLabel, isFamily, locs.length);
+        const icon = L.icon({
+          iconUrl,
+          iconSize: [48, 40],
+          iconAnchor: [24, 38],
+          popupAnchor: [0, -38],
+        });
+        return { locs, pos, icon };
+      }),
+    [clusterPins]
+  );
+
   if (loading) {
     return (
       <div className="flex h-[500px] items-center justify-center rounded-xl bg-[var(--surface)]">
@@ -396,39 +438,11 @@ export default function MapComponent({ filter }: { filter?: MapFilter } = {}) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <CountryLayer visitedCodes={visitedCountryCodes} />
-        {clusterPins.length > 0 && (
-          <FitBounds positions={clusterPins.map((c) => c.pos)} />
+        {fitPositions.length > 0 && (
+          <FitBounds positions={fitPositions} />
         )}
-        {clusterPins.map(({ locs, pos }) => {
+        {pinData.map(({ locs, pos, icon }) => {
           const loc = locs[0];
-          const member = Array.isArray(loc.family_members)
-            ? loc.family_members[0]
-            : loc.family_members;
-          const isFamily = member?.name === "Family";
-          const isBirthPlace = loc.is_birth_place === true;
-          const isPlaceLived = loc.is_place_lived === true;
-          const locationType = loc.location_type ?? null;
-          const symbol =
-            isBirthPlace ? "balloons"
-              : isPlaceLived ? "house"
-                : locationType === "memorable_event" ? "memorable_event"
-                  : locationType === "vacation" ? "vacation"
-                    : locationType === "other" ? "circle"
-                      : isFamily ? "star" : "pin";
-          const color = PIN_TYPE_COLORS[symbol] || "#3b82f6";
-          const dateLabel =
-            loc.trip_date
-              ? new Date(loc.trip_date + "T12:00:00").getFullYear().toString()
-              : loc.year_visited ? loc.year_visited.toString() : "";
-
-          const iconUrl = createPinSvgUrl(color, symbol, dateLabel, isFamily, locs.length);
-          const icon = L.icon({
-            iconUrl,
-            iconSize: [48, 40],
-            iconAnchor: [24, 38],
-            popupAnchor: [0, -38],
-          });
-
           return (
             <Marker
               key={loc.location_cluster_id || loc.id}

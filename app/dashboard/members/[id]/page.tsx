@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { formatDateOnly } from "@/src/lib/date";
+import { thumbUrl } from "@/src/lib/imageUrl";
 
 export const metadata = { title: "Member Profile | Family Nest" };
 
@@ -44,33 +45,25 @@ export default async function MemberProfilePage({
   const entries = entriesRes.data ?? [];
   const voiceMemos = voiceRes.data ?? [];
 
-  const { data: entryIdsData } = await supabase
-    .from("journal_entries")
-    .select("id")
-    .eq("author_id", id)
-    .eq("family_id", activeFamilyId);
-  const entryIds = (entryIdsData ?? []).map((e) => e.id);
-
-  let photos: { id: string; url: string; caption: string | null; entry_id: string }[] = [];
-  if (entryIds.length > 0) {
-    const photosRes = await supabase
+  // Fetch recent photos via a join (avoids two-step id lookup) + counts in parallel
+  const [photosRes, journalCount, voiceCount] = await Promise.all([
+    supabase
       .from("journal_photos")
-      .select("id, url, caption, entry_id")
-      .in("entry_id", entryIds)
+      .select("id, url, caption, entry_id, journal_entries!inner(author_id, family_id)")
+      .eq("journal_entries.author_id", id)
+      .eq("journal_entries.family_id", activeFamilyId)
       .order("created_at", { ascending: false })
-      .limit(6);
-    photos = (photosRes.data ?? []).map((p) => ({
-      id: p.id,
-      url: p.url,
-      caption: p.caption ?? null,
-      entry_id: p.entry_id,
-    }));
-  }
-
-  const [journalCount, voiceCount] = await Promise.all([
-    supabase.from("journal_entries").select("id", { count: "exact", head: true }).eq("author_id", id),
+      .limit(6),
+    supabase.from("journal_entries").select("id", { count: "exact", head: true }).eq("author_id", id).eq("family_id", activeFamilyId),
     supabase.from("voice_memos").select("id", { count: "exact", head: true }).eq("family_member_id", id),
   ]);
+
+  const photos = (photosRes.data ?? []).map((p) => ({
+    id: p.id,
+    url: p.url,
+    caption: p.caption ?? null,
+    entry_id: p.entry_id,
+  }));
 
   const birthdayStr = member.birth_date ? formatDateOnly(member.birth_date) : null;
   const memberSince = member.created_at
@@ -93,7 +86,7 @@ export default async function MemberProfilePage({
         <div className="shrink-0">
           {member.avatar_url ? (
             <img
-              src={member.avatar_url}
+              src={thumbUrl(member.avatar_url, 300)}
               alt={member.name}
               loading="lazy"
               className="h-[150px] w-[150px] rounded-full object-cover ring-4 ring-[var(--border)]"
@@ -158,7 +151,7 @@ export default async function MemberProfilePage({
                 className="block overflow-hidden rounded-lg bg-[var(--background)] aspect-square"
               >
                 <img
-                  src={p.url}
+                  src={thumbUrl(p.url, 400)}
                   alt={p.caption || `Photo by ${member.name}`}
                   loading="lazy"
                   className="h-full w-full object-cover"

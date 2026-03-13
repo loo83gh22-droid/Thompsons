@@ -61,10 +61,14 @@ export async function executeImport(
   let created = 0;
   let skipped = 0;
 
+  // Batch size for chunked inserts (avoids hitting Supabase payload limits)
+  const BATCH_SIZE = 50;
+
   if (contentType === "journal_entries") {
+    const valid: Record<string, unknown>[] = [];
     for (const row of rows as ParsedJournalEntry[]) {
       if (!row.title?.trim()) { skipped++; continue; }
-      const { error } = await supabase.from("journal_entries").insert({
+      valid.push({
         family_id: familyId,
         created_by: memberId,
         author_id: resolveMember(row.author) ?? memberId,
@@ -74,30 +78,35 @@ export async function executeImport(
         trip_date_end: row.trip_date_end ?? null,
         location: row.location ?? null,
       });
+    }
+    for (let i = 0; i < valid.length; i += BATCH_SIZE) {
+      const batch = valid.slice(i, i + BATCH_SIZE);
+      const { error } = await supabase.from("journal_entries").insert(batch);
       if (error) {
-        errors.push(`"${row.title}": ${error.message}`);
-        skipped++;
+        errors.push(`Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`);
+        skipped += batch.length;
       } else {
-        created++;
+        created += batch.length;
       }
     }
     revalidatePath("/dashboard/journal");
   } else if (contentType === "stories") {
+    const validCategories = [
+      "memorable_moments",
+      "family_history",
+      "advice_wisdom",
+      "traditions",
+      "recipes_food",
+      "other",
+    ];
+    const valid: Record<string, unknown>[] = [];
     for (const row of rows as ParsedStory[]) {
       if (!row.title?.trim()) { skipped++; continue; }
-      const validCategories = [
-        "memorable_moments",
-        "family_history",
-        "advice_wisdom",
-        "traditions",
-        "recipes_food",
-        "other",
-      ];
       const category =
         row.category && validCategories.includes(row.category)
           ? row.category
           : "other";
-      const { error } = await supabase.from("family_stories").insert({
+      valid.push({
         family_id: familyId,
         created_by: memberId,
         author_family_member_id: resolveMember(row.author) ?? memberId,
@@ -106,11 +115,15 @@ export async function executeImport(
         category,
         published: true,
       });
+    }
+    for (let i = 0; i < valid.length; i += BATCH_SIZE) {
+      const batch = valid.slice(i, i + BATCH_SIZE);
+      const { error } = await supabase.from("family_stories").insert(batch);
       if (error) {
-        errors.push(`"${row.title}": ${error.message}`);
-        skipped++;
+        errors.push(`Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`);
+        skipped += batch.length;
       } else {
-        created++;
+        created += batch.length;
       }
     }
     revalidatePath("/dashboard/stories");
@@ -124,9 +137,10 @@ export async function executeImport(
       .limit(1);
     let nextOrder = (last?.[0]?.sort_order ?? -1) + 1;
 
+    const valid: Record<string, unknown>[] = [];
     for (const row of rows as ParsedRecipe[]) {
       if (!row.title?.trim()) { skipped++; continue; }
-      const { error } = await supabase.from("recipes").insert({
+      valid.push({
         family_id: familyId,
         added_by: memberId,
         title: row.title.trim(),
@@ -136,20 +150,25 @@ export async function executeImport(
         occasions: row.occasions ?? null,
         sort_order: nextOrder++,
       });
+    }
+    for (let i = 0; i < valid.length; i += BATCH_SIZE) {
+      const batch = valid.slice(i, i + BATCH_SIZE);
+      const { error } = await supabase.from("recipes").insert(batch);
       if (error) {
-        errors.push(`"${row.title}": ${error.message}`);
-        skipped++;
+        errors.push(`Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`);
+        skipped += batch.length;
       } else {
-        created++;
+        created += batch.length;
       }
     }
     revalidatePath("/dashboard/recipes");
   } else if (contentType === "events") {
+    const validCategories = ["birthday", "anniversary", "holiday", "reunion", "other"];
+    const validRecurring = ["none", "annual", "monthly"];
+    const valid: Record<string, unknown>[] = [];
     for (const row of rows as ParsedEvent[]) {
       if (!row.title?.trim() || !row.event_date) { skipped++; continue; }
-      const validCategories = ["birthday", "anniversary", "holiday", "reunion", "other"];
-      const validRecurring = ["none", "annual", "monthly"];
-      const { error } = await supabase.from("family_events").insert({
+      valid.push({
         family_id: familyId,
         created_by: memberId,
         title: row.title.trim(),
@@ -164,11 +183,15 @@ export async function executeImport(
             ? row.recurring
             : "none",
       });
+    }
+    for (let i = 0; i < valid.length; i += BATCH_SIZE) {
+      const batch = valid.slice(i, i + BATCH_SIZE);
+      const { error } = await supabase.from("family_events").insert(batch);
       if (error) {
-        errors.push(`"${row.title}": ${error.message}`);
-        skipped++;
+        errors.push(`Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`);
+        skipped += batch.length;
       } else {
-        created++;
+        created += batch.length;
       }
     }
     revalidatePath("/dashboard/events");
