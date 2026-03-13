@@ -1,6 +1,6 @@
 # FamilyNest Billing & Plan Enforcement Findings
 
-Last audited: 2026-03-05
+Last audited: 2026-03-12
 
 ---
 
@@ -58,6 +58,36 @@ Last audited: 2026-03-05
 **Risk:** PUT handler lacked the `canManageNestKeepers` check that GET, POST, and DELETE all had.
 **Fix (2026-03-05):** Added `getFamilyPlan` + `canManageNestKeepers` check to PUT handler.
 
+### ✅ FIXED -- G12: Journal entry creation -- no `checkFeatureLimit` enforcement (CRITICAL)
+**File:** `app/dashboard/journal/actions.ts` -- `createJournalEntry` (line 15)
+**Risk:** Comment said "Journal entries are unlimited on all plans" but `PLAN_LIMITS.free.journalEntries = 5`. Free-plan families could create unlimited journal entries.
+**Fix (2026-03-12):** Added `checkFeatureLimit(supabase, activeFamilyId, plan.planType, "journalEntries", "journal_entries")` before the insert. Removed incorrect comment.
+
+### ✅ FIXED -- G13: `nest-keepers` DELETE -- missing plan check (Medium)
+**File:** `app/api/nest-keepers/route.ts` -- DELETE handler (line 284)
+**Risk:** DELETE checked `owner` role but not `canManageNestKeepers(plan)`. Downgraded families could still manage nest keepers.
+**Fix (2026-03-12):** Added `getFamilyPlan` + `canManageNestKeepers` check before the delete query, matching GET/POST/PUT.
+
+### ✅ FIXED -- G14: Home mosaic `removePhoto` -- no storage cleanup or family scoping (High)
+**File:** `app/dashboard/photos/actions.ts` -- `removePhoto` (line 72)
+**Risk:** (a) Deleted by `id` only with no `family_id` scope. (b) Did not remove the file from storage. (c) Did not call `subtractStorageUsage`.
+**Fix (2026-03-12):** `removePhoto` now fetches row scoped to `family_id`, deletes scoped to `family_id`, removes storage object, and calls `subtractStorageUsage`.
+
+### ✅ FIXED -- G15: Home mosaic `addPhoto` -- `file_size_bytes` column never populated (Medium)
+**File:** `app/dashboard/photos/actions.ts` -- `addPhoto` (line 53)
+**Risk:** Migration 080 added `file_size_bytes` to `home_mosaic_photos`, but the insert never set it.
+**Fix (2026-03-12):** Added `file_size_bytes: file.size` to the insert payload.
+
+### ✅ FIXED -- G16: Story cover upload -- client-side, no storage enforcement (High)
+**File:** `app/dashboard/stories/StoryForm.tsx` -- `handleCoverChange` (line 66)
+**Risk:** Cover images were uploaded directly from the client to Supabase storage without `enforceStorageLimit` or `addStorageUsage`.
+**Fix (2026-03-12):** Created `uploadStoryCover` Server Action in `stories/actions.ts` with `enforceStorageLimit` + `addStorageUsage`. `StoryForm.tsx` now calls the Server Action instead of uploading client-side.
+
+### ✅ FIXED -- G17: Favourites photo cleanup -- no storage decrement on update/remove (Medium)
+**File:** `app/dashboard/favourites/actions.ts`
+**Risk:** (a) `updateFavourite` replaced photos without removing old ones from storage. (b) `removeFavourite` soft-deleted but left photos in storage permanently.
+**Fix (2026-03-12):** Added `removeFavouritePhoto` helper. `updateFavourite` now cleans up old photo on replacement/clear. `removeFavourite` removes photo from storage and clears `photo_url` at soft-delete time.
+
 ---
 
 ## Billing Infrastructure (B#)
@@ -94,3 +124,19 @@ Last audited: 2026-03-05
 ### ✅ CONFIRMED CORRECT — B6: `storage_limit_bytes` default in migration
 **File:** `supabase/migrations/046_family_plans.sql`
 **Verification:** Default is `524288000` = exactly 500 MB. Correct for free plan. No action needed.
+
+---
+
+## Confirmed Correct (2026-03-12 re-audit)
+
+The following areas were re-checked and remain correctly implemented:
+
+- **Stripe webhook**: handles `checkout.session.completed`, `invoice.paid`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`. Customer ID cross-check in `activatePlan` is present.
+- **Stripe checkout**: reuses existing `stripe_customer_id`, creates new customer only if missing. Scoped to authenticated user's family. No customer ID passthrough from request body.
+- **Stripe portal**: fetches `stripe_customer_id` from DB only, does not accept it from request. Rate limited.
+- **Subscription downgrade**: `deactivatePlan` correctly sets `plan_type: "free"` on cancellation.
+- **Storage RPCs**: `increment_storage_used` capped with `LEAST()`, `decrement_storage_used` floored with `GREATEST(0, ...)`. Both atomic single-statement.
+- **Feature limits**: All of stories, recipes, time capsules, voice memos, traditions, events, map locations, and member count use `checkFeatureLimit()` / `memberLimit()` from `src/lib/plans.ts`. No hardcoded strings.
+- **Plan constants**: Free = 500 MB storage, Annual/Legacy = 50 GB. Values in `src/lib/constants.ts` match migration defaults.
+- **Storage tracking on upload**: journal photos, journal videos, voice memos, artwork, awards, pets, sports photos all call `enforceStorageLimit` + `addStorageUsage`.
+- **Storage tracking on delete**: journal photos, journal videos, voice memos, achievements, sports photos all call `subtractStorageUsage`.

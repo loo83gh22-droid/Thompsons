@@ -4,7 +4,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { validateSchema } from "@/src/lib/validation/errors";
 import { createStorySchema, updateStorySchema } from "./schemas";
-import { getFamilyPlan, checkFeatureLimit } from "@/src/lib/plans";
+import { getFamilyPlan, checkFeatureLimit, enforceStorageLimit, addStorageUsage } from "@/src/lib/plans";
 
 export async function createStory(
   title: string,
@@ -140,4 +140,29 @@ export async function removeStoryPerspective(perspectiveId: string) {
   if (!user) throw new Error("Not authenticated");
   const { error } = await supabase.from("story_perspectives").delete().eq("id", perspectiveId);
   if (error) throw new Error(error.message);
+}
+
+/** Upload a story cover image with storage enforcement (G16) */
+export async function uploadStoryCover(formData: FormData): Promise<{ url: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
+  const file = formData.get("file") as File | null;
+  if (!file || !file.type.startsWith("image/")) throw new Error("Invalid image file");
+
+  await enforceStorageLimit(supabase, activeFamilyId, file.size);
+
+  const ext = file.name.split(".").pop() || "jpg";
+  const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+  const { error: uploadError } = await supabase.storage
+    .from("story-covers")
+    .upload(path, file, { upsert: true });
+  if (uploadError) throw uploadError;
+
+  await addStorageUsage(supabase, activeFamilyId, file.size);
+
+  return { url: `/api/storage/story-covers/${path}` };
 }
