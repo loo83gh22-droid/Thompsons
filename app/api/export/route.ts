@@ -2,7 +2,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { TEXT_LIMITS, TIME_CONSTANTS } from "@/src/lib/constants";
 import { NextResponse } from "next/server";
-import JSZip from "jszip";
+import type JSZipType from "jszip";
 import { checkHttpRateLimit, strictLimiter } from "@/src/lib/httpRateLimit";
 
 // ---------------------------------------------------------------------------
@@ -210,7 +210,8 @@ export async function POST() {
 
     // --- Build the archive ---
     try {
-      const zip = new JSZip();
+      const { default: JSZip } = await import("jszip");
+      const zip = new (JSZip as typeof JSZipType)();
       const familyName = sanitize(family?.name ?? "family");
       const fid = activeFamilyId;
 

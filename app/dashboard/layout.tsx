@@ -69,27 +69,39 @@ export default async function DashboardLayout({
         if (myMembers && myMembers.length > 1 && user.created_at) {
           const userCreatedAt = new Date(user.created_at).getTime();
           const invitedFamilyIds = new Set(pendingInvites.map((p) => p.family_id));
+          const candidateIds = myMembers
+            .filter((m) => !invitedFamilyIds.has(m.family_id))
+            .map((m) => m.family_id);
+
           const toClean: string[] = [];
 
-          for (const m of myMembers) {
-            if (invitedFamilyIds.has(m.family_id)) continue; // keep invited families
-            // Check if this family was created at the same time as the auth user
-            // (indicating it was auto-created by a trigger, not by the user's choice)
-            const { data: fam } = await adminClient
-              .from("families")
-              .select("id, created_at")
-              .eq("id", m.family_id)
-              .single();
-            if (!fam) continue;
-            const familyAge = Math.abs(new Date(fam.created_at).getTime() - userCreatedAt);
-            if (familyAge > 60_000) continue; // older than 1 min → user chose it, keep it
-            // Verify sole member before deleting
-            const { count } = await adminClient
-              .from("family_members")
-              .select("id", { count: "exact", head: true })
-              .eq("family_id", m.family_id);
-            if (count !== 1) continue; // other members exist → don't touch it
-            toClean.push(m.family_id);
+          if (candidateIds.length > 0) {
+            // Batch-fetch family rows and member counts in two queries instead of N
+            const [{ data: families }, { data: memberCounts }] = await Promise.all([
+              adminClient
+                .from("families")
+                .select("id, created_at")
+                .in("id", candidateIds),
+              adminClient
+                .from("family_members")
+                .select("family_id")
+                .in("family_id", candidateIds),
+            ]);
+
+            const familyMap = new Map((families ?? []).map((f) => [f.id, f]));
+            const countMap = new Map<string, number>();
+            for (const row of memberCounts ?? []) {
+              countMap.set(row.family_id, (countMap.get(row.family_id) ?? 0) + 1);
+            }
+
+            for (const famId of candidateIds) {
+              const fam = familyMap.get(famId);
+              if (!fam) continue;
+              const familyAge = Math.abs(new Date(fam.created_at).getTime() - userCreatedAt);
+              if (familyAge > 60_000) continue;
+              if ((countMap.get(famId) ?? 0) !== 1) continue;
+              toClean.push(famId);
+            }
           }
 
           for (const famId of toClean) {
