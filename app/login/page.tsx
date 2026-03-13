@@ -153,7 +153,7 @@ function LoginForm() {
                 .
               </p>
               <p className="mt-4 text-xs text-[var(--muted)]">
-                Don&apos;t see it? Check your spam folder — it&apos;s from <strong>Family Nest</strong>.
+                Don&apos;t see it? Check your spam folder. It&apos;s from <strong>Family Nest</strong>.
               </p>
               <Link
                 href="/login"
@@ -178,7 +178,7 @@ function LoginForm() {
                 </p>
                 {name && (
                   <p className="mt-0.5 text-sm text-[var(--muted)]">
-                    Welcome, <strong className="text-[var(--foreground)]">{name}</strong> — your profile is already set up.
+                    Welcome, <strong className="text-[var(--foreground)]">{name}</strong>! Your profile is already set up.
                   </p>
                 )}
               </div>
@@ -187,7 +187,7 @@ function LoginForm() {
                 Create your password
               </h1>
               <p className="mt-1 text-sm text-[var(--muted)]">
-                That&apos;s all you need — your email is recognised and your profile is ready.
+                That&apos;s all you need. Your email is recognised and your profile is ready.
               </p>
 
               <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -314,11 +314,11 @@ function LoginForm() {
         </Link>
 
         <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-          {isSignUp ? "Sign up our Family" : "Welcome back"}
+          {isSignUp ? "Start our Family Nest" : "Welcome back"}
         </h1>
         <p className="mt-2 text-[var(--muted)]">
           {isSignUp
-            ? "Create your family site. Add members after signing up."
+            ? "Set up your Nest. You can add everyone else after."
             : "Sign in to access your family site."}
         </p>
 
@@ -332,7 +332,7 @@ function LoginForm() {
               We just sent a beautiful confirmation email to <strong className="text-[var(--foreground)]">{email}</strong>. Click the link inside to activate your Family Nest.
             </p>
             <p className="mt-4 text-xs text-[var(--muted)]">
-              Don&apos;t see it? Check your spam folder — it&apos;s from <strong>Family Nest</strong>.
+              Don&apos;t see it? Check your spam folder. It&apos;s from <strong>Family Nest</strong>.
             </p>
             <Link
               href="/login"

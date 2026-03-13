@@ -42,7 +42,7 @@ export function EmotionalSection() {
           >
             <p>
               I started building Family Nest because I wanted a place for my own
-              family — somewhere without ads, without recommendations, without
+              family. Somewhere without ads, without recommendations, without
               strangers in the feed. Just a private corner of the internet that
               belonged to us.
             </p>
@@ -110,7 +110,7 @@ export function EmotionalSection() {
             style={{ color: "var(--primary-foreground)", opacity: 0.6 }}
           >
             You don&apos;t have to move everything at once. Start with what
-            matters most — the rest can come over time.
+            matters most. The rest can come over time.
           </p>
         </div>
       </div>

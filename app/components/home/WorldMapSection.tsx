@@ -34,7 +34,7 @@ const CALLOUTS = [
   {
     icon: TrendingUp,
     heading: "Grows over time",
-    body: "Every new trip, every family addition — your map fills in as you use Family Nest.",
+    body: "Every new trip, every family addition. Your map fills in as you use Family Nest.",
   },
 ];
 

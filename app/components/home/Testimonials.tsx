@@ -19,7 +19,7 @@ const testimonials = [
   },
   {
     quote:
-      "My son started a Nest for his family. My daughter started one for hers. I'm in both — I just switch between them. I see my grandkids on both sides, all from one account. No juggling apps or group chats.",
+      "My son started a Nest for his family. My daughter started one for hers. I'm in both. I just switch between them. I see my grandkids on both sides, all from one account. No juggling apps or group chats.",
     name: "Patricia L.",
     location: "Scottsdale, AZ",
     role: "Grandparent in two families",
@@ -35,7 +35,7 @@ const testimonials = [
   },
   {
     quote:
-      "My grandmother's handwriting was fading on those recipe cards. Now her chicken soup recipe is in the Nest — with a voice memo of her explaining it. That's not just a recipe. That's her voice, saved forever.",
+      "My grandmother's handwriting was fading on those recipe cards. Now her chicken soup recipe is in the Nest, with a voice memo of her explaining it. That's not just a recipe. That's her voice, saved forever.",
     name: "Marcus H.",
     location: "Chicago, IL",
     role: "Son & family historian",
@@ -43,7 +43,7 @@ const testimonials = [
   },
   {
     quote:
-      "We tried a family group chat. Then a shared album. Then nothing stuck. The Nest is the first thing everyone actually uses — even my dad, who still calls it 'the family website.' He checks it every morning.",
+      "We tried a family group chat. Then a shared album. Then nothing stuck. The Nest is the first thing everyone actually uses. Even my dad, who still calls it 'the family website.' He checks it every morning.",
     name: "Claire & Tom B.",
     location: "Austin, TX",
     role: "Parents of four",
@@ -51,7 +51,7 @@ const testimonials = [
   },
   {
     quote:
-      "We started our Nest on our honeymoon. Every trip, every recipe we\u2019ve tried, every dumb inside joke — it\u2019s all in one place. We sealed a time capsule for our fifth anniversary. Way better than scrolling back through 10,000 photos looking for that one night in Portugal.",
+      "We started our Nest on our honeymoon. Every trip, every recipe we\u2019ve tried, every dumb inside joke, it\u2019s all in one place. We sealed a time capsule for our fifth anniversary. Way better than scrolling back through 10,000 photos looking for that one night in Portugal.",
     name: "Sarah & James M.",
     location: "Denver, CO",
     role: "Married 3 years",
@@ -92,10 +92,10 @@ export function Testimonials() {
               textWrap: "balance",
             }}
           >
-            What families are saying
+            Don&apos;t take our word for it
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg" style={{ color: "var(--muted)" }}>
-            From newlyweds to grandmothers to the kid who finally got Grandpa into the water.
+            From newlyweds to grandmothers to the kid who finally got Grandpa to use the internet.
           </p>
           <p className="mt-2 text-xs" style={{ color: "var(--muted)", opacity: 0.6 }}>
             Stories represent typical customer experiences.
