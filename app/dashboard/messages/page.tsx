@@ -38,7 +38,7 @@ export default async function SendMessagePage() {
           Send a message
         </h1>
         <p className="mt-2 text-[var(--muted)]">
-          Your message will pop up the next time recipients log in. Optionally set a date (e.g. Valentine&apos;s Day) for it to appear on that day.
+          Leave a note for someone. It&apos;ll pop up next time they log in, or pick a date to surprise them.
         </p>
       </div>
 

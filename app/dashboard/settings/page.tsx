@@ -72,8 +72,8 @@ function StorageBar({
       {pct > 80 && (
         <p className={`text-xs ${pct > 95 ? "text-[var(--error)]" : "text-[var(--warning)]"}`}>
           {pct > 95
-            ? "Storage almost full — consider upgrading your plan."
-            : "Storage getting full — you may want to upgrade soon."}
+            ? "Running low on space. Might be time for more room."
+            : "Space is filling up. Good problem to have."}
         </p>
       )}
     </div>
@@ -418,7 +418,7 @@ export default async function SettingsPage() {
                 Nest Keepers
               </p>
               <p className="text-[var(--muted)]">
-                Designate successors for your Family Nest
+                Choose who looks after your Nest if you can&apos;t
               </p>
             </div>
             <span className="text-[var(--muted)]">&rsaquo;</span>
@@ -432,7 +432,7 @@ export default async function SettingsPage() {
                 View Plans & Pricing
               </p>
               <p className="text-[var(--muted)]">
-                Compare features across all tiers
+                See what each plan includes
               </p>
             </div>
             <span className="text-[var(--muted)]">&rsaquo;</span>
@@ -446,7 +446,7 @@ export default async function SettingsPage() {
                 Change Password
               </p>
               <p className="text-[var(--muted)]">
-                Update your login credentials
+                Change your password
               </p>
             </div>
             <span className="text-[var(--muted)]">&rsaquo;</span>

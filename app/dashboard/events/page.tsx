@@ -86,7 +86,7 @@ export default async function EventsPage() {
             Family Events
           </h1>
           <p className="mt-2 text-[var(--muted)]">
-            Never miss a birthday, anniversary, or family celebration
+            Birthdays, anniversaries, and the stuff you&apos;d get in trouble for forgetting.
           </p>
         </div>
         <AddEventForm members={members} />
@@ -95,8 +95,8 @@ export default async function EventsPage() {
       {!events?.length ? (
         <EmptyState
           icon="📅"
-          headline="No events yet"
-          description="Add your family's important dates so you never miss a celebration!"
+          headline="Nothing on the calendar yet"
+          description="This isn't your day-to-day planner. This is where you add those dates that you should be ready for each trip around the sun."
           actionLabel="+ Add event"
           onAction={() => document.querySelector<HTMLButtonElement>("[data-add-event]")?.click()}
         />

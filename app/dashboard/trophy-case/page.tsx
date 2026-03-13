@@ -87,7 +87,7 @@ export default async function TrophyCasePage() {
           <EmptyState
             icon="🏆"
             headline="Trophy case is empty"
-            description="Start preserving the trophies, certificates, and recognitions your family has earned."
+            description="First place, Person of the Year, Hall of Fame... or 'Most Improved'. They all count here."
           />
           <div>
             <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-[var(--muted)]">

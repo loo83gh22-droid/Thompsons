@@ -63,7 +63,7 @@ export default async function ArtworkPage() {
               Artwork Portfolios
             </h1>
             <p className="mt-2 text-[var(--muted)]">
-              A growing gallery of every drawing, painting, and creation — one portfolio per person.
+              Every drawing, painting, and fridge-worthy creation. One gallery per artist.
             </p>
           </div>
         </div>
@@ -82,7 +82,7 @@ export default async function ArtworkPage() {
           <EmptyState
             icon="🎨"
             headline="No artwork yet"
-            description="Start capturing your children's creations — each person gets their own growing portfolio."
+            description="Upload your masterpieces!"
           />
           <div>
             <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-[var(--muted)]">

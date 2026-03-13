@@ -141,10 +141,10 @@ export default function PricingPage() {
         {/* Header */}
         <div className="text-center">
           <h1 className="font-display text-4xl font-bold tracking-tight text-[var(--foreground)] sm:text-5xl md:text-6xl">
-            Simple, transparent pricing
+            What it costs. No surprises.
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-[var(--muted)]">
-            Start free. Upgrade when your family is ready for more.
+            Start free. If you want more space and features, we&apos;ll be here.
           </p>
         </div>
 
