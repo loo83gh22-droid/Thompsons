@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const pageUrl = `https://familynest.io/share/artwork/${token}`;
 
   return {
-    title: `${piece.title} — Family Nest`,
+    title: `${piece.title} | Family Nest`,
     description,
     alternates: {
       canonical: pageUrl,
@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: `${piece.title} — Family Nest`,
+      title: `${piece.title} | Family Nest`,
       description,
     },
   };
@@ -200,7 +200,7 @@ export default async function PublicArtworkPage({ params }: Props) {
             href="/login"
             className="mt-4 inline-block rounded-full bg-[var(--primary)] px-8 py-3 font-medium text-[var(--primary-foreground)] hover:opacity-90"
           >
-            Start Your Family Nest — Free
+            Start Your Family Nest (Free)
           </Link>
         </div>
       </main>

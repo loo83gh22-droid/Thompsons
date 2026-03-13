@@ -53,7 +53,7 @@ export function StorageAddonButton({
       disabled={loading}
       className="mt-3 w-full rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/5 px-4 py-2 text-sm font-semibold text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/10 disabled:opacity-50"
     >
-      {loading ? "Loading..." : `Add ${label} — $${priceUsd}/yr`}
+      {loading ? "Loading..." : `Add ${label} · $${priceUsd}/yr`}
     </button>
   );
 }

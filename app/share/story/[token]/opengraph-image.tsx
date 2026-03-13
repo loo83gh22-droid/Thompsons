@@ -195,7 +195,7 @@ export default async function OGImage({
           <span
             style={{ fontSize: 14, color: "#7a7567", marginTop: 4 }}
           >
-            familynest.io — Capture memories, photos, recipes, and voices
+            familynest.io | Capture memories, photos, recipes, and voices
             for generations.
           </span>
         </div>

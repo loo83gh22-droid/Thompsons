@@ -4,7 +4,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { QUERY_LIMITS } from "@/src/lib/constants";
 
 export const metadata: Metadata = {
-  title: "My Family Nest — Dashboard",
+  title: "My Family Nest | Dashboard",
 };
 import { getActiveFamilyId } from "@/src/lib/family";
 import { PersonalGreeting } from "./PersonalGreeting";

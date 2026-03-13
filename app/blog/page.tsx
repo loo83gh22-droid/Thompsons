@@ -3,14 +3,14 @@ import Link from "next/link";
 import { posts } from "./posts";
 
 export const metadata: Metadata = {
-  title: "Family Memory & Parenting Tips — Family Nest Blog",
+  title: "Family Memory & Parenting Tips | Family Nest Blog",
   description:
     "Guides on preserving family memories, private photo sharing, digital time capsules, and keeping your whole family connected across generations.",
   alternates: { canonical: "/blog" },
   openGraph: {
-    title: "Family Nest Blog — Memory Keeping for Real Families",
+    title: "Family Nest Blog | Memory Keeping for Real Families",
     description:
-      "Practical guides on preserving photos, stories, recipes, and voices — so nothing important gets lost.",
+      "Practical guides on preserving photos, stories, recipes, and voices. So nothing important gets lost.",
     url: "https://familynest.io/blog",
     type: "website",
   },
@@ -51,8 +51,8 @@ export default function BlogPage() {
             Guides for families who care about their memories
           </h1>
           <p className="mx-auto max-w-2xl text-lg text-[var(--muted)]">
-            Practical articles on preserving photos, stories, voices, and
-            traditions — so nothing important gets lost to time.
+            Practical stuff on preserving photos, stories, voices, and
+            traditions. Because &quot;I&apos;ll do it later&quot; is how memories disappear.
           </p>
         </div>
       </div>
@@ -128,10 +128,10 @@ export default function BlogPage() {
             className="mb-3 text-2xl font-bold text-[var(--foreground)]"
             style={{ fontFamily: "var(--font-display-serif)" }}
           >
-            Ready to start preserving your family&apos;s memories?
+            You made it to the bottom. Now let&apos;s start preserving those family memories.
           </h2>
           <p className="mb-8 text-[var(--muted)]">
-            Invite your whole family — no app store required. Start on the free
+            Invite your whole family. No app store required. Start on the free
             plan and upgrade whenever you&apos;re ready.
           </p>
           <Link

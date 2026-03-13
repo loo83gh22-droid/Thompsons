@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Family Nest — Kid View",
+  title: "Family Nest | Kid View",
 };
 
 type Section =

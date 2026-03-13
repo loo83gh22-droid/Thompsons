@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const pageUrl = `https://familynest.io/share/story/${token}`;
 
   return {
-    title: `${story.title} — Family Nest`,
+    title: `${story.title} | Family Nest`,
     description,
     alternates: {
       canonical: pageUrl,
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: `${story.title} — Family Nest`,
+      title: `${story.title} | Family Nest`,
       description,
     },
   };
@@ -147,7 +147,7 @@ export default async function PublicStoryPage({ params }: Props) {
             href="/login"
             className="mt-4 inline-block rounded-full bg-[var(--primary)] px-8 py-3 font-medium text-[var(--primary-foreground)] hover:opacity-90"
           >
-            Start Your Family Nest — Free
+            Start Your Family Nest (Free)
           </Link>
         </div>
       </main>
