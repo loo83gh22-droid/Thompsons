@@ -1,3 +1,6 @@
+'use client';
+
+import { useState, useEffect, useCallback } from "react";
 import { Star } from "lucide-react";
 
 const testimonials = [
@@ -73,7 +76,88 @@ function StarRating() {
   );
 }
 
+function TestimonialCard({
+  item,
+  animating,
+}: {
+  item: (typeof testimonials)[number];
+  animating: boolean;
+}) {
+  return (
+    <div
+      className="flex flex-col rounded-2xl border p-8 transition-opacity duration-500"
+      style={{
+        backgroundColor: "var(--card)",
+        borderColor: "var(--border)",
+        opacity: animating ? 0 : 1,
+      }}
+    >
+      <div className="mb-4 flex items-start justify-between gap-2">
+        <StarRating />
+      </div>
+
+      <blockquote
+        className="flex-1 text-sm leading-relaxed"
+        style={{ color: "var(--foreground)" }}
+      >
+        &ldquo;{item.quote}&rdquo;
+      </blockquote>
+
+      <div
+        className="mt-6 flex items-center gap-3 border-t pt-5"
+        style={{ borderColor: "var(--border)" }}
+      >
+        <div
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+          style={{
+            backgroundColor: "rgba(61,107,94,0.12)",
+            color: "var(--primary)",
+          }}
+        >
+          {item.name.charAt(0)}
+        </div>
+        <div className="min-w-0">
+          <p
+            className="text-sm font-semibold"
+            style={{ color: "var(--foreground)" }}
+          >
+            {item.name}
+          </p>
+          <p className="text-xs" style={{ color: "var(--muted)" }}>
+            {item.role} &middot; {item.location}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const VISIBLE = 3;
+const INTERVAL = 5000;
+
 export function Testimonials() {
+  const [offset, setOffset] = useState(0);
+  const [animating, setAnimating] = useState(false);
+
+  const advance = useCallback(() => {
+    setAnimating(true);
+    setTimeout(() => {
+      setOffset((prev) => (prev + VISIBLE) % testimonials.length);
+      setAnimating(false);
+    }, 500);
+  }, []);
+
+  useEffect(() => {
+    const id = setInterval(advance, INTERVAL);
+    return () => clearInterval(id);
+  }, [advance]);
+
+  // Build the 3 visible cards, wrapping around the array
+  const visible = Array.from({ length: VISIBLE }, (_, i) => {
+    const idx = (offset + i) % testimonials.length;
+    return testimonials[idx];
+  });
+
   return (
     <section className="py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -103,53 +187,44 @@ export function Testimonials() {
         </div>
 
         <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map((item, index) => (
-            <div
-              key={index}
-              className="flex flex-col rounded-2xl border p-8"
-              style={{
-                backgroundColor: "var(--card)",
-                borderColor: "var(--border)",
-              }}
-            >
-              <div className="mb-4 flex items-start justify-between gap-2">
-                <StarRating />
-              </div>
-
-              <blockquote
-                className="flex-1 text-sm leading-relaxed"
-                style={{ color: "var(--foreground)" }}
-              >
-                &ldquo;{item.quote}&rdquo;
-              </blockquote>
-
-              <div
-                className="mt-6 flex items-center gap-3 border-t pt-5"
-                style={{ borderColor: "var(--border)" }}
-              >
-                <div
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
-                  style={{
-                    backgroundColor: "rgba(61,107,94,0.12)",
-                    color: "var(--primary)",
-                  }}
-                >
-                  {item.name.charAt(0)}
-                </div>
-                <div className="min-w-0">
-                  <p
-                    className="text-sm font-semibold"
-                    style={{ color: "var(--foreground)" }}
-                  >
-                    {item.name}
-                  </p>
-                  <p className="text-xs" style={{ color: "var(--muted)" }}>
-                    {item.role} &middot; {item.location}
-                  </p>
-                </div>
-              </div>
+          {visible.map((item, i) => (
+            <div key={`${offset}-${i}`} className={i === 1 ? "" : i === 0 ? "hidden sm:flex" : "hidden lg:flex"}>
+              <TestimonialCard item={item} animating={animating} />
             </div>
           ))}
+        </div>
+
+        {/* Dot indicators */}
+        <div className="mt-8 flex items-center justify-center gap-2">
+          {Array.from(
+            { length: Math.ceil(testimonials.length / VISIBLE) },
+            (_, i) => {
+              const groupStart = i * VISIBLE;
+              const isActive = offset === groupStart;
+              return (
+                <button
+                  key={i}
+                  onClick={() => {
+                    if (groupStart !== offset) {
+                      setAnimating(true);
+                      setTimeout(() => {
+                        setOffset(groupStart);
+                        setAnimating(false);
+                      }, 500);
+                    }
+                  }}
+                  className="h-2 rounded-full transition-all duration-300"
+                  style={{
+                    width: isActive ? 24 : 8,
+                    backgroundColor: isActive
+                      ? "var(--primary)"
+                      : "var(--border)",
+                  }}
+                  aria-label={`Show testimonials ${groupStart + 1} to ${Math.min(groupStart + VISIBLE, testimonials.length)}`}
+                />
+              );
+            }
+          )}
         </div>
       </div>
     </section>
