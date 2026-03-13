@@ -51,8 +51,8 @@ export default function BlogPage() {
             Guides for families who care about their memories
           </h1>
           <p className="mx-auto max-w-2xl text-lg text-[var(--muted)]">
-            Practical articles on preserving photos, stories, voices, and
-            traditions. So nothing important gets lost to time.
+            Practical stuff on preserving photos, stories, voices, and
+            traditions. Because &quot;I&apos;ll do it later&quot; is how memories disappear.
           </p>
         </div>
       </div>
@@ -128,7 +128,7 @@ export default function BlogPage() {
             className="mb-3 text-2xl font-bold text-[var(--foreground)]"
             style={{ fontFamily: "var(--font-display-serif)" }}
           >
-            Ready to start preserving your family&apos;s memories?
+            You made it to the bottom. Now let&apos;s start preserving those family memories.
           </h2>
           <p className="mb-8 text-[var(--muted)]">
             Invite your whole family. No app store required. Start on the free

@@ -144,7 +144,7 @@ export default function GiftPage() {
                 It cost less than a large bouquet of flowers.&rdquo;
               </p>
               <p className="text-sm" style={{ color: "var(--muted)" }}>
-                Daniel R. Portland, OR &middot; Dad &amp; Nest creator
+                Daniel R., Portland, OR
               </p>
             </div>
           </div>
@@ -215,7 +215,7 @@ export default function GiftPage() {
                   textWrap: "balance",
                 }}
               >
-                Four steps to the best gift they&apos;ve ever received
+                It takes ten minutes. They&apos;ll remember it forever.
               </h2>
             </div>
 

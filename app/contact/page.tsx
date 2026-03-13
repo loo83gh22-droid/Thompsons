@@ -92,7 +92,7 @@ function ContactForm() {
               Get in touch
             </h1>
             <p className="text-sm text-[var(--muted)]">
-              Questions, bug reports, feedback. We read every message.
+              Tell me your thoughts. I&apos;ll read every single one. Yes, really.
             </p>
           </div>
 
