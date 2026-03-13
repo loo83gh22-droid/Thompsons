@@ -79,8 +79,10 @@ export async function addFavourite(
   if (!activeFamilyId) throw new Error("No active family");
 
   let photoUrl: string | null = null;
+  let uploadedPath: string | null = null;
   if (photo && photo.size > 0) {
     photoUrl = await uploadFavouritePhoto(supabase, photo, activeFamilyId);
+    uploadedPath = photoUrl.replace("/api/storage/favourite-photos/", "");
   }
 
   const { error } = await supabase.from("favourites").insert({
@@ -95,7 +97,14 @@ export async function addFavourite(
     member_id: memberId,
   });
 
-  if (error) throw error;
+  if (error) {
+    // Rollback: remove orphaned file and undo storage counter (W20)
+    if (uploadedPath && photo) {
+      await supabase.storage.from("favourite-photos").remove([uploadedPath]);
+      await subtractStorageUsage(supabase, activeFamilyId, photo.size);
+    }
+    throw error;
+  }
   revalidateAll(category);
 }
 

@@ -6,7 +6,7 @@ import { Resend } from "resend";
 import { getActiveFamilyId, getActiveFamilyName } from "@/src/lib/family";
 import { ensureBirthdayEventForMember } from "@/app/dashboard/events/actions";
 import { detectRoleFromBirthDate, type MemberRole } from "@/src/lib/roles";
-import { getFamilyPlan, memberLimit } from "@/src/lib/plans";
+import { getFamilyPlan, memberLimit, subtractStorageUsage } from "@/src/lib/plans";
 import crypto from "crypto";
 
 /** Send invite email (server-only; no public API). */
@@ -501,7 +501,7 @@ export async function deleteFamilyMember(id: string) {
   // Prevent deleting the family owner
   const { data: target } = await supabase
     .from("family_members")
-    .select("role")
+    .select("role, avatar_url")
     .eq("id", id)
     .single();
   if (target?.role === "owner") throw new Error("Cannot remove the account owner.");
@@ -515,6 +515,27 @@ export async function deleteFamilyMember(id: string) {
     .eq("family_id", activeFamilyId)
     .single();
   if (currentMember?.role !== "owner") throw new Error("Only the account owner can remove members.");
+
+  // Clean up profile photo from storage before deleting (W18)
+  if (target?.avatar_url && activeFamilyId) {
+    const match = target.avatar_url.match(/\/api\/storage\/member-photos\/(.+)$/);
+    if (match) {
+      const storagePath = match[1];
+      const parts = storagePath.split("/");
+      const dir = parts.slice(0, -1).join("/");
+      const fileName = parts[parts.length - 1];
+      const { data: fileList } = await supabase.storage
+        .from("member-photos")
+        .list(dir, { search: fileName });
+      const fileSize = fileList?.[0]?.metadata?.size ?? 0;
+
+      await supabase.storage.from("member-photos").remove([storagePath]);
+
+      if (fileSize > 0) {
+        await subtractStorageUsage(supabase, activeFamilyId, fileSize);
+      }
+    }
+  }
 
   const { error } = await supabase.from("family_members").delete().eq("id", id);
 
