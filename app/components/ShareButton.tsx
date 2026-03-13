@@ -99,7 +99,7 @@ export function ShareButton({
   function handleNativeShare() {
     if (!shareUrl || !navigator.share) return;
     const shareTitle = title
-      ? `${title} — Family Nest`
+      ? `${title} | Family Nest`
       : `A family ${shareType} from Family Nest`;
     navigator.share({
       title: shareTitle,

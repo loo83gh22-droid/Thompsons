@@ -7,7 +7,7 @@ import { StorageAddonButton } from "./StorageAddonButton";
 import { PricingPixelEvent } from "./PricingPixelEvent";
 
 export const metadata: Metadata = {
-  title: "Pricing — Family Nest",
+  title: "Pricing | Family Nest",
   description:
     "Choose the right plan for your family. Free, Annual, or Lifetime Legacy access.",
   alternates: {

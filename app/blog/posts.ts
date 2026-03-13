@@ -21,7 +21,7 @@ export const posts: BlogPost[] = [
     slug: "private-family-photo-sharing-app",
     title: "The Best Private Family Photo Sharing App in 2026",
     description:
-      "Comparing private family photo sharing apps — what to look for, what to avoid, and how to find the one your whole family will actually use.",
+      "Comparing private family photo sharing apps: what to look for, what to avoid, and how to find the one your whole family will actually use.",
     publishedAt: "2026-02-10",
     updatedAt: "2026-03-01",
     category: "Family Tech",
@@ -50,11 +50,11 @@ export const posts: BlogPost[] = [
       {
         type: "ul",
         items: [
-          "No ads — if the app is free and serves ads, your family's photos are the product",
-          "Encryption at rest and in transit — your photos should be unreadable to anyone but your family",
+          "No ads. If the app is free and serves ads, your family's photos are the product",
+          "Encryption at rest and in transit. Your photos should be unreadable to anyone but your family",
           "No facial recognition or 'memories' surfaced to other users",
           "No data sharing with third parties for 'personalization'",
-          "Full data export — you should be able to get your photos back if you ever leave",
+          "Full data export. You should be able to get your photos back if you ever leave",
         ],
       },
       {
@@ -79,7 +79,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "Excellent for automatic backup, but neither was designed for family collaboration. Sharing an album requires managing access links, nothing is interactive, and there's no context — just photos floating without stories attached. And Google Photos' AI features mean your family's faces are being analyzed to improve Google's products.",
+        text: "Excellent for automatic backup, but neither was designed for family collaboration. Sharing an album requires managing access links, nothing is interactive, and there's no context. Just photos floating without stories attached. And Google Photos' AI features mean your family's faces are being analyzed to improve Google's products.",
       },
       {
         type: "h3",
@@ -87,7 +87,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "The obvious privacy issues aside, most families have mixed-age members. A 10-year-old shouldn't need a Facebook account to see family photos. And anything posted on social media is potentially visible far beyond your family — even with strict privacy settings.",
+        text: "The obvious privacy issues aside, most families have mixed-age members. A 10-year-old shouldn't need a Facebook account to see family photos. And anything posted on social media is potentially visible far beyond your family, even with strict privacy settings.",
       },
       {
         type: "h2",
@@ -103,11 +103,11 @@ export const posts: BlogPost[] = [
       },
       {
         type: "h3",
-        text: "Photos with context — not just storage",
+        text: "Photos with context, not just storage",
       },
       {
         type: "p",
-        text: "Photos without context are just hard drives. The best family photo apps let you add captions, dates, locations, and short stories — turning a photo into a memory. Even better if you can attach voice recordings. 'Huck's first catch, Costa Rica, February 2026 — he wouldn't stop talking about it for a week' is infinitely more valuable than IMG_4823.jpg.",
+        text: "Photos without context are just hard drives. The best family photo apps let you add captions, dates, locations, and short stories, turning a photo into a memory. Even better if you can attach voice recordings. 'Huck's first catch, Costa Rica, February 2026. He wouldn't stop talking about it for a week.' That's infinitely more valuable than IMG_4823.jpg.",
       },
       {
         type: "h3",
@@ -115,7 +115,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "A 7-year-old and a 45-year-old shouldn't have identical access in a family app. Look for platforms that support age-appropriate kid accounts — where children can contribute and view content without access to adult features or sensitive family information.",
+        text: "A 7-year-old and a 45-year-old shouldn't have identical access in a family app. Look for platforms that support age-appropriate kid accounts, where children can contribute and view content without access to adult features or sensitive family information.",
       },
       {
         type: "h3",
@@ -123,7 +123,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "You're not building a folder on your desktop — you're building a family record that will be browsed in 20 years. Look for chronological journals, map views of places your family has been, and searchable content. The best private family photo apps are designed to be browsed by your grandchildren, not just your current self.",
+        text: "You're not building a folder on your desktop. You're building a family record that will be browsed in 20 years. Look for chronological journals, map views of places your family has been, and searchable content. The best private family photo apps are designed to be browsed by your grandchildren, not just your current self.",
       },
       {
         type: "h3",
@@ -139,7 +139,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "FamilyNest started as a dad project — one father wanted a private space for his family without ads, without strangers in the feed, and without photos getting buried under unrelated messages. It grew because a lot of families wanted the same thing.",
+        text: "FamilyNest started as a dad project. One father wanted a private space for his family without ads, without strangers in the feed, and without photos getting buried under unrelated messages. It grew because a lot of families wanted the same thing.",
       },
       {
         type: "p",
@@ -148,22 +148,22 @@ export const posts: BlogPost[] = [
       {
         type: "ul",
         items: [
-          "Journal entries with photos and short videos attached — photos with context, not just storage",
+          "Journal entries with photos and short videos attached. Photos with context, not just storage",
           "Family map that plots everywhere your family has been, from vacations to birthplaces",
           "Voice memos to capture Grandma's stories in her own voice",
-          "Kid accounts with age-appropriate access — safe for children, useful for adults",
-          "Time capsules that unlock on a future date — write a letter to your kids today, set it to open in 2040",
-          "Works on any device with no app store required — add it to your home screen like an app",
+          "Kid accounts with age-appropriate access. Safe for children, useful for adults",
+          "Time capsules that unlock on a future date. Write a letter to your kids today, set it to open in 2040",
+          "Works on any device with no app store required. Add it to your home screen like an app",
           "No ads, no algorithm, no strangers in the feed",
         ],
       },
       {
         type: "p",
-        text: "Every plan includes full data export. The Legacy plan is a one-time lifetime purchase — because memories shouldn't depend on a subscription.",
+        text: "Every plan includes full data export. The Legacy plan is a one-time lifetime purchase, because memories shouldn't depend on a subscription.",
       },
       {
         type: "cta",
-        heading: "Start your family's private space — free",
+        heading: "Start your family's private space for free",
         body: "The free plan gets your whole family up and running. Upgrade to unlock unlimited entries, videos, voice memos, and more.",
         buttonText: "Start Your Family Nest",
         href: "/login?mode=signup",
@@ -174,7 +174,7 @@ export const posts: BlogPost[] = [
     slug: "how-to-preserve-family-memories-digitally",
     title: "How to Preserve Family Memories Digitally: A Complete Guide",
     description:
-      "A practical guide to digitally preserving your family's photos, stories, recipes, and voices — so nothing important gets lost to time.",
+      "A practical guide to digitally preserving your family's photos, stories, recipes, and voices. So nothing important gets lost to time.",
     publishedAt: "2026-02-18",
     updatedAt: "2026-03-01",
     category: "Memory Keeping",
@@ -182,11 +182,11 @@ export const posts: BlogPost[] = [
     content: [
       {
         type: "p",
-        text: "The average family takes over 1,000 photos per year. Most of them live on a phone until that phone breaks, gets upgraded, or is backed up to a cloud folder that nobody ever opens again. Grandma's recipe cards fade. Dad's fishing stories go untold. The videos from the beach trip five years ago are somewhere — probably.",
+        text: "The average family takes over 1,000 photos per year. Most of them live on a phone until that phone breaks, gets upgraded, or is backed up to a cloud folder that nobody ever opens again. Grandma's recipe cards fade. Dad's fishing stories go untold. The videos from the beach trip five years ago are somewhere. Probably.",
       },
       {
         type: "p",
-        text: "Digital preservation isn't just about storage — it's about making memories findable, shareable, and meaningful decades from now. This guide covers what to preserve, how to organize it, and the systems that actually hold up over time.",
+        text: "Digital preservation isn't just about storage. It's about making memories findable, shareable, and meaningful decades from now. This guide covers what to preserve, how to organize it, and the systems that actually hold up over time.",
       },
       {
         type: "h2",
@@ -198,7 +198,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "More importantly — and this is the part most people miss — photos without context lose their meaning over time. A box of prints with handwriting on the back tells a story. A folder called 'IMG_20190824_153422.jpg' tells you absolutely nothing. The goal of digital preservation isn't just to save files. It's to save meaning.",
+        text: "More importantly (and this is the part most people miss), photos without context lose their meaning over time. A box of prints with handwriting on the back tells a story. A folder called 'IMG_20190824_153422.jpg' tells you absolutely nothing. The goal of digital preservation isn't just to save files. It's to save meaning.",
       },
       {
         type: "h2",
@@ -206,11 +206,11 @@ export const posts: BlogPost[] = [
       },
       {
         type: "h3",
-        text: "1. Photos and videos — with context",
+        text: "1. Photos and videos (with context)",
       },
       {
         type: "p",
-        text: "The obvious one, but most families do it wrong. The goal isn't to keep everything — it's to curate the best and give each photo a caption, a date, and a story. 'First day of kindergarten, September 2023, Emma was terrified and thrilled in equal measure' will mean something in 30 years. The raw timestamp will not.",
+        text: "The obvious one, but most families do it wrong. The goal isn't to keep everything. It's to curate the best and give each photo a caption, a date, and a story. 'First day of kindergarten, September 2023, Emma was terrified and thrilled in equal measure' will mean something in 30 years. The raw timestamp will not.",
       },
       {
         type: "p",
@@ -222,7 +222,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "Every family has stories that only get told at holidays. Write them down. A journal entry from Mom describing what daily life was like in 2025 — what she worried about, what made her laugh, what the kids were obsessed with — will be extraordinary reading for your grandchildren. You don't need to write a memoir. A few paragraphs a month is enough.",
+        text: "Every family has stories that only get told at holidays. Write them down. A journal entry from Mom describing what daily life was like in 2025, what she worried about, what made her laugh, what the kids were obsessed with, will be extraordinary reading for your grandchildren. You don't need to write a memoir. A few paragraphs a month is enough.",
       },
       {
         type: "h3",
@@ -230,7 +230,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "Grandma's voice reading a bedtime story. A toddler's first words. Dad's laugh at the thing nobody else finds funny. These are irreplaceable, and they're the most emotionally powerful memories you can preserve — and the most commonly lost. Your phone can record them in seconds. Most families don't, and regret it later.",
+        text: "Grandma's voice reading a bedtime story. A toddler's first words. Dad's laugh at the thing nobody else finds funny. These are irreplaceable, and they're the most emotionally powerful memories you can preserve, and the most commonly lost. Your phone can record them in seconds. Most families don't, and regret it later.",
       },
       {
         type: "h3",
@@ -238,7 +238,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "Grandma's banana bread recipe exists in three places: her memory, a faded notecard, and scattered attempts to recreate it from memory after the notecard got lost. Documenting family recipes — with the actual story behind them, not just the ingredients — preserves something that simply cannot be Googled. Same goes for traditions: why does your family do that thing at Christmas? Preserve the origin story before it becomes 'we've always done it this way.'",
+        text: "Grandma's banana bread recipe exists in three places: her memory, a faded notecard, and scattered attempts to recreate it from memory after the notecard got lost. Documenting family recipes (with the actual story behind them, not just the ingredients) preserves something that simply cannot be Googled. Same goes for traditions: why does your family do that thing at Christmas? Preserve the origin story before it becomes 'we've always done it this way.'",
       },
       {
         type: "h3",
@@ -246,7 +246,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "First steps, first catch, first car, first job, first home. These are the chapter headings of a family's life. Capturing them consistently — even briefly — creates a timeline your family will return to again and again. Don't wait for the perfect photo or the perfect words. A short note the day it happens is worth more than a polished entry a year later.",
+        text: "First steps, first catch, first car, first job, first home. These are the chapter headings of a family's life. Capturing them consistently, even briefly, creates a timeline your family will return to again and again. Don't wait for the perfect photo or the perfect words. A short note the day it happens is worth more than a polished entry a year later.",
       },
       {
         type: "h3",
@@ -254,7 +254,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "A letter written today to your child's future self is one of the most meaningful things you can give them. 'Dear Emma, you're five years old today and you've just learned to ride your bike without training wheels...' Preserving meaningful messages — even birthday cards, even texts that capture a moment — creates a record of your family's emotional life that photos alone can't provide.",
+        text: "A letter written today to your child's future self is one of the most meaningful things you can give them. 'Dear Emma, you're five years old today and you've just learned to ride your bike without training wheels...' Preserving meaningful messages, even birthday cards, even texts that capture a moment, creates a record of your family's emotional life that photos alone can't provide.",
       },
       {
         type: "h2",
@@ -263,10 +263,10 @@ export const posts: BlogPost[] = [
       {
         type: "ul",
         items: [
-          "Relying on one platform: If Google Photos disappears or changes its terms, what happens to 12 years of family photos? Redundancy matters — at minimum, have a second backup.",
+          "Relying on one platform: If Google Photos disappears or changes its terms, what happens to 12 years of family photos? Redundancy matters. At minimum, have a second backup.",
           "Not adding context: A photo album without captions is just a pile of faces in a decade. Every preserved memory should answer: who, what, when, where, and why it mattered.",
           "Waiting for the 'right time': The right time to start was 10 years ago. The second best time is now. Memories become harder to document the further you are from them.",
-          "Keeping it one person's job: If only Mom is doing the documenting, the record reflects only one perspective. The richest family archives have contributions from everyone — including the kids.",
+          "Keeping it one person's job: If only Mom is doing the documenting, the record reflects only one perspective. The richest family archives have contributions from everyone, including the kids.",
           "Confusing backup with preservation: Having files on a hard drive is not the same as having a living, searchable, shareable family archive. Files need organization and context to be meaningful.",
         ],
       },
@@ -281,9 +281,9 @@ export const posts: BlogPost[] = [
       {
         type: "ul",
         items: [
-          "Make contribution effortless — the tool should take less time than texting a photo to a group chat",
-          "Make it cross-generational — if Grandma can't use it comfortably, you've lost her perspective, which is often the most valuable",
-          "Make it permanent — your archive should outlast any single platform, device, or subscription",
+          "Make contribution effortless: the tool should take less time than texting a photo to a group chat",
+          "Make it cross-generational: if Grandma can't use it comfortably, you've lost her perspective, which is often the most valuable",
+          "Make it permanent: your archive should outlast any single platform, device, or subscription",
         ],
       },
       {
@@ -296,20 +296,20 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "The tool that works for your family is the one your whole family will actually use. That means it needs to work for the 75-year-old who's not comfortable with apps and the 12-year-old who's never used anything that isn't on a phone. It needs to be private, so family members feel comfortable sharing honestly. And it needs to be designed for the long term — not just for sharing moments, but for preserving them.",
+        text: "The tool that works for your family is the one your whole family will actually use. That means it needs to work for the 75-year-old who's not comfortable with apps and the 12-year-old who's never used anything that isn't on a phone. It needs to be private, so family members feel comfortable sharing honestly. And it needs to be designed for the long term, not just for sharing moments, but for preserving them.",
       },
       {
         type: "p",
-        text: "FamilyNest was built specifically for this: a private, permanent family archive where every generation contributes. Journals with photos, voice memos, a family map, recipes, time capsules, and traditions — all in one place, accessible on any device, with no ads and no algorithm deciding what gets seen.",
+        text: "FamilyNest was built specifically for this: a private, permanent family archive where every generation contributes. Journals with photos, voice memos, a family map, recipes, time capsules, and traditions. All in one place, accessible on any device, with no ads and no algorithm deciding what gets seen.",
       },
       {
         type: "p",
-        text: "Every plan includes full data export, so your family's memories are always yours — not held hostage by a subscription.",
+        text: "Every plan includes full data export, so your family's memories are always yours. Not held hostage by a subscription.",
       },
       {
         type: "cta",
         heading: "Start preserving your family's memories",
-        body: "Invite your parents, grandparents, and kids — everyone contributes their own memories, and nothing gets buried. Start on the free plan and upgrade whenever you're ready.",
+        body: "Invite your parents, grandparents, and kids. Everyone contributes their own memories, and nothing gets buried. Start on the free plan and upgrade whenever you're ready.",
         buttonText: "Start Your Family Nest",
         href: "/login?mode=signup",
       },
@@ -319,7 +319,7 @@ export const posts: BlogPost[] = [
     slug: "family-time-capsule-ideas",
     title: "15 Family Time Capsule Ideas to Open Years From Now",
     description:
-      "Fun, meaningful, and deeply personal time capsule ideas for families — from letters to your kids to predictions about the future.",
+      "Fun, meaningful, and deeply personal time capsule ideas for families, from letters to your kids to predictions about the future.",
     publishedAt: "2026-02-28",
     updatedAt: "2026-03-01",
     category: "Family Activities",
@@ -327,11 +327,11 @@ export const posts: BlogPost[] = [
     content: [
       {
         type: "p",
-        text: "A time capsule is one of the oldest ways humans have preserved meaning across time — the idea that something you create today will matter deeply to someone in the future. For families, time capsules have a special power: they let you speak directly to your future selves, your children, or grandchildren you haven't met yet.",
+        text: "A time capsule is one of the oldest ways humans have preserved meaning across time. The idea that something you create today will matter deeply to someone in the future. For families, time capsules have a special power: they let you speak directly to your future selves, your children, or grandchildren you haven't met yet.",
       },
       {
         type: "p",
-        text: "Here are 15 family time capsule ideas — from sentimental letters to surprisingly moving everyday details — plus how to actually set one up so it gets opened on the right day.",
+        text: "Here are 15 family time capsule ideas, from sentimental letters to surprisingly moving everyday details, plus how to actually set one up so it gets opened on the right day.",
       },
       {
         type: "h2",
@@ -339,7 +339,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "The best time capsules are specific, personal, and have a clear opening date. 'Grandma's thoughts on the world in 2025' is far more interesting than 'a collection of newspaper clippings.' The goal is to capture the texture of right now — the things that feel ordinary today but will feel extraordinary in 20 years.",
+        text: "The best time capsules are specific, personal, and have a clear opening date. 'Grandma's thoughts on the world in 2025' is far more interesting than 'a collection of newspaper clippings.' The goal is to capture the texture of right now. The things that feel ordinary today but will feel extraordinary in 20 years.",
       },
       {
         type: "p",
@@ -355,7 +355,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "Write it when they're young. Describe who they are right now — what makes them laugh, what they're afraid of, what they want to be when they grow up. Set it to open on their 18th birthday, their graduation, or their wedding day. This is one of the most meaningful things a parent can give a child.",
+        text: "Write it when they're young. Describe who they are right now. What makes them laugh, what they're afraid of, what they want to be when they grow up. Set it to open on their 18th birthday, their graduation, or their wedding day. This is one of the most meaningful things a parent can give a child.",
       },
       {
         type: "h3",
@@ -387,7 +387,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "Favorite meal. Favorite vacation. Favorite movie. Funniest thing that happened. The inside joke nobody outside the family would understand. Preserve the texture of one ordinary year — future readers will treasure it.",
+        text: "Favorite meal. Favorite vacation. Favorite movie. Funniest thing that happened. The inside joke nobody outside the family would understand. Preserve the texture of one ordinary year. Future readers will treasure it.",
       },
       {
         type: "h3",
@@ -403,7 +403,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "Gas. Groceries. A house in your neighborhood. A movie ticket. Coffee. Future readers — especially your grandchildren — will be stunned. This one sounds mundane and turns out to be one of the most fascinating documents in any time capsule.",
+        text: "Gas. Groceries. A house in your neighborhood. A movie ticket. Coffee. Future readers, especially your grandchildren, will be stunned. This one sounds mundane and turns out to be one of the most fascinating documents in any time capsule.",
       },
       {
         type: "h3",
@@ -411,7 +411,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "What do you want your grandchildren to know about who you are, what you value, and what this era felt like to live through? Not headlines — your experience. What were the conversations at your dinner table? What did you worry about? What gave you hope?",
+        text: "What do you want your grandchildren to know about who you are, what you value, and what this era felt like to live through? Not headlines. Your experience. What were the conversations at your dinner table? What did you worry about? What gave you hope?",
       },
       {
         type: "h3",
@@ -419,7 +419,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "An honest record of what you're worried about and what you're looking forward to. The emotional truth of right now — not the highlight reel. This is the most vulnerable capsule to create and often the most meaningful to read.",
+        text: "An honest record of what you're worried about and what you're looking forward to. The emotional truth of right now, not the highlight reel. This is the most vulnerable capsule to create and often the most meaningful to read.",
       },
       {
         type: "h3",
@@ -435,7 +435,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "Not just a photo — a journal entry describing exactly what was happening: who said what, how it felt, what happened right before and after the shutter clicked. The photo shows the moment. The story makes it a memory.",
+        text: "Not just a photo. A journal entry describing exactly what was happening: who said what, how it felt, what happened right before and after the shutter clicked. The photo shows the moment. The story makes it a memory.",
       },
       {
         type: "h3",
@@ -443,7 +443,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "Not just the ingredients and steps — the memory. Who taught it to you. What occasions it belongs to. The one thing you always forget to add until halfway through. The version your grandmother made versus the version you make. Recipes with stories are a form of inheritance.",
+        text: "Not just the ingredients and steps. The memory. Who taught it to you. What occasions it belongs to. The one thing you always forget to add until halfway through. The version your grandmother made versus the version you make. Recipes with stories are a form of inheritance.",
       },
       {
         type: "h3",
@@ -451,11 +451,11 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "Write the letter you'd want your child to read on their wedding day, their first day as a parent, or when they're struggling with something hard. You don't know exactly when they'll need it — but writing it now means it exists when they do.",
+        text: "Write the letter you'd want your child to read on their wedding day, their first day as a parent, or when they're struggling with something hard. You don't know exactly when they'll need it, but writing it now means it exists when they do.",
       },
       {
         type: "h3",
-        text: "14. What's happening in the world — through your eyes",
+        text: "14. What's happening in the world, through your eyes",
       },
       {
         type: "p",
@@ -467,7 +467,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "A receipt. A grocery list. A screenshot of what your phone's home screen looked like. A doodle. A playlist. What you had for dinner on a random Tuesday. Ordinary artifacts become extraordinary documents over time. Future readers will find the mundane details just as fascinating as the meaningful ones — sometimes more.",
+        text: "A receipt. A grocery list. A screenshot of what your phone's home screen looked like. A doodle. A playlist. What you had for dinner on a random Tuesday. Ordinary artifacts become extraordinary documents over time. Future readers will find the mundane details just as fascinating as the meaningful ones. Sometimes more.",
       },
       {
         type: "h2",
@@ -479,7 +479,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "Digital time capsules solve the durability problem but create new ones: the service might disappear, file formats change, and there's no physical object to 'find.' The best approach is redundancy — but if you're choosing one format, a well-maintained digital archive on a platform designed for permanence is more reliable than a box in the attic.",
+        text: "Digital time capsules solve the durability problem but create new ones: the service might disappear, file formats change, and there's no physical object to 'find.' The best approach is redundancy, but if you're choosing one format, a well-maintained digital archive on a platform designed for permanence is more reliable than a box in the attic.",
       },
       {
         type: "h2",
@@ -491,7 +491,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "FamilyNest has a built-in time capsule feature. You write a letter or record a voice memo, set an unlock date, and it stays sealed until that day arrives. Family members can each contribute their own capsules — and the whole family gets notified when one unlocks. No managing files, no hoping the service is still around, no box in the attic that gets moved in the next renovation.",
+        text: "FamilyNest has a built-in time capsule feature. You write a letter or record a voice memo, set an unlock date, and it stays sealed until that day arrives. Family members can each contribute their own capsules, and the whole family gets notified when one unlocks. No managing files, no hoping the service is still around, no box in the attic that gets moved in the next renovation.",
       },
       {
         type: "p",

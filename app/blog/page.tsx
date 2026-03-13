@@ -3,14 +3,14 @@ import Link from "next/link";
 import { posts } from "./posts";
 
 export const metadata: Metadata = {
-  title: "Family Memory & Parenting Tips — Family Nest Blog",
+  title: "Family Memory & Parenting Tips | Family Nest Blog",
   description:
     "Guides on preserving family memories, private photo sharing, digital time capsules, and keeping your whole family connected across generations.",
   alternates: { canonical: "/blog" },
   openGraph: {
-    title: "Family Nest Blog — Memory Keeping for Real Families",
+    title: "Family Nest Blog | Memory Keeping for Real Families",
     description:
-      "Practical guides on preserving photos, stories, recipes, and voices — so nothing important gets lost.",
+      "Practical guides on preserving photos, stories, recipes, and voices. So nothing important gets lost.",
     url: "https://familynest.io/blog",
     type: "website",
   },
@@ -52,7 +52,7 @@ export default function BlogPage() {
           </h1>
           <p className="mx-auto max-w-2xl text-lg text-[var(--muted)]">
             Practical articles on preserving photos, stories, voices, and
-            traditions — so nothing important gets lost to time.
+            traditions. So nothing important gets lost to time.
           </p>
         </div>
       </div>
@@ -131,7 +131,7 @@ export default function BlogPage() {
             Ready to start preserving your family&apos;s memories?
           </h2>
           <p className="mb-8 text-[var(--muted)]">
-            Invite your whole family — no app store required. Start on the free
+            Invite your whole family. No app store required. Start on the free
             plan and upgrade whenever you&apos;re ready.
           </p>
           <Link

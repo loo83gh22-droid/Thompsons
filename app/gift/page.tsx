@@ -35,7 +35,7 @@ const steps = [
   {
     number: "3",
     title: "Wrap the login on a card",
-    description: "Write the email and password on a card. Many families add a printed photo as the cover — that's it.",
+    description: "Write the email and password on a card. Many families add a printed photo as the cover. That's it.",
   },
   {
     number: "4",

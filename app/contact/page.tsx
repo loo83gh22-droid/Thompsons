@@ -72,8 +72,8 @@ function ContactForm() {
             Message sent!
           </h1>
           <p className="text-sm text-[var(--muted)] leading-relaxed mb-8">
-            Thanks for reaching out. We&apos;ve sent you a confirmation — we&apos;ll get
-            back to you as soon as possible.
+            Thanks for reaching out. We&apos;ve sent you a confirmation and we&apos;ll get
+            back to you as soon as we can.
           </p>
           <Link
             href="/"
@@ -92,7 +92,7 @@ function ContactForm() {
               Get in touch
             </h1>
             <p className="text-sm text-[var(--muted)]">
-              Questions, bug reports, feedback — we read every message.
+              Questions, bug reports, feedback. We read every message.
             </p>
           </div>
 
@@ -191,7 +191,7 @@ function ContactForm() {
             </button>
 
             <p className="text-xs text-[var(--muted)] text-center">
-              We&apos;ll reply to your email — usually within 24 hours.
+              We&apos;ll reply to your email, usually within 24 hours.
             </p>
           </form>
         </>

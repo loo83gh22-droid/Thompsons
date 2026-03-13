@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Family Nest — Private Family Journal & Memory App";
+export const alt = "Family Nest | Private Family Journal & Memory App";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -95,7 +95,7 @@ export default function Image() {
           }}
         >
           A private space for your family&apos;s journals, photos, voice memos,
-          and memories — not social media.
+          and memories. Not social media.
         </div>
 
         {/* Feature pills */}

@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const pageUrl = `https://familynest.io/share/recipe/${token}`;
 
   return {
-    title: `${recipe.title} — Family Nest`,
+    title: `${recipe.title} | Family Nest`,
     description,
     alternates: {
       canonical: pageUrl,
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: `${recipe.title} — Family Nest`,
+      title: `${recipe.title} | Family Nest`,
       description,
     },
   };

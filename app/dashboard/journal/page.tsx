@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "Family Journal — Family Nest",
+  title: "Family Journal | Family Nest",
 };
 import { createClient } from "@/src/lib/supabase/server";
 import { formatDateOnly } from "@/src/lib/date";
