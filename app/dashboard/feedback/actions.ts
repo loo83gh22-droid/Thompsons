@@ -74,10 +74,14 @@ export async function updateFeedbackStatus(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: "Not authenticated" };
 
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { success: false, error: "No active family" };
+
     const { error } = await supabase
       .from("feedback")
       .update({ status, updated_at: new Date().toISOString() })
-      .eq("id", feedbackId);
+      .eq("id", feedbackId)
+      .eq("family_id", activeFamilyId);
 
     if (error) return { success: false, error: error.message };
 
@@ -97,6 +101,9 @@ export async function respondToFeedback(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: "Not authenticated" };
 
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { success: false, error: "No active family" };
+
     const trimmed = response.trim();
     if (!trimmed) return { success: false, error: "Response cannot be empty" };
 
@@ -108,7 +115,8 @@ export async function respondToFeedback(
         status: "read",
         updated_at: new Date().toISOString(),
       })
-      .eq("id", feedbackId);
+      .eq("id", feedbackId)
+      .eq("family_id", activeFamilyId);
 
     if (error) return { success: false, error: error.message };
 
@@ -127,10 +135,16 @@ export async function deleteFeedback(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: "Not authenticated" };
 
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { success: false, error: "No active family" };
+
+    // Only allow the original submitter to delete their own feedback
     const { error } = await supabase
       .from("feedback")
       .delete()
-      .eq("id", feedbackId);
+      .eq("id", feedbackId)
+      .eq("family_id", activeFamilyId)
+      .eq("user_id", user.id);
 
     if (error) return { success: false, error: error.message };
 
