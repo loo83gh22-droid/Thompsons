@@ -167,7 +167,7 @@ function TreePreview() {
         <div style={{ width: 10, height: 2, background: LINE }} />
         <span style={{ fontSize: 9, color: "#c47c3a", lineHeight: 1 }}>♥</span>
         <div style={{ width: 10, height: 2, background: LINE }} />
-        <TreeNode initials="Gpa" bg="#3d6b5e" label="Grandpa" />
+        <TreeNode initials="Gpa" bg="#3d6b5e" label="Gramps" />
       </div>
 
       <div style={{ width: 2, height: 11, background: LINE }} />
