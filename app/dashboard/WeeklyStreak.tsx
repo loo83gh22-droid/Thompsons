@@ -67,7 +67,7 @@ export function WeeklyStreak({ activeDays, weekStreak }: WeeklyStreakProps) {
         {week.map((day) => (
           <div key={day.iso} className="flex flex-1 flex-col items-center gap-1.5">
             <div
-              className={`relative flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium transition-all duration-200 ${
+              className={`relative flex h-8 w-8 min-[400px]:h-9 min-[400px]:w-9 items-center justify-center rounded-full text-xs min-[400px]:text-sm font-medium transition-all duration-200 ${
                 day.isActive
                   ? "bg-[var(--accent)] text-white shadow-md"
                   : day.isToday

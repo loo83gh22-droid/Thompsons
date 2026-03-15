@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { removeTradition, updateTradition } from "./actions";
 import { EmptyStateGuide } from "@/app/components/EmptyStateGuide";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ type Tradition = {
   when_it_happens: string | null;
   added_by: string | null;
   added_by_member: { name: string } | { name: string }[] | null;
+  photo_url: string | null;
 };
 
 export function TraditionList({ traditions }: { traditions: Tradition[] }) {
@@ -98,10 +100,22 @@ export function TraditionList({ traditions }: { traditions: Tradition[] }) {
         return (
           <article
             key={t.id}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6"
+            className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]"
           >
+            {t.photo_url && !isEditing && (
+              <div className="relative h-48 w-full">
+                <Image
+                  src={t.photo_url}
+                  alt={t.title}
+                  fill
+                  unoptimized
+                  className="object-cover"
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                />
+              </div>
+            )}
             {isEditing ? (
-              <form onSubmit={(e) => handleSave(e, t.id)} className="space-y-3">
+              <form onSubmit={(e) => handleSave(e, t.id)} className="space-y-3 p-6">
                 <div>
                   <label className="block text-sm font-medium text-[var(--muted)]">Title *</label>
                   <input
@@ -150,7 +164,7 @@ export function TraditionList({ traditions }: { traditions: Tradition[] }) {
                 </div>
               </form>
             ) : (
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start justify-between gap-4 p-6">
                 <div className="min-w-0 flex-1">
                   <h3 className="font-display text-lg font-semibold text-[var(--foreground)]">
                     {t.title}

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
 import { addTradition } from "./actions";
@@ -19,6 +20,9 @@ export function AddTraditionForm() {
   const [description, setDescription] = useState("");
   const [whenItHappens, setWhenItHappens] = useState("");
   const [addedById, setAddedById] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!activeFamilyId) return;
@@ -34,22 +38,53 @@ export function AddTraditionForm() {
     fetchMembers();
   }, [activeFamilyId]);
 
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoFile(file);
+    const url = URL.createObjectURL(file);
+    setPhotoPreview(url);
+  }
+
+  function removePhoto() {
+    setPhotoFile(null);
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!title.trim() || !description.trim()) return;
     setLoading(true);
     setError(null);
     try {
+      let photoUrl: string | undefined;
+
+      if (photoFile && activeFamilyId) {
+        const supabase = createClient();
+        const ext = photoFile.name.split(".").pop() ?? "jpg";
+        const path = `${activeFamilyId}/traditions/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("tradition-photos")
+          .upload(path, photoFile, { contentType: photoFile.type, upsert: false });
+        if (uploadError) throw new Error("Photo upload failed: " + uploadError.message);
+        const { data: urlData } = supabase.storage.from("tradition-photos").getPublicUrl(path);
+        photoUrl = urlData.publicUrl;
+      }
+
       await addTradition({
         title: title.trim(),
         description: description.trim(),
         whenItHappens: whenItHappens.trim() || undefined,
         addedById: addedById || undefined,
+        photoUrl,
       });
       setTitle("");
       setDescription("");
       setWhenItHappens("");
       setAddedById("");
+      removePhoto();
       setOpen(false);
       router.refresh();
     } catch (err) {
@@ -123,6 +158,47 @@ export function AddTraditionForm() {
             rows={5}
             placeholder="The chant, the ritual, the inside joke — document it all so it doesn't get lost."
             className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-[var(--muted)]">
+            Photo <span className="font-normal">(optional)</span>
+          </label>
+          {photoPreview ? (
+            <div className="mt-1 relative inline-block">
+              <Image
+                src={photoPreview}
+                alt="Preview"
+                width={200}
+                height={150}
+                className="rounded-lg object-cover"
+                unoptimized
+              />
+              <button
+                type="button"
+                onClick={removePhoto}
+                className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white text-xs hover:bg-red-600"
+                aria-label="Remove photo"
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="mt-1 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-[var(--border)] bg-[var(--background)] px-4 py-6 text-sm text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+            >
+              📷 Add a photo of this tradition
+            </button>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoChange}
+            className="hidden"
           />
         </div>
 

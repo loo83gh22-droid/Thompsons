@@ -6,7 +6,7 @@ import { saveOneLineEntry, deleteOneLineEntry } from "./actions";
 
 type Entry = { id: string; entry_date: string; content: string };
 
-const MAX_CHARS = 140;
+const MAX_CHARS = 300;
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",

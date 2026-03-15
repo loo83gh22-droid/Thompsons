@@ -18,6 +18,7 @@ export default async function TraditionsPage() {
       description,
       when_it_happens,
       added_by,
+      photo_url,
       added_by_member:family_members!added_by(name)
     `)
     .eq("family_id", activeFamilyId)

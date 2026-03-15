@@ -79,7 +79,7 @@ export function FamilySummaryStrip({
             {members.length} member{members.length === 1 ? "" : "s"}
           </span>
         </Link>
-        <span className="text-sm text-[var(--muted)]">
+        <span className="text-xs min-[400px]:text-sm text-[var(--muted)]">
           {photoCount} photos · {journalCount} journal · {voiceMemoCount} voice memos
         </span>
         {lastActivityAt && (
