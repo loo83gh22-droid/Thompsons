@@ -10,6 +10,7 @@ export async function addTradition(data: {
   description: string;
   whenItHappens?: string;
   addedById?: string;
+  photoUrl?: string;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -38,6 +39,7 @@ export async function addTradition(data: {
     when_it_happens: data.whenItHappens?.trim() || null,
     added_by: data.addedById || null,
     sort_order: nextOrder,
+    photo_url: data.photoUrl || null,
   });
 
   if (error) throw error;

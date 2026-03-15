@@ -100,6 +100,22 @@ export default async function TimelinePage({
       .limit(QUERY_LIMITS.timelineItemsPerType),
   ]);
 
+  // Batch-fetch photos for journal entries (like journal page does)
+  const journalIds = (journalRes.data ?? []).map((j) => j.id);
+  const photosByEntryId = new Map<string, string>();
+  if (journalIds.length > 0) {
+    const { data: photos } = await supabase
+      .from("journal_photos")
+      .select("journal_entry_id, url, sort_order")
+      .in("journal_entry_id", journalIds)
+      .order("sort_order", { ascending: true });
+    for (const p of photos ?? []) {
+      if (!photosByEntryId.has(p.journal_entry_id)) {
+        photosByEntryId.set(p.journal_entry_id, p.url);
+      }
+    }
+  }
+
   for (const row of journalRes.data ?? []) {
     const date = row.trip_date ?? row.created_at?.slice(0, 10) ?? "";
     const { name, relationship } = authorDisplay(row.family_members, aliasMap);
@@ -112,7 +128,7 @@ export default async function TimelinePage({
       authorName: name,
       authorRelationship: relationship,
       authorMemberId: row.author_id ?? null,
-      thumbnailUrl: null,
+      thumbnailUrl: photosByEntryId.get(row.id) ?? null,
       href: `/dashboard/journal/${row.id}`,
     });
   }

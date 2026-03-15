@@ -34,7 +34,7 @@ export async function addBucketListItem(data: {
     added_by: data.addedBy,
     status: "dream",
     category: data.category || null,
-    target_date: data.targetDate || null,
+    target_date: data.targetDate ? (data.targetDate.length === 7 ? data.targetDate + "-01" : data.targetDate) : null,
   });
 
   if (error) throw error;

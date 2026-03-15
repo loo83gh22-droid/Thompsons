@@ -19,8 +19,8 @@ export async function saveOneLineEntry(
     if (!activeFamilyId) return { success: false, error: "No active family" };
 
     const trimmed = content.trim();
-    if (!trimmed || trimmed.length > 140)
-      return { success: false, error: "Entry must be 1–140 characters" };
+    if (!trimmed || trimmed.length > 300)
+      return { success: false, error: "Entry must be 1–300 characters" };
 
     const { error } = await supabase.from("one_line_entries").upsert(
       {
