@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 export type ActivityItem = {
-  type: "photo" | "journal" | "voice_memo" | "message";
+  type: "photo" | "journal" | "voice_memo" | "message" | "story";
   id: string;
   createdAt: string;
   tripDate?: string | null;
@@ -43,6 +43,7 @@ function ActivityIcon({ type }: { type: ActivityItem["type"] }) {
     journal: "📔",
     voice_memo: "🎙️",
     message: "💌",
+    story: "📖",
   };
   return (
     <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--surface-hover)] text-2xl">
@@ -56,6 +57,7 @@ const ACTION_LABELS: Record<ActivityItem["type"], string> = {
   journal: "wrote a journal entry",
   voice_memo: "recorded a voice memo",
   message: "sent a message",
+  story: "shared a story",
 };
 
 function ActivityCard({ item }: { item: ActivityItem }) {

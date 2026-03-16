@@ -56,6 +56,7 @@ export default async function DashboardPage() {
       journalActivity,
       voiceActivity,
       messagesActivity,
+      storiesActivity,
       birthdayMembersRes,
       recentActivityDatesRes,
       allJournalForOTDRes,
@@ -69,6 +70,7 @@ export default async function DashboardPage() {
       supabase.from("journal_entries").select("id, title, trip_date, created_at, family_members!author_id(id, name, relationship), journal_photos(url, sort_order)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("voice_memos").select("id, title, created_at, duration_seconds, family_members!family_member_id(id, name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("family_messages").select("id, title, created_at, family_members!sender_id(id, name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
+      supabase.from("family_stories").select("id, title, cover_url, created_at, family_members!author_family_member_id(id, name, relationship)").eq("family_id", activeFamilyId).eq("published", true).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       // Birthday detection: fetch members with birth dates
       supabase.from("family_members").select("id, name, birth_date").eq("family_id", activeFamilyId).not("birth_date", "is", null),
       // Streak: get distinct activity dates for last 56 days (8 weeks) across all content types
@@ -163,7 +165,23 @@ export default async function DashboardPage() {
       };
     });
 
-    const combined = [...journalRows, ...voiceRows, ...messageRows].sort(
+    const storyRows = (storiesActivity.data ?? []).map((s: { id: string; title: string; cover_url?: string | null; created_at: string; family_members: MemberJoin }) => {
+      const author = one(s.family_members);
+      return {
+        type: "story" as const,
+        id: s.id,
+        memberId: author?.id ?? null,
+        createdAt: s.created_at,
+        title: s.title,
+        thumbnailUrl: s.cover_url ?? null,
+        memberName: resolveName(author?.id ?? null, author?.name ?? null),
+        memberRelationship: author?.relationship ?? null,
+        durationSeconds: null,
+        href: `/dashboard/stories/${s.id}`,
+      };
+    });
+
+    const combined = [...journalRows, ...voiceRows, ...messageRows, ...storyRows].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
     activityHasMore = combined.length > QUERY_LIMITS.recentActivity;
@@ -308,6 +326,11 @@ export default async function DashboardPage() {
 
       // Message: sent by user
       if (item.type === "message") {
+        return item.memberId === currentMemberId;
+      }
+
+      // Story: authored by user
+      if (item.type === "story") {
         return item.memberId === currentMemberId;
       }
 

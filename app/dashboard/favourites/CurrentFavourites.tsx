@@ -19,14 +19,51 @@ type Item = {
   isShared: boolean;
 };
 
+const CATEGORY_INSPIRATION: Record<string, string[]> = {
+  books: [
+    "A bedtime story the kids ask for every night",
+    "That novel you couldn't put down last summer",
+    "A cookbook that changed how you make dinner",
+  ],
+  movies: [
+    "The movie everyone watches every Christmas",
+    "A film that made the whole family cry (in a good way)",
+    "The one the kids have seen 47 times",
+  ],
+  shows: [
+    "The show you binge-watched together on a rainy weekend",
+    "A cartoon the kids are obsessed with right now",
+    "That series you quote at dinner",
+  ],
+  music: [
+    "The song that plays on every road trip",
+    "A lullaby from when the kids were little",
+    "The artist everyone in the family agrees on",
+  ],
+  toys: [
+    "The toy they carry everywhere",
+    "A board game for family game night",
+    "Something they got for their birthday and haven't put down since",
+  ],
+  games: [
+    "The video game they won't stop talking about",
+    "A card game everyone loves on vacation",
+    "The game that started a family tournament",
+  ],
+};
+
 export function CurrentFavourites({
   items,
   categoryLabel,
   showMemberBadge,
+  category,
+  onAddClick,
 }: {
   items: Item[];
   categoryLabel: string;
   showMemberBadge: boolean;
+  category?: string;
+  onAddClick?: () => void;
 }) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -94,15 +131,35 @@ export function CurrentFavourites({
   }
 
   if (!items.length) {
+    const ideas = category ? CATEGORY_INSPIRATION[category] ?? [] : [];
     return (
       <div className="rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)]/50 px-6 py-12 text-center">
-        <p className="text-3xl">⭐</p>
+        <p className="text-3xl">&#11088;</p>
         <p className="mt-3 font-medium text-[var(--foreground)]">
           No {categoryLabel.toLowerCase()} yet
         </p>
-        <p className="mt-1 text-sm text-[var(--muted)]">
-          Use the + Add button above to add the first favourite
-        </p>
+        {ideas.length > 0 && (
+          <div className="mt-4 text-left mx-auto max-w-sm">
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">Ideas to get started</p>
+            <ul className="mt-2 space-y-1.5">
+              {ideas.map((idea) => (
+                <li key={idea} className="flex items-start gap-2 text-sm text-[var(--muted)]">
+                  <span className="mt-0.5 text-[var(--accent)]">&bull;</span>
+                  {idea}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {onAddClick && (
+          <button
+            type="button"
+            onClick={onAddClick}
+            className="mt-6 rounded-full bg-[var(--primary)] px-6 py-2.5 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90"
+          >
+            + Add your first {categoryLabel.toLowerCase().replace(/s$/, "")}
+          </button>
+        )}
       </div>
     );
   }
@@ -149,7 +206,7 @@ export function CurrentFavourites({
                 />
                 <div className="mt-2 flex items-center gap-2">
                   <label className="whitespace-nowrap text-sm text-[var(--muted)]">
-                    Age at the time
+                    Age when discovered
                   </label>
                   <input
                     type="number"
@@ -182,7 +239,7 @@ export function CurrentFavourites({
                         }}
                         className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--foreground)] text-xs leading-none text-[var(--background)]"
                       >
-                        ×
+                        x
                       </button>
                     </div>
                   ) : (
@@ -191,7 +248,7 @@ export function CurrentFavourites({
                       onClick={() => fileInputRef.current?.click()}
                       className="flex items-center gap-1.5 rounded-lg border border-dashed border-[var(--border)] px-3 py-1.5 text-xs text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
                     >
-                      <span>📷</span> Add photo
+                      Add photo
                     </button>
                   )}
                   <input
@@ -210,7 +267,7 @@ export function CurrentFavourites({
                     disabled={saving}
                     className="rounded-full bg-[var(--primary)] px-4 py-1.5 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
                   >
-                    {saving ? "Saving…" : "Save"}
+                    {saving ? "Saving..." : "Save"}
                   </button>
                   <button
                     type="button"
@@ -240,7 +297,7 @@ export function CurrentFavourites({
             {item.isShared && (
               <div className="absolute right-3 top-4">
                 <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
-                  ⭐ Family
+                  Family
                 </span>
               </div>
             )}
@@ -277,7 +334,7 @@ export function CurrentFavourites({
                   </span>
                 )}
 
-                {/* Member badge — only in All / Family-favourites view */}
+                {/* Member badge -- only in All / Family-favourites view */}
                 {showMemberBadge && (
                   <span
                     style={{
@@ -295,8 +352,8 @@ export function CurrentFavourites({
                 )}
               </div>
 
-              {/* Edit / Remove — reveal on hover */}
-              <div className="mt-3 flex gap-3 opacity-0 transition-opacity group-hover:opacity-100">
+              {/* Edit / Remove -- always visible on mobile, hover-reveal on desktop */}
+              <div className="mt-3 flex gap-3 opacity-100 md:opacity-0 md:transition-opacity md:group-hover:opacity-100">
                 <button
                   type="button"
                   onClick={() => startEdit(item)}
@@ -310,7 +367,7 @@ export function CurrentFavourites({
                   disabled={removing === item.id}
                   className="text-xs text-[var(--muted)] transition-colors hover:text-red-500 disabled:opacity-50"
                 >
-                  {removing === item.id ? "Removing…" : "Remove"}
+                  {removing === item.id ? "Removing..." : "Remove"}
                 </button>
               </div>
             </div>
