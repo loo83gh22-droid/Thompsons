@@ -54,15 +54,17 @@ export function CategoryView({
   categoryLabel: string;
 }) {
   const [filterMemberId, setFilterMemberId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"recent" | "alpha" | "member">("recent");
+  const [isAddFormOpen, setIsAddFormOpen] = useState(false);
 
-  // member id → name lookup
+  // member id -> name lookup
   const memberMap = useMemo(() => {
     const m = new Map<string, string>();
     for (const mem of members) m.set(mem.id, mem.name);
     return m;
   }, [members]);
 
-  // member id → hex color (stable per member index)
+  // member id -> hex color (stable per member index)
   const memberColorMap = useMemo(() => {
     const m = new Map<string, string>();
     members.forEach((mem, idx) => {
@@ -129,45 +131,133 @@ export function CategoryView({
   const isSharedView = filterMemberId === "__shared__";
   const sharedCount = enrichedItems.filter((i) => i.isShared).length;
 
-  const displayedItems = isSharedView
-    ? enrichedItems.filter((i) => i.isShared)
-    : filteredItems;
+  const displayedItems = useMemo(() => {
+    const base = isSharedView
+      ? enrichedItems.filter((i) => i.isShared)
+      : filteredItems;
+
+    if (sortBy === "alpha") {
+      return [...base].sort((a, b) => a.title.localeCompare(b.title));
+    }
+    if (sortBy === "member") {
+      return [...base].sort(
+        (a, b) =>
+          a.memberName.localeCompare(b.memberName) ||
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    }
+    // "recent" - default server order (created_at desc)
+    return base;
+  }, [isSharedView, enrichedItems, filteredItems, sortBy]);
 
   // Stats
   const uniqueMembersInView = new Set(displayedItems.map((i) => i.member_id)).size;
 
+  const chipBase =
+    "shrink-0 rounded-full px-3 py-1.5 text-sm cursor-pointer transition-colors border";
+  const chipSelected =
+    "bg-[var(--primary)]/10 border-[var(--primary)] text-[var(--primary)] font-medium";
+  const chipUnselected =
+    "border-[var(--border)] text-[var(--muted)] hover:border-[var(--accent)]";
+
   return (
     <div>
-      {/* Filter bar */}
+      {/* Filter chips + sort + add button */}
       <div className="flex items-center gap-3">
-        <select
-          value={filterMemberId ?? ""}
-          onChange={(e) => {
-            const val = e.target.value;
-            setFilterMemberId(val === "" ? null : val);
-          }}
-          className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+        {/* Scrollable filter chips */}
+        <div
+          className="flex flex-1 items-center gap-2 overflow-x-auto"
+          style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}
         >
-          <option value="">Everyone</option>
-          {members.map((member) => (
-            <option key={member.id} value={member.id}>
-              {member.name}
-            </option>
-          ))}
-          {sharedCount > 0 && (
-            <option value="__shared__">
-              ⭐ Family favourites ({sharedCount})
-            </option>
-          )}
-        </select>
+          {/* Everyone chip */}
+          <button
+            type="button"
+            onClick={() => setFilterMemberId(null)}
+            className={`${chipBase} ${isAllView ? chipSelected : chipUnselected}`}
+          >
+            Everyone
+          </button>
 
-        {/* Spacer + Add button */}
-        <div className="flex-1" />
+          {/* Per-member chips */}
+          {members.map((member) => {
+            const color = memberColorMap.get(member.id) ?? "#94a3b8";
+            const isSelected = filterMemberId === member.id;
+            return (
+              <button
+                key={member.id}
+                type="button"
+                onClick={() => setFilterMemberId(member.id)}
+                className={`${chipBase} inline-flex items-center gap-1.5 ${
+                  isSelected
+                    ? "font-medium"
+                    : chipUnselected
+                }`}
+                style={
+                  isSelected
+                    ? {
+                        backgroundColor: color + "18",
+                        borderColor: color,
+                        color: color,
+                      }
+                    : undefined
+                }
+              >
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: color }}
+                />
+                {member.name}
+              </button>
+            );
+          })}
+
+          {/* Family Favourites chip */}
+          {sharedCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setFilterMemberId("__shared__")}
+              className={`${chipBase} ${isSharedView ? chipSelected : chipUnselected}`}
+            >
+              Family Favourites
+            </button>
+          )}
+        </div>
+
+        {/* Sort buttons */}
+        <div className="hidden shrink-0 items-center gap-1 text-xs text-[var(--muted)] sm:flex">
+          <button
+            type="button"
+            onClick={() => setSortBy("recent")}
+            className={`px-1.5 py-0.5 transition-colors ${sortBy === "recent" ? "font-medium text-[var(--foreground)]" : "hover:text-[var(--foreground)]"}`}
+          >
+            Recent
+          </button>
+          <span className="text-[var(--border)]">|</span>
+          <button
+            type="button"
+            onClick={() => setSortBy("alpha")}
+            className={`px-1.5 py-0.5 transition-colors ${sortBy === "alpha" ? "font-medium text-[var(--foreground)]" : "hover:text-[var(--foreground)]"}`}
+          >
+            A-Z
+          </button>
+          <span className="text-[var(--border)]">|</span>
+          <button
+            type="button"
+            onClick={() => setSortBy("member")}
+            className={`px-1.5 py-0.5 transition-colors ${sortBy === "member" ? "font-medium text-[var(--foreground)]" : "hover:text-[var(--foreground)]"}`}
+          >
+            By member
+          </button>
+        </div>
+
+        {/* Add button */}
         <AddFavouriteForm
           category={category as FavouriteCategory}
           categoryLabel={categoryLabel}
           members={members}
           defaultMemberId={isSharedView ? null : filterMemberId}
+          externalOpen={isAddFormOpen}
+          onExternalClose={() => setIsAddFormOpen(false)}
         />
       </div>
 
@@ -176,7 +266,7 @@ export function CategoryView({
         <p className="mt-2 text-xs text-[var(--muted)]">
           {displayedItems.length} {displayedItems.length === 1 ? "item" : "items"}
           {(isAllView || isSharedView) && uniqueMembersInView > 1 && (
-            <> · {uniqueMembersInView} members</>
+            <> &middot; {uniqueMembersInView} members</>
           )}
         </p>
       )}
@@ -187,6 +277,8 @@ export function CategoryView({
           items={displayedItems}
           categoryLabel={categoryLabel}
           showMemberBadge={isAllView || isSharedView}
+          category={category}
+          onAddClick={() => setIsAddFormOpen(true)}
         />
       </div>
 

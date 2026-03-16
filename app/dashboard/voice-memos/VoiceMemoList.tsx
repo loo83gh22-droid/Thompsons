@@ -149,42 +149,147 @@ export function VoiceMemoList({
         return (
           <article
             key={memo.id}
-            className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] transition-shadow hover:shadow-md"
+            className="group overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] transition-shadow hover:shadow-md"
           >
             {/* Accent top strip */}
             <div className="h-[3px] bg-gradient-to-r from-[var(--primary)] via-[var(--accent)] to-[var(--primary)]/40" />
 
-            <div className="p-4 sm:p-5">
-              {/* Header row */}
-              <div className="flex items-start gap-3">
-                {/* Mic icon */}
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
-                  <MicIcon />
+            <div className="flex flex-col sm:flex-row">
+              {/* Left column: Photo or mic icon fallback */}
+              <div className="sm:w-40 sm:shrink-0">
+                {memo.photo_url ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={memo.photo_url}
+                    alt=""
+                    className="h-48 w-full object-cover sm:h-full"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="flex h-48 w-full items-center justify-center bg-gradient-to-br from-[var(--primary)]/10 to-[var(--accent)]/10 sm:h-full">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--primary)]/60" aria-hidden="true">
+                      <rect x="9" y="2" width="6" height="11" rx="3" />
+                      <path d="M5 10a7 7 0 0 0 14 0" />
+                      <line x1="12" y1="19" x2="12" y2="22" />
+                      <line x1="8" y1="22" x2="16" y2="22" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+
+              {/* Right column: Content */}
+              <div className="min-w-0 flex-1 p-4 sm:p-5">
+                {/* Title + duration pill */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="font-display text-lg font-semibold leading-tight text-[var(--foreground)]">
+                    {memo.title}
+                  </h2>
+                  {memo.duration_seconds != null && (
+                    <span className="shrink-0 rounded-full border border-[var(--border)] bg-[var(--secondary)] px-2 py-0.5 text-xs text-[var(--muted)]">
+                      {formatDuration(memo.duration_seconds)}
+                    </span>
+                  )}
                 </div>
 
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-display text-lg font-semibold leading-tight text-[var(--foreground)]">
-                      {memo.title}
-                    </h2>
-                    {memo.duration_seconds != null && (
-                      <span className="shrink-0 rounded-full border border-[var(--border)] bg-[var(--secondary)] px-2 py-0.5 text-xs text-[var(--muted)]">
-                        {formatDuration(memo.duration_seconds)}
-                      </span>
+                {/* Metadata */}
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm text-[var(--muted)]">
+                  <span>🎙️ {byLabel}</span>
+                  {forLabel && <span>· for {forLabel}</span>}
+                  <span>· {dateStr}</span>
+                </div>
+
+                {/* Description */}
+                {memo.description && (
+                  <p className="mt-2.5 line-clamp-2 text-sm text-[var(--muted)]">{memo.description}</p>
+                )}
+
+                {/* Audio player */}
+                <div className="mt-3 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2">
+                  <audio
+                    src={memo.audio_url}
+                    controls
+                    className="h-10 w-full"
+                    preload="metadata"
+                  />
+                </div>
+
+                {/* Transcription */}
+                {memo.transcript ? (
+                  <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--background)] p-4">
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                      <h4 className="text-sm font-medium text-[var(--foreground)]">Transcript</h4>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard.writeText(memo.transcript!)}
+                          className="text-xs text-[var(--primary)] hover:underline"
+                        >
+                          Copy
+                        </button>
+                        <button
+                          type="button"
+                          disabled={sendingToJournalId === memo.id}
+                          onClick={async () => {
+                            setSendingToJournalId(memo.id);
+                            const result = await sendTranscriptToJournal(memo.id);
+                            setSendingToJournalId(null);
+                            if (result.success) {
+                              router.push(`/dashboard/journal/${result.id}`);
+                            }
+                          }}
+                          className="text-xs font-medium text-[var(--primary)] hover:underline disabled:opacity-50"
+                        >
+                          {sendingToJournalId === memo.id ? "Sending..." : "-> Send to Journal"}
+                        </button>
+                      </div>
+                    </div>
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--muted)]">{memo.transcript}</p>
+                    {memo.transcribed_at && (
+                      <p className="mt-2 text-xs text-[var(--muted)]">
+                        Transcribed on {new Date(memo.transcribed_at).toLocaleDateString()}
+                      </p>
                     )}
                   </div>
-
-                  {/* Metadata */}
-                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm text-[var(--muted)]">
-                    <span>🎙️ {byLabel}</span>
-                    {forLabel && <span>· for {forLabel}</span>}
-                    <span>· {dateStr}</span>
+                ) : memo.transcription_status === "processing" ? (
+                  <p className="mt-3 flex items-center gap-2 text-sm text-[var(--muted)]">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--muted)] border-t-transparent" aria-hidden="true" /> Transcribing audio...
+                  </p>
+                ) : memo.transcription_status === "failed" ? (
+                  <div className="mt-3 flex items-center gap-2">
+                    <p className="text-sm text-red-500">Transcription failed.</p>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setTranscribingId(memo.id);
+                        await transcribeVoiceMemo(memo.id);
+                        setTranscribingId(null);
+                        router.refresh();
+                      }}
+                      disabled={transcribingId === memo.id}
+                      className="text-xs text-[var(--primary)] hover:underline"
+                    >
+                      Retry
+                    </button>
                   </div>
-                </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setTranscribingId(memo.id);
+                      await transcribeVoiceMemo(memo.id);
+                      setTranscribingId(null);
+                      router.refresh();
+                    }}
+                    disabled={transcribingId === memo.id}
+                    className="mt-3 text-sm font-medium text-[var(--primary)] hover:underline disabled:opacity-50"
+                  >
+                    {transcribingId === memo.id ? "Transcribing..." : "Transcribe this memo"}
+                  </button>
+                )}
 
-                {/* Action buttons */}
+                {/* Edit / Delete buttons */}
                 {isCreator && (
-                  <div className="flex shrink-0 items-center gap-1">
+                  <div className="mt-3 flex items-center gap-1 opacity-100 md:opacity-0 md:transition-opacity md:group-hover:opacity-100">
                     <button
                       type="button"
                       onClick={() => setEditingId(memo.id)}
@@ -215,108 +320,6 @@ export function VoiceMemoList({
                   </div>
                 )}
               </div>
-
-              {/* Description */}
-              {memo.description && (
-                <p className="mt-2.5 line-clamp-2 text-sm text-[var(--muted)]">{memo.description}</p>
-              )}
-
-              {/* Photo */}
-              {memo.photo_url && (
-                <div className="mt-3 overflow-hidden rounded-lg border border-[var(--border)]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={memo.photo_url}
-                    alt=""
-                    className="max-h-64 w-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-              )}
-
-              {/* Audio player */}
-              <div className="mt-3 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2">
-                <audio
-                  src={memo.audio_url}
-                  controls
-                  className="h-10 w-full"
-                  preload="metadata"
-                />
-              </div>
-
-              {/* Transcription */}
-              {memo.transcript ? (
-                <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--background)] p-4">
-                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                    <h4 className="text-sm font-medium text-[var(--foreground)]">Transcript</h4>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => navigator.clipboard.writeText(memo.transcript!)}
-                        className="text-xs text-[var(--primary)] hover:underline"
-                      >
-                        Copy
-                      </button>
-                      <button
-                        type="button"
-                        disabled={sendingToJournalId === memo.id}
-                        onClick={async () => {
-                          setSendingToJournalId(memo.id);
-                          const result = await sendTranscriptToJournal(memo.id);
-                          setSendingToJournalId(null);
-                          if (result.success) {
-                            router.push(`/dashboard/journal/${result.id}`);
-                          }
-                        }}
-                        className="text-xs font-medium text-[var(--primary)] hover:underline disabled:opacity-50"
-                      >
-                        {sendingToJournalId === memo.id ? "Sending…" : "→ Send to Journal"}
-                      </button>
-                    </div>
-                  </div>
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--muted)]">{memo.transcript}</p>
-                  {memo.transcribed_at && (
-                    <p className="mt-2 text-xs text-[var(--muted)]">
-                      Transcribed on {new Date(memo.transcribed_at).toLocaleDateString()}
-                    </p>
-                  )}
-                </div>
-              ) : memo.transcription_status === "processing" ? (
-                <p className="mt-3 flex items-center gap-2 text-sm text-[var(--muted)]">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--muted)] border-t-transparent" aria-hidden="true" /> Transcribing audio…
-                </p>
-              ) : memo.transcription_status === "failed" ? (
-                <div className="mt-3 flex items-center gap-2">
-                  <p className="text-sm text-red-500">Transcription failed.</p>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      setTranscribingId(memo.id);
-                      await transcribeVoiceMemo(memo.id);
-                      setTranscribingId(null);
-                      router.refresh();
-                    }}
-                    disabled={transcribingId === memo.id}
-                    className="text-xs text-[var(--primary)] hover:underline"
-                  >
-                    Retry
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setTranscribingId(memo.id);
-                    await transcribeVoiceMemo(memo.id);
-                    setTranscribingId(null);
-                    router.refresh();
-                  }}
-                  disabled={transcribingId === memo.id}
-                  className="mt-3 text-sm font-medium text-[var(--primary)] hover:underline disabled:opacity-50"
-                >
-                  {transcribingId === memo.id ? "Transcribing…" : "✨ Transcribe this memo"}
-                </button>
-              )}
             </div>
           </article>
         );
