@@ -74,13 +74,39 @@ function JournalPreview() {
   );
 }
 
+// Pin colours by category
+const PIN_BIRTHPLACE = "#e05c8a"; // warm pink
+const PIN_VACATION   = "#d97706"; // amber
+const PIN_HOME       = "#3d6b5e"; // forest green
+
 const BENTO_MAP_PINS: WorldPin[] = [
-  { lat: 43.65,  lng: -79.38, color: "#3d6b5e", r: 3.5 }, // Toronto
-  { lat: 40.71,  lng: -74.01, color: "#3d6b5e", r: 3.5 }, // New York
-  { lat: 17.99,  lng: -66.61, color: "#d97706", r: 3.5 }, // Puerto Rico
-  { lat: 38.72,  lng:  -9.14, color: "#3d6b5e", r: 3.5 }, // Lisbon
-  { lat: 19.08,  lng:  72.88, color: "#3d6b5e", r: 3.5 }, // Mumbai
-  { lat: -33.87, lng: 151.21, color: "#3d6b5e", r: 3.5 }, // Sydney
+  // ── Homes (4) ──────────────────────────────────────────────
+  { lat: 43.65,  lng: -79.38,  color: PIN_HOME, r: 4   },  // Toronto
+  { lat: 40.71,  lng: -74.01,  color: PIN_HOME, r: 4   },  // New York
+  { lat: 34.05,  lng: -118.24, color: PIN_HOME, r: 4   },  // Los Angeles
+  { lat: 39.74,  lng: -104.99, color: PIN_HOME, r: 4   },  // Denver
+
+  // ── Birthplaces (7) ────────────────────────────────────────
+  { lat: 45.50,  lng: -73.57,  color: PIN_BIRTHPLACE, r: 3 }, // Montreal
+  { lat: 42.36,  lng: -71.06,  color: PIN_BIRTHPLACE, r: 3 }, // Boston
+  { lat: 33.75,  lng: -84.39,  color: PIN_BIRTHPLACE, r: 3 }, // Atlanta
+  { lat: 51.51,  lng:  -0.13,  color: PIN_BIRTHPLACE, r: 3 }, // London
+  { lat: 41.39,  lng:   2.17,  color: PIN_BIRTHPLACE, r: 3 }, // Barcelona
+  { lat: -33.87, lng: 151.21,  color: PIN_BIRTHPLACE, r: 3 }, // Sydney
+  { lat: -22.91, lng: -43.17,  color: PIN_BIRTHPLACE, r: 3 }, // Rio de Janeiro
+
+  // ── Vacations (12) ─────────────────────────────────────────
+  { lat: 21.31,  lng: -157.86, color: PIN_VACATION, r: 2.5 }, // Honolulu
+  { lat: 20.63,  lng: -87.08,  color: PIN_VACATION, r: 2.5 }, // Cancun
+  { lat: 17.99,  lng: -66.61,  color: PIN_VACATION, r: 2.5 }, // Puerto Rico
+  { lat: 25.04,  lng: -77.35,  color: PIN_VACATION, r: 2.5 }, // Nassau
+  { lat: 41.90,  lng:  12.50,  color: PIN_VACATION, r: 2.5 }, // Rome
+  { lat: 48.86,  lng:   2.35,  color: PIN_VACATION, r: 2.5 }, // Paris
+  { lat: 38.72,  lng:  -9.14,  color: PIN_VACATION, r: 2.5 }, // Lisbon
+  { lat: 36.43,  lng:  28.22,  color: PIN_VACATION, r: 2.5 }, // Rhodes
+  { lat: 10.39,  lng: -75.51,  color: PIN_VACATION, r: 2.5 }, // Cartagena
+  { lat: 35.68,  lng: 139.69,  color: PIN_VACATION, r: 2.5 }, // Tokyo
+  { lat:  9.93,  lng: -84.08,  color: PIN_VACATION, r: 2.5 }, // Costa Rica
 ];
 
 function MapPreview() {
@@ -90,7 +116,7 @@ function MapPreview() {
         <div className="h-full w-full" style={{ background: "#c8dff0" }} />
       }
     >
-      <WorldMapSVG pins={BENTO_MAP_PINS} badge="6 pins · worldwide" />
+      <WorldMapSVG pins={BENTO_MAP_PINS} badge="22 pins · 4 homes · 7 birthplaces · 11 trips" />
     </Suspense>
   );
 }
@@ -428,7 +454,7 @@ export function FeaturesBento() {
       icon: GitBranch,
       title: "Family Tree",
       description:
-        "Map your whole crew. Every member gets a profile with photos, birthdays, and their place in the family story. Yes, even Uncle Steve.",
+        "Map your whole crew. Every member gets a profile with photos, birthdays, and their place in the family story.",
       Preview: TreePreview,
     },
     {
@@ -475,9 +501,6 @@ export function FeaturesBento() {
           >
             Everything your family will actually use
           </h2>
-          <p className="text-lg leading-relaxed" style={{ color: "var(--muted)" }}>
-            Built for real families, not influencers. Every feature here? A family asked for it.
-          </p>
         </div>
 
         {/* Feature Cards Grid */}

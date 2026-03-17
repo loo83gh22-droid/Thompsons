@@ -33,7 +33,7 @@ export function EmotionalSection() {
               textWrap: "balance",
             }}
           >
-            Not a startup idea. A dad project that got out of hand.
+            Not a startup idea. Something I built for my own family first.
           </h2>
 
           <div

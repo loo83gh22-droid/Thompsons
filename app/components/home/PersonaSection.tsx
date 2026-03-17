@@ -55,7 +55,7 @@ export function PersonaSection() {
               textWrap: "balance",
             }}
           >
-            Built for real families, not influencers
+            Not social media. Not a photo dump. Just your family&apos;s stuff, all in one place.
           </h2>
         </div>
 

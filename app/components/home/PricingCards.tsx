@@ -105,7 +105,7 @@ export function PricingCards() {
                       color: "var(--accent-foreground)",
                     }}
                   >
-                    Best Value
+                    The Forever Gift
                   </span>
                 </div>
               )}
