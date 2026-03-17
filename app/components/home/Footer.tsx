@@ -95,6 +95,13 @@ export function Footer() {
               Pricing
             </Link>
             <Link
+              href="/gift"
+              className="text-sm transition-colors hover:opacity-75"
+              style={{ color: "var(--muted)" }}
+            >
+              Gift
+            </Link>
+            <Link
               href="/terms"
               className="text-sm transition-colors hover:opacity-75"
               style={{ color: "var(--muted)" }}

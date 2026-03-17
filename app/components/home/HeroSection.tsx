@@ -17,13 +17,13 @@ export function HeroSection() {
                   textWrap: "balance",
                 }}
               >
-                Stop losing family memories to group chats and forgotten photo albums
+                The good stuff deserves more than a group chat and a camera roll
               </h1>
               <p
                 className="max-w-lg text-lg leading-relaxed"
                 style={{ color: "var(--muted)" }}
               >
-                One private place for every photo, journal entry, voice memo, and recipe. Where couples, their children, and grandparents all belong.
+                One quiet corner of the internet for your photos, journals, recipes, and voice memos. Grandparents welcome. No followers required.
               </p>
             </div>
 
@@ -183,19 +183,19 @@ export function HeroSection() {
                         title: "Beach day with the whole crew",
                         date: "June 14",
                         preview: "The kids finally got Grandpa in the water...",
-                        hasPhoto: true,
+                        photo: "/marketing/journal-1.jpeg",
                       },
                       {
                         title: "Nana's birthday dinner",
                         date: "June 8",
                         preview: "Three generations around one table. Made her famous...",
-                        hasPhoto: true,
+                        photo: "/marketing/journal-2.jpeg",
                       },
                       {
                         title: "First day of summer break",
                         date: "June 1",
                         preview: "The look on their faces when we told them about the trip...",
-                        hasPhoto: false,
+                        photo: null as string | null,
                       },
                     ].map((entry) => (
                       <div
@@ -203,13 +203,14 @@ export function HeroSection() {
                         className="flex gap-3 rounded-xl p-2.5"
                         style={{ backgroundColor: "var(--background)", border: "1px solid var(--border)" }}
                       >
-                        {entry.hasPhoto && (
-                          <div
-                            className="h-14 w-14 shrink-0 rounded-lg"
-                            style={{
-                              backgroundColor: "var(--secondary)",
-                              backgroundImage: "linear-gradient(135deg, var(--secondary) 0%, var(--border) 100%)",
-                            }}
+                        {entry.photo && (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={entry.photo}
+                            alt=""
+                            width={56}
+                            height={56}
+                            className="h-14 w-14 shrink-0 rounded-lg object-cover"
                           />
                         )}
                         <div className="min-w-0 flex-1">

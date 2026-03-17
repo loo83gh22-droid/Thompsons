@@ -40,9 +40,6 @@ export function AdditionalFeatures() {
           >
             Plus all the little things that make it feel like home
           </h3>
-          <p className="mb-2 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
-            From birthday reminders to a family playlist, every detail is here because a real family asked for it.
-          </p>
           <p className="mb-8 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
             Family Nest is mobile-first and works in any browser. Add it to your home screen like an app. No App Store required.
           </p>

@@ -52,7 +52,7 @@ export function FinalCTA() {
               className="mt-4 text-sm"
               style={{ color: "var(--muted)", fontStyle: "italic" }}
             >
-              Just the two of you? That counts. Or give it as a gift. The one they&apos;ll actually keep forever.{" "}
+              Looking for a gift? The one they&apos;ll actually keep forever.{" "}
               <Link
                 href="#pricing"
                 className="underline underline-offset-4 transition-colors"

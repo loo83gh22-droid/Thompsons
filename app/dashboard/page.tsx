@@ -399,6 +399,16 @@ export default async function DashboardPage() {
             </div>
           </section>
 
+          <div className="mt-12 grid grid-cols-1 gap-6 min-[768px]:grid-cols-2">
+            <FamilyHighlight item={highlight} />
+            <InspirationTip />
+            {onThisDayItems.length > 0 && (
+              <div className="min-[768px]:col-span-2">
+                <OnThisDay items={onThisDayItems} />
+              </div>
+            )}
+          </div>
+
           <div className="mt-10 grid grid-cols-1 gap-6 min-[900px]:grid-cols-3">
             <div className="min-[900px]:col-span-2">
               <DashboardStats stats={stats} />
@@ -407,23 +417,12 @@ export default async function DashboardPage() {
               <UpcomingEvents events={upcomingEvents} />
             </div>
           </div>
-        </>
-      )}
 
-      <div className="mt-12 space-y-8">
-        <div className="grid grid-cols-1 gap-6 min-[768px]:grid-cols-2">
-          <FamilyHighlight item={highlight} />
-          <InspirationTip />
-          {onThisDayItems.length > 0 && (
-            <div className="min-[768px]:col-span-2">
-              <OnThisDay items={onThisDayItems} />
-            </div>
-          )}
-          <div className="min-[768px]:col-span-2">
+          <div className="mt-10">
             <WeeklyStreak activeDays={weekActiveDays} weekStreak={weekStreak} />
           </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }

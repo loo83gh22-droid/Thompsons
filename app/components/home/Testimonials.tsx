@@ -176,10 +176,10 @@ export function Testimonials() {
               textWrap: "balance",
             }}
           >
-            Don&apos;t take our word for it
+            Here&apos;s how families are using it
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg" style={{ color: "var(--muted)" }}>
-            From newlyweds to grandmothers to the kid who finally got Grandpa to use the internet.
+            From newlyweds building their first shared space to grandparents who open it with their morning coffee.
           </p>
           <p className="mt-2 text-xs" style={{ color: "var(--muted)", opacity: 0.6 }}>
             Stories represent typical customer experiences.
