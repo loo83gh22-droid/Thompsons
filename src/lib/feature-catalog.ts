@@ -7,9 +7,10 @@
  */
 
 export type FeatureCategory =
+  | "features"
+  | "goals"
   | "planning"
   | "travel"
-  | "goals"
   | "essentials";
 
 export interface CatalogFeature {
@@ -23,13 +24,15 @@ export interface CatalogFeature {
 }
 
 export const CATEGORY_LABELS: Record<FeatureCategory, string> = {
+  features: "Features",
+  goals: "Goals & Lists",
   planning: "Planning & Events",
   travel: "Travel & Adventure",
-  goals: "Goals & Lists",
   essentials: "Family Essentials",
 };
 
 export const CATEGORY_ORDER: FeatureCategory[] = [
+  "features",
   "goals",
   "planning",
   "travel",
@@ -37,6 +40,28 @@ export const CATEGORY_ORDER: FeatureCategory[] = [
 ];
 
 export const FEATURE_CATALOG: CatalogFeature[] = [
+  // Features (opt-in core-style features)
+  {
+    slug: "favourites",
+    name: "Favourites",
+    description:
+      "Track your family's favourite books, movies, music, games, shows, and toys. Everyone adds their own picks.",
+    category: "features",
+    icon: "\u{2764}\u{FE0F}",
+    href: "/dashboard/favourites",
+    available: true,
+  },
+  {
+    slug: "traditions",
+    name: "Traditions",
+    description:
+      "Document the traditions that make your family yours. Pancake Sundays, holiday rituals, and everything in between.",
+    category: "features",
+    icon: "\u{1F56F}\u{FE0F}",
+    href: "/dashboard/traditions",
+    available: true,
+  },
+
   // Goals & Lists
   {
     slug: "bucket-list",
@@ -68,7 +93,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     category: "planning",
     icon: "\u{1F381}",
     href: "/dashboard/tools/gift-exchange",
-    available: false,
+    available: true,
   },
   {
     slug: "trip-planner",
@@ -78,7 +103,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     category: "planning",
     icon: "\u{2708}\u{FE0F}",
     href: "/dashboard/tools/trip-planner",
-    available: false,
+    available: true,
   },
 
   // Travel & Adventure
@@ -90,7 +115,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     category: "travel",
     icon: "\u{26BE}",
     href: "/dashboard/tools/mlb-stadium-tour",
-    available: false,
+    available: true,
   },
   {
     slug: "fishing-map",
@@ -100,7 +125,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     category: "travel",
     icon: "\u{1F3A3}",
     href: "/dashboard/tools/fishing-map",
-    available: false,
+    available: true,
   },
   {
     slug: "national-parks",
@@ -110,7 +135,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     category: "travel",
     icon: "\u{1F3D5}\u{FE0F}",
     href: "/dashboard/tools/national-parks",
-    available: false,
+    available: true,
   },
 
   // Family Essentials
@@ -122,7 +147,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     category: "essentials",
     icon: "\u{1F3E5}",
     href: "/dashboard/tools/emergency-info",
-    available: false,
+    available: true,
   },
 ];
 

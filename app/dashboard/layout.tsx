@@ -155,10 +155,19 @@ export default async function DashboardLayout({
         .single();
 
       if (created) {
-        await supabase.from("family_settings").insert({
-          family_id: newFamily.id,
-          family_name: familyName,
-        });
+        await Promise.all([
+          supabase.from("family_settings").insert({
+            family_id: newFamily.id,
+            family_name: familyName,
+          }),
+          // Seed default add-on features for new families
+          supabase.from("family_enabled_features").insert([
+            { family_id: newFamily.id, feature_slug: "favourites" },
+            { family_id: newFamily.id, feature_slug: "traditions" },
+            { family_id: newFamily.id, feature_slug: "bucket-list" },
+            { family_id: newFamily.id, feature_slug: "reunion-planner" },
+          ]),
+        ]);
         myMembers = [created];
       }
     }
