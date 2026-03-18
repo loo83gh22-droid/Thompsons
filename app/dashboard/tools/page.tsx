@@ -31,14 +31,7 @@ const plans = [
     href: "#",
     available: false,
   },
-  {
-    title: "Countdown Timer",
-    description: "Visual countdowns to the events your family is most excited about.",
-    icon: "⏳",
-    href: "#",
-    available: false,
-  },
-  {
+{
     title: "Emergency Info",
     description: "Keep medical contacts, allergies, insurance, and important numbers in one place.",
     icon: "🏥",
