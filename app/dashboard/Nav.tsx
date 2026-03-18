@@ -22,7 +22,6 @@ const familyItems: { href: string; label: string; muted?: boolean }[] = [
   { href: "/dashboard/map", label: "Family Map" },
   { href: "/dashboard/messages", label: "Messages" },
   { href: "/dashboard/events", label: "Events" },
-  { href: "/dashboard/bucket-list", label: "Bucket List" },
   { href: "/dashboard/time-capsules", label: "Time Capsules" },
 ];
 
@@ -48,8 +47,9 @@ const favouritesItems: { href: string; label: string }[] = [
   { href: "/dashboard/favourites/toys", label: "Toys" },
 ];
 
-const toolsItems: { href: string; label: string }[] = [
-  { href: "/dashboard/tools", label: "All Tools" },
+const planItems: { href: string; label: string }[] = [
+  { href: "/dashboard/tools", label: "All Plans" },
+  { href: "/dashboard/bucket-list", label: "Bucket List" },
   { href: "/dashboard/tools/reunion-planner", label: "Reunion Planner" },
 ];
 
@@ -69,18 +69,18 @@ export function Nav({
   const [familyOpen, setFamilyOpen] = useState(false);
   const [memoriesOpen, setMemoriesOpen] = useState(false);
   const [favouritesOpen, setFavouritesOpen] = useState(false);
-  const [toolsOpen, setToolsOpen] = useState(false);
+  const [planOpen, setPlanOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [familyMenuOpen, setFamilyMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileFamilyOpen, setMobileFamilyOpen] = useState(false);
   const [mobileMemoriesOpen, setMobileMemoriesOpen] = useState(false);
   const [mobileFavouritesOpen, setMobileFavouritesOpen] = useState(false);
-  const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
+  const [mobilePlanOpen, setMobilePlanOpen] = useState(false);
   const familyRef = useRef<HTMLDivElement>(null);
   const memoriesRef = useRef<HTMLDivElement>(null);
   const favouritesRef = useRef<HTMLDivElement>(null);
-  const toolsRef = useRef<HTMLDivElement>(null);
+  const planRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const familySwitcherRef = useRef<HTMLDivElement>(null);
 
@@ -100,7 +100,7 @@ export function Nav({
   const isFavouritesActive = favouritesItems.some(
     (item) => pathname === item.href || pathname.startsWith(item.href + "/")
   );
-  const isToolsActive = toolsItems.some(
+  const isPlanActive = planItems.some(
     (item) => pathname === item.href || pathname.startsWith(item.href + "/")
   );
 
@@ -110,7 +110,7 @@ export function Nav({
       if (familyRef.current && !familyRef.current.contains(target)) setFamilyOpen(false);
       if (memoriesRef.current && !memoriesRef.current.contains(target)) setMemoriesOpen(false);
       if (favouritesRef.current && !favouritesRef.current.contains(target)) setFavouritesOpen(false);
-      if (toolsRef.current && !toolsRef.current.contains(target)) setToolsOpen(false);
+      if (planRef.current && !planRef.current.contains(target)) setPlanOpen(false);
       if (menuRef.current && !menuRef.current.contains(target)) setMenuOpen(false);
       if (familySwitcherRef.current && !familySwitcherRef.current.contains(target)) setFamilyMenuOpen(false);
     }
@@ -132,7 +132,7 @@ export function Nav({
     setMobileFamilyOpen(false);
     setMobileMemoriesOpen(false);
     setMobileFavouritesOpen(false);
-    setMobileToolsOpen(false);
+    setMobilePlanOpen(false);
   }
 
   useEffect(() => {
@@ -337,28 +337,28 @@ export function Nav({
                 </div>
               )}
             </div>
-            <div className="relative" ref={toolsRef}>
+            <div className="relative" ref={planRef}>
               <button
                 type="button"
-                onClick={() => setToolsOpen((o) => !o)}
-                className={dropdownButtonClass(toolsOpen, isToolsActive)}
+                onClick={() => setPlanOpen((o) => !o)}
+                className={dropdownButtonClass(planOpen, isPlanActive)}
                 aria-haspopup="true"
-                aria-expanded={toolsOpen}
-                aria-label={toolsOpen ? "Close Tools menu" : "Open Tools menu"}
+                aria-expanded={planOpen}
+                aria-label={planOpen ? "Close Plan menu" : "Open Plan menu"}
               >
-                Tools
-                <span className={`transition-transform ${toolsOpen ? "rotate-180" : ""}`}>▼</span>
+                Plan
+                <span className={`transition-transform ${planOpen ? "rotate-180" : ""}`}>▼</span>
               </button>
-              {toolsOpen && (
+              {planOpen && (
                 <div
                   className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]"
                   role="menu"
                 >
-                  {toolsItems.map((item) => (
+                  {planItems.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
-                      onClick={() => setToolsOpen(false)}
+                      onClick={() => setPlanOpen(false)}
                       role="menuitem"
                       className={`block px-4 py-3 text-sm transition-colors hover:bg-[var(--surface-hover)] focus:bg-[var(--surface-hover)] ${
                         pathname === item.href || pathname.startsWith(item.href + "/")
@@ -555,16 +555,16 @@ export function Nav({
             <div className="border-t border-[var(--border)] pt-2 mt-2">
               <button
                 type="button"
-                onClick={() => setMobileToolsOpen((o) => !o)}
-                className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors min-h-[44px] ${mobileToolsOpen || isToolsActive ? "bg-[var(--surface)] text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}
-                aria-expanded={mobileToolsOpen}
+                onClick={() => setMobilePlanOpen((o) => !o)}
+                className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors min-h-[44px] ${mobilePlanOpen || isPlanActive ? "bg-[var(--surface)] text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}
+                aria-expanded={mobilePlanOpen}
               >
-                Tools
-                <span className={`block transition-transform ${mobileToolsOpen ? "rotate-180" : ""}`}>▼</span>
+                Plan
+                <span className={`block transition-transform ${mobilePlanOpen ? "rotate-180" : ""}`}>▼</span>
               </button>
-              {mobileToolsOpen && (
+              {mobilePlanOpen && (
                 <div className="pl-2 pt-1 space-y-0.5">
-                  {toolsItems.map((item) => (
+                  {planItems.map((item) => (
                     <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={`block rounded-lg px-4 py-2.5 text-sm min-h-[44px] flex items-center ${pathname === item.href || pathname.startsWith(item.href + "/") ? "text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}>
                       {item.label}
                     </Link>
