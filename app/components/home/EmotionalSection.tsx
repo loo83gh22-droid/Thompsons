@@ -1,4 +1,4 @@
-import { ShieldCheck, Infinity, Users, Heart, Lock, Shield, Database, Globe } from "lucide-react";
+import { ShieldCheck, Infinity, Users, Heart, Lock, Shield, Database, Globe, EyeOff, Ban } from "lucide-react";
 
 const trustBadges = [
   { icon: Lock, label: "Bank-level encryption" },
@@ -8,10 +8,11 @@ const trustBadges = [
 ];
 
 const differentiators = [
-  { icon: ShieldCheck, label: "Private, not public social media" },
+  { icon: Ban, label: "We don't show ads. Ever. Not even tasteful ones." },
+  { icon: EyeOff, label: "We don't sell your data. We don't 'anonymize' it and sell it. We don't even look at it. It's yours. We're serious." },
+  { icon: ShieldCheck, label: "No algorithm deciding which grandchild you see more of." },
   { icon: Infinity, label: "Permanent, not disappearing stories" },
   { icon: Users, label: "Multi-generational. Designed to be passed down." },
-  { icon: Heart, label: "Ad-free. No strangers' content, just your family." },
 ];
 
 export function EmotionalSection() {

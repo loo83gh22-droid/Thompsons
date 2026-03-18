@@ -23,7 +23,7 @@ export function HeroSection() {
                 className="max-w-lg text-lg leading-relaxed"
                 style={{ color: "var(--muted)" }}
               >
-                One quiet corner of the internet for your photos, journals, recipes, and voice memos. Grandparents welcome. No followers required.
+                One quiet corner of the internet for your photos, journals, recipes, and voice memos. Grandparents welcome. Advertisers are not.
               </p>
             </div>
 
@@ -67,7 +67,7 @@ export function HeroSection() {
               <div className="flex items-center gap-2 mt-1">
                 <Shield className="h-4 w-4" style={{ color: "var(--primary)" }} />
                 <p className="text-xs" style={{ color: "var(--muted)" }}>
-                  Bank-level encryption &middot; Private by default &middot; Your data, always yours
+                  No ads. No algorithms. No selling your family photos to train AI. You&apos;re welcome.
                 </p>
               </div>
             </div>
@@ -182,13 +182,13 @@ export function HeroSection() {
                       {
                         title: "Beach day with the whole crew",
                         date: "June 14",
-                        preview: "The kids finally got Grandpa in the water...",
+                        preview: "Catching our favourite sunset...",
                         photo: "/marketing/journal-1.jpeg",
                       },
                       {
-                        title: "Nana's birthday dinner",
+                        title: "Grandma's birthday party",
                         date: "June 8",
-                        preview: "Three generations around one table. Made her famous...",
+                        preview: "Four generations around one table. Made her famous...",
                         photo: "/marketing/journal-2.jpeg",
                       },
                       {
