@@ -4,6 +4,7 @@ import { HowItWorks } from "./components/home/HowItWorks";
 import { PersonaSection } from "./components/home/PersonaSection";
 import { FeaturesBento } from "./components/home/FeaturesBento";
 import { AdditionalFeatures } from "./components/home/AdditionalFeatures";
+import { MakeItYours } from "./components/home/MakeItYours";
 import { Testimonials } from "./components/home/Testimonials";
 import { PrivacyCallout } from "./components/home/PrivacyCallout";
 import { EmotionalSection } from "./components/home/EmotionalSection";
@@ -174,6 +175,7 @@ export default function HomePage() {
         <PersonaSection />
         <FeaturesBento />
         <AdditionalFeatures />
+        <MakeItYours />
         <Testimonials />
         <PrivacyCallout />
         <EmotionalSection />
