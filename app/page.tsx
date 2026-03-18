@@ -5,6 +5,7 @@ import { PersonaSection } from "./components/home/PersonaSection";
 import { FeaturesBento } from "./components/home/FeaturesBento";
 import { AdditionalFeatures } from "./components/home/AdditionalFeatures";
 import { Testimonials } from "./components/home/Testimonials";
+import { PrivacyCallout } from "./components/home/PrivacyCallout";
 import { EmotionalSection } from "./components/home/EmotionalSection";
 import { HomepageFAQ } from "./components/home/HomepageFAQ";
 import { PricingCards } from "./components/home/PricingCards";
@@ -22,7 +23,7 @@ const faqStructuredData = {
       name: "Is my family's data private?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Absolutely. Your Family Nest is completely private by default. Only family members you invite can see your content. We use bank-level encryption, and your data is stored on secure US-based servers. Unlike social media, we never sell your data or show ads.",
+        text: "Extremely. We don't sell it, share it, mine it, or use it to train anything. No third-party trackers. No ad network pixels. Your family's stuff is your family's stuff. We make money from subscriptions, not from auctioning off your data to the highest bidder.",
       },
     },
     {
@@ -174,6 +175,7 @@ export default function HomePage() {
         <FeaturesBento />
         <AdditionalFeatures />
         <Testimonials />
+        <PrivacyCallout />
         <EmotionalSection />
         <HomepageFAQ />
         <PricingCards />

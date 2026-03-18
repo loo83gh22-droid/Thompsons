@@ -7,7 +7,7 @@ const faqs = [
   {
     question: "Is my family's data private?",
     answer:
-      "Absolutely. Your Family Nest is completely private by default. Only family members you invite can see your content. We use bank-level encryption, and your data is stored on secure US-based servers. Unlike social media, we never sell your data or show ads.",
+      "Extremely. We don't sell it, share it, mine it, or use it to train anything. No third-party trackers. No ad network pixels. Your family's stuff is your family's stuff. We make money from subscriptions, not from auctioning off your data to the highest bidder.",
   },
   {
     question: "Can I give this as a gift?",

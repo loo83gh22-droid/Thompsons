@@ -47,23 +47,28 @@ const favouritesItems: { href: string; label: string }[] = [
   { href: "/dashboard/favourites/toys", label: "Toys" },
 ];
 
-const planItems: { href: string; label: string }[] = [
-  { href: "/dashboard/tools", label: "All Plans" },
-  { href: "/dashboard/bucket-list", label: "Bucket List" },
-  { href: "/dashboard/tools/reunion-planner", label: "Reunion Planner" },
-];
+// Plan items are now dynamic — built from enabled add-ons passed by the layout.
+
+type AddOn = { name: string; href: string };
 
 export function Nav({
   user,
   familyName = "Our Family",
   families = [],
   activeFamilyId = null,
+  enabledAddOns = [],
 }: {
   user: User;
   familyName?: string;
   families?: Family[];
   activeFamilyId?: string | null;
+  enabledAddOns?: AddOn[];
 }) {
+  // Build plan dropdown items dynamically from enabled add-ons
+  const planItems: { href: string; label: string }[] = [
+    { href: "/dashboard/tools", label: "Feature Catalog" },
+    ...enabledAddOns.map((a) => ({ href: a.href, label: a.name })),
+  ];
   const pathname = usePathname();
   const router = useRouter();
   const [familyOpen, setFamilyOpen] = useState(false);

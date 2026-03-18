@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import { createAdminClient } from "@/src/lib/supabase/admin";
 import { getActiveFamilyId, getActiveFamilyName } from "@/src/lib/family";
+import { getEnabledFeatures } from "@/src/lib/features";
 import { Nav } from "@/app/dashboard/Nav";
 import { MusicPlayer } from "@/app/dashboard/MusicPlayer";
 import { UnreadMessagesFetcher } from "@/app/dashboard/UnreadMessagesFetcher";
@@ -186,10 +187,11 @@ export default async function DashboardLayout({
     let playlistId: string | null = null;
     let welcomeMemberCount = 0;
     let welcomeJournalCount = 0;
+    let enabledAddOns: { name: string; href: string }[] = [];
 
     if (activeFamilyId) {
       // Run all independent queries in parallel to avoid waterfall
-      const [myMemberRes, familyRowRes, membRes, jrnlRes] = await Promise.all([
+      const [myMemberRes, familyRowRes, membRes, jrnlRes, enabledFeatures] = await Promise.all([
         supabase
           .from("family_members")
           .select("id, role")
@@ -203,7 +205,10 @@ export default async function DashboardLayout({
           .single(),
         supabase.from("family_members").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
         supabase.from("journal_entries").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
+        getEnabledFeatures(supabase, activeFamilyId),
       ]);
+
+      enabledAddOns = enabledFeatures.map((f) => ({ name: f.name, href: f.href }));
 
       if (myMemberRes.data) {
         currentUserRole = (myMemberRes.data.role as typeof currentUserRole) || "teen";
@@ -231,6 +236,7 @@ export default async function DashboardLayout({
             familyName={familyName}
             families={families}
             activeFamilyId={activeFamilyId}
+            enabledAddOns={enabledAddOns}
           />
           <PWAInstallBanner />
           <WhatsNewBanner />
