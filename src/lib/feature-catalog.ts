@@ -1,12 +1,13 @@
 /**
- * Feature Catalog — single source of truth for all add-on features.
+ * Feature Catalog -- single source of truth for all toggleable features.
  *
- * Core features (Journal, Photos, etc.) are always visible in the nav.
- * Add-on features live here and only appear in the nav when a family
- * enables them via the Feature Catalog page (/dashboard/tools).
+ * Core features (Journal, Photos, Timeline, Family) are always visible.
+ * Everything else lives here and only appears in the nav when a family
+ * enables it via the Feature Catalog page (/dashboard/tools).
  */
 
 export type FeatureCategory =
+  | "memories"
   | "features"
   | "goals"
   | "planning"
@@ -20,10 +21,13 @@ export interface CatalogFeature {
   category: FeatureCategory;
   icon: string;
   href: string;
-  available: boolean; // false = coming soon
+  available: boolean;
+  /** If true, this feature appears in the Memories nav group instead of Extras */
+  navGroup?: "memories" | "family" | "extras";
 }
 
 export const CATEGORY_LABELS: Record<FeatureCategory, string> = {
+  memories: "Memories & Stories",
   features: "Features",
   goals: "Goals & Lists",
   planning: "Planning & Events",
@@ -32,6 +36,7 @@ export const CATEGORY_LABELS: Record<FeatureCategory, string> = {
 };
 
 export const CATEGORY_ORDER: FeatureCategory[] = [
+  "memories",
   "features",
   "goals",
   "planning",
@@ -40,7 +45,86 @@ export const CATEGORY_ORDER: FeatureCategory[] = [
 ];
 
 export const FEATURE_CATALOG: CatalogFeature[] = [
-  // Features (opt-in core-style features)
+  // Memories & Stories (previously hardcoded in Memories dropdown)
+  {
+    slug: "stories",
+    name: "Stories",
+    description:
+      "Write and preserve family stories, passed down through generations.",
+    category: "memories",
+    icon: "\u{1F4D6}",
+    href: "/dashboard/stories",
+    available: true,
+    navGroup: "memories",
+  },
+  {
+    slug: "recipes",
+    name: "Recipes",
+    description:
+      "Save family recipes so they're never lost. Grandma's cookies, dad's chili, all of it.",
+    category: "memories",
+    icon: "\u{1F373}",
+    href: "/dashboard/recipes",
+    available: true,
+    navGroup: "memories",
+  },
+  {
+    slug: "voice-memos",
+    name: "Voice Memos",
+    description:
+      "Record voices, laughter, and stories. The sounds your family will want to hear again someday.",
+    category: "memories",
+    icon: "\u{1F3A4}",
+    href: "/dashboard/voice-memos",
+    available: true,
+    navGroup: "memories",
+  },
+  {
+    slug: "one-line",
+    name: "One Line A Day",
+    description:
+      "A single sentence each day. Simple, consistent, and surprisingly powerful over time.",
+    category: "memories",
+    icon: "\u{270D}\u{FE0F}",
+    href: "/dashboard/one-line",
+    available: true,
+    navGroup: "memories",
+  },
+  {
+    slug: "artwork",
+    name: "Artwork",
+    description:
+      "Photograph and preserve your kids' drawings, paintings, and crafts before they get lost.",
+    category: "memories",
+    icon: "\u{1F3A8}",
+    href: "/dashboard/artwork",
+    available: true,
+    navGroup: "memories",
+  },
+  {
+    slug: "trophy-case",
+    name: "Trophy Case",
+    description:
+      "Celebrate milestones, awards, and achievements. Every family member gets their own shelf.",
+    category: "memories",
+    icon: "\u{1F3C6}",
+    href: "/dashboard/trophy-case",
+    available: true,
+    navGroup: "memories",
+  },
+  {
+    slug: "time-capsules",
+    name: "Time Capsules",
+    description:
+      "Write letters to the future. Set a date, seal it, and open it together when the time comes.",
+    category: "memories",
+    icon: "\u{1F4E6}",
+    href: "/dashboard/time-capsules",
+    available: true,
+    navGroup: "family",
+  },
+
+  // Features (opt-in)
   {
     slug: "favourites",
     name: "Favourites",
