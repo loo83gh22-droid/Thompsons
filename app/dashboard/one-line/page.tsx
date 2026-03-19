@@ -3,7 +3,7 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import { OneLineClient } from "./OneLineClient";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "One Line A Day" };
+export const metadata: Metadata = { title: "One Line A Day | Family Nest" };
 
 export default async function OneLinePage() {
   const supabase = await createClient();

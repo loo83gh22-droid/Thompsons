@@ -27,7 +27,7 @@ const faqs = [
   {
     question: "What happens if I stop paying?",
     answer:
-      "You can downgrade to the Free plan anytime and keep your first 10 journal entries and 500 MB of photos forever. No data is ever deleted when you downgrade. If you choose the Legacy plan, you own it for life. No recurring payments, ever.",
+      "You can downgrade to the Free plan anytime and keep your first 10 journal entries and 1 GB of photos forever. No data is ever deleted when you downgrade. If you choose the Legacy plan, you own it for life. No recurring payments, ever.",
   },
   {
     question: "I'm a grandparent. Is this easy enough for me?",
@@ -53,6 +53,11 @@ const faqs = [
     question: "Can I import my existing photos?",
     answer:
       "Yes! You can bulk upload photos from your phone, computer, Google Photos, or iCloud. We support all common formats (JPG, PNG, HEIC) and organize them automatically by date and family member.",
+  },
+  {
+    question: "Can I delete my account and all my data?",
+    answer:
+      "Yes, and we make it straightforward. You can delete your account from your dashboard settings at any time. When you do, we give you a 30-day grace period in case you change your mind. After 30 days, every piece of data tied to your account is permanently and irreversibly deleted from our servers. No hidden copies, no backups kept. Your data is yours, including the right to take it all with you or erase it completely.",
   },
 ];
 

@@ -4,6 +4,8 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import { AddTimeCapsuleForm } from "./AddTimeCapsuleForm";
 import { TimeCapsuleSentEmpty } from "./TimeCapsuleEmptyState";
 import { EmptyState } from "@/app/dashboard/components/EmptyState";
+import { PlanLimitBadge } from "@/app/dashboard/components/PlanLimitBadge";
+import { PLAN_LIMITS } from "@/src/lib/constants";
 import { formatDateOnly } from "@/src/lib/date";
 import { WaxSeal, nameToInitials } from "./WaxSeal";
 
@@ -15,12 +17,20 @@ export default async function TimeCapsulesPage() {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId || !user) return null;
 
-  const { data: myMember } = await supabase
-    .from("family_members")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("family_id", activeFamilyId)
-    .single();
+  const [{ data: myMember }, { data: familyPlan }] = await Promise.all([
+    supabase
+      .from("family_members")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("family_id", activeFamilyId)
+      .single(),
+    supabase
+      .from("families")
+      .select("plan_type")
+      .eq("id", activeFamilyId)
+      .single(),
+  ]);
+  const planType = (familyPlan?.plan_type as "free" | "annual" | "legacy") ?? "free";
 
   // Letters the current user SENT
   const sent = myMember
@@ -109,8 +119,13 @@ export default async function TimeCapsulesPage() {
             Time Capsules
           </h1>
           <p className="mt-2 text-[var(--muted)]">
-            Write letters to future versions of family members. Seal them until a date — like &quot;Read this when you turn 18.&quot;
+            Write letters to future versions of family members. Seal them until a date, like &quot;Read this when you turn 18.&quot;
           </p>
+          {planType === "free" && (
+            <div className="mt-2">
+              <PlanLimitBadge used={sent.length} limit={PLAN_LIMITS.free.timeCapsules} label="capsules" />
+            </div>
+          )}
         </div>
       </div>
       <div className="mb-8">

@@ -9,6 +9,8 @@ import { createClient } from "@/src/lib/supabase/server";
 import { formatDateOnly } from "@/src/lib/date";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { EmptyState } from "@/app/dashboard/components/EmptyState";
+import { PlanLimitBadge } from "@/app/dashboard/components/PlanLimitBadge";
+import { PLAN_LIMITS } from "@/src/lib/constants";
 import { AddedToMapBanner } from "./AddedToMapBanner";
 import { ScrollToTop } from "./ScrollToTop";
 import { JournalListClient, type JournalEntryData, type FamilyMemberInfo } from "./JournalListClient";
@@ -34,6 +36,14 @@ export default async function JournalPage() {
     .select("id, name, nickname")
     .eq("family_id", activeFamilyId)
     .order("name");
+
+  // Get plan type for limit badge
+  const { data: familyPlan } = await supabase
+    .from("families")
+    .select("plan_type")
+    .eq("id", activeFamilyId)
+    .single();
+  const planType = (familyPlan?.plan_type as "free" | "annual" | "legacy") ?? "free";
 
   const { data: entries } = await supabase
     .from("journal_entries")
@@ -172,6 +182,11 @@ export default async function JournalPage() {
           <p className="mt-2 text-[var(--muted)]">
             The big moments, the small ones, and the ones you&apos;ll argue about later. Everyone can add their side.
           </p>
+          {planType === "free" && (
+            <div className="mt-2">
+              <PlanLimitBadge used={entries?.length ?? 0} limit={PLAN_LIMITS.free.journalEntries} label="entries" />
+            </div>
+          )}
         </div>
         <Link
           href="/dashboard/journal/new"
@@ -185,7 +200,7 @@ export default async function JournalPage() {
         <EmptyState
           icon="📔"
           headline="Your first entry is waiting to be written"
-          description="Trips, birthdays, regular Tuesdays that turned into something — it all belongs here. Future you will be so glad you started."
+          description="Trips, birthdays, regular Tuesdays that turned into something. It all belongs here. Future you will be so glad you started."
           actionLabel="+ Write your first entry"
           actionHref="/dashboard/journal/new"
         />

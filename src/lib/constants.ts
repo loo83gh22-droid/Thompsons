@@ -27,8 +27,8 @@ export const PLAN_LIMITS = {
     videosPerEntry: 1,
     /** Maximum family members allowed (null = unlimited) */
     maxMembers: 6,
-    /** Storage limit in bytes (500 MB) */
-    storageLimitBytes: 524288000,
+    /** Storage limit in bytes (1 GB) */
+    storageLimitBytes: 1073741824,
     /** Nest Keeper designation not available on free */
     nestKeeperManagement: false,
     /** Inactivity succession protocol not available on free */

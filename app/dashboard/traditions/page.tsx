@@ -2,6 +2,8 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { AddTraditionForm } from "./AddTraditionForm";
 import { TraditionList } from "./TraditionList";
+import { PlanLimitBadge } from "@/app/dashboard/components/PlanLimitBadge";
+import { PLAN_LIMITS } from "@/src/lib/constants";
 
 export const metadata = { title: "Family Traditions | Family Nest" };
 
@@ -9,6 +11,13 @@ export default async function TraditionsPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return null;
+
+  const { data: familyPlan } = await supabase
+    .from("families")
+    .select("plan_type")
+    .eq("id", activeFamilyId)
+    .single();
+  const planType = (familyPlan?.plan_type as "free" | "annual" | "legacy") ?? "free";
 
   const { data: traditions } = await supabase
     .from("family_traditions")
@@ -32,8 +41,13 @@ export default async function TraditionsPage() {
             Family Traditions
           </h1>
           <p className="mt-2 text-[var(--muted)]">
-            Taco Tuesday chants, holiday rituals, inside jokes — the cultural DNA that gets lost between generations.
+            Taco Tuesday chants, holiday rituals, inside jokes. The cultural DNA that gets lost between generations.
           </p>
+          {planType === "free" && (
+            <div className="mt-2">
+              <PlanLimitBadge used={traditions?.length ?? 0} limit={PLAN_LIMITS.free.traditions} label="traditions" />
+            </div>
+          )}
         </div>
         <AddTraditionForm />
       </div>

@@ -443,6 +443,26 @@ export function Nav({
             </button>
           </div>
           <div className="flex flex-1 flex-col gap-1 overflow-y-auto py-4 pl-4 pr-2">
+            {/* Mobile family switcher */}
+            {families.length > 1 && (
+              <div className="mb-3 space-y-1">
+                <p className="px-4 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Switch Nest</p>
+                {families.map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => handleSwitchFamily(f.id)}
+                    className={`block w-full rounded-lg px-4 py-2.5 text-left text-sm min-h-[44px] transition-colors ${
+                      f.id === activeFamilyId
+                        ? "bg-[var(--surface)] text-[var(--accent)] font-medium"
+                        : "text-[var(--foreground)] hover:bg-[var(--surface)]"
+                    }`}
+                  >
+                    {f.name} Nest
+                  </button>
+                ))}
+              </div>
+            )}
             {/* Mobile search */}
             <div className="mb-3">
               <GlobalSearch />

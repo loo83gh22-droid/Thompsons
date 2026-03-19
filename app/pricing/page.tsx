@@ -34,7 +34,7 @@ const tiers = [
       "Events (up to 5)",
       "Video uploads (1 per entry)",
       "Shareable links",
-      "500 MB storage",
+      "1 GB storage",
       "Multi-user roles & kid accounts",
       "Global search",
     ],
@@ -109,6 +109,11 @@ const faqs = [
     question: "How does ownership transfer work?",
     answer:
       "Annual and Legacy members can designate a Nest Keeper, a trusted family member who can inherit full admin rights. Legacy members also get our inactivity succession protocol: we check in with the account owner at 30 and 60 days of inactivity, notify the Nest Keeper at 90 days, and automatically initiate a transfer at 6 months. Your family's memories are never lost.",
+  },
+  {
+    question: "Can I delete my account and all my data?",
+    answer:
+      "Yes. You can delete your account from your dashboard settings. We give you a 30-day grace period in case you change your mind. After that, everything is permanently erased from our servers. No hidden copies.",
   },
 ];
 

@@ -13,12 +13,19 @@ const MARKETING_PHOTOS = [
   "/marketing/journal-3.jpeg",
 ];
 
+// Fishing-specific photos for the Huck's 1st Catch card
+const FISHING_PHOTOS = [
+  "/marketing/social/family/fishing-kid-first-catch-1.jpeg",
+  "/marketing/social/family/fishing-dad-son-boat-1.jpeg",
+  "/marketing/social/family/fishing-kid-back-of-boat-1.jpeg",
+];
+
 function JournalPreview() {
   return (
     <div className="relative h-full w-full overflow-hidden">
       {/* Hero photo — fills the whole preview area */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={MARKETING_PHOTOS[2]} alt="" width={400} height={300} className="h-full w-full object-cover" />
+      <img src={FISHING_PHOTOS[0]} alt="" width={400} height={300} className="h-full w-full object-cover" />
 
       {/* Gradient overlay — fades bottom to dark so text reads clearly */}
       <div
@@ -50,7 +57,7 @@ function JournalPreview() {
 
         {/* Thumbnail strip */}
         <div className="mt-2 flex items-center gap-1">
-          {MARKETING_PHOTOS.map((src, i) => (
+          {FISHING_PHOTOS.map((src, i) => (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               key={i}

@@ -70,3 +70,115 @@ export async function saveSpotifyPlaylist(
   revalidatePath("/dashboard/settings");
   return { success: true };
 }
+
+/* ── Theme ─────────────────────────────────────────────── */
+
+const VALID_THEMES = ["warm", "ocean", "forest", "sunset", "lavender", "midnight", "vintage"];
+
+export async function setUserTheme(
+  theme: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!VALID_THEMES.includes(theme)) {
+    return { success: false, error: "Invalid theme" };
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not logged in" };
+
+  const { error } = await supabase
+    .from("user_preferences")
+    .upsert(
+      { user_id: user.id, theme, updated_at: new Date().toISOString() },
+      { onConflict: "user_id" }
+    );
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/dashboard", "layout");
+  return { success: true };
+}
+
+/* ── Account Deletion ─────────────────────────────────────── */
+
+export async function requestAccountDeletion(): Promise<{
+  success: boolean;
+  error?: string;
+  deleteAfter?: string;
+}> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  // Check if there's already a pending request
+  const { data: existing } = await supabase
+    .from("account_deletion_requests")
+    .select("id, delete_after")
+    .eq("user_id", user.id)
+    .eq("status", "pending")
+    .maybeSingle();
+
+  if (existing) {
+    return {
+      success: false,
+      error: "You already have a pending deletion request.",
+      deleteAfter: existing.delete_after,
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("account_deletion_requests")
+    .insert({ user_id: user.id })
+    .select("delete_after")
+    .single();
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/dashboard/settings");
+  return { success: true, deleteAfter: data.delete_after };
+}
+
+export async function cancelAccountDeletion(): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  const { error } = await supabase
+    .from("account_deletion_requests")
+    .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
+    .eq("user_id", user.id)
+    .eq("status", "pending");
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/dashboard/settings");
+  return { success: true };
+}
+
+export async function getAccountDeletionStatus(): Promise<{
+  pending: boolean;
+  deleteAfter?: string;
+}> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { pending: false };
+
+  const { data } = await supabase
+    .from("account_deletion_requests")
+    .select("delete_after")
+    .eq("user_id", user.id)
+    .eq("status", "pending")
+    .maybeSingle();
+
+  if (!data) return { pending: false };
+  return { pending: true, deleteAfter: data.delete_after };
+}

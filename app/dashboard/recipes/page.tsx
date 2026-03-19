@@ -3,6 +3,8 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import { AddRecipeForm } from "./AddRecipeForm";
 import { RecipeCard } from "./RecipeCard";
 import { RecipesEmptyState } from "./RecipesEmptyState";
+import { PlanLimitBadge } from "@/app/dashboard/components/PlanLimitBadge";
+import { PLAN_LIMITS } from "@/src/lib/constants";
 
 export const metadata = { title: "Family Recipes | Family Nest" };
 
@@ -10,6 +12,13 @@ export default async function RecipesPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return null;
+
+  const { data: familyPlan } = await supabase
+    .from("families")
+    .select("plan_type")
+    .eq("id", activeFamilyId)
+    .single();
+  const planType = (familyPlan?.plan_type as "free" | "annual" | "legacy") ?? "free";
 
   // Run all three independent queries in parallel
   const [recipesRes, membersRes, journalPhotosRes] = await Promise.all([
@@ -47,11 +56,16 @@ export default async function RecipesPage() {
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-            🍳 Recipes
+            Recipes
           </h1>
           <p className="mt-2 text-[var(--muted)]">
-            The story behind the food — who taught it, what occasions, photos from dinners.
+            The story behind the food. Who taught it, what occasions, photos from dinners.
           </p>
+          {planType === "free" && (
+            <div className="mt-2">
+              <PlanLimitBadge used={recipes?.length ?? 0} limit={PLAN_LIMITS.free.recipes} label="recipes" />
+            </div>
+          )}
         </div>
         <AddRecipeForm
           members={members || []}

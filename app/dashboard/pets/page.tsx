@@ -34,7 +34,7 @@ export default async function PetsPage() {
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-            Family Pets 🐾
+            Family Pets
           </h1>
           <p className="mt-2 text-[var(--muted)]">
             Every paw, fin, and feather that&apos;s been part of your family story.

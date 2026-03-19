@@ -32,7 +32,7 @@ const faqStructuredData = {
       name: "What happens if I stop paying?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "You can downgrade to the Free plan anytime and keep your first 10 journal entries and 500 MB of photos forever. No data is ever deleted when you downgrade. If you choose the Legacy plan, you own it for life. No recurring payments, ever.",
+        text: "You can downgrade to the Free plan anytime and keep your first 10 journal entries and 1 GB of photos forever. No data is ever deleted when you downgrade. If you choose the Legacy plan, you own it for life. No recurring payments, ever.",
       },
     },
     {
@@ -91,6 +91,14 @@ const faqStructuredData = {
         text: "Yes! You can bulk upload photos from your phone, computer, Google Photos, or iCloud. We support all common formats (JPG, PNG, HEIC) and organize them automatically by date and family member.",
       },
     },
+    {
+      "@type": "Question",
+      name: "Can I delete my account and all my data?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. You can delete your account from your dashboard settings at any time. We give you a 30-day grace period in case you change your mind. After 30 days, everything is permanently erased from our servers. No hidden copies.",
+      },
+    },
   ],
 };
 
@@ -108,7 +116,7 @@ const softwareStructuredData = {
       price: "0",
       priceCurrency: "USD",
       name: "The Nest (Free)",
-      description: "10 journal entries, 500 MB storage, family tree, map view",
+      description: "10 journal entries, 1 GB storage, family tree, map view",
     },
     {
       "@type": "Offer",
@@ -172,13 +180,13 @@ export default function HomePage() {
       <main>
         <HeroSection />
         <HowItWorks />
-        <PersonaSection />
         <FeaturesBento />
-        <AdditionalFeatures />
         <MakeItYours />
-        <Testimonials />
-        <PrivacyCallout />
+        <PersonaSection />
+        <AdditionalFeatures />
         <EmotionalSection />
+        <PrivacyCallout />
+        <Testimonials />
         <HomepageFAQ />
         <PricingCards />
         <FinalCTA />
