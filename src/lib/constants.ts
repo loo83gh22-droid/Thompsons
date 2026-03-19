@@ -15,7 +15,7 @@
 export const PLAN_LIMITS = {
   free: {
     /** Maximum instances per feature (null = unlimited) */
-    journalEntries: 5,
+    journalEntries: null, // unlimited
     stories: 3,
     recipes: 3,
     timeCapsules: 2,
@@ -27,8 +27,8 @@ export const PLAN_LIMITS = {
     videosPerEntry: 1,
     /** Maximum family members allowed (null = unlimited) */
     maxMembers: 6,
-    /** Storage limit in bytes (1 GB) */
-    storageLimitBytes: 1073741824,
+    /** Storage limit in bytes (500 MB) */
+    storageLimitBytes: 524288000,
     /** Nest Keeper designation not available on free */
     nestKeeperManagement: false,
     /** Inactivity succession protocol not available on free */
@@ -78,9 +78,9 @@ export const PLAN_LIMITS = {
 } as const;
 
 /**
- * Default storage limit when plan data is unavailable (1 GB)
+ * Default storage limit when plan data is unavailable (500 MB — free tier default)
  */
-export const DEFAULT_STORAGE_LIMIT_BYTES = 1073741824;
+export const DEFAULT_STORAGE_LIMIT_BYTES = 524288000;
 
 /* ══════════════════════════════════════════════════════════════
    MEDIA LIMITS

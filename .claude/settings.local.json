@@ -44,7 +44,22 @@
       "Bash(Remove-Item -Force .next/lock -ErrorAction SilentlyContinue)",
       "mcp__mcp-registry__search_mcp_registry",
       "Bash(npm run db:push)",
-      "Bash(python3 -c \":*)"
+      "Bash(python3 -c \":*)",
+      "Bash(node src/setup-tokens.js)",
+      "Bash(gh api:*)",
+      "mcp__familynest-social__get_ad_performance",
+      "Bash(gh pr:*)",
+      "mcp__familynest-social__get_voice_guidelines",
+      "mcp__familynest-social__get_ad_campaigns",
+      "WebFetch(domain:docs.google.com)",
+      "Read(//c/Users/keepi/**)",
+      "Read(//c/Users/keepi/OneDrive/**)",
+      "Read(//c/Users/keepi//**)",
+      "WebFetch(domain:doc-0g-88-docstext.googleusercontent.com)",
+      "WebFetch(domain:doc-0g-9o-sheets.googleusercontent.com)",
+      "WebFetch(domain:doc-0c-9o-sheets.googleusercontent.com)",
+      "Bash(sed 's/^< //')",
+      "Bash(sed 's/^> //')"
     ]
   }
 }

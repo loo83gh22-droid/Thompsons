@@ -145,6 +145,60 @@
   --surface-hover: hsl(35, 24%, 83%);
 }
 
+/* ─── Theme: Nineties ─── */
+[data-theme="nineties"] {
+  --background: hsl(185, 85%, 84%);
+  --foreground: hsl(270, 95%, 12%);       /* darker purple — better contrast on teal */
+  --card: hsl(54, 100%, 94%);
+  --card-foreground: hsl(270, 95%, 12%);
+  --primary: hsl(325, 100%, 48%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(270, 70%, 55%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --muted: hsl(270, 70%, 22%);            /* much darker — readable on both teal bg and yellow cards */
+  --accent: hsl(135, 100%, 24%);          /* dark forest green — readable on teal & yellow */
+  --accent-muted: hsl(135, 80%, 18%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  --border: hsl(270, 65%, 52%);
+  --surface: hsl(185, 70%, 90%);
+  --surface-hover: hsl(185, 60%, 78%);
+  --success: hsl(135, 100%, 28%);
+  --success-bg: hsl(135, 90%, 88%);
+  --success-border: hsl(135, 80%, 55%);
+  --warning: hsl(38, 90%, 35%);
+  --warning-bg: hsl(51, 100%, 90%);
+  --warning-border: hsl(45, 100%, 60%);
+  --error: hsl(325, 100%, 40%);
+  --error-bg: hsl(325, 80%, 92%);
+  --error-border: hsl(325, 80%, 68%);
+}
+
+/* 90s polka-dot background pattern — subtler so text is readable */
+[data-theme="nineties"] body {
+  background-image:
+    radial-gradient(circle, rgba(200, 0, 130, 0.10) 2.5px, transparent 2.5px),
+    radial-gradient(circle, rgba(0, 180, 220, 0.08) 2.5px, transparent 2.5px);
+  background-size: 44px 44px;
+  background-position: 0 0, 22px 22px;
+}
+
+/* 90s text shadow — only on top-level h1 page headings, subtle offset */
+[data-theme="nineties"] h1 {
+  text-shadow: 2px 2px 0 hsl(325, 100%, 78%);
+}
+
+/* 90s card borders — bold & colourful */
+[data-theme="nineties"] .rounded-2xl,
+[data-theme="nineties"] .rounded-xl {
+  border-width: 2px;
+}
+
+/* Neon glow on primary buttons */
+[data-theme="nineties"] button[class*="bg-[var(--primary)]"],
+[data-theme="nineties"] a[class*="bg-[var(--primary)]"] {
+  box-shadow: 0 0 10px hsl(325, 100%, 70%);
+}
+
 .landing {
   position: relative;
   min-height: 100vh;

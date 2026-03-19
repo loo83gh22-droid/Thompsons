@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#3A7D5C"/>
+
+  <!-- Circular arrangement of family holding hands -->
+  <!-- Top figure (parent 1) -->
+  <circle cx="256" cy="100" r="26" fill="#F0DCC8"/>
+  <line x1="256" y1="126" x2="256" y2="200" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+  <line x1="256" y1="200" x2="240" y2="250" stroke="#F0DCC8" stroke-width="9" stroke-linecap="round"/>
+  <line x1="256" y1="200" x2="272" y2="250" stroke="#F0DCC8" stroke-width="9" stroke-linecap="round"/>
+  <!-- Arms reaching to sides -->
+  <line x1="256" y1="155" x2="185" y2="175" stroke="#F0DCC8" stroke-width="9" stroke-linecap="round"/>
+  <line x1="256" y1="155" x2="327" y2="175" stroke="#F0DCC8" stroke-width="9" stroke-linecap="round"/>
+
+  <!-- Right figure (parent 2) -->
+  <circle cx="400" cy="235" r="26" fill="#F0DCC8"/>
+  <line x1="400" y1="261" x2="390" y2="335" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+  <line x1="390" y1="335" x2="405" y2="385" stroke="#F0DCC8" stroke-width="9" stroke-linecap="round"/>
+  <line x1="390" y1="335" x2="370" y2="385" stroke="#F0DCC8" stroke-width="9" stroke-linecap="round"/>
+  <!-- Arms -->
+  <line x1="400" y1="290" x2="350" y2="350" stroke="#F0DCC8" stroke-width="9" stroke-linecap="round"/>
+  <line x1="400" y1="290" x2="340" y2="200" stroke="#F0DCC8" stroke-width="9" stroke-linecap="round"/>
+
+  <!-- Bottom-right child -->
+  <circle cx="330" cy="380" r="20" fill="#C65D28"/>
+  <line x1="330" y1="400" x2="330" y2="450" stroke="#C65D28" stroke-width="9" stroke-linecap="round"/>
+  <line x1="330" y1="415" x2="350" y2="350" stroke="#C65D28" stroke-width="7" stroke-linecap="round"/>
+  <line x1="330" y1="415" x2="200" y2="415" stroke="#C65D28" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- Bottom-left child -->
+  <circle cx="182" cy="380" r="20" fill="#C65D28"/>
+  <line x1="182" y1="400" x2="182" y2="450" stroke="#C65D28" stroke-width="9" stroke-linecap="round"/>
+  <line x1="182" y1="415" x2="162" y2="350" stroke="#C65D28" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- Left figure (parent 3 / grandparent) -->
+  <circle cx="112" cy="235" r="26" fill="#F0DCC8"/>
+  <line x1="112" y1="261" x2="122" y2="335" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+  <line x1="122" y1="335" x2="107" y2="385" stroke="#F0DCC8" stroke-width="9" stroke-linecap="round"/>
+  <line x1="122" y1="335" x2="142" y2="385" stroke="#F0DCC8" stroke-width="9" stroke-linecap="round"/>
+  <!-- Arms -->
+  <line x1="112" y1="290" x2="162" y2="350" stroke="#F0DCC8" stroke-width="9" stroke-linecap="round"/>
+  <line x1="112" y1="290" x2="172" y2="200" stroke="#F0DCC8" stroke-width="9" stroke-linecap="round"/>
+</svg>

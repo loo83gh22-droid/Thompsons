@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#3A7D5C"/>
+
+  <!-- Left parent -->
+  <circle cx="130" cy="175" r="30" fill="#F0DCC8"/>
+  <line x1="130" y1="205" x2="130" y2="310" stroke="#F0DCC8" stroke-width="14" stroke-linecap="round"/>
+  <!-- Left parent arms: left arm down to child, right arm up to roof -->
+  <line x1="130" y1="240" x2="80" y2="310" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <line x1="130" y1="240" x2="256" y2="120" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <!-- Left parent legs -->
+  <line x1="130" y1="310" x2="100" y2="400" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <line x1="130" y1="310" x2="160" y2="400" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Right parent -->
+  <circle cx="382" cy="175" r="30" fill="#F0DCC8"/>
+  <line x1="382" y1="205" x2="382" y2="310" stroke="#F0DCC8" stroke-width="14" stroke-linecap="round"/>
+  <!-- Right parent arms: right arm down to child, left arm up to roof -->
+  <line x1="382" y1="240" x2="432" y2="310" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <line x1="382" y1="240" x2="256" y2="120" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <!-- Right parent legs -->
+  <line x1="382" y1="310" x2="352" y2="400" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <line x1="382" y1="310" x2="412" y2="400" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Roof peak circle -->
+  <circle cx="256" cy="110" r="22" fill="#C65D28"/>
+
+  <!-- Left child (under left parent's arm) -->
+  <circle cx="175" cy="300" r="20" fill="#C65D28"/>
+  <line x1="175" y1="320" x2="175" y2="385" stroke="#C65D28" stroke-width="10" stroke-linecap="round"/>
+  <line x1="175" y1="340" x2="150" y2="365" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <line x1="175" y1="340" x2="200" y2="365" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <line x1="175" y1="385" x2="155" y2="430" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <line x1="175" y1="385" x2="195" y2="430" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Right child (under right parent's arm) -->
+  <circle cx="337" cy="300" r="20" fill="#C65D28"/>
+  <line x1="337" y1="320" x2="337" y2="385" stroke="#C65D28" stroke-width="10" stroke-linecap="round"/>
+  <line x1="337" y1="340" x2="312" y2="365" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <line x1="337" y1="340" x2="362" y2="365" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <line x1="337" y1="385" x2="317" y2="430" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <line x1="337" y1="385" x2="357" y2="430" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+</svg>

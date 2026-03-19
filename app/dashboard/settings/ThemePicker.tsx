@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { setUserTheme } from "./actions";
 
-export type ThemeId = "warm" | "ocean" | "forest" | "sunset" | "lavender" | "midnight" | "vintage";
+export type ThemeId = "warm" | "ocean" | "forest" | "sunset" | "lavender" | "midnight" | "vintage" | "nineties";
 
 const themes: { id: ThemeId; name: string; description: string; colors: [string, string, string] }[] = [
   {
@@ -48,6 +48,12 @@ const themes: { id: ThemeId; name: string; description: string; colors: [string,
     name: "Vintage",
     description: "Faded sepia warmth",
     colors: ["hsl(38, 30%, 88%)", "hsl(15, 40%, 32%)", "hsl(30, 50%, 42%)"],
+  },
+  {
+    id: "nineties",
+    name: "90s",
+    description: "Saved by the Bell energy",
+    colors: ["hsl(185, 85%, 84%)", "hsl(325, 100%, 50%)", "hsl(135, 100%, 36%)"],
   },
 ];
 

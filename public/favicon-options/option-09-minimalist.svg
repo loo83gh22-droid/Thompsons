@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#3A7D5C"/>
+
+  <!-- House outline only - clean minimalist -->
+  <!-- Roof -->
+  <polyline points="70,260 256,90 442,260" fill="none" stroke="#F0DCC8" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Walls -->
+  <line x1="110" y1="260" x2="110" y2="420" stroke="#F0DCC8" stroke-width="14" stroke-linecap="round"/>
+  <line x1="402" y1="260" x2="402" y2="420" stroke="#F0DCC8" stroke-width="14" stroke-linecap="round"/>
+  <!-- Floor -->
+  <line x1="110" y1="420" x2="402" y2="420" stroke="#F0DCC8" stroke-width="14" stroke-linecap="round"/>
+
+  <!-- Simple family silhouette inside house -->
+  <!-- Parent 1 -->
+  <circle cx="200" cy="275" r="20" fill="#F0DCC8"/>
+  <line x1="200" y1="295" x2="200" y2="365" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+  <line x1="200" y1="365" x2="185" y2="405" stroke="#F0DCC8" stroke-width="8" stroke-linecap="round"/>
+  <line x1="200" y1="365" x2="215" y2="405" stroke="#F0DCC8" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Parent 2 -->
+  <circle cx="312" cy="275" r="20" fill="#F0DCC8"/>
+  <line x1="312" y1="295" x2="312" y2="365" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+  <line x1="312" y1="365" x2="297" y2="405" stroke="#F0DCC8" stroke-width="8" stroke-linecap="round"/>
+  <line x1="312" y1="365" x2="327" y2="405" stroke="#F0DCC8" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Child between them -->
+  <circle cx="256" cy="310" r="16" fill="#C65D28"/>
+  <line x1="256" y1="326" x2="256" y2="378" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <line x1="256" y1="378" x2="244" y2="408" stroke="#C65D28" stroke-width="7" stroke-linecap="round"/>
+  <line x1="256" y1="378" x2="268" y2="408" stroke="#C65D28" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- Holding hands line -->
+  <line x1="200" y1="325" x2="240" y2="340" stroke="#F0DCC8" stroke-width="7" stroke-linecap="round"/>
+  <line x1="312" y1="325" x2="272" y2="340" stroke="#F0DCC8" stroke-width="7" stroke-linecap="round"/>
+</svg>

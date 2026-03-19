@@ -73,7 +73,7 @@ export async function saveSpotifyPlaylist(
 
 /* ── Theme ─────────────────────────────────────────────── */
 
-const VALID_THEMES = ["warm", "ocean", "forest", "sunset", "lavender", "midnight", "vintage"];
+const VALID_THEMES = ["warm", "ocean", "forest", "sunset", "lavender", "midnight", "vintage", "nineties"];
 
 export async function setUserTheme(
   theme: string

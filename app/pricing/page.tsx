@@ -24,7 +24,7 @@ const tiers = [
     description: "Try every feature. No credit card needed.",
     features: [
       "Up to 6 family members",
-      "Journal (up to 5 entries)",
+      "Unlimited journal entries",
       "Stories (up to 3)",
       "Recipes (up to 3)",
       "Time Capsules (up to 2)",
@@ -34,13 +34,13 @@ const tiers = [
       "Events (up to 5)",
       "Video uploads (1 per entry)",
       "Shareable links",
-      "1 GB storage",
+      "500 MB storage",
       "Multi-user roles & kid accounts",
       "Global search",
     ],
     cta: "Get Started",
     ctaHref: "/login?mode=signup",
-    ctaNote: "Every feature included. Upgrade for unlimited.",
+    ctaNote: "Write as much as you want. Upgrade for more storage & members.",
     highlighted: false,
   },
   {
@@ -93,7 +93,7 @@ const faqs = [
   {
     question: "Which plan is right for me?",
     answer:
-      "Start with The Nest (Free). All the core features, up to 6 members and 1 GB of storage. When your family grows past 6, you want to add videos, or you need more space, upgrade to The Full Nest ($79/year). If you're committed to preserving your family's memories for decades and want lifetime access with succession protection, The Legacy ($349 one-time) is the best long-term value.",
+      "Start with The Nest (Free). Unlimited journal entries, up to 6 members, and 500 MB of storage — enough to get a real feel for the product. When your family grows past 6, you want more storage for photos and videos, upgrade to The Full Nest ($79/year). If you're committed to preserving your family's memories for decades and want lifetime access with succession protection, The Legacy ($349 one-time) is the best long-term value.",
   },
   {
     question: "What happens if the platform shuts down?",

@@ -25,14 +25,14 @@ export function UpcomingEvents({ events }: { events: EventRow[] }) {
         <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
           Upcoming Events
         </h2>
-        <p className="mt-2 text-sm text-[var(--muted)]">
-          No events scheduled. Add one!
+        <p className="mt-3 text-sm text-[var(--muted)]">
+          Birthdays, reunions, holidays — add them so the whole family stays in the loop.
         </p>
         <Link
-          href="/dashboard/events"
-          className="mt-3 inline-block text-sm font-medium text-[var(--accent)] hover:underline"
+          href="/dashboard/events/new"
+          className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90"
         >
-          View all events
+          + Add an event
         </Link>
       </section>
     );

@@ -30,6 +30,16 @@ function JournalIcon() {
   );
 }
 
+function PhotosIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <polyline points="21 15 16 10 5 21" />
+    </svg>
+  );
+}
+
 function MenuIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -99,6 +109,12 @@ export function MobileBottomNav() {
             </button>
             <span className="text-[10px] font-medium text-[var(--muted)] -mt-1">Add</span>
           </div>
+
+          {/* Photos */}
+          <Link href="/dashboard/photos" className={tabClass(isActive("/dashboard/photos"))}>
+            <PhotosIcon />
+            <span className="text-[10px] font-medium">Photos</span>
+          </Link>
 
           {/* More */}
           <button

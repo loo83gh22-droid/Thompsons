@@ -134,21 +134,27 @@ export function ActivityFeed({
   if (items.length === 0) {
     return (
       <section className="rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)]/50 px-6 py-12 text-center">
-        <span className="text-5xl inline-block animate-pulse" role="img" aria-hidden="true">
-          👨‍👩‍👧‍👦
+        <span className="text-5xl inline-block" role="img" aria-hidden="true">
+          📸
         </span>
         <h2 className="mt-4 font-display text-xl font-semibold text-[var(--foreground)]">
-          Nothing yet
+          Your family&apos;s first memory is waiting
         </h2>
-        <p className="mt-2 max-w-sm mx-auto text-[var(--muted)]">
-          Your family story starts here. Upload a photo, write a journal entry, or record a voice memo to get started!
+        <p className="mt-2 max-w-sm mx-auto text-sm text-[var(--muted)]">
+          Add a photo, write a journal entry, or record a voice memo. Whatever feels right.
         </p>
-        <div className="mt-6">
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link
+            href="/dashboard/journal/new"
+            className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90"
+          >
+            📔 Write an entry
+          </Link>
           <Link
             href="/dashboard/photos"
-            className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-5 py-2.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-hover)]"
           >
-            📷 Upload Your First Photo
+            📷 Add a photo
           </Link>
         </div>
       </section>

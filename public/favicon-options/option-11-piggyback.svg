@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#3A7D5C"/>
+
+  <!-- Left parent with child on shoulders -->
+  <circle cx="165" cy="120" r="18" fill="#C65D28"/>
+  <line x1="165" y1="138" x2="165" y2="170" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <line x1="165" y1="150" x2="145" y2="165" stroke="#C65D28" stroke-width="7" stroke-linecap="round"/>
+  <line x1="165" y1="150" x2="185" y2="165" stroke="#C65D28" stroke-width="7" stroke-linecap="round"/>
+  <!-- Parent head below child -->
+  <circle cx="165" cy="200" r="28" fill="#F0DCC8"/>
+  <line x1="165" y1="228" x2="165" y2="330" stroke="#F0DCC8" stroke-width="13" stroke-linecap="round"/>
+  <line x1="165" y1="260" x2="120" y2="300" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+  <line x1="165" y1="260" x2="256" y2="140" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+  <line x1="165" y1="330" x2="138" y2="420" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+  <line x1="165" y1="330" x2="192" y2="420" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+
+  <!-- Right parent with child on shoulders -->
+  <circle cx="347" cy="120" r="18" fill="#C65D28"/>
+  <line x1="347" y1="138" x2="347" y2="170" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <line x1="347" y1="150" x2="327" y2="165" stroke="#C65D28" stroke-width="7" stroke-linecap="round"/>
+  <line x1="347" y1="150" x2="367" y2="165" stroke="#C65D28" stroke-width="7" stroke-linecap="round"/>
+  <!-- Parent head -->
+  <circle cx="347" cy="200" r="28" fill="#F0DCC8"/>
+  <line x1="347" y1="228" x2="347" y2="330" stroke="#F0DCC8" stroke-width="13" stroke-linecap="round"/>
+  <line x1="347" y1="260" x2="392" y2="300" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+  <line x1="347" y1="260" x2="256" y2="140" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+  <line x1="347" y1="330" x2="320" y2="420" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+  <line x1="347" y1="330" x2="374" y2="420" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+
+  <!-- Roof peak -->
+  <circle cx="256" cy="130" r="20" fill="#C65D28"/>
+</svg>

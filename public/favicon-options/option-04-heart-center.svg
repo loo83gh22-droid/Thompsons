@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#3A7D5C"/>
+
+  <!-- Left parent -->
+  <circle cx="120" cy="170" r="30" fill="#F0DCC8"/>
+  <line x1="120" y1="200" x2="120" y2="310" stroke="#F0DCC8" stroke-width="14" stroke-linecap="round"/>
+  <line x1="120" y1="235" x2="75" y2="290" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <line x1="120" y1="235" x2="256" y2="115" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <line x1="120" y1="310" x2="90" y2="400" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <line x1="120" y1="310" x2="150" y2="400" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Right parent -->
+  <circle cx="392" cy="170" r="30" fill="#F0DCC8"/>
+  <line x1="392" y1="200" x2="392" y2="310" stroke="#F0DCC8" stroke-width="14" stroke-linecap="round"/>
+  <line x1="392" y1="235" x2="437" y2="290" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <line x1="392" y1="235" x2="256" y2="115" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <line x1="392" y1="310" x2="362" y2="400" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <line x1="392" y1="310" x2="422" y2="400" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Roof peak circle -->
+  <circle cx="256" cy="105" r="22" fill="#C65D28"/>
+
+  <!-- Large heart in center -->
+  <path d="M256,340 C256,340 190,290 190,250 C190,225 210,210 230,210 C245,210 256,220 256,230 C256,220 267,210 282,210 C302,210 322,225 322,250 C322,290 256,340 256,340Z" fill="#C65D28"/>
+</svg>

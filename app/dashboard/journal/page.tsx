@@ -9,8 +9,6 @@ import { createClient } from "@/src/lib/supabase/server";
 import { formatDateOnly } from "@/src/lib/date";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { EmptyState } from "@/app/dashboard/components/EmptyState";
-import { PlanLimitBadge } from "@/app/dashboard/components/PlanLimitBadge";
-import { PLAN_LIMITS } from "@/src/lib/constants";
 import { AddedToMapBanner } from "./AddedToMapBanner";
 import { ScrollToTop } from "./ScrollToTop";
 import { JournalListClient, type JournalEntryData, type FamilyMemberInfo } from "./JournalListClient";
@@ -182,11 +180,6 @@ export default async function JournalPage() {
           <p className="mt-2 text-[var(--muted)]">
             The big moments, the small ones, and the ones you&apos;ll argue about later. Everyone can add their side.
           </p>
-          {planType === "free" && (
-            <div className="mt-2">
-              <PlanLimitBadge used={entries?.length ?? 0} limit={PLAN_LIMITS.free.journalEntries} label="entries" />
-            </div>
-          )}
         </div>
         <Link
           href="/dashboard/journal/new"
