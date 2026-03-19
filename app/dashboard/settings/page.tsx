@@ -12,6 +12,9 @@ import { EmailNotificationsToggle } from "./EmailNotificationsToggle";
 import { StorageAddons } from "./StorageAddons";
 import { SpotifyPlaylistEditor } from "./SpotifyPlaylistEditor";
 import { AdultOnly } from "@/app/components/RoleGate";
+import { DeleteAccount } from "./DeleteAccount";
+import { ThemePicker, type ThemeId } from "./ThemePicker";
+import { getAccountDeletionStatus } from "./actions";
 
 type PlanType = "free" | "annual" | "legacy";
 
@@ -104,7 +107,7 @@ export default async function SettingsPage() {
   const planType: PlanType = (family?.plan_type as PlanType) || "free";
   const plan = PLAN_DISPLAY[planType];
   const storageUsed: number = family?.storage_used_bytes ?? 0;
-  const storageLimit: number = family?.storage_limit_bytes ?? 524288000;
+  const storageLimit: number = family?.storage_limit_bytes ?? 1073741824;
   const planStarted: string | null = family?.plan_started_at ?? null;
   const planExpires: string | null = family?.plan_expires_at ?? null;
 
@@ -128,6 +131,16 @@ export default async function SettingsPage() {
   const activeAddons = activeAddonsRaw ?? [];
   const cancellingAddons = activeAddons.filter((a) => a.status === "cancelling");
   const nowMs = new Date().getTime();
+
+  // Check for pending account deletion and user preferences
+  const [deletionStatus, { data: userPrefs }] = await Promise.all([
+    getAccountDeletionStatus(),
+    supabase
+      .from("user_preferences")
+      .select("theme")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+  ]);
 
   // Count feature usage for free tier limit display
   const featureCounts: Record<string, number> = {};
@@ -206,6 +219,17 @@ export default async function SettingsPage() {
         </div>
       </section>
 
+      {/* Theme */}
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+        <div className="border-b border-[var(--border)] px-6 py-4">
+          <h2 className="font-display text-xl font-semibold">Theme</h2>
+          <p className="mt-1 text-sm text-[var(--muted)]">Change the look and feel of your Nest.</p>
+        </div>
+        <div className="px-6 py-5">
+          <ThemePicker currentTheme={(userPrefs?.theme as ThemeId) ?? "warm"} />
+        </div>
+      </section>
+
       {/* Spotify Playlist — owners and adults only */}
       <AdultOnly>
         <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
@@ -239,7 +263,7 @@ export default async function SettingsPage() {
             </div>
             {planType === "legacy" && (
               <span className="rounded-full bg-[var(--accent)]/15 px-3 py-1 text-xs font-semibold text-[var(--accent)]">
-                Lifetime &mdash; You&apos;re all set
+                Lifetime. You&apos;re all set
               </span>
             )}
           </div>
@@ -476,6 +500,18 @@ export default async function SettingsPage() {
           </div>
         </section>
       )}
+
+      {/* Delete Account — Danger Zone */}
+      <section>
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-red-500">
+          Danger Zone
+        </h2>
+        <DeleteAccount
+          pendingDeleteAfter={
+            deletionStatus.pending ? deletionStatus.deleteAfter : null
+          }
+        />
+      </section>
 
       {/* Legal */}
       <div className="flex gap-4 pb-4 text-xs text-[var(--muted)]">

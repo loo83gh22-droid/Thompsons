@@ -2,6 +2,8 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { AddVoiceMemoForm } from "./AddVoiceMemoForm";
 import { VoiceMemoList } from "./VoiceMemoList";
+import { PlanLimitBadge } from "@/app/dashboard/components/PlanLimitBadge";
+import { PLAN_LIMITS } from "@/src/lib/constants";
 
 export const metadata = { title: "Voice Memos | Family Nest" };
 
@@ -13,6 +15,13 @@ export default async function VoiceMemosPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const { data: familyPlan } = await supabase
+    .from("families")
+    .select("plan_type")
+    .eq("id", activeFamilyId)
+    .single();
+  const planType = (familyPlan?.plan_type as "free" | "annual" | "legacy") ?? "free";
 
   const [memosRes, membersRes, myMemberRes] = await Promise.all([
     supabase
@@ -64,9 +73,14 @@ export default async function VoiceMemosPage() {
             Voice Memos
           </h1>
           <p className="mt-2 text-[var(--muted)]">
-            Record voices for the future — stories, songs, jokes. Imagine your kids hearing
+            Record voices for the future. Stories, songs, jokes. Imagine your kids hearing
             their great-grandmother&apos;s voice decades from now.
           </p>
+          {planType === "free" && (
+            <div className="mt-2">
+              <PlanLimitBadge used={memos.length} limit={PLAN_LIMITS.free.voiceMemos} label="voice memos" />
+            </div>
+          )}
         </div>
         <div className="shrink-0">
           <AddVoiceMemoForm members={members} />

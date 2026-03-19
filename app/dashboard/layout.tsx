@@ -16,6 +16,7 @@ import { PWAInstallBanner } from "@/app/dashboard/PWAInstallBanner";
 import { MobileBottomNav } from "@/app/components/MobileBottomNav";
 import { WhatsNewBanner } from "@/app/dashboard/WhatsNewBanner";
 import { QuickCapture } from "@/app/components/QuickCapture";
+import { ThemeApplicator } from "@/app/dashboard/ThemeApplicator";
 
 export default async function DashboardLayout({
   children,
@@ -245,8 +246,17 @@ export default async function DashboardLayout({
       welcomeJournalCount = jrnlRes.count ?? 0;
     }
 
+    // Fetch user-level theme preference (not family-scoped)
+    const { data: userPrefs } = await supabase
+      .from("user_preferences")
+      .select("theme")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const userTheme = userPrefs?.theme?.trim() || null;
+
     return (
       <FamilyProvider activeFamilyId={activeFamilyId} families={families} currentUserRole={currentUserRole} currentMemberId={currentMemberId} planType={planType}>
+        <ThemeApplicator theme={userTheme} />
         <WelcomeModal familyName={familyName} memberCount={welcomeMemberCount} journalCount={welcomeJournalCount} />
         <BirthdayPrompt />
         <FeedbackPromptModal />

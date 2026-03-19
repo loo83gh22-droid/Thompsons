@@ -1,8 +1,9 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { SendMessageForm } from "./SendMessageForm";
+import { EmptyState } from "@/app/dashboard/components/EmptyState";
 
-export const metadata = { title: "Send a Message | Family Nest" };
+export const metadata = { title: "Messages | Family Nest" };
 
 export default async function SendMessagePage() {
   const supabase = await createClient();
@@ -35,7 +36,7 @@ export default async function SendMessagePage() {
     <div>
       <div className="mb-8">
         <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-          Send a message
+          Messages
         </h1>
         <p className="mt-2 text-[var(--muted)]">
           Leave a note for someone. It&apos;ll pop up next time they log in, or pick a date to surprise them.
@@ -43,13 +44,11 @@ export default async function SendMessagePage() {
       </div>
 
       {!hasMessages && (
-        <div className="mt-6 rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)]/50 px-6 py-8 text-center">
-          <span className="text-4xl" role="img" aria-hidden="true">&#x1F48C;</span>
-          <h2 className="mt-3 font-display text-lg font-semibold text-[var(--accent)]">Send your first family message</h2>
-          <p className="mt-1 max-w-sm mx-auto text-sm text-[var(--muted)]">
-            Surprise someone with a note that pops up when they log in &mdash; perfect for birthdays, encouragement, or just because.
-          </p>
-        </div>
+        <EmptyState
+          icon="💌"
+          headline="Send your first family message"
+          description="Surprise someone with a note that pops up when they log in. Perfect for birthdays, encouragement, or just because."
+        />
       )}
 
       <SendMessageForm

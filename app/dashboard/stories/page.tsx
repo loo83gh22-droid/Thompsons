@@ -2,6 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { EmptyStateGuide } from "@/app/components/EmptyStateGuide";
+import { PlanLimitBadge } from "@/app/dashboard/components/PlanLimitBadge";
+import { PLAN_LIMITS } from "@/src/lib/constants";
 import { StoriesList } from "./StoriesList";
 
 export const metadata = { title: "Family Stories | Family Nest" };
@@ -10,6 +12,13 @@ export default async function StoriesPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return null;
+
+  const { data: familyPlan } = await supabase
+    .from("families")
+    .select("plan_type")
+    .eq("id", activeFamilyId)
+    .single();
+  const planType = (familyPlan?.plan_type as "free" | "annual" | "legacy") ?? "free";
 
   const { data: stories } = await supabase
     .from("family_stories")
@@ -39,6 +48,11 @@ export default async function StoriesPage() {
           <p className="mt-2 text-[var(--muted)]">
             The ones that get better every time someone tells them.
           </p>
+          {planType === "free" && (
+            <div className="mt-2">
+              <PlanLimitBadge used={stories?.length ?? 0} limit={PLAN_LIMITS.free.stories} label="stories" />
+            </div>
+          )}
         </div>
         <Link
           href="/dashboard/stories/new"
@@ -52,9 +66,9 @@ export default async function StoriesPage() {
         <EmptyStateGuide
           icon="📖"
           title="The stories that made your family who you are"
-          description="Not the photo-dump moments — the real ones. The ones that get told at dinner tables, at funerals, at weddings. Write them down before they're only half-remembered."
+          description="Not the photo-dump moments. The real ones. The ones that get told at dinner tables, at funerals, at weddings. Write them down before they're only half-remembered."
           inspiration={[
-            "How your parents met — the real version, not the polished one",
+            "How your parents met. The real version, not the polished one",
             "The story of your family's big move, immigration, or leap of faith",
             "A lesson a grandparent taught you that still rings in your head",
             "The funniest thing that's ever happened at a family gathering",

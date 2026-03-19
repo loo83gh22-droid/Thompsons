@@ -7,7 +7,7 @@ const plans = [
     price: "Free",
     period: "",
     description: "Perfect for couples or families just getting started.",
-    features: ["10 journal entries", "500 MB storage", "Family tree", "Map view"],
+    features: ["10 journal entries", "1 GB storage", "Family tree", "Map view"],
     cta: "Get Started Free",
     featured: false,
     ctaStyle: "muted" as "muted" | "accent" | "primary",

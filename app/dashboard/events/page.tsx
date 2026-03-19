@@ -4,6 +4,8 @@ import { AddEventForm } from "./AddEventForm";
 import { EventsList } from "./EventsList";
 import { BirthdaySync } from "./BirthdaySync";
 import { EmptyState } from "@/app/dashboard/components/EmptyState";
+import { PlanLimitBadge } from "@/app/dashboard/components/PlanLimitBadge";
+import { PLAN_LIMITS } from "@/src/lib/constants";
 
 type EventRow = {
   id: string;
@@ -24,6 +26,13 @@ export default async function EventsPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) return null;
+
+  const { data: familyPlan } = await supabase
+    .from("families")
+    .select("plan_type")
+    .eq("id", activeFamilyId)
+    .single();
+  const planType = (familyPlan?.plan_type as "free" | "annual" | "legacy") ?? "free";
 
   let events: EventRow[] = [];
   let members: { id: string; name: string }[] = [];
@@ -88,6 +97,11 @@ export default async function EventsPage() {
           <p className="mt-2 text-[var(--muted)]">
             Birthdays, anniversaries, and the stuff you&apos;d get in trouble for forgetting.
           </p>
+          {planType === "free" && (
+            <div className="mt-2">
+              <PlanLimitBadge used={events?.length ?? 0} limit={PLAN_LIMITS.free.events} label="events" />
+            </div>
+          )}
         </div>
         <AddEventForm members={members} />
       </div>

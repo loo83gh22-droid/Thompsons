@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
@@ -48,6 +49,12 @@ export default async function EditStoryPage({ params }: { params: Promise<{ id: 
 
   return (
     <div>
+      <Link
+        href={`/dashboard/stories/${story.id}`}
+        className="mb-4 inline-flex items-center gap-1 text-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+      >
+        &larr; Back to story
+      </Link>
       <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">Edit story</h1>
       <p className="mt-2 text-[var(--muted)]">
         Update your story. Changes are saved when you click Update.

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { StoryForm } from "../StoryForm";
@@ -29,6 +30,12 @@ export default async function NewStoryPage() {
 
   return (
     <div>
+      <Link
+        href="/dashboard/stories"
+        className="mb-4 inline-flex items-center gap-1 text-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+      >
+        &larr; Back to stories
+      </Link>
       <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">Write a story</h1>
       <p className="mt-2 text-[var(--muted)]">
         Share a family memory, lesson, or piece of history. Use the toolbar for bold, italic, headings, lists, and links.
