@@ -15,6 +15,7 @@ const ALLOWED_BUCKETS = new Set([
   "favourite-photos",
   "death-box-files",
   "achievements",
+  "adventure-locations",
 ]);
 
 /**

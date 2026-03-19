@@ -16,27 +16,20 @@ const navItemsBeforeDropdowns: { href: string; label: string }[] = [
   { href: "/dashboard", label: "Home" },
 ];
 
-const familyItems: { href: string; label: string; muted?: boolean }[] = [
+// Core family items — always shown in the Family dropdown
+const coreFamilyItems: { href: string; label: string }[] = [
   { href: "/dashboard/our-family", label: "Our Family" },
   { href: "/dashboard/pets", label: "Pets" },
   { href: "/dashboard/map", label: "Family Map" },
   { href: "/dashboard/messages", label: "Messages" },
   { href: "/dashboard/events", label: "Events" },
-  { href: "/dashboard/time-capsules", label: "Time Capsules" },
 ];
 
-const memoriesItems: { href: string; label: string }[] = [
+// Core memories items — always shown in the Memories dropdown
+const coreMemoriesItems: { href: string; label: string }[] = [
   { href: "/dashboard/timeline", label: "Timeline" },
   { href: "/dashboard/journal", label: "Journal" },
-  { href: "/dashboard/one-line", label: "One Line A Day" },
-  { href: "/dashboard/stories", label: "Stories" },
-  { href: "/dashboard/recipes", label: "Recipes" },
-  { href: "/dashboard/artwork", label: "Artwork" },
-  { href: "/dashboard/trophy-case", label: "Trophy Case" },
-  { href: "/dashboard/voice-memos", label: "Voice Memos" },
 ];
-
-// Extras items are dynamic — built from enabled add-ons passed by the layout.
 
 type AddOn = { name: string; href: string };
 
@@ -45,17 +38,33 @@ export function Nav({
   familyName = "Our Family",
   families = [],
   activeFamilyId = null,
-  enabledAddOns = [],
+  enabledMemoryAddOns = [],
+  enabledFamilyAddOns = [],
+  enabledExtrasAddOns = [],
 }: {
   user: User;
   familyName?: string;
   families?: Family[];
   activeFamilyId?: string | null;
-  enabledAddOns?: AddOn[];
+  enabledMemoryAddOns?: AddOn[];
+  enabledFamilyAddOns?: AddOn[];
+  enabledExtrasAddOns?: AddOn[];
 }) {
-  // Build extras dropdown items dynamically from enabled add-ons
+  // Build memories dropdown from core + enabled memory add-ons
+  const memoriesItems: { href: string; label: string }[] = [
+    ...coreMemoriesItems,
+    ...enabledMemoryAddOns.map((a) => ({ href: a.href, label: a.name })),
+  ];
+
+  // Build family dropdown from core + enabled family add-ons
+  const familyItems: { href: string; label: string }[] = [
+    ...coreFamilyItems,
+    ...enabledFamilyAddOns.map((a) => ({ href: a.href, label: a.name })),
+  ];
+
+  // Build extras dropdown from enabled non-memory add-ons
   const extrasItems: { href: string; label: string }[] = [
-    ...enabledAddOns.map((a) => ({ href: a.href, label: a.name })),
+    ...enabledExtrasAddOns.map((a) => ({ href: a.href, label: a.name })),
     { href: "/dashboard/tools", label: "Feature Catalog" },
   ];
   const pathname = usePathname();
@@ -242,9 +251,7 @@ export function Nav({
                       className={`block px-4 py-3 text-sm transition-colors hover:bg-[var(--surface-hover)] focus:bg-[var(--surface-hover)] ${
                         pathname === item.href || pathname.startsWith(item.href + "/")
                           ? "text-[var(--accent)]"
-                          : item.muted
-                            ? "text-[var(--muted)]"
-                            : "text-[var(--foreground)]"
+                          : "text-[var(--foreground)]"
                       }`}
                     >
                       {item.label}
@@ -458,7 +465,7 @@ export function Nav({
               {mobileFamilyOpen && (
                 <div className="pl-2 pt-1 space-y-0.5">
                   {familyItems.map((item) => (
-                    <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={`block rounded-lg px-4 py-2.5 text-sm min-h-[44px] flex items-center ${pathname === item.href || pathname.startsWith(item.href + "/") ? "text-[var(--accent)]" : item.muted ? "text-[var(--muted)]" : "text-[var(--foreground)]"} hover:bg-[var(--surface)] hover:text-[var(--foreground)]`}>
+                    <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={`block rounded-lg px-4 py-2.5 text-sm min-h-[44px] flex items-center ${pathname === item.href || pathname.startsWith(item.href + "/") ? "text-[var(--accent)]" : "text-[var(--foreground)]"} hover:bg-[var(--surface)] hover:text-[var(--foreground)]`}>
                       {item.label}
                     </Link>
                   ))}

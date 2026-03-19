@@ -160,8 +160,17 @@ export default async function DashboardLayout({
             family_id: newFamily.id,
             family_name: familyName,
           }),
-          // Seed default add-on features for new families
+          // Seed default features for new families
           supabase.from("family_enabled_features").insert([
+            // Memory features (on by default)
+            { family_id: newFamily.id, feature_slug: "stories" },
+            { family_id: newFamily.id, feature_slug: "recipes" },
+            { family_id: newFamily.id, feature_slug: "voice-memos" },
+            { family_id: newFamily.id, feature_slug: "one-line" },
+            { family_id: newFamily.id, feature_slug: "artwork" },
+            { family_id: newFamily.id, feature_slug: "trophy-case" },
+            { family_id: newFamily.id, feature_slug: "time-capsules" },
+            // Add-on features (on by default)
             { family_id: newFamily.id, feature_slug: "favourites" },
             { family_id: newFamily.id, feature_slug: "traditions" },
             { family_id: newFamily.id, feature_slug: "bucket-list" },
@@ -196,7 +205,9 @@ export default async function DashboardLayout({
     let playlistId: string | null = null;
     let welcomeMemberCount = 0;
     let welcomeJournalCount = 0;
-    let enabledAddOns: { name: string; href: string }[] = [];
+    let enabledMemoryAddOns: { name: string; href: string }[] = [];
+    let enabledFamilyAddOns: { name: string; href: string }[] = [];
+    let enabledExtrasAddOns: { name: string; href: string }[] = [];
 
     if (activeFamilyId) {
       // Run all independent queries in parallel to avoid waterfall
@@ -217,7 +228,12 @@ export default async function DashboardLayout({
         getEnabledFeatures(supabase, activeFamilyId),
       ]);
 
-      enabledAddOns = enabledFeatures.map((f) => ({ name: f.name, href: f.href }));
+      for (const f of enabledFeatures) {
+        const item = { name: f.name, href: f.href };
+        if (f.navGroup === "memories") enabledMemoryAddOns.push(item);
+        else if (f.navGroup === "family") enabledFamilyAddOns.push(item);
+        else enabledExtrasAddOns.push(item);
+      }
 
       if (myMemberRes.data) {
         currentUserRole = (myMemberRes.data.role as typeof currentUserRole) || "teen";
@@ -245,7 +261,9 @@ export default async function DashboardLayout({
             familyName={familyName}
             families={families}
             activeFamilyId={activeFamilyId}
-            enabledAddOns={enabledAddOns}
+            enabledMemoryAddOns={enabledMemoryAddOns}
+            enabledFamilyAddOns={enabledFamilyAddOns}
+            enabledExtrasAddOns={enabledExtrasAddOns}
           />
           <PWAInstallBanner />
           <WhatsNewBanner />
