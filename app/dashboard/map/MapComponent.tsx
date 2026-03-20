@@ -6,8 +6,11 @@ import { format } from "date-fns";
 import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
+import { compressImage } from "@/src/lib/compressImage";
+import { updateLocationPhoto } from "./actions";
 import { UI_DISPLAY, LOCATION_CONSTANTS } from "@/src/lib/constants";
 import { COUNTRY_FLAG_STYLES } from "./countryFlagColors";
 import * as topojsonClient from "topojson-client";
@@ -28,6 +31,7 @@ type TravelLocation = {
   is_place_lived?: boolean;
   location_type?: "vacation" | "memorable_event" | "other" | null;
   location_label?: string | null;
+  photo_url?: string | null;
   journal_entry_id?: string | null;
   location_cluster_id?: string | null;
   family_members:
@@ -191,6 +195,49 @@ function FitBounds({ positions }: { positions: [number, number][] }) {
   return null;
 }
 
+function PopupPhotoUpload({ locationId, onUploaded }: { locationId: string; onUploaded: (url: string) => void }) {
+  const { activeFamilyId } = useFamily();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !activeFamilyId) return;
+    setUploading(true);
+    try {
+      const compressed = await compressImage(file);
+      const ext = compressed.name.split(".").pop() || "jpg";
+      const storagePath = `${activeFamilyId}/${crypto.randomUUID()}.${ext}`;
+      const supabase = createClient();
+      const { error: uploadError } = await supabase.storage
+        .from("location-photos")
+        .upload(storagePath, compressed, { upsert: true });
+      if (uploadError) throw uploadError;
+      const photoUrl = `/api/storage/location-photos/${storagePath}`;
+      await updateLocationPhoto(locationId, photoUrl);
+      onUploaded(photoUrl);
+    } catch {
+      // silently fail
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={uploading}
+        style={{ fontSize: 11, color: "#6b7280", background: "none", border: "1px dashed #d1d5db", borderRadius: 6, padding: "4px 8px", cursor: "pointer", marginTop: 4 }}
+      >
+        {uploading ? "Uploading…" : "📷 Add photo"}
+      </button>
+      <input ref={inputRef} type="file" accept="image/*" onChange={handleFile} style={{ display: "none" }} />
+    </>
+  );
+}
+
 function ClusterPopupContent({
   locs,
   onNavigate,
@@ -198,6 +245,7 @@ function ClusterPopupContent({
   locs: TravelLocation[];
   onNavigate: (path: string) => void;
 }) {
+  const [localPhotos, setLocalPhotos] = useState<Record<string, string>>({});
   const sorted = [...locs].sort((a, b) => {
     const da = a.trip_date ? new Date(a.trip_date + "T12:00:00").getTime() : 0;
     const db = b.trip_date ? new Date(b.trip_date + "T12:00:00").getTime() : 0;
@@ -205,6 +253,7 @@ function ClusterPopupContent({
   });
   const first = sorted[0];
   const locationName = first?.location_name ?? "Location";
+  const headerPhoto = first?.photo_url || localPhotos[first?.id];
 
   const dateRangeStart = locs.reduce<string | null>((min, l) => {
     const d = l.trip_date ?? (l.year_visited ? `${l.year_visited}-01-01` : null);
@@ -237,6 +286,20 @@ function ClusterPopupContent({
 
   return (
     <div style={{ minWidth: 220, maxWidth: 320 }}>
+      {/* Location photo */}
+      {headerPhoto && (
+        <div style={{ margin: "-12px -12px 8px -12px", borderRadius: "8px 8px 0 0", overflow: "hidden" }}>
+          <Image
+            src={headerPhoto}
+            alt={locationName}
+            width={320}
+            height={180}
+            className="w-full object-cover"
+            style={{ maxHeight: 180 }}
+            unoptimized
+          />
+        </div>
+      )}
       <div style={{ borderBottom: "1px solid #e5e7eb", paddingBottom: 8, marginBottom: 8 }}>
         <h3 style={{ fontWeight: "bold", fontSize: 16, margin: 0 }}>{locationName}</h3>
         {firstLabel && <p style={{ fontSize: 12, fontWeight: 500, color: "#b8860b", margin: "4px 0 0" }}>{firstLabel}</p>}
@@ -253,6 +316,12 @@ function ClusterPopupContent({
           <span style={{ display: "inline-block", marginTop: 6, fontSize: 12, fontWeight: 600, background: "rgba(184,134,11,0.15)", color: "#b8860b", padding: "2px 8px", borderRadius: 6 }}>
             {locs.length} memories here
           </span>
+        )}
+        {!headerPhoto && first && (
+          <PopupPhotoUpload
+            locationId={first.id}
+            onUploaded={(url) => setLocalPhotos((prev) => ({ ...prev, [first.id]: url }))}
+          />
         )}
       </div>
       <div style={{ maxHeight: 260, overflowY: "auto" }}>
@@ -322,7 +391,7 @@ export default function MapComponent({ filter }: { filter?: MapFilter } = {}) {
           .select(`
             id, lat, lng, location_name, year_visited, trip_date, notes,
             country_code, is_birth_place, is_place_lived, trip_date_end,
-            location_type, location_label, journal_entry_id, location_cluster_id,
+            location_type, location_label, photo_url, journal_entry_id, location_cluster_id,
             family_members (name, color, symbol)
           `)
           .eq("family_id", activeFamilyId)
