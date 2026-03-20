@@ -1,7 +1,7 @@
 # FamilyNest Privacy Findings
 
 Last audited: 2026-03-20
-Result: **Zero open findings** — all previous issues resolved through migrations.
+Result: **Zero open findings** — all issues resolved (E1–E6).
 
 ---
 
@@ -29,6 +29,15 @@ Policy narrowed to `family_id IS NULL` (landing page legacy photos only). Family
 ### E4: Nest keepers — overly permissive RLS write policies (High → FIXED)
 **Resolved via:** migration 070
 All INSERT/UPDATE/DELETE on `nest_keepers` restricted to `role = 'owner'`.
+
+### E6: tradition-photos bucket created as public after hardening pass (High → FIXED)
+**Resolved via:** migration `20260320000002_private_tradition_photos.sql` (applied 2026-03-20)
+`tradition-photos` was created on 2026-03-14 with `public = true` — after the `084_private_storage_buckets` hardening migration (2026-03-08). Photos were accessible via Supabase CDN public URLs without any authentication. Fixed by:
+- Setting bucket to `public = false`
+- Dropping `"Anyone can view tradition photos"` policy
+- Adding authenticated-read, authenticated-upload, and authenticated-delete policies
+- Adding `tradition-photos` to the `/api/storage` proxy allowlist
+- Moving photo upload to a Server Action (`uploadTraditionPhoto`) — client no longer touches storage directly
 
 ### E5: Public shares — anonymous read without token (Medium → FIXED)
 **Resolved via:** migration 070

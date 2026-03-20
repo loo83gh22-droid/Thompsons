@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
-import { addTradition } from "./actions";
+import { addTradition, uploadTraditionPhoto } from "./actions";
 
 type Member = { id: string; name: string };
 
@@ -61,16 +61,10 @@ export function AddTraditionForm() {
     try {
       let photoUrl: string | undefined;
 
-      if (photoFile && activeFamilyId) {
-        const supabase = createClient();
-        const ext = photoFile.name.split(".").pop() ?? "jpg";
-        const path = `${activeFamilyId}/traditions/${crypto.randomUUID()}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from("tradition-photos")
-          .upload(path, photoFile, { contentType: photoFile.type, upsert: false });
-        if (uploadError) throw new Error("Photo upload failed: " + uploadError.message);
-        const { data: urlData } = supabase.storage.from("tradition-photos").getPublicUrl(path);
-        photoUrl = urlData.publicUrl;
+      if (photoFile) {
+        const formData = new FormData();
+        formData.append("file", photoFile);
+        photoUrl = await uploadTraditionPhoto(formData);
       }
 
       await addTradition({
