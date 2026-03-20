@@ -102,6 +102,17 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     navGroup: "memories",
   },
   {
+    slug: "baby-book",
+    name: "Baby Book",
+    description:
+      "A year-by-year photo book for each child. Five photos per year — watch them grow up one year at a time.",
+    category: "memories",
+    icon: "\u{1F476}",
+    href: "/dashboard/baby-book",
+    available: true,
+    navGroup: "memories",
+  },
+  {
     slug: "trophy-case",
     name: "Trophy Case",
     description:

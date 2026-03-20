@@ -10,6 +10,7 @@ const occasions = [
   { emoji: "🎓", label: "Graduation" },
   { emoji: "👶", label: "New Baby" },
   { emoji: "💍", label: "Anniversary" },
+  { emoji: "🕊️", label: "In Memory" },
 ];
 
 const legacyFeatures = [
@@ -271,6 +272,7 @@ export default function GiftPage() {
                   "Less than a gadget that ends up in a drawer",
                   "Less than a dinner out for the whole family",
                   "And it becomes more valuable every year they use it",
+                  "Some families start a Nest to hold onto what they have. Others start one to make sure nothing else gets lost",
                 ].map((point) => (
                   <li key={point} className="flex items-start gap-3">
                     <div

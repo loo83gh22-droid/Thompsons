@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { BookOpen, MapPin, GitBranch, Mic, Lock, UtensilsCrossed } from "lucide-react";
+import { BookOpen, MapPin, GitBranch, Mic, Lock, Baby } from "lucide-react";
 import { WorldMapSVG, WorldPin } from "./WorldMapSVG";
 
 /* ── Mini UI previews for each feature card ──────────────────── */
@@ -373,67 +373,56 @@ function TimeCapsulePreview() {
   );
 }
 
-function RecipePreview() {
+function BabyBookPreview() {
+  const years = [
+    { year: 2022, label: "Newborn", photos: 5 },
+    { year: 2023, label: "1 year", photos: 5 },
+    { year: 2024, label: "2 years", photos: 3 },
+    { year: 2025, label: "3 years", photos: 1 },
+  ];
   return (
     <div
-      className="flex h-full w-full flex-col gap-2.5 p-4"
+      className="flex h-full w-full flex-col gap-1 px-4 py-3"
       style={{ background: "linear-gradient(160deg, #faf3e8 0%, #eddfc8 100%)" }}
     >
-      {/* Header row: badge + big decorative quote */}
-      <div className="flex items-start justify-between">
-        <span
-          className="rounded-full px-2 py-0.5 text-[8px] font-semibold uppercase tracking-wider"
-          style={{ backgroundColor: "rgba(196,124,58,0.18)", color: "#b86d2a" }}
-        >
-          Family Recipe
-        </span>
-        <span
-          style={{
-            fontSize: 32,
-            lineHeight: 1,
-            color: "rgba(180,120,60,0.22)",
-            fontFamily: "Georgia, serif",
-          }}
-        >
-          &ldquo;
-        </span>
-      </div>
-
-      {/* Recipe name */}
-      <p
-        className="text-[13px] font-bold leading-tight"
-        style={{ fontFamily: "var(--font-display-serif)", color: "#2d1a0a" }}
+      <span
+        className="mb-1 self-start rounded-full px-2 py-0.5 text-[8px] font-semibold uppercase tracking-wider"
+        style={{ backgroundColor: "rgba(196,124,58,0.18)", color: "#b86d2a" }}
       >
-        Nana&apos;s Banana Bread
-      </p>
-
-      {/* Italic quote */}
-      <p className="text-[9px] italic leading-snug" style={{ color: "#7a5a38" }}>
-        &ldquo;She always said the secret was one extra banana...&rdquo;
-      </p>
-
-      {/* Divider */}
-      <div style={{ height: 1, background: "rgba(180,120,60,0.2)" }} />
-
-      {/* Ingredient chips */}
-      <div className="flex flex-wrap gap-1">
-        {["🍌 3 bananas", "🧈 1/3 cup butter", "🍬 1 cup sugar"].map((item) => (
-          <span
-            key={item}
-            className="rounded-full px-2 py-0.5 text-[8px]"
-            style={{
-              background: "rgba(255,255,255,0.7)",
-              color: "#6b4422",
-              border: "1px solid rgba(180,120,60,0.25)",
-            }}
-          >
-            {item}
-          </span>
+        Through the Years
+      </span>
+      <div className="relative flex flex-1 flex-col justify-center gap-2.5 pl-4">
+        {/* Timeline line */}
+        <div className="absolute left-[5px] top-1 bottom-1 w-px" style={{ backgroundColor: "rgba(180,120,60,0.3)" }} />
+        {years.map((y) => (
+          <div key={y.year} className="relative flex items-center gap-2.5">
+            {/* Dot */}
+            <div
+              className="absolute left-[-13px] h-[9px] w-[9px] rounded-full border-[1.5px]"
+              style={{ borderColor: "#b86d2a", backgroundColor: y.photos === 5 ? "#b86d2a" : "#faf3e8" }}
+            />
+            {/* Year label */}
+            <span className="w-8 text-[9px] font-bold" style={{ color: "#2d1a0a" }}>{y.year}</span>
+            {/* Photo circles */}
+            <div className="flex gap-0.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-4 w-4 rounded-sm"
+                  style={{
+                    backgroundColor: i < y.photos ? "rgba(180,120,60,0.25)" : "rgba(180,120,60,0.08)",
+                    border: i < y.photos ? "1px solid rgba(180,120,60,0.4)" : "1px dashed rgba(180,120,60,0.2)",
+                  }}
+                />
+              ))}
+            </div>
+            {/* Age */}
+            <span className="text-[8px]" style={{ color: "#9a7a58" }}>{y.label}</span>
+          </div>
         ))}
       </div>
-
-      <span className="text-[8px]" style={{ color: "#9a7a58" }}>
-        + 5 more ingredients
+      <span className="text-center text-[8px] font-medium" style={{ color: "#9a7a58" }}>
+        4 years of memories
       </span>
     </div>
   );
@@ -468,7 +457,7 @@ export function FeaturesBento() {
       icon: Mic,
       title: "Voice Memos",
       description:
-        "Record grandma's stories, a toddler's first words, or that bedtime song everyone knows by heart. These voices stick around forever.",
+        "Record grandma's stories, a toddler's first words, or that bedtime song everyone knows by heart. Some voices you never want to forget.",
       Preview: VoiceMemoPreview,
     },
     {
@@ -479,11 +468,11 @@ export function FeaturesBento() {
       Preview: TimeCapsulePreview,
     },
     {
-      icon: UtensilsCrossed,
-      title: "Stories & Recipes",
+      icon: Baby,
+      title: "Baby Book",
       description:
-        "Save the family stories that only get told at holidays. Keep grandma's secret recipes (with the actual story behind them).",
-      Preview: RecipePreview,
+        "Five photos per year, every year. Watch your kids grow up in a timeline you'll never stop scrolling.",
+      Preview: BabyBookPreview,
     },
   ];
 
