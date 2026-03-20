@@ -1,6 +1,6 @@
 # FamilyNest Error Handling & Observability Findings
 
-_Last audited: 2026-03-06 · All findings fixed as of 2026-03-06_
+_Last audited: 2026-03-20 · All findings fixed · Zero new findings_
 
 Legend: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low · ✅ FIXED
 
@@ -150,3 +150,30 @@ Legend: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low · ✅ FIXED
 | 11 | 🟡 Medium | U3 — Add error.tsx to dashboard modules | Medium |
 | 12 | 🔵 Low | U4 — Add loading.tsx skeletons | Medium |
 | 13 | 🔵 Low | F8 — Admin notification email (acceptable as-is) | Skip |
+
+---
+
+## Re-audit: 2026-03-20 — Zero new findings
+
+All U1–U5 and F1–F8 findings re-verified as correctly fixed. New code audited
+(pricing overhaul, account deletion, onboarding, traditions photo module, dashboard redesign).
+
+| Surface | Verified |
+|---|---|
+| All API routes — generic error messages to client, `console.error` server-side | ✅ |
+| `app/api/stripe/webhook` — `constructEvent()` failure returns 400; DB errors logged | ✅ |
+| `app/api/stripe/checkout` and `portal` — proper HTTP status codes on failure | ✅ |
+| `app/api/notifications` cron — returns 500 when `results.errors.length > 0` | ✅ |
+| `app/api/daily-report` — returns 500 on missing config | ✅ |
+| `app/api/contact` — confirmation email failure logged, not swallowed | ✅ |
+| `app/api/export` — ZIP build failure logged before returning error to client | ✅ |
+| `app/api/search` — returns empty results safely on auth failure | ✅ |
+| `app/api/invite` — safe 404 on invalid/used token; rate limited | ✅ |
+| 31 `error.tsx` boundaries across dashboard modules | ✅ |
+| 34 `loading.tsx` skeletons across dashboard modules | ✅ |
+| Junction table inserts (journal, story, voice memo members) — logged on error | ✅ |
+| Geocoding failures — `console.warn` in all catch blocks | ✅ |
+| Storage rollback removal errors — logged if `removeErr` present | ✅ |
+| Invite email failure — caught, logged, surfaced to caller | ✅ |
+| Signup admin email — acceptable fire-and-forget with `.catch()` logging | ✅ |
+| Traditions photo upload — now atomic; no silent orphan risk (W23 fix) | ✅ |
