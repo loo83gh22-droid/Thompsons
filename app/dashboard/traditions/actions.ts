@@ -11,42 +11,14 @@ import {
   subtractStorageUsage,
 } from "@/src/lib/plans";
 
-export async function uploadTraditionPhoto(formData: FormData): Promise<string> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) throw new Error("No active family");
-
-  const file = formData.get("file") as File | null;
-  if (!file || file.size === 0) throw new Error("No file provided");
-
-  // Enforce storage limit before upload
-  await enforceStorageLimit(supabase, activeFamilyId, file.size);
-
-  const ext = file.name.split(".").pop() ?? "jpg";
-  const path = `${activeFamilyId}/traditions/${crypto.randomUUID()}.${ext}`;
-
-  const bytes = await file.arrayBuffer();
-  const { error: uploadError } = await supabase.storage
-    .from("tradition-photos")
-    .upload(path, bytes, { contentType: file.type, upsert: false });
-  if (uploadError) throw new Error("Photo upload failed: " + uploadError.message);
-
-  // Track storage usage
-  await addStorageUsage(supabase, activeFamilyId, file.size);
-
-  // Return proxy URL (bucket is private — served through /api/storage)
-  return `/api/storage/tradition-photos/${path}`;
-}
-
-export async function addTradition(data: {
-  title: string;
-  description: string;
-  whenItHappens?: string;
-  addedById?: string;
-  photoUrl?: string;
-}) {
+/**
+ * Add a tradition, optionally with a photo.
+ *
+ * Photo upload and DB insert are handled in a single server action so that
+ * a failure between the two cannot leave an orphaned storage file or an
+ * inflated storage_used_bytes counter.
+ */
+export async function addTradition(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
@@ -58,6 +30,37 @@ export async function addTradition(data: {
   const limitError = await checkFeatureLimit(supabase, activeFamilyId, plan.planType, "traditions", "family_traditions");
   if (limitError) throw new Error(limitError);
 
+  const title = (formData.get("title") as string | null)?.trim() ?? "";
+  const description = (formData.get("description") as string | null)?.trim() ?? "";
+  const whenItHappens = (formData.get("whenItHappens") as string | null)?.trim() || null;
+  const addedById = (formData.get("addedById") as string | null) || null;
+  const photoFile = formData.get("photo") as File | null;
+
+  if (!title || !description) throw new Error("Title and description are required");
+
+  // --- Optional photo upload ---
+  let photoUrl: string | null = null;
+  let uploadedPath: string | null = null;
+  let uploadedSize = 0;
+
+  if (photoFile && photoFile.size > 0) {
+    await enforceStorageLimit(supabase, activeFamilyId, photoFile.size);
+
+    const ext = photoFile.name.split(".").pop() ?? "jpg";
+    uploadedPath = `${activeFamilyId}/traditions/${crypto.randomUUID()}.${ext}`;
+    uploadedSize = photoFile.size;
+
+    const bytes = await photoFile.arrayBuffer();
+    const { error: uploadError } = await supabase.storage
+      .from("tradition-photos")
+      .upload(uploadedPath, bytes, { contentType: photoFile.type, upsert: false });
+    if (uploadError) throw new Error("Photo upload failed: " + uploadError.message);
+
+    await addStorageUsage(supabase, activeFamilyId, uploadedSize);
+    photoUrl = `/api/storage/tradition-photos/${uploadedPath}`;
+  }
+
+  // --- DB insert ---
   const { data: last } = await supabase
     .from("family_traditions")
     .select("sort_order")
@@ -67,17 +70,25 @@ export async function addTradition(data: {
 
   const nextOrder = (last?.[0]?.sort_order ?? -1) + 1;
 
-  const { error } = await supabase.from("family_traditions").insert({
+  const { error: insertError } = await supabase.from("family_traditions").insert({
     family_id: activeFamilyId,
-    title: data.title.trim(),
-    description: data.description.trim(),
-    when_it_happens: data.whenItHappens?.trim() || null,
-    added_by: data.addedById || null,
+    title,
+    description,
+    when_it_happens: whenItHappens,
+    added_by: addedById,
     sort_order: nextOrder,
-    photo_url: data.photoUrl || null,
+    photo_url: photoUrl,
   });
 
-  if (error) throw error;
+  if (insertError) {
+    // Roll back the storage upload so nothing is orphaned
+    if (uploadedPath) {
+      await supabase.storage.from("tradition-photos").remove([uploadedPath]);
+      await subtractStorageUsage(supabase, activeFamilyId, uploadedSize);
+    }
+    throw insertError;
+  }
+
   revalidatePath("/dashboard/traditions");
 }
 
@@ -129,7 +140,6 @@ export async function removeTradition(id: string) {
 
   // Clean up photo from storage and decrement storage counter
   if (tradition?.photo_url) {
-    // photo_url is stored as /api/storage/tradition-photos/<family>/<path>
     const proxyPrefix = "/api/storage/tradition-photos/";
     if (tradition.photo_url.startsWith(proxyPrefix)) {
       const storagePath = tradition.photo_url.slice(proxyPrefix.length);

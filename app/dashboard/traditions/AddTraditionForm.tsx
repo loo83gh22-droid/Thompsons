@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
-import { addTradition, uploadTraditionPhoto } from "./actions";
+import { addTradition } from "./actions";
 
 type Member = { id: string; name: string };
 
@@ -59,21 +59,14 @@ export function AddTraditionForm() {
     setLoading(true);
     setError(null);
     try {
-      let photoUrl: string | undefined;
+      const formData = new FormData();
+      formData.append("title", title.trim());
+      formData.append("description", description.trim());
+      if (whenItHappens.trim()) formData.append("whenItHappens", whenItHappens.trim());
+      if (addedById) formData.append("addedById", addedById);
+      if (photoFile) formData.append("photo", photoFile);
 
-      if (photoFile) {
-        const formData = new FormData();
-        formData.append("file", photoFile);
-        photoUrl = await uploadTraditionPhoto(formData);
-      }
-
-      await addTradition({
-        title: title.trim(),
-        description: description.trim(),
-        whenItHappens: whenItHappens.trim() || undefined,
-        addedById: addedById || undefined,
-        photoUrl,
-      });
+      await addTradition(formData);
       setTitle("");
       setDescription("");
       setWhenItHappens("");
