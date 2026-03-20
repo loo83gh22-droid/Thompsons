@@ -16,6 +16,7 @@ export interface AdminReportStats {
   totalFamilies: number;
   paidFamilies: number;
   freeFamilies: number;
+  monthlyFamilies: number;
   annualFamilies: number;
   legacyFamilies: number;
   totalMembers: number;
@@ -228,6 +229,19 @@ export function adminReportEmailHtml(stats: AdminReportStats): string {
           </table>
           <div style="height:4px;background:#0f172a;border-radius:4px;margin-top:4px;">
             <div style="height:4px;background:#475569;border-radius:4px;width:${stats.totalFamilies > 0 ? Math.round((stats.freeFamilies / stats.totalFamilies) * 100) : 0}%;"></div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:6px 0;">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="color:#7dd3fc;font-size:12px;">Monthly — $9.99/mo</td>
+              <td style="text-align:right;color:#e2e8f0;font-size:12px;font-weight:600;">${stats.monthlyFamilies}</td>
+            </tr>
+          </table>
+          <div style="height:4px;background:#0f172a;border-radius:4px;margin-top:4px;">
+            <div style="height:4px;background:#0ea5e9;border-radius:4px;width:${stats.totalFamilies > 0 ? Math.round((stats.monthlyFamilies / stats.totalFamilies) * 100) : 0}%;"></div>
           </div>
         </td>
       </tr>

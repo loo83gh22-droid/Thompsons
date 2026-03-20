@@ -1,8 +1,9 @@
 # FamilyNest Security Findings
 
-Last audited: 2026-03-12
+Last audited: 2026-03-20
 Last resolved: 2026-03-07 (S11)
 Re-audit: 2026-03-12 -- all S1-S11 and C1-C5 re-verified, zero new findings
+Re-audit: 2026-03-20 -- new code audited (pricing overhaul, account deletion, onboarding, dashboard redesign), zero new findings
 
 ---
 
@@ -134,6 +135,27 @@ All references are in Route Handlers or `"use server"` actions only.
 | Share pages | Token + `is_public` double-check; content rendered as plain text | ✅ Correct |
 | Kid access links | Token lookup + expiry check; expired links return 404 | ✅ Correct |
 | No `eval()`/`new Function()` | Zero occurrences in codebase | ✅ Correct |
+
+---
+
+## Confirmed Correct (2026-03-20 re-audit — new code)
+
+| Surface | Finding | Status |
+|---|---|---|
+| Account deletion | `requestAccountDeletion` uses RLS (`auth.uid() = user_id`); user can only delete own account | ✅ Correct |
+| Account deletion grace period | 30-day grace, cancellable; `account_deletion_requests` table with RLS | ✅ Correct |
+| Theme action | `setUserTheme` authenticates via `getUser()` before writing | ✅ Correct |
+| Email notifications toggle | `toggleEmailNotifications` requires authenticated session | ✅ Correct |
+| Stripe checkout ownership | Checkout session scoped to `user.id` → `family_members.family_id` — cannot purchase for other families | ✅ Correct |
+| Founding rate / pricing | All price lookups are via env-var `STRIPE_PRICES` map (server-side only); no client-side price injection | ✅ Correct |
+| Storage add-on gate | `isStorageAddon()` check verifies family is on paid plan before allowing add-on checkout | ✅ Correct |
+| Stripe webhook new events | All new event types (monthly billing, founding rate) handled with same signature verification | ✅ Correct |
+| Nest keepers | Owner-only + legacy-plan-only + max-3 guard on all CRUD operations | ✅ Correct |
+| Invite token (re-verify) | `crypto.randomUUID()` opaque tokens; email not leaked in URL | ✅ Correct |
+| Open redirect (re-verify) | Both guards still have `!next.startsWith("//")` check | ✅ Correct |
+| dangerouslySetInnerHTML (re-verify) | Still only hardcoded JSON-LD on public pages; no new usages in dashboard | ✅ Correct |
+| Secret env vars (re-verify) | No secrets in client components or shared lib files; all in server-only routes/actions | ✅ Correct |
+| Rate limiting (re-verify) | All 11 public endpoints have rate limiting; cron endpoints use header auth | ✅ Correct |
 
 ---
 

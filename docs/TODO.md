@@ -1,60 +1,58 @@
 # Family Nest — Master TODO
 
 > **Living document.** Update this every session. Check items off as they're completed.
-> Last updated: 2026-02-21
+> Last updated: 2026-03-20
 
 ---
 
 ## BLOCKING: DECIDE BEFORE LAUNCH
 
-### Pricing (decide first — affects constants, emails, and copy)
-
-- [ ] **Finalize Annual price** — Currently `$49/yr` in code and emails. Discussed `$79/yr` (50 GB storage). Competitor range: $45–$99/yr
-- [ ] **Finalize Legacy price** — Currently `$349` in code. Discussed `$499` (200 GB storage) to keep breakeven ~6.3 years vs annual
-- [ ] **Update `src/lib/constants.ts`** — Change `annual.storageLimitBytes` (currently 2 GB → 50 GB) and `legacy.storageLimitBytes` (currently 5 GB → 200 GB)
-- [ ] **Update pricing page** — New prices, storage numbers
-- [ ] **Update Day 14 upgrade email** — `app/api/emails/templates/drip.ts` references "$49/year" — must match final price
-- [ ] **Update HeroSection / EmotionalSection** — Check for any hardcoded price references
-
 ### Stripe Setup (can't charge without this)
 
 - [ ] Create Stripe account (or configure existing one)
-- [ ] Create product **"The Full Nest"** with recurring price ($XX/year) → copy Price ID
-- [ ] Create product **"The Legacy"** with one-time price ($XXX) → copy Price ID
-- [ ] Add webhook endpoint in Stripe Dashboard: `https://yourdomain.com/api/stripe/webhook`
-- [ ] Subscribe to events: `checkout.session.completed`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.deleted`
-- [ ] Copy webhook signing secret
+- [ ] Create product **"The Full Nest — Monthly"** with recurring price ($9.99/mo) → copy Price ID → set as `STRIPE_PRICE_MONTHLY`
+- [ ] Create product **"The Full Nest — Annual (Founding)"** with recurring price ($49/yr) → copy Price ID → set as `STRIPE_PRICE_ANNUAL_FOUNDING`
+- [ ] Create product **"The Full Nest — Annual"** with recurring price ($79/yr) → copy Price ID → set as `STRIPE_PRICE_ANNUAL`
+- [ ] Create product **"The Legacy"** with one-time price ($349) → copy Price ID → set as `STRIPE_PRICE_LEGACY`
+- [ ] Create storage add-on products: $9/yr (+25 GB), $24/yr (+75 GB), $49/yr (+150 GB) → set `STRIPE_PRICE_STORAGE_25/75/150`
+- [ ] Add webhook endpoint in Stripe Dashboard: `https://familynest.io/api/stripe/webhook`
+- [ ] Subscribe to events: `checkout.session.completed`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.deleted`, `customer.subscription.updated`
+- [ ] Copy webhook signing secret → set as `STRIPE_WEBHOOK_SECRET`
 
 ### Vercel Environment Variables (set all of these)
 
 ```
 STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_MONTHLY=price_...
 STRIPE_PRICE_ANNUAL=price_...
+STRIPE_PRICE_ANNUAL_FOUNDING=price_...
 STRIPE_PRICE_LEGACY=price_...
+STRIPE_PRICE_STORAGE_25=price_...
+STRIPE_PRICE_STORAGE_75=price_...
+STRIPE_PRICE_STORAGE_150=price_...
 SUPABASE_SERVICE_ROLE_KEY=...      (may already be set)
 CRON_SECRET=<random string>        (may already be set)
 RESEND_API_KEY=...                 (may already be set)
-RESEND_FROM_EMAIL=Family Nest <hello@yourdomain.com>
-NEXT_PUBLIC_APP_URL=https://ourfamilynest.com
-NEXT_PUBLIC_FEEDBACK_EMAIL=support@ourfamilynest.com
+RESEND_FROM_EMAIL=Family Nest <hello@familynest.io>
+NEXT_PUBLIC_APP_URL=https://familynest.io
+NEXT_PUBLIC_FEEDBACK_EMAIL=support@familynest.io
 OPENAI_API_KEY=...
-UPSTASH_REDIS_REST_URL=...         (new — for API rate limiting)
-UPSTASH_REDIS_REST_TOKEN=...       (new — for API rate limiting)
+UPSTASH_REDIS_REST_URL=...
+UPSTASH_REDIS_REST_TOKEN=...
 ```
 
 ---
 
 ## BLOCKING: DOMAIN & DNS
 
-- [ ] Purchase domain (ourfamilynest.com or similar)
-- [ ] Point DNS to Vercel
-- [ ] Configure custom domain in Vercel project settings
-- [ ] Verify SSL certificate is active
-- [ ] Update `NEXT_PUBLIC_APP_URL` env var
-- [ ] Update `metadataBase` in `app/layout.tsx` to real domain
-- [ ] Update OpenGraph URLs in `app/layout.tsx`
-- [ ] Update Resend verified sender domain
+- [x] ~~Purchase domain~~ — familynest.io is live
+- [x] ~~Point DNS to Vercel~~ — configured
+- [x] ~~Configure custom domain in Vercel project settings~~ — done
+- [x] ~~Verify SSL certificate is active~~ — active
+- [ ] Update `NEXT_PUBLIC_APP_URL` env var to `https://familynest.io`
+- [ ] Update `metadataBase` in `app/layout.tsx` if still pointing to placeholder domain
+- [ ] Update Resend verified sender domain to `@familynest.io`
 
 ---
 
@@ -70,18 +68,19 @@ UPSTASH_REDIS_REST_TOKEN=...       (new — for API rate limiting)
 ## CODE TASKS
 
 ### High Priority
-- [ ] **Vercel Cron configuration** — Verify `vercel.json` has the cron schedule for `/api/notifications` at 14:00 UTC
+- [ ] **Vercel Cron configuration** — Verify `vercel.json` has the cron schedule for `/api/notifications` at 14:00 UTC and `/api/daily-report`
 
 ### Medium Priority
 - [ ] **Stripe customer portal styling** — Configure branding in Stripe Dashboard to match app theme
 - [ ] **PWA manifest** — `manifest.ts` for mobile "Add to Home Screen" install
 - [ ] **Error monitoring** — Sentry integration (currently only Vercel Analytics + Speed Insights)
+- [ ] **Day 14 upgrade email** — `app/api/emails/templates/drip.ts` — verify price references match current pricing ($79/yr annual, $9.99/mo monthly, $49/yr founding)
 
 ### Low Priority / Post-Launch
 - [ ] Dynamic OG images per page (`opengraph-image.tsx`)
 - [ ] Referral program (invite a family, get X)
 - [ ] Invoice/receipt emails after payment
-- [ ] Account deletion self-serve (currently manual via email)
+- [ ] G7 (Deferred) — Member profile photos: client-side upload bypasses storage gates; complex refactor needed
 
 ---
 
@@ -97,11 +96,13 @@ UPSTASH_REDIS_REST_TOKEN=...       (new — for API rate limiting)
 - [ ] Get writing prompts → click to insert → save journal
 - [ ] Create time capsule with future unlock date
 - [ ] Invite a family member → they sign up → see shared content
-- [ ] Visit pricing → click Annual → Stripe checkout loads → complete test payment
+- [ ] Visit pricing → click Monthly → Stripe checkout loads → complete test payment → Settings shows "Monthly" plan with $9.99/month badge
+- [ ] Visit pricing → click Annual (Founding) → Stripe checkout loads → complete test payment → Settings shows "Full Nest" with $49/year badge
 - [ ] Visit pricing → click Legacy → Stripe checkout loads → complete test payment → Annual sub cancelled automatically
 - [ ] Settings → Manage Billing → Stripe portal loads
 - [ ] Settings → toggle email notifications off → verify no emails sent
 - [ ] Downgrade/cancel → plan reverts to free
+- [ ] Account deletion → request deletion → cancel it → verify grace period flow
 - [ ] Visit /nonexistent-page → 404 page shows
 - [ ] Check /robots.txt and /sitemap.xml load correctly
 - [ ] Test on iPhone Safari, Android Chrome, Desktop Chrome/Firefox
@@ -130,6 +131,7 @@ UPSTASH_REDIS_REST_TOKEN=...       (new — for API rate limiting)
 - [ ] Consider Product Hunt launch
 - [ ] Blog / content marketing
 - [ ] Social proof: collect real testimonials to replace placeholders
+- [ ] Facebook ad Campaign 2 ("The Smirk") — launch once Rob films his video
 
 ---
 
@@ -170,18 +172,39 @@ UPSTASH_REDIS_REST_TOKEN=...       (new — for API rate limiting)
 - 137 automated unit tests (roles, plans, email templates, security logic)
 - Build passes clean (46/46 pages)
 
-### Phase 6: Launch Preparation ✅ (code done, config pending)
+### Phase 6: Launch Preparation ✅ (code done, Stripe config pending)
 - Stripe checkout, webhook, billing portal
+- Monthly plan ($9.99/mo) + Founding rate ($49/yr) + Annual ($79/yr) + Legacy ($349 one-time)
+- Free plan: unlimited features — storage (500 MB) and members (6) are the only caps
+- Annual plan: 20 GB storage; Legacy: 50 GB storage
+- Storage add-ons: +25 GB ($9/yr), +75 GB ($24/yr), +150 GB ($49/yr)
 - Stripe Annual → Legacy upgrade path (auto-cancels old subscription)
 - UpgradeButton + ManageBilling components
 - Payment success + cancelled UI feedback
-- Rate limiting on `/api/stripe/checkout`, `/api/search`, `/api/export` (Upstash Redis)
-- CRON_SECRET security fix (now required — not optional)
+- Rate limiting on all key endpoints (Upstash Redis)
+- CRON_SECRET security on cron endpoints
 - Email templates extracted to `app/api/emails/templates/`
 - 404 page, robots.ts, sitemap.ts
-- Security headers (HSTS, X-Frame-Options, etc.)
+- Security headers (HSTS, X-Frame-Options, CSP, etc.)
 - Email unsubscribe links (CAN-SPAM)
 - Vercel Analytics + Speed Insights
 - Privacy Policy, Terms of Service
-- DB migration: stripe columns on families table
-- DB migration: email_notifications flag on family_members
+- DB migrations: Stripe columns, email_notifications flag, pricing overhaul
+
+### Phase 6b: Dashboard & UX Polish ✅
+- Dashboard themes (ThemePicker)
+- Stats redesign + plan badges (PlanLimitBadge with null=unlimited support)
+- Account deletion self-serve (30-day grace period, cancellable)
+- Mobile nav improvements
+- Empty states across all feature modules
+- Onboarding flow improvements
+- Landing page refresh
+
+### Security & Billing Hardening ✅ (2026-03-05 through 2026-03-20)
+- All S1–S11 security findings resolved (see docs/SECURITY_FINDINGS.md)
+- All G1–G19, B1–B7 billing findings resolved (see docs/BILLING_FINDINGS.md)
+- Re-audited 2026-03-12 and 2026-03-20 — zero new findings after fixes
+
+### Facebook Ad Campaign ✅ (active, running)
+- Campaign 1 "The Heart" live — Rick voicemail story, $5 CAD/day
+- Campaign 2 "The Smirk" copy written — waiting on Rob's video to launch

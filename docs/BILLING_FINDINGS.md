@@ -88,6 +88,25 @@ Last audited: 2026-03-12
 **Risk:** (a) `updateFavourite` replaced photos without removing old ones from storage. (b) `removeFavourite` soft-deleted but left photos in storage permanently.
 **Fix (2026-03-12):** Added `removeFavouritePhoto` helper. `updateFavourite` now cleans up old photo on replacement/clear. `removeFavourite` removes photo from storage and clears `photo_url` at soft-delete time.
 
+### ✅ FIXED — G18: Settings page local PlanType excluded "monthly" (Critical)
+**File:** `app/dashboard/settings/page.tsx` (line 19)
+**Risk:** Monthly subscribers cast to `PlanType` would fall through to `undefined` in `PLAN_DISPLAY`, crashing the page or showing blank plan info.
+**Fix (2026-03-20):** Added `"monthly"` to the local `PlanType` union and added a `monthly` entry to `PLAN_DISPLAY` with badge `"$9.99/month"`.
+
+### ✅ FIXED — G19: Settings page "Your Plan" section had no monthly conditional block (Critical)
+**File:** `app/dashboard/settings/page.tsx` (lines 295, 340)
+**Risk:** Monthly subscribers hit none of the three plan conditionals (`free`, `annual`, `legacy`), rendering a blank "Your Plan" section with no storage bar, renewal date, or billing controls.
+**Fix (2026-03-20):** Changed `planType === "annual"` to `planType === "annual" || planType === "monthly"` — monthly and annual share identical UI (renewal date, storage bar, upgrade-to-legacy CTA, ManageBilling button).
+
+### ✅ FIXED — B7: Admin dashboard and daily report excluded monthly from paid family count (Medium)
+**Files:** `app/admin/page.tsx` (lines 143–148), `app/api/daily-report/route.ts` (lines 178–185), `app/api/emails/templates/admin-report.ts` (type + HTML)
+**Risk:** Monthly subscribers were not counted in `paidFamilies`, skewing conversion metrics. Admin plan breakdown bar chart had no monthly row.
+**Fix (2026-03-20):** Added `monthly` key to `planBreakdown` in both files. Updated `paidFamilies` to include `planBreakdown.monthly`. Added `monthlyFamilies` to the admin-report email template type and HTML (sky-blue bar row between Free and Annual).
+
+### ℹ️ INFORMATIONAL — G20: `sendUpgradeEmail` type signature excludes "annual_founding" (Low)
+**File:** `app/api/stripe/webhook/route.ts` (line ~222)
+**Note:** Function signature is `plan: "monthly" | "annual" | "legacy"`. The checkout correctly maps `annual_founding` → `"annual"` in metadata before the webhook processes it, so the gap never causes a runtime error. No fix applied — the mapping is correct and intentional.
+
 ---
 
 ## Billing Infrastructure (B#)
@@ -126,6 +145,21 @@ Last audited: 2026-03-12
 **Verification:** Default is `524288000` = exactly 500 MB. Correct for free plan. No action needed.
 
 ---
+
+## Confirmed Correct (2026-03-20 re-audit — pricing overhaul)
+
+| Surface | Finding | Status |
+|---|---|---|
+| `constants.ts` PLAN_LIMITS | All four types (`free`, `monthly`, `annual`, `legacy`) defined with correct storage limits | ✅ Correct |
+| `plans.ts` helpers | All helpers use `PLAN_LIMITS[plan]` dynamically — work for all plan types including monthly | ✅ Correct |
+| Stripe checkout | `STRIPE_PRICES` map includes `monthly` and `annual_founding`; correct price ID lookup | ✅ Correct |
+| Stripe webhook activation | `plan === "annual" || plan === "monthly"` check for subscription types; 30-day expiry for monthly | ✅ Correct |
+| Stripe webhook deactivation | `deactivatePlan` resets to free for all plan types | ✅ Correct |
+| `annual_founding` → `"annual"` mapping | Checkout metadata maps founding rate to annual before webhook; correct intentional design | ✅ Correct |
+| `checkFeatureLimit` | All limits are `null` on free (unlimited) — gates skip correctly | ✅ Correct |
+| Storage add-on gate | `isStorageAddon()` check correctly requires paid plan (free blocked) | ✅ Correct |
+| DB migration | `plan_type` CHECK updated to include `'monthly'`; annual storage reset to 20 GB | ✅ Correct |
+| `PlanLimitBadge` | Returns `null` when limit is `null` (unlimited) — no badge shown | ✅ Correct |
 
 ## Confirmed Correct (2026-03-12 re-audit)
 

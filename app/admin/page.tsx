@@ -142,10 +142,11 @@ export default async function AdminPage() {
 
   const planBreakdown = {
     free: families?.filter((f) => f.plan_type === "free").length ?? 0,
+    monthly: families?.filter((f) => f.plan_type === "monthly").length ?? 0,
     annual: families?.filter((f) => f.plan_type === "annual").length ?? 0,
     legacy: families?.filter((f) => f.plan_type === "legacy").length ?? 0,
   };
-  const paidFamilies = planBreakdown.annual + planBreakdown.legacy;
+  const paidFamilies = planBreakdown.monthly + planBreakdown.annual + planBreakdown.legacy;
   const conversionPct =
     totalFamilies > 0
       ? Math.round((paidFamilies / totalFamilies) * 100)
@@ -291,6 +292,12 @@ export default async function AdminPage() {
                 count={planBreakdown.free}
                 total={totalFamilies}
                 color="bg-slate-400"
+              />
+              <PlanBar
+                label="Monthly — $9.99 / mo"
+                count={planBreakdown.monthly}
+                total={totalFamilies}
+                color="bg-sky-500"
               />
               <PlanBar
                 label="Annual — $79 / yr"

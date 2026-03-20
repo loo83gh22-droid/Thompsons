@@ -16,13 +16,18 @@ import { DeleteAccount } from "./DeleteAccount";
 import { ThemePicker, type ThemeId } from "./ThemePicker";
 import { getAccountDeletionStatus } from "./actions";
 
-type PlanType = "free" | "annual" | "legacy";
+type PlanType = "free" | "monthly" | "annual" | "legacy";
 
 const PLAN_DISPLAY: Record<
   PlanType,
   { name: string; color: string; badge: string }
 > = {
   free: { name: "The Nest", color: "text-[var(--muted)]", badge: "Free" },
+  monthly: {
+    name: "The Full Nest",
+    color: "text-[var(--primary)]",
+    badge: "$9.99/month",
+  },
   annual: {
     name: "The Full Nest",
     color: "text-[var(--primary)]",
@@ -292,7 +297,7 @@ export default async function SettingsPage() {
             </div>
           )}
 
-          {planType === "annual" && (
+          {(planType === "annual" || planType === "monthly") && (
             <div className="space-y-4">
               {/* Renewal date */}
               {planExpires && (
