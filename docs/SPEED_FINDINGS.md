@@ -301,6 +301,91 @@ The following items were checked and found to be well-implemented:
 
 ---
 
+---
+
+## Re-audit: 2026-03-20
+
+All P1–P4, P7, U1–U3, I1 findings re-verified as correctly fixed. New code audited
+(traditions module, pricing overhaul, admin dashboard, account deletion). Zero regressions.
+
+### ✅ P8 — Time capsules page: 3 sequential awaits after member lookup — FIXED (2026-03-20)
+**File:** `app/dashboard/time-capsules/page.tsx` lines 36–61 (pre-fix)
+**Issue:** After resolving `myMember.id` via `Promise.all`, the page ran three independent
+Supabase queries sequentially: `sent`, `receivedLegacy`, `receivedJunction`. Each waited
+for the previous to complete before starting. Total latency was the sum of all three
+round-trips (~150–400ms depending on Supabase response time).
+**Fix:** Wrapped all three in a single `Promise.all`. They now fire concurrently.
+
+---
+
+### U4 — Storage proxy doesn't forward image transform params; full-res images served in galleries (Medium)
+**File:** `src/lib/imageUrl.ts` lines 12–23; `app/api/storage/[...path]/route.ts`
+**Issue:** `thumbUrl()` appends Supabase image transform params (`?width=&quality=`) only
+for URLs containing `"supabase.co"`. All images are stored in the DB as
+`/api/storage/<bucket>/<path>` proxy URLs (not raw Supabase URLs), so `thumbUrl()` returns
+them unchanged — transforms are never applied. Every image, regardless of the CSS size
+rendered, is fetched and streamed at full original resolution (which is compressed
+client-side to max ~1 MB via the U2 fix, so this is less severe than pre-U2).
+**Examples with non-working thumbUrl calls:**
+- `JournalListClient.tsx:74` — `thumbUrl(coverUrl, 80)` on a 40px thumbnail → still ~1 MB
+- `JournalPhotoGallery.tsx:211` — `thumbUrl(item.url, 112)` on a 56px icon → still full res
+- `RecipeCard.tsx:37` — recipe cover at full res in a small card
+**User impact:** Gallery pages transfer ~10–50× more bytes than necessary. On mobile or
+slow connections, journal and photo pages feel sluggish.
+**Recommended fix:** In the storage proxy route, parse `width`, `quality`, `resize` query
+params from the request URL and append them to the signed Supabase URL before fetching:
+```ts
+// app/api/storage/[...path]/route.ts — inside the GET handler, after building signedData
+const { searchParams } = new URL(_request.url);
+const width = searchParams.get("width");
+const quality = searchParams.get("quality") ?? "75";
+const resize = searchParams.get("resize") ?? "cover";
+let signedUrl = signedData.signedUrl;
+if (width) {
+  signedUrl += (signedUrl.includes("?") ? "&" : "?")
+    + `width=${width}&quality=${quality}&resize=${resize}`;
+}
+```
+Then update `thumbUrl()` to also append params to `/api/storage/` URLs:
+```ts
+export function thumbUrl(url: string | null | undefined, width: number, quality = 75): string {
+  if (!url) return "";
+  if (url.includes("?width=")) return url;
+  if (url.includes("supabase.co") || url.startsWith("/api/storage/")) {
+    return `${url}?width=${width}&quality=${quality}&resize=cover`;
+  }
+  return url;
+}
+```
+**Effort:** ~45 minutes.
+
+---
+
+### ℹ️ U3 (U3 from original doc) — Clarification on `unoptimized` prop status
+**Status:** `unoptimized` was removed from upload preview forms (ArtworkForm, EditPetForm,
+AwardForm, TrophyForm) where the image source is a `blob:` or `data:` URL — correct.
+Gallery and content images still use `unoptimized` on `<Image>` components — also correct,
+because these images are served through the `/api/storage` auth proxy which requires session
+cookies. Vercel's Image Optimization pipeline cannot cache or serve session-gated images.
+`unoptimized` is the right call here. The real optimization path is U4 (proxy transforms).
+
+---
+
+| Surface | Verified |
+|---|---|
+| P1 — Layout Promise.all | ✅ |
+| P2 — Events page Promise.all | ✅ |
+| P3 — Recipes page Promise.all | ✅ |
+| P4 — Bucket list page Promise.all | ✅ |
+| P7 — Journal hard redirect → router.push | ✅ |
+| U1 — Upload progress indicators | ✅ |
+| U2 — Client-side image compression | ✅ |
+| U3 — Upload preview images: unoptimized removed | ✅ |
+| I1 — Homepage CLS: explicit dimensions | ✅ |
+| P8 — Time capsules 3 sequential awaits | ✅ FIXED 2026-03-20 |
+
+---
+
 ## Fix Plan (ordered by user impact)
 
 | Priority | Finding | Effort | Expected User Impact |

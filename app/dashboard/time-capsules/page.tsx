@@ -32,33 +32,34 @@ export default async function TimeCapsulesPage() {
   ]);
   const planType = (familyPlan?.plan_type as "free" | "annual" | "legacy") ?? "free";
 
-  // Letters the current user SENT
-  const sent = myMember
-    ? (await supabase
-        .from("time_capsules")
-        .select("id, title, unlock_date, unlock_on_passing, to_family_member:family_members!to_family_member_id(name)")
-        .eq("family_id", activeFamilyId)
-        .eq("from_family_member_id", myMember.id)
-        .order("unlock_date", { ascending: true })).data ?? []
-    : [];
+  // All three capsule queries are independent — run in parallel
+  const [sentRes, receivedLegacyRes, receivedJunctionRes] = myMember
+    ? await Promise.all([
+        // Letters the current user SENT
+        supabase
+          .from("time_capsules")
+          .select("id, title, unlock_date, unlock_on_passing, to_family_member:family_members!to_family_member_id(name)")
+          .eq("family_id", activeFamilyId)
+          .eq("from_family_member_id", myMember.id)
+          .order("unlock_date", { ascending: true }),
+        // Letters addressed TO the current user (legacy FK)
+        supabase
+          .from("time_capsules")
+          .select("id, title, unlock_date, unlock_on_passing, from_family_member_id, from_family_member:family_members!from_family_member_id(name)")
+          .eq("family_id", activeFamilyId)
+          .eq("to_family_member_id", myMember.id)
+          .order("unlock_date", { ascending: true }),
+        // Letters where current user is in the junction table
+        supabase
+          .from("time_capsule_members")
+          .select("time_capsule_id")
+          .eq("family_member_id", myMember.id),
+      ])
+    : [{ data: null }, { data: null }, { data: null }];
 
-  // Letters addressed TO the current user (legacy FK)
-  const receivedLegacy = myMember
-    ? (await supabase
-        .from("time_capsules")
-        .select("id, title, unlock_date, unlock_on_passing, from_family_member_id, from_family_member:family_members!from_family_member_id(name)")
-        .eq("family_id", activeFamilyId)
-        .eq("to_family_member_id", myMember.id)
-        .order("unlock_date", { ascending: true })).data ?? []
-    : [];
-
-  // Letters where current user is in the junction table
-  const receivedJunction = myMember
-    ? (await supabase
-        .from("time_capsule_members")
-        .select("time_capsule_id")
-        .eq("family_member_id", myMember.id)).data ?? []
-    : [];
+  const sent = sentRes.data ?? [];
+  const receivedLegacy = receivedLegacyRes.data ?? [];
+  const receivedJunction = receivedJunctionRes.data ?? [];
 
   const junctionIds = receivedJunction.map((r) => r.time_capsule_id);
 
