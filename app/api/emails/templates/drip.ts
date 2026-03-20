@@ -55,12 +55,12 @@ export function day14UpgradeEmailHtml(name: string): string {
 ${card(`
   <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Ready to unlock unlimited memories?</h1>
   <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;">Hi ${esc(name)},</p>
-  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">You've been using your Family Nest for two weeks now — that's amazing! You're approaching the Free plan limits, and there's so much more available:</p>
+  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">You've been using your Family Nest for two weeks now — that's amazing. The free plan includes all features. The only limits are storage (500 MB) and members (6). If your family is growing or you want to store more photos and videos, here's what's available:</p>
   <ul style="margin:0 0 20px;padding-left:20px;color:#94a3b8;font-size:15px;line-height:1.7;">
-    <li><strong style="color:#f8fafc;">Unlimited journals</strong> with video uploads</li>
-    <li><strong style="color:#f8fafc;">50 GB storage</strong> for photos &amp; videos</li>
-    <li><strong style="color:#f8fafc;">Voice memos, recipes, time capsules</strong></li>
-    <li><strong style="color:#f8fafc;">Weekly digest</strong> + birthday reminders</li>
+    <li><strong style="color:#f8fafc;">The Full Nest</strong> — $49/year (founding rate) or $9.99/month</li>
+    <li><strong style="color:#f8fafc;">20 GB storage</strong> for photos &amp; videos</li>
+    <li><strong style="color:#f8fafc;">Unlimited family members</strong></li>
+    <li><strong style="color:#f8fafc;">The Legacy</strong> — $349 one-time, 50 GB, lifetime access</li>
   </ul>
   ${ctaButton("See Plans &amp; Pricing", `${appUrl}/pricing`)}
 `)}`);
