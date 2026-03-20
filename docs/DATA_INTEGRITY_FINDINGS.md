@@ -2,6 +2,7 @@
 
 Audit conducted: 2026-03-06
 Re-audit conducted: 2026-03-12
+Re-audit conducted: 2026-03-20 — zero new findings after W23 fix
 
 ---
 
@@ -209,9 +210,32 @@ Same root cause as W13. The RLS SELECT policy on `time_capsules` checks `time_ca
 
 ---
 
+---
+
+### W23 — Tradition photo upload: two-step client calls created orphan risk on failure ✅ FIXED (2026-03-20)
+**File:** `app/dashboard/traditions/AddTraditionForm.tsx` + `app/dashboard/traditions/actions.ts`
+**Issue:** `uploadTraditionPhoto()` and `addTradition()` were two separate server action calls from
+the client. If the photo upload succeeded but the DB insert failed (network drop, validation error,
+server restart), the storage file was permanently orphaned and `storage_used_bytes` permanently
+inflated with no corresponding DB record.
+**What becomes inconsistent:** Storage file exists with no DB row; `storage_used_bytes` inflated.
+**Fix:** Merged into a single `addTradition(formData: FormData)` server action. Upload and DB
+insert happen in the same try/catch. On DB insert failure, the action removes the uploaded file
+and decrements the counter before rethrowing.
+
+---
+
+### W22 — Achievements `family_id` missing (FALSE ALARM — not an issue)
+**Investigated:** Migration `024_achievements.sql` created the table without `family_id`.
+**Resolution:** `family_id uuid NOT NULL REFERENCES families(id) ON DELETE CASCADE` was added in
+`025_multi_tenancy.sql` (line 96), with index in `033_family_id_indexes.sql` and RLS update in
+`070_privacy_hardening.sql`. No issue exists.
+
+---
+
 ## Fix Plan (Severity Order)
 
-All findings from this audit have been resolved (2026-03-12):
+All findings from this audit have been resolved (2026-03-20):
 
 | # | Finding | Severity | Status |
 |---|---------|----------|--------|
@@ -223,3 +247,4 @@ All findings from this audit have been resolved (2026-03-12):
 | W20 | Favourites upload: no rollback | High | ✅ Fixed in `favourites/actions.ts` |
 | W17 | Story delete: cover image not removed | Medium | ✅ Fixed in `stories/actions.ts` |
 | W18 | Member delete: profile photo not cleaned up | Medium | ✅ Fixed in `members/actions.ts` |
+| W23 | Tradition photo upload: orphan risk between two server action calls | High | ✅ Fixed in `traditions/actions.ts` (merged into single action) |
