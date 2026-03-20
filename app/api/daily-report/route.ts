@@ -177,10 +177,11 @@ export async function GET(request: Request) {
 
   const planBreakdown = {
     free: families?.filter((f) => f.plan_type === "free").length ?? 0,
+    monthly: families?.filter((f) => f.plan_type === "monthly").length ?? 0,
     annual: families?.filter((f) => f.plan_type === "annual").length ?? 0,
     legacy: families?.filter((f) => f.plan_type === "legacy").length ?? 0,
   };
-  const paidFamilies = planBreakdown.annual + planBreakdown.legacy;
+  const paidFamilies = planBreakdown.monthly + planBreakdown.annual + planBreakdown.legacy;
   const conversionPct =
     totalFamilies > 0 ? Math.round((paidFamilies / totalFamilies) * 100) : 0;
 
@@ -265,6 +266,7 @@ export async function GET(request: Request) {
     totalFamilies,
     paidFamilies,
     freeFamilies: planBreakdown.free,
+    monthlyFamilies: planBreakdown.monthly,
     annualFamilies: planBreakdown.annual,
     legacyFamilies: planBreakdown.legacy,
     totalMembers,
