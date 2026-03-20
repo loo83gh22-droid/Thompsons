@@ -10,7 +10,9 @@ import {
 import { checkHttpRateLimit, strictLimiter } from "@/src/lib/httpRateLimit";
 
 const VALID_PLANS: CheckoutPlan[] = [
+  "monthly",
   "annual",
+  "annual_founding",
   "legacy",
   "storage_25gb",
   "storage_75gb",
@@ -117,11 +119,14 @@ export async function POST(request: Request) {
       ? STORAGE_ADDON_CONFIGS[plan]
       : null;
 
+    // annual_founding maps to "annual" in metadata so the webhook treats it identically
+    const effectivePlan = plan === "annual_founding" ? "annual" : plan;
+
     // Shared metadata for all plan types
     const sharedMeta: Record<string, string> = {
       user_id: user.id,
       family_id: familyId,
-      plan,
+      plan: effectivePlan,
     };
     if (addonConfig) {
       sharedMeta.bytes_added = String(addonConfig.bytes);

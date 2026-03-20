@@ -5,8 +5,8 @@ import Link from "next/link";
 type PlanLimitBadgeProps = {
   /** Current count of items */
   used: number;
-  /** Maximum allowed on free plan */
-  limit: number;
+  /** Maximum allowed on free plan (null = unlimited, renders nothing) */
+  limit: number | null;
   /** Label for the feature, e.g. "entries", "stories" */
   label: string;
 };
@@ -14,8 +14,11 @@ type PlanLimitBadgeProps = {
 /**
  * Subtle badge showing "X of Y [label] used" for free plan users.
  * Shows upgrade link when at or near limit.
+ * Returns null when limit is null (feature is unlimited).
  */
 export function PlanLimitBadge({ used, limit, label }: PlanLimitBadgeProps) {
+  if (limit === null) return null;
+
   const atLimit = used >= limit;
   const nearLimit = used >= limit - 1;
 
