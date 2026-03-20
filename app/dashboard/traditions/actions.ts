@@ -3,7 +3,42 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
-import { getFamilyPlan, checkFeatureLimit } from "@/src/lib/plans";
+import {
+  getFamilyPlan,
+  checkFeatureLimit,
+  enforceStorageLimit,
+  addStorageUsage,
+  subtractStorageUsage,
+} from "@/src/lib/plans";
+
+export async function uploadTraditionPhoto(formData: FormData): Promise<string> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
+  const file = formData.get("file") as File | null;
+  if (!file || file.size === 0) throw new Error("No file provided");
+
+  // Enforce storage limit before upload
+  await enforceStorageLimit(supabase, activeFamilyId, file.size);
+
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const path = `${activeFamilyId}/traditions/${crypto.randomUUID()}.${ext}`;
+
+  const bytes = await file.arrayBuffer();
+  const { error: uploadError } = await supabase.storage
+    .from("tradition-photos")
+    .upload(path, bytes, { contentType: file.type, upsert: false });
+  if (uploadError) throw new Error("Photo upload failed: " + uploadError.message);
+
+  // Track storage usage
+  await addStorageUsage(supabase, activeFamilyId, file.size);
+
+  // Return proxy URL (bucket is private — served through /api/storage)
+  return `/api/storage/tradition-photos/${path}`;
+}
 
 export async function addTradition(data: {
   title: string;
@@ -77,7 +112,39 @@ export async function removeTradition(id: string) {
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   if (!activeFamilyId) throw new Error("No active family");
 
-  const { error } = await supabase.from("family_traditions").delete().eq("id", id).eq("family_id", activeFamilyId);
+  // Fetch the tradition first so we can clean up its photo
+  const { data: tradition } = await supabase
+    .from("family_traditions")
+    .select("photo_url")
+    .eq("id", id)
+    .eq("family_id", activeFamilyId)
+    .single();
+
+  const { error } = await supabase
+    .from("family_traditions")
+    .delete()
+    .eq("id", id)
+    .eq("family_id", activeFamilyId);
   if (error) throw error;
+
+  // Clean up photo from storage and decrement storage counter
+  if (tradition?.photo_url) {
+    // photo_url is stored as /api/storage/tradition-photos/<family>/<path>
+    const proxyPrefix = "/api/storage/tradition-photos/";
+    if (tradition.photo_url.startsWith(proxyPrefix)) {
+      const storagePath = tradition.photo_url.slice(proxyPrefix.length);
+      const { data: fileInfo } = await supabase.storage
+        .from("tradition-photos")
+        .list(storagePath.split("/").slice(0, -1).join("/"), {
+          search: storagePath.split("/").at(-1),
+        });
+      const fileSize = fileInfo?.[0]?.metadata?.size ?? 0;
+      await supabase.storage.from("tradition-photos").remove([storagePath]);
+      if (fileSize > 0) {
+        await subtractStorageUsage(supabase, activeFamilyId, fileSize);
+      }
+    }
+  }
+
   revalidatePath("/dashboard/traditions");
 }

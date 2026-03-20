@@ -1,6 +1,6 @@
 # FamilyNest Billing & Plan Enforcement Findings
 
-Last audited: 2026-03-12
+Last audited: 2026-03-20
 
 ---
 
@@ -139,6 +139,22 @@ Last audited: 2026-03-12
 - `removeVoiceMemo`: uses new `file_size_bytes` column (migration 079), removes from storage, calls `subtractStorageUsage`
 - `removeAchievement`: fetches storage object size, removes file, calls `subtractStorageUsage`
 - `removeSportsPhoto`: fetches storage object size, removes file, calls `subtractStorageUsage`
+
+### ✅ FIXED — G21: Tradition photo uploads bypass storage enforcement (Critical)
+**File:** `app/dashboard/traditions/AddTraditionForm.tsx` (lines 64–74)
+**Risk:** Photos uploaded directly from client to `tradition-photos` bucket via `supabase.storage.from(...).upload()` — no `enforceStorageLimit` call, no `addStorageUsage` call. Free-plan families could exceed their 500 MB storage limit silently.
+**Fix (2026-03-20):**
+- Added `uploadTraditionPhoto(formData: FormData)` Server Action in `actions.ts` that calls `enforceStorageLimit` before upload and `addStorageUsage` after. Returns a proxy URL (`/api/storage/tradition-photos/...`).
+- Updated `AddTraditionForm` to call this Server Action instead of uploading client-side directly.
+
+### ✅ FIXED — G22: Tradition deletion leaves orphaned photo files; storage never decremented (Critical)
+**File:** `app/dashboard/traditions/actions.ts` — `removeTradition` (line 73)
+**Risk:** Deleting a tradition deleted the DB row but left the photo file in storage permanently, and never decremented `storage_used_bytes`. Storage counter drifts up indefinitely.
+**Fix (2026-03-20):** Updated `removeTradition` to:
+1. Fetch the tradition row (including `photo_url`) before deleting
+2. Extract the storage path from the proxy URL
+3. Remove the file from `tradition-photos` bucket
+4. Call `subtractStorageUsage` with the file size
 
 ### ✅ CONFIRMED CORRECT — B6: `storage_limit_bytes` default in migration
 **File:** `supabase/migrations/046_family_plans.sql`
