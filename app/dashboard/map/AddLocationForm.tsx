@@ -5,8 +5,10 @@ import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
 import { canEditMap } from "@/src/lib/plans";
 import Link from "next/link";
+import Image from "next/image";
 import { MemberSelect } from "@/app/components/MemberSelect";
 import { addTravelLocation } from "./actions";
+import { compressImage } from "@/src/lib/compressImage";
 
 type FamilyMember = { id: string; name: string; color: string | null; symbol: string };
 
@@ -33,6 +35,9 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
   const [tripDate, setTripDate] = useState("");
   const [tripDateEnd, setTripDateEnd] = useState("");
   const [notes, setNotes] = useState("");
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const photoRef = useRef<HTMLInputElement>(null);
 
   // Geocoded coordinates
   const [resolvedLat, setResolvedLat] = useState<number | null>(null);
@@ -140,6 +145,21 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
     setError(null);
   }
 
+  function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhoto(file);
+    const url = URL.createObjectURL(file);
+    setPhotoPreview(url);
+  }
+
+  function removePhoto() {
+    setPhoto(null);
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview(null);
+    if (photoRef.current) photoRef.current.value = "";
+  }
+
   async function geocodeFallback(query: string): Promise<{
     lat: number; lng: number; country: string | null;
   } | null> {
@@ -206,6 +226,20 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
         return;
       }
 
+      // Upload photo if provided
+      let photoUrl: string | null = null;
+      if (photo) {
+        const supabase = createClient();
+        const compressed = await compressImage(photo);
+        const ext = compressed.name.split(".").pop() || "jpg";
+        const storagePath = `${activeFamilyId}/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("location-photos")
+          .upload(storagePath, compressed, { upsert: true });
+        if (uploadError) throw new Error("Photo upload failed: " + uploadError.message);
+        photoUrl = `/api/storage/location-photos/${storagePath}`;
+      }
+
       // Call Server Action — enforces canEditMap plan gate server-side (G1)
       const result = await addTravelLocation({
         locationName,
@@ -219,6 +253,7 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
         tripDateEnd: tripDateEnd || null,
         notes: notes || null,
         memberIds: selectedMemberIds,
+        photoUrl,
       });
 
       if (result.error) throw new Error(result.error);
@@ -234,6 +269,7 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
       setResolvedLat(null);
       setResolvedLng(null);
       setResolvedCountry(null);
+      removePhoto();
       setOpen(false);
       onAdded?.();
       window.dispatchEvent(new Event("map-refresh"));
@@ -412,6 +448,45 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
             onChange={(e) => setNotes(e.target.value)}
             placeholder="e.g. Summer vacation"
             className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-[var(--foreground)]"
+          />
+        </div>
+
+        {/* Photo upload */}
+        <div>
+          <label className="block text-sm font-medium text-[var(--muted)]">Photo (optional)</label>
+          {photoPreview ? (
+            <div className="mt-2 relative inline-block">
+              <Image
+                src={photoPreview}
+                alt="Location preview"
+                width={160}
+                height={120}
+                className="rounded-lg object-cover border border-[var(--border)]"
+                unoptimized
+              />
+              <button
+                type="button"
+                onClick={removePhoto}
+                className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white text-xs shadow"
+              >
+                ×
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => photoRef.current?.click()}
+              className="mt-1 flex items-center gap-2 rounded-lg border border-dashed border-[var(--border)] px-4 py-3 text-sm text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+            >
+              <span>📷</span> Add a photo
+            </button>
+          )}
+          <input
+            ref={photoRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoSelect}
+            className="hidden"
           />
         </div>
       </div>

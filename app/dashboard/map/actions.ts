@@ -31,6 +31,7 @@ export type AddTravelLocationInput = {
   tripDateEnd?: string | null;
   notes?: string | null;
   memberIds?: string[];
+  photoUrl?: string | null;
 };
 
 /** Add a travel location — server-side gate enforces map location limit. */
@@ -76,6 +77,7 @@ export async function addTravelLocation(
             : input.locationKind === "other" ? "other" : null,
       location_label: input.locationLabel?.trim() || null,
       location_cluster_id: locationClusterId ?? null,
+      photo_url: input.photoUrl ?? null,
     })
     .select("id")
     .single();
@@ -268,4 +270,28 @@ export async function syncBirthPlacesToMap(familyId?: string): Promise<{ added: 
 
   revalidatePath("/dashboard/map");
   return { added };
+}
+
+/** Update the photo on an existing map pin (e.g. adding a photo to an auto-synced roots pin). */
+export async function updateLocationPhoto(
+  locationId: string,
+  photoUrl: string | null,
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return { error: "No active family" };
+
+  const { error: updateError } = await supabase
+    .from("travel_locations")
+    .update({ photo_url: photoUrl })
+    .eq("id", locationId)
+    .eq("family_id", activeFamilyId);
+
+  if (updateError) return { error: updateError.message };
+
+  revalidatePath("/dashboard/map");
+  return {};
 }
