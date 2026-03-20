@@ -1,6 +1,6 @@
 # Integration Reliability Findings
 
-Last audited: 2026-03-06
+Last audited: 2026-03-20
 
 ---
 
@@ -146,3 +146,33 @@ restriction, a leaked key (e.g. from devtools) can be abused indefinitely.
   family member emails to each other via Resend.
 
 - **Map uses Leaflet (not Google Maps)**: `app/dashboard/map/page.tsx` uses `dynamic(() => import('./MapComponent'))` with a loading fallback. Google Maps key is used only for geocoding, not map rendering.
+
+---
+
+## Re-audit: 2026-03-20 — Zero new findings
+
+All R1–R4 and S1 findings re-verified as correctly fixed. New code audited (pricing overhaul,
+account deletion, traditions photo module, daily report, admin dashboard).
+
+### ℹ️ R5 — Admin signup notification: intentional fire-and-forget (Accepted, no fix needed)
+**File:** `app/api/auth/signup/route.ts` lines 100–105
+**Pattern:** `resend.emails.send(...).catch(err => console.error(...))` — no `await`
+**Assessment:** Intentional design. The signup response must not block on a non-critical admin
+notification. The `.catch()` handler logs failures server-side. Consistent with F8 in
+`ERROR_FINDINGS.md` (accepted 2026-03-06). No change required.
+
+| Surface | Verified |
+|---|---|
+| R1 — Upstash fail-open warning in production | ✅ |
+| R2 — Upstash runtime unreachable: try/catch + fail-open | ✅ |
+| R3 — Export 750 MB guard returns 413 | ✅ |
+| R4 — Email retry window: birthday 3–4 days, capsule covers yesterday | ✅ |
+| S1 — Google Maps referrer restrictions active in GCP | ✅ |
+| Cron secret validated on every request; 503 if unset | ✅ |
+| Stripe webhook: `constructEvent()` unconditional; no dev skip | ✅ |
+| Stripe checkout: user/family from session, not request body | ✅ |
+| RESEND_API_KEY: server-side only, no NEXT_PUBLIC_ exposure | ✅ |
+| All NEXT_PUBLIC_ vars: URLs and anon keys only, no secrets | ✅ |
+| Upstash uses HTTP REST API (correct for Vercel serverless) | ✅ |
+| Individual email sends (no bulk to[] arrays) | ✅ |
+| Export SSRF: Supabase-only URL allowlist enforced | ✅ |
