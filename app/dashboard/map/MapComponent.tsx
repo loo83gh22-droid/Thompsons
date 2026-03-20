@@ -425,7 +425,7 @@ export default function MapComponent({ filter }: { filter?: MapFilter } = {}) {
   const center: [number, number] = [UI_DISPLAY.mapDefaultCenter.lat, UI_DISPLAY.mapDefaultCenter.lng];
 
   return (
-    <div className="overflow-hidden rounded-xl" style={{ height: 500 }}>
+    <div className="overflow-hidden rounded-xl border-2 border-[var(--border)]" style={{ height: 500 }}>
       <MapContainer
         center={center}
         zoom={UI_DISPLAY.mapDefaultZoom}

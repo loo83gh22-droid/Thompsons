@@ -20,6 +20,8 @@ export type StoryForList = {
   family_members: { name: string; nickname?: string | null; relationship?: string | null } | { name: string; nickname?: string | null; relationship?: string | null }[] | null;
 };
 
+// Ensure StoryCard receives author_family_member_id — it's already in StoryForList above.
+
 const SORT_OPTIONS = [
   { value: "newest", label: "Most recent" },
   { value: "oldest", label: "Oldest first" },

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { removeTradition, updateTradition } from "./actions";
@@ -179,7 +180,17 @@ export function TraditionList({ traditions }: { traditions: Tradition[] }) {
                   </div>
                   {addedBy?.name && (
                     <p className="mt-3 text-xs text-[var(--muted)]">
-                      Added by {addedBy.name}
+                      Added by{" "}
+                      {t.added_by ? (
+                        <Link
+                          href={`/dashboard/members/${t.added_by}`}
+                          className="font-medium text-[var(--foreground)] underline-offset-2 hover:underline hover:text-[var(--accent)]"
+                        >
+                          {addedBy.name}
+                        </Link>
+                      ) : (
+                        addedBy.name
+                      )}
                     </p>
                   )}
                 </div>

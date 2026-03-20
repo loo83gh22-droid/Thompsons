@@ -69,7 +69,9 @@ export default async function MemberTrophyCasePage({
                 Trophy Case
               </Link>
               {" / "}
-              <span>{displayName}</span>
+              <Link href={`/dashboard/members/${memberId}`} className="hover:text-[var(--foreground)]">
+                {displayName}
+              </Link>
             </div>
             <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
               {displayName}&apos;s Trophy Case

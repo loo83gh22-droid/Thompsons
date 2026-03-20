@@ -596,6 +596,51 @@ export function MemberDetailsPanel({
           </div>
         )}
 
+        {/* Quick links to member-specific collections */}
+        <div className="border-t border-[var(--border)] pt-4">
+          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+            Collections
+          </h4>
+          <div className="grid grid-cols-2 gap-1.5">
+            <Link
+              href={`/dashboard/members/${member.id}`}
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] hover:border-[var(--accent)]/40"
+            >
+              👤 Full Profile
+            </Link>
+            <Link
+              href={`/dashboard/baby-book/${member.id}`}
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] hover:border-[var(--accent)]/40"
+            >
+              👶 Baby Book
+            </Link>
+            <Link
+              href={`/dashboard/trophy-case/${member.id}`}
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] hover:border-[var(--accent)]/40"
+            >
+              🏆 Trophies
+            </Link>
+            <Link
+              href={`/dashboard/awards/${member.id}`}
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] hover:border-[var(--accent)]/40"
+            >
+              🥇 Awards
+            </Link>
+            <Link
+              href={`/dashboard/artwork/${member.id}`}
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] hover:border-[var(--accent)]/40"
+            >
+              🎨 Artwork
+            </Link>
+            <Link
+              href={`/dashboard/timeline?member=${member.id}`}
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] hover:border-[var(--accent)]/40"
+            >
+              📅 Timeline
+            </Link>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-2 border-t border-[var(--border)] pt-4">
           {viewerIsAdminOrOwner && (
             <button

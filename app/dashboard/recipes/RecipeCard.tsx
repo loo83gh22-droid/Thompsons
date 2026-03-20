@@ -23,10 +23,7 @@ export function RecipeCard({ recipe }: { recipe: Recipe }) {
   const photoUrl = photoData?.url;
 
   return (
-    <Link
-      href={`/dashboard/recipes/${recipe.id}`}
-      className="group block rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden transition-all hover:border-[var(--accent)]/40"
-    >
+    <article className="group relative rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden transition-all hover:border-[var(--accent)]/40">
       <div className="flex">
         {photoUrl && (
           <div className="relative h-32 w-32 flex-shrink-0">
@@ -42,7 +39,13 @@ export function RecipeCard({ recipe }: { recipe: Recipe }) {
         )}
         <div className="flex-1 p-4 min-w-0">
           <h3 className="font-display font-semibold text-[var(--foreground)] group-hover:text-[var(--accent)]">
-            {recipe.title}
+            {/* Stretched link — covers the whole card so it's fully clickable */}
+            <Link
+              href={`/dashboard/recipes/${recipe.id}`}
+              className="after:absolute after:inset-0 after:content-['']"
+            >
+              {recipe.title}
+            </Link>
           </h3>
           {recipe.story && (
             <p className="mt-1 line-clamp-2 text-sm text-[var(--muted)]">
@@ -50,14 +53,26 @@ export function RecipeCard({ recipe }: { recipe: Recipe }) {
             </p>
           )}
           {(taughtBy?.name || recipe.occasions) && (
-            <p className="mt-2 text-xs text-[var(--muted)]">
-              {[taughtBy?.name && `From ${taughtBy.name}`, recipe.occasions]
-                .filter(Boolean)
-                .join(" · ")}
+            <p className="relative z-10 mt-2 text-xs text-[var(--muted)]">
+              {taughtBy?.name && recipe.taught_by ? (
+                <>
+                  From{" "}
+                  <Link
+                    href={`/dashboard/members/${recipe.taught_by}`}
+                    className="font-medium text-[var(--foreground)] underline-offset-2 hover:underline hover:text-[var(--accent)]"
+                  >
+                    {taughtBy.name}
+                  </Link>
+                </>
+              ) : taughtBy?.name ? (
+                `From ${taughtBy.name}`
+              ) : null}
+              {taughtBy?.name && recipe.occasions && " · "}
+              {recipe.occasions}
             </p>
           )}
         </div>
       </div>
-    </Link>
+    </article>
   );
 }
