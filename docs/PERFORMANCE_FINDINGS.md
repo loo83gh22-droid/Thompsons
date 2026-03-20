@@ -212,6 +212,53 @@ The following items were checked and found to be well-implemented:
 
 ---
 
+---
+
+## Re-audit: 2026-03-20 — One new informational finding
+
+All D1–D11 and F1–F6 findings re-verified. Zero regressions. New code audited:
+traditions module, admin dashboard, settings/deletion, pricing page, trophy case,
+sports stub, map memoization (F6), one-line-a-day split queries (D8).
+
+### ℹ️ D12 — Admin page: unbounded SELECT * on families + members (Accepted, Low urgency)
+**File:** `app/admin/page.tsx` lines 84–85
+**Pattern:**
+```ts
+supabase.from("families").select("*").order("created_at", { ascending: false })
+supabase.from("family_members").select("family_id, user_id, role, created_at, name")
+```
+**Assessment:** Expected for an admin dashboard — the page needs all families displayed
+in a table and all members correlated by `family_id`. The page is email-gated to a
+single admin address and uses the service-role client (no RLS). At current scale (8
+families, 11 members) these queries are instantaneous. When families scale past ~500,
+add pagination to the admin table and narrow `select("*")` to only the columns actually
+rendered. No fix required now.
+
+| Surface | Verified |
+|---|---|
+| D1 — Journal query limit(200) | ✅ Still in place |
+| D2 — Voice memos limit | ✅ Still in place |
+| D3 — Photos query limit | ✅ Still in place |
+| D4 — Stories limit | ✅ Still in place |
+| D5 — Composite indexes (migration 082) | ✅ |
+| D6 — award_members RLS EXISTS (migration 083) | ✅ |
+| D7 — Import batch insert | ✅ |
+| D8 — One-line-a-day split queries | ✅ Still split correctly |
+| D9 — one_line_entries index | ✅ |
+| D10 — Layout signup N+1 | ✅ |
+| D11 — Member profile two-step fetch | ✅ |
+| F1 — MosaicBackground full-res | ✅ |
+| F2 — thumbUrl helper applied | ✅ |
+| F3 — Member avatar lazy-load | ✅ |
+| F5 — JSZip dynamic import | ✅ |
+| F6 — Map pin memoization | ✅ Still memoized |
+| Traditions module — new code | ✅ No issues |
+| Trophy case — new code | ✅ No N+1 |
+| Admin dashboard | ℹ️ D12 accepted above |
+
+---
+
 ## Fix Plan
 
 All findings from the 2026-03-13 audit have been fixed. No open performance items remain.
+D12 (admin unbounded fetch) is accepted at current scale — revisit at 500+ families.
