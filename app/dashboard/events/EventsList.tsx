@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { deleteEvent, updateEvent } from "./actions";
 import { getCategoryLabel, getCategoryColor } from "./constants";
@@ -210,10 +211,10 @@ function EventCard({
   onDelete: () => void;
   deleting: boolean;
 }) {
-  const invitees = (event.family_event_invitees ?? []).map((inv) => {
-    const m = one(inv.family_members as { name: string } | { name: string }[] | null);
-    return m?.name;
-  }).filter(Boolean) as string[];
+  const invitees = (event.family_event_invitees ?? []).flatMap((inv) => {
+    const m = one(inv.family_members as { id: string; name: string } | { id: string; name: string }[] | null);
+    return m ? [{ id: inv.family_member_id, name: m.name }] : [];
+  });
 
   return (
     <li className="flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:border-[var(--accent)]/30 sm:flex-row sm:items-start sm:justify-between">
@@ -235,7 +236,18 @@ function EventCard({
         </p>
         {invitees.length > 0 && (
           <p className="mt-1 text-xs text-[var(--muted)]">
-            With: {invitees.join(", ")}
+            With:{" "}
+            {invitees.map((inv, i) => (
+              <span key={inv.id}>
+                {i > 0 && ", "}
+                <Link
+                  href={`/dashboard/members/${inv.id}`}
+                  className="font-medium text-[var(--foreground)] underline-offset-2 hover:underline hover:text-[var(--accent)]"
+                >
+                  {inv.name}
+                </Link>
+              </span>
+            ))}
           </p>
         )}
         {event.description && (

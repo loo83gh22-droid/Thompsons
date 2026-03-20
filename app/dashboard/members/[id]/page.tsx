@@ -45,8 +45,18 @@ export default async function MemberProfilePage({
   const entries = entriesRes.data ?? [];
   const voiceMemos = voiceRes.data ?? [];
 
-  // Fetch recent photos via a join (avoids two-step id lookup) + counts in parallel
-  const [photosRes, journalCount, voiceCount] = await Promise.all([
+  // Fetch recent photos, counts, and collection presence in parallel
+  const [
+    photosRes,
+    journalCount,
+    voiceCount,
+    storyCount,
+    recipeCount,
+    babyBookCount,
+    trophyCount,
+    awardCount,
+    artworkCount,
+  ] = await Promise.all([
     supabase
       .from("journal_photos")
       .select("id, url, caption, entry_id, journal_entries!inner(author_id, family_id)")
@@ -56,6 +66,13 @@ export default async function MemberProfilePage({
       .limit(6),
     supabase.from("journal_entries").select("id", { count: "exact", head: true }).eq("author_id", id).eq("family_id", activeFamilyId),
     supabase.from("voice_memos").select("id", { count: "exact", head: true }).eq("family_member_id", id),
+    supabase.from("family_stories").select("id", { count: "exact", head: true }).eq("author_family_member_id", id).eq("family_id", activeFamilyId).eq("published", true),
+    supabase.from("recipes").select("id", { count: "exact", head: true }).eq("taught_by", id).eq("family_id", activeFamilyId),
+    supabase.from("baby_book_years").select("id", { count: "exact", head: true }).eq("family_member_id", id).eq("family_id", activeFamilyId),
+    // Trophy case uses award_members junction
+    supabase.from("award_members").select("award_id", { count: "exact", head: true }).eq("family_member_id", id),
+    supabase.from("award_members").select("award_id", { count: "exact", head: true }).eq("family_member_id", id),
+    supabase.from("artwork_pieces").select("id", { count: "exact", head: true }).eq("family_member_id", id).eq("family_id", activeFamilyId),
   ]);
 
   const photos = (photosRes.data ?? []).map((p) => ({
@@ -70,6 +87,8 @@ export default async function MemberProfilePage({
     ? new Date(member.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })
     : null;
 
+  const displayName = member.nickname?.trim() || member.name;
+
   function initials(n: string) {
     return n
       .trim()
@@ -78,6 +97,23 @@ export default async function MemberProfilePage({
       .join("")
       .toUpperCase()
       .slice(0, 2);
+  }
+
+  // Build collection links — only show ones with content (or always show baby book / trophy case as entry points)
+  const collections: { href: string; icon: string; label: string; count: number | null }[] = [
+    { href: `/dashboard/baby-book/${id}`, icon: "👶", label: "Baby Book", count: babyBookCount.count },
+    { href: `/dashboard/trophy-case/${id}`, icon: "🏆", label: "Trophy Case", count: trophyCount.count },
+    { href: `/dashboard/awards/${id}`, icon: "🥇", label: "Awards", count: awardCount.count },
+    { href: `/dashboard/artwork/${id}`, icon: "🎨", label: "Artwork", count: artworkCount.count },
+    { href: `/dashboard/timeline?member=${id}`, icon: "📅", label: "Timeline", count: null },
+  ];
+
+  const contentLinks: { href: string; icon: string; label: string; count: number }[] = [];
+  if ((storyCount.count ?? 0) > 0) {
+    contentLinks.push({ href: "/dashboard/stories", icon: "📖", label: "Stories", count: storyCount.count ?? 0 });
+  }
+  if ((recipeCount.count ?? 0) > 0) {
+    contentLinks.push({ href: "/dashboard/recipes", icon: "🍽️", label: "Recipes", count: recipeCount.count ?? 0 });
   }
 
   return (
@@ -129,11 +165,57 @@ export default async function MemberProfilePage({
         </div>
       </div>
 
+      {/* Collections hub */}
+      <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6">
+        <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
+          {displayName}&apos;s world
+        </h2>
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+          {collections.map((c) => (
+            <Link
+              key={c.href}
+              href={c.href}
+              className="flex flex-col items-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-4 text-center transition-all hover:border-[var(--accent)]/50 hover:bg-[var(--accent)]/5"
+            >
+              <span className="text-2xl">{c.icon}</span>
+              <span className="text-xs font-semibold text-[var(--foreground)]">{c.label}</span>
+              {c.count !== null && (
+                <span className="text-xs text-[var(--muted)]">
+                  {c.count} {c.count === 1 ? "item" : "items"}
+                </span>
+              )}
+            </Link>
+          ))}
+        </div>
+
+        {contentLinks.length > 0 && (
+          <div className="mt-4 border-t border-[var(--border)] pt-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Also contributed</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {contentLinks.map((c) => (
+                <Link
+                  key={c.href}
+                  href={c.href}
+                  className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--background)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] transition-colors hover:border-[var(--accent)]/50 hover:text-[var(--accent)]"
+                >
+                  <span>{c.icon}</span>
+                  <span>{c.count} {c.label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
       <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6">
         <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">Stats</h2>
         <div className="mt-3 flex flex-wrap gap-6 text-sm text-[var(--muted)]">
-          <span>{journalCount.count ?? 0} journal entries</span>
-          <span>{voiceCount.count ?? 0} voice memos</span>
+          <Link href={`/dashboard/journal`} className="hover:text-[var(--accent)] hover:underline">
+            {journalCount.count ?? 0} journal entries
+          </Link>
+          <Link href={`/dashboard/voice-memos`} className="hover:text-[var(--accent)] hover:underline">
+            {voiceCount.count ?? 0} voice memos
+          </Link>
           {memberSince && <span>Member since {memberSince}</span>}
         </div>
       </section>

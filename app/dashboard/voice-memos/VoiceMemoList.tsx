@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/client";
 import { removeVoiceMemo, updateVoiceMemo, sendTranscriptToJournal } from "./actions";
@@ -193,8 +194,34 @@ export function VoiceMemoList({
 
                 {/* Metadata */}
                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm text-[var(--muted)]">
-                  <span>🎙️ {byLabel}</span>
-                  {forLabel && <span>· for {forLabel}</span>}
+                  <span>
+                    🎙️{" "}
+                    {memo.family_member_id ? (
+                      <Link
+                        href={`/dashboard/members/${memo.family_member_id}`}
+                        className="font-medium text-[var(--foreground)] underline-offset-2 hover:underline hover:text-[var(--accent)]"
+                      >
+                        {byLabel}
+                      </Link>
+                    ) : (
+                      byLabel
+                    )}
+                  </span>
+                  {forLabel && (
+                    <span>
+                      · for{" "}
+                      {memo.recorded_for_id ? (
+                        <Link
+                          href={`/dashboard/members/${memo.recorded_for_id}`}
+                          className="font-medium text-[var(--foreground)] underline-offset-2 hover:underline hover:text-[var(--accent)]"
+                        >
+                          {forLabel}
+                        </Link>
+                      ) : (
+                        forLabel
+                      )}
+                    </span>
+                  )}
                   <span>· {dateStr}</span>
                 </div>
 

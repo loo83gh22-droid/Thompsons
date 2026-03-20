@@ -777,14 +777,14 @@ export function FamilyTreeView({
           background: var(--ftv-line);
         }
 
-        /* Left couple: bar extends rightward from center toward sibling */
-        .ftv-punit-first::before  { left: 50%; right: 0; }
+        /* Left couple: bar extends rightward from center past padding */
+        .ftv-punit-first::before  { left: 50%; right: -24px; }
 
-        /* Right couple: bar extends leftward from center toward sibling */
-        .ftv-punit-last::before   { left: 0; right: 50%; }
+        /* Right couple: bar extends leftward from center past padding */
+        .ftv-punit-last::before   { left: -24px; right: 50%; }
 
-        /* Middle couples: full-width bar */
-        .ftv-punit-middle::before { left: 0; right: 0; }
+        /* Middle couples: full-width bar extending past padding on both sides */
+        .ftv-punit-middle::before { left: -24px; right: -24px; }
 
         /* Single parent (no convergence bar needed) */
         .ftv-punit-only::before   { display: none; }

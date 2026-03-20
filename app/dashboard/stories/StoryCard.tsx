@@ -17,6 +17,7 @@ type Story = {
   cover_url: string | null;
   category: string;
   created_at: string;
+  author_family_member_id: string | null;
   family_members: { name: string; nickname?: string | null; relationship?: string | null } | { name: string; nickname?: string | null; relationship?: string | null }[] | null;
 };
 
@@ -45,10 +46,7 @@ export function StoryCard({ story }: { story: Story }) {
   const date = new Date(story.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
   return (
-    <Link
-      href={`/dashboard/stories/${story.id}`}
-      className="group block overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] transition-all duration-200 hover:border-[var(--accent)]/50 hover:shadow-lg"
-    >
+    <article className="group relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] transition-all duration-200 hover:border-[var(--accent)]/50 hover:shadow-lg">
       {story.cover_url ? (
         <div className="relative aspect-video w-full overflow-hidden bg-[var(--surface-hover)]">
           <Image src={story.cover_url} alt={`Cover image for ${story.title}`} fill unoptimized className="object-cover transition-transform duration-200 group-hover:scale-105" sizes="(max-width:600px) 100vw, (max-width:900px) 50vw, 33vw" />
@@ -60,16 +58,33 @@ export function StoryCard({ story }: { story: Story }) {
       )}
       <div className="p-4">
         <span className="text-xs font-medium text-[var(--accent)]">{CATEGORY_LABELS[story.category] ?? story.category}</span>
-        <h2 className="mt-1 font-display text-lg font-bold text-[var(--foreground)] group-hover:text-[var(--accent)] sm:text-xl">{story.title}</h2>
+        <h2 className="mt-1 font-display text-lg font-bold text-[var(--foreground)] group-hover:text-[var(--accent)] sm:text-xl">
+          {/* Stretched link — covers the whole card */}
+          <Link
+            href={`/dashboard/stories/${story.id}`}
+            className="after:absolute after:inset-0 after:content-['']"
+          >
+            {story.title}
+          </Link>
+        </h2>
         <p className="mt-1 line-clamp-2 text-sm text-[var(--muted)]">{preview}</p>
-        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-0 text-xs text-[var(--muted)]">
-          {author && <span>{author}</span>}
+        <div className="relative z-10 mt-2 flex flex-wrap items-center gap-x-2 gap-y-0 text-xs text-[var(--muted)]">
+          {author && story.author_family_member_id ? (
+            <Link
+              href={`/dashboard/members/${story.author_family_member_id}`}
+              className="font-medium text-[var(--foreground)] underline-offset-2 hover:underline hover:text-[var(--accent)]"
+            >
+              {author}
+            </Link>
+          ) : author ? (
+            <span>{author}</span>
+          ) : null}
           {author && <span>·</span>}
           <span>{date}</span>
           <span>·</span>
           <span>{readMins} min read</span>
         </div>
       </div>
-    </Link>
+    </article>
   );
 }

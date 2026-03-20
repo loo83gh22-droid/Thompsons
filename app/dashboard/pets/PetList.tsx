@@ -279,13 +279,15 @@ function PetCard({
         inMemory ? "border-[var(--border)] grayscale-[30%] opacity-85" : "border-[var(--border)]"
       }`}
     >
-      {/* Photo */}
-      {photos.length > 0 ? (
-        <>
-          {/* Species colour accent bar above photo */}
-          <div style={{ backgroundColor: color }} className="h-[3px] w-full flex-shrink-0" />
+      {/* Species colour accent bar */}
+      <div style={{ backgroundColor: color }} className="h-[3px] w-full flex-shrink-0" />
+
+      {/* Journal-style layout: cover left, content right */}
+      <div className="flex flex-1">
+        {/* Cover photo */}
+        {photos.length > 0 ? (
           <div
-            className="relative h-72 w-full cursor-pointer overflow-hidden bg-[var(--background)]"
+            className="relative w-36 shrink-0 cursor-pointer overflow-hidden bg-[var(--background)]"
             onClick={() => onPhotoClick(coverPhoto.url)}
           >
             <Image
@@ -295,102 +297,104 @@ function PetCard({
               className="object-cover transition-transform hover:scale-105"
               unoptimized
             />
-            {photos.length > 1 && (
-              <span className="absolute bottom-2 right-2 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">
-                +{photos.length - 1} more
-              </span>
-            )}
             {inMemory && <div className="absolute inset-0 bg-black/20" />}
           </div>
-        </>
-      ) : (
-        /* No-photo placeholder — tinted gradient in the species colour */
-        <div
-          className="flex h-40 items-center justify-center text-6xl"
-          style={{
-            background: `linear-gradient(135deg, ${color}22 0%, ${color}10 100%)`,
-            borderBottom: `1px solid ${color}30`,
-          }}
-        >
-          {emoji}
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="flex flex-1 flex-col p-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <h3 className="font-display text-base font-semibold text-[var(--foreground)] truncate">
-              {photos.length === 0 && <span className="mr-1">{emoji}</span>}
-              {pet.name}
-            </h3>
-            <p className="text-xs text-[var(--muted)]">
-              {[pet.breed, pet.species !== "other"
-                ? pet.species.charAt(0).toUpperCase() + pet.species.slice(1)
-                : "Other"
-              ].filter(Boolean).join(" · ")}
-            </p>
+        ) : (
+          <div
+            className="flex w-36 shrink-0 items-center justify-center text-5xl"
+            style={{
+              background: `linear-gradient(135deg, ${color}22 0%, ${color}10 100%)`,
+            }}
+          >
+            {emoji}
           </div>
-          {/* Actions */}
-          <div className="flex shrink-0 gap-1.5">
-            <button
-              type="button"
-              onClick={() => onEdit(pet)}
-              className="rounded-lg border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              onClick={() => onDelete(pet.id, pet.name)}
-              disabled={deletingId === pet.id}
-              className="rounded-lg border border-red-200 px-2.5 py-1 text-xs text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors"
-            >
-              {deletingId === pet.id ? "..." : "Remove"}
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-[var(--muted)]">
-          <span>👤 {label}</span>
-          {pet.birthday && (
-            <span>🎂 {formatDate(pet.birthday)}{age ? ` (${age})` : ""}</span>
-          )}
-          {pet.adopted_date && (
-            <span>🏠 {formatDate(pet.adopted_date)}</span>
-          )}
-          {pet.passed_date && (
-            <span>🌈 {formatDate(pet.passed_date)}</span>
-          )}
-        </div>
-
-        {pet.description && (
-          <p className="mt-2 text-xs text-[var(--foreground)]/75 leading-relaxed line-clamp-3">
-            {pet.description}
-          </p>
         )}
 
-        {/* Extra photo thumbnails */}
-        {photos.length > 1 && (
-          <div className="mt-3 flex gap-1.5 flex-wrap">
-            {photos.slice(1).map((ph) => (
+        {/* Content */}
+        <div className="flex flex-1 flex-col p-3 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <h3 className="font-display text-base font-semibold text-[var(--foreground)] truncate">
+                {photos.length === 0 && <span className="mr-1">{emoji}</span>}
+                {pet.name}
+              </h3>
+              <p className="text-xs text-[var(--muted)]">
+                {[pet.breed, pet.species !== "other"
+                  ? pet.species.charAt(0).toUpperCase() + pet.species.slice(1)
+                  : "Other"
+                ].filter(Boolean).join(" · ")}
+              </p>
+            </div>
+            {/* Actions */}
+            <div className="flex shrink-0 gap-1.5">
               <button
-                key={ph.id}
                 type="button"
-                onClick={() => onPhotoClick(ph.url)}
-                className="relative h-12 w-12 overflow-hidden rounded-md border border-[var(--border)]"
+                onClick={() => onEdit(pet)}
+                className="rounded-lg border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
               >
-                <Image
-                  src={ph.url}
-                  alt=""
-                  fill
-                  className="object-cover hover:scale-110 transition-transform"
-                  unoptimized
-                />
+                Edit
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={() => onDelete(pet.id, pet.name)}
+                disabled={deletingId === pet.id}
+                className="rounded-lg border border-red-200 px-2.5 py-1 text-xs text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors"
+              >
+                {deletingId === pet.id ? "..." : "Remove"}
+              </button>
+            </div>
           </div>
-        )}
+
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-[var(--muted)]">
+            <span>👤 {label}</span>
+            {pet.birthday && (
+              <span>🎂 {formatDate(pet.birthday)}{age ? ` (${age})` : ""}</span>
+            )}
+            {pet.adopted_date && (
+              <span>🏠 {formatDate(pet.adopted_date)}</span>
+            )}
+            {pet.passed_date && (
+              <span>🌈 {formatDate(pet.passed_date)}</span>
+            )}
+          </div>
+
+          {pet.description && (
+            <p className="mt-2 text-xs text-[var(--foreground)]/75 leading-relaxed line-clamp-2">
+              {pet.description}
+            </p>
+          )}
+
+          {/* Photo thumbnails — up to 5 + "more" button */}
+          {photos.length > 1 && (
+            <div className="mt-auto flex items-center gap-1.5 pt-2">
+              {photos.slice(1, 6).map((ph) => (
+                <button
+                  key={ph.id}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onPhotoClick(ph.url); }}
+                  className="relative h-10 w-10 overflow-hidden rounded-md border border-[var(--border)]"
+                >
+                  <Image
+                    src={ph.url}
+                    alt=""
+                    fill
+                    className="object-cover hover:scale-110 transition-transform"
+                    unoptimized
+                  />
+                </button>
+              ))}
+              {photos.length > 6 && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onPhotoClick(photos[6].url); }}
+                  className="flex h-10 w-10 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface)] text-xs font-medium text-[var(--muted)] hover:text-[var(--foreground)]"
+                >
+                  +{photos.length - 6}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </article>
   );

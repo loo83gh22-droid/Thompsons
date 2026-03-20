@@ -27,8 +27,9 @@ function BirthdayCard({ person }: { person: BirthdayPerson }) {
       : "Birthday coming up";
 
   return (
-    <div
-      className={`flex items-center gap-3 rounded-xl px-4 py-3 ${
+    <Link
+      href={`/dashboard/members/${person.id}`}
+      className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-opacity hover:opacity-80 ${
         isToday
           ? "bg-amber-50 border border-amber-300"
           : "bg-[var(--surface)] border border-[var(--border)]"
@@ -52,7 +53,7 @@ function BirthdayCard({ person }: { person: BirthdayPerson }) {
       >
         {label}
       </span>
-    </div>
+    </Link>
   );
 }
 
