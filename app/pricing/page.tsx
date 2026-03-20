@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { UpgradeButton } from "./UpgradeButton";
+import { FullNestCard } from "./FullNestCard";
 import { PaymentCancelledBanner } from "./PaymentCancelledBanner";
 import { StorageAddonButton } from "./StorageAddonButton";
 import { PricingPixelEvent } from "./PricingPixelEvent";
@@ -15,85 +16,11 @@ export const metadata: Metadata = {
   },
 };
 
-const tiers = [
-  {
-    name: "The Nest",
-    plan: "free" as const,
-    price: "Free",
-    priceSub: null,
-    description: "Try every feature. No credit card needed.",
-    features: [
-      "Up to 6 family members",
-      "Unlimited journal entries",
-      "Stories (up to 3)",
-      "Recipes (up to 3)",
-      "Time Capsules (up to 2)",
-      "Voice Memos (up to 3)",
-      "Traditions (up to 3)",
-      "Family Map (up to 20 locations)",
-      "Events (up to 5)",
-      "Video uploads (1 per entry)",
-      "Shareable links",
-      "500 MB storage",
-      "Multi-user roles & kid accounts",
-      "Global search",
-    ],
-    cta: "Get Started",
-    ctaHref: "/login?mode=signup",
-    ctaNote: "Write as much as you want. Upgrade for more storage & members.",
-    highlighted: false,
-  },
-  {
-    name: "The Full Nest",
-    plan: "annual" as const,
-    price: "$79",
-    priceSub: "/year",
-    priceBreakdown: "Just $6.58/month or 22¢/day",
-    description: "Unlimited everything for your family.",
-    badge: "Most Popular",
-    features: [
-      "Everything in Free, unlimited",
-      "Unlimited family members",
-      "50 GB storage (photos + videos)",
-      "2 videos per journal entry",
-      "Full data export (archive download)",
-      "Nest Keeper designation",
-      "Storage add-ons available",
-    ],
-    cta: "Start Annual Plan",
-    ctaHref: "/login?mode=signup&plan=annual",
-    ctaNote: null,
-    highlighted: false,
-  },
-  {
-    name: "The Legacy",
-    plan: "legacy" as const,
-    price: "$349",
-    priceSub: " one-time",
-    priceBreakdown: "Just $7/year over 50 years. True lifetime value.",
-    description: "Lifetime access. Pass it down.",
-    badge: "Best Value",
-    features: [
-      "Everything in Full Nest",
-      "Unlimited members & 50 GB storage",
-      "Storage add-ons available",
-      "Nest Keeper designation",
-      "Inactivity succession: Nest Keepers notified at 90 days, auto-transfer at 6 months",
-      "All future features included",
-      "One payment, yours forever",
-    ],
-    cta: "Get Lifetime Access",
-    ctaHref: "/login?mode=signup&plan=legacy",
-    ctaNote: null,
-    highlighted: true,
-  },
-];
-
 const faqs = [
   {
     question: "Which plan is right for me?",
     answer:
-      "Start with The Nest (Free). Unlimited journal entries, up to 6 members, and 500 MB of storage — enough to get a real feel for the product. When your family grows past 6, you want more storage for photos and videos, upgrade to The Full Nest ($79/year). If you're committed to preserving your family's memories for decades and want lifetime access with succession protection, The Legacy ($349 one-time) is the best long-term value.",
+      "Start with The Nest (Free). Try every feature with up to 6 members and 500 MB storage. When you hit the storage wall or need more members, upgrade to The Full Nest. If you want lifetime access with succession protection for decades to come, The Legacy is the best long-term value.",
   },
   {
     question: "What happens if the platform shuts down?",
@@ -103,7 +30,7 @@ const faqs = [
   {
     question: "Can I upgrade from Annual to Legacy?",
     answer:
-      "Absolutely. You can upgrade at any time from The Full Nest to The Legacy plan. When you do, your annual subscription will be cancelled and you'll get full lifetime access immediately.",
+      "Absolutely. You can upgrade at any time from The Full Nest to The Legacy plan. When you do, your subscription will be cancelled and you'll get full lifetime access immediately.",
   },
   {
     question: "How does ownership transfer work?",
@@ -114,6 +41,11 @@ const faqs = [
     question: "Can I delete my account and all my data?",
     answer:
       "Yes. You can delete your account from your dashboard settings. We give you a 30-day grace period in case you change your mind. After that, everything is permanently erased from our servers. No hidden copies.",
+  },
+  {
+    question: "What's the founding member rate?",
+    answer:
+      "The founding member rate is $49/year — a thank-you to the first families who commit to Family Nest early. When we retire the founding rate (we'll announce it in advance), the standard annual price of $79/year applies to new subscribers. Founding members keep their rate for as long as they stay subscribed.",
   },
 ];
 
@@ -129,6 +61,26 @@ const pricingFaqJsonLd = {
     },
   })),
 };
+
+const FREE_FEATURES = [
+  "Up to 6 family members",
+  "Every feature: journal, stories, recipes, map, time capsules, voice memos, traditions, events",
+  "Video uploads (1 per entry)",
+  "Shareable links",
+  "Global search",
+  "Multi-user roles and kid accounts",
+  "500 MB storage — the only limit",
+];
+
+const LEGACY_FEATURES = [
+  "Everything in Full Nest",
+  "50 GB storage",
+  "Storage add-ons available",
+  "Nest Keeper designation",
+  "Inactivity succession: Nest Keepers notified at 90 days, auto-transfer at 6 months",
+  "All future features included",
+  "One payment, yours forever",
+];
 
 export default function PricingPage() {
   return (
@@ -149,97 +101,97 @@ export default function PricingPage() {
             What it costs. No surprises.
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-[var(--muted)]">
-            Start free. If you want more space and features, we&apos;ll be here.
+            Start free. If you want more space and members, we&apos;ll be here.
           </p>
         </div>
 
         {/* Pricing cards */}
         <div className="mt-16 grid gap-8 lg:grid-cols-3 lg:items-start">
-          {tiers.map((tier) => (
-            <div
-              key={tier.name}
-              className={`relative flex flex-col rounded-2xl border p-8 transition-shadow ${
-                tier.highlighted
-                  ? "border-[var(--accent)] bg-[var(--card)] shadow-[0_0_40px_hsla(24,60%,50%,0.12)] lg:scale-105 lg:py-10"
-                  : "border-[var(--border)] bg-[var(--card)]"
-              }`}
-            >
-              {/* Recommended badge */}
-              {tier.badge && (
-                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[var(--accent)] px-4 py-1 text-xs font-semibold uppercase tracking-wide text-[var(--accent-foreground)]">
-                  {tier.badge}
-                </span>
-              )}
 
-              {/* Tier name */}
-              <h2 className="font-display text-2xl font-bold text-[var(--foreground)]">
-                {tier.name}
-              </h2>
-              <p className="mt-1 text-sm text-[var(--muted)]">
-                {tier.description}
-              </p>
-
-              {/* Price */}
-              <div className="mt-6 flex items-baseline gap-1">
-                <span className="font-display text-5xl font-bold text-[var(--accent)]">
-                  {tier.price}
-                </span>
-                {tier.priceSub && (
-                  <span className="text-base text-[var(--muted)]">
-                    {tier.priceSub}
-                  </span>
-                )}
-              </div>
-
-              {/* Price breakdown */}
-              {tier.priceBreakdown && (
-                <p className="mt-2 text-sm font-medium text-[var(--muted)]">
-                  {tier.priceBreakdown}
-                </p>
-              )}
-
-              {/* Divider */}
-              <hr className="my-6 border-[var(--border)]" />
-
-              {/* Features */}
-              <ul className="flex-1 space-y-3 text-sm">
-                {tier.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2">
-                    <span
-                      className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--primary)]/15 text-[var(--primary)]"
-                      aria-hidden="true"
-                    >
-                      ✓
-                    </span>
-                    <span className="text-[var(--foreground)]">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {/* CTA */}
-              <div className="mt-8">
-                {tier.plan === "free" ? (
-                  <Link
-                    href={tier.ctaHref}
-                    className="block w-full rounded-lg px-6 py-3 text-center font-medium transition-colors border border-[var(--border)] text-[var(--foreground)] bg-[var(--secondary)] hover:bg-[var(--surface-hover)]"
-                  >
-                    {tier.cta}
-                  </Link>
-                ) : (
-                  <UpgradeButton
-                    plan={tier.plan}
-                    label={tier.cta}
-                    highlighted={tier.highlighted}
-                  />
-                )}
-                {tier.ctaNote && (
-                  <p className="mt-2 text-center text-xs text-[var(--muted)]">
-                    {tier.ctaNote}
-                  </p>
-                )}
-              </div>
+          {/* Free — The Nest */}
+          <div className="relative flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--card)] p-8">
+            <h2 className="font-display text-2xl font-bold text-[var(--foreground)]">
+              The Nest
+            </h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              Try every feature. No credit card needed.
+            </p>
+            <div className="mt-6 flex items-baseline gap-1">
+              <span className="font-display text-5xl font-bold text-[var(--accent)]">Free</span>
             </div>
-          ))}
+            <p className="mt-2 text-sm font-medium text-[var(--muted)]">
+              Write as much as you want.
+            </p>
+            <hr className="my-6 border-[var(--border)]" />
+            <ul className="flex-1 space-y-3 text-sm">
+              {FREE_FEATURES.map((feature) => (
+                <li key={feature} className="flex items-start gap-2">
+                  <span
+                    className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--primary)]/15 text-[var(--primary)]"
+                    aria-hidden="true"
+                  >
+                    ✓
+                  </span>
+                  <span className="text-[var(--foreground)]">{feature}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8">
+              <Link
+                href="/login?mode=signup"
+                className="block w-full rounded-full px-6 py-3 text-center font-medium transition-colors border border-[var(--border)] text-[var(--foreground)] bg-[var(--secondary)] hover:bg-[var(--surface-hover)]"
+              >
+                Get Started
+              </Link>
+              <p className="mt-2 text-center text-xs text-[var(--muted)]">
+                Upgrade anytime for more storage and members.
+              </p>
+            </div>
+          </div>
+
+          {/* Full Nest — client component with toggle */}
+          <FullNestCard />
+
+          {/* Legacy — The Legacy */}
+          <div className="relative flex flex-col rounded-2xl border border-[var(--accent)] bg-[var(--card)] p-8 shadow-[0_0_40px_hsla(24,60%,50%,0.12)] lg:scale-105 lg:py-10">
+            <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[var(--accent)] px-4 py-1 text-xs font-semibold uppercase tracking-wide text-[var(--accent-foreground)]">
+              Best Value
+            </span>
+            <h2 className="font-display text-2xl font-bold text-[var(--foreground)]">
+              The Legacy
+            </h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              Lifetime access. Pass it down.
+            </p>
+            <div className="mt-6 flex items-baseline gap-1">
+              <span className="font-display text-5xl font-bold text-[var(--accent)]">$349</span>
+              <span className="text-base text-[var(--muted)]"> one-time</span>
+            </div>
+            <p className="mt-2 text-sm font-medium text-[var(--muted)]">
+              Just $7/year over 50 years. True lifetime value.
+            </p>
+            <hr className="my-6 border-[var(--border)]" />
+            <ul className="flex-1 space-y-3 text-sm">
+              {LEGACY_FEATURES.map((feature) => (
+                <li key={feature} className="flex items-start gap-2">
+                  <span
+                    className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--primary)]/15 text-[var(--primary)]"
+                    aria-hidden="true"
+                  >
+                    ✓
+                  </span>
+                  <span className="text-[var(--foreground)]">{feature}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8">
+              <UpgradeButton
+                plan="legacy"
+                label="Get Lifetime Access"
+                highlighted={true}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Storage Add-ons */}
@@ -334,4 +286,3 @@ export default function PricingPage() {
     </div>
   );
 }
-

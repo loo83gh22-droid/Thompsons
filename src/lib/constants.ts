@@ -16,16 +16,16 @@ export const PLAN_LIMITS = {
   free: {
     /** Maximum instances per feature (null = unlimited) */
     journalEntries: null, // unlimited
-    stories: 3,
-    recipes: 3,
-    timeCapsules: 2,
-    voiceMemos: 3,
-    traditions: 3,
-    events: 5,
-    mapLocations: 20,
+    stories: null,        // unlimited — storage is the only wall
+    recipes: null,
+    timeCapsules: null,
+    voiceMemos: null,
+    traditions: null,
+    events: null,
+    mapLocations: null,
     /** Max videos per journal entry */
     videosPerEntry: 1,
-    /** Maximum family members allowed (null = unlimited) */
+    /** Free plans capped at 6 members — key upgrade driver */
     maxMembers: 6,
     /** Storage limit in bytes (500 MB) */
     storageLimitBytes: 524288000,
@@ -34,8 +34,8 @@ export const PLAN_LIMITS = {
     /** Inactivity succession protocol not available on free */
     successionProtocol: false,
   },
-  annual: {
-    journalEntries: null, // unlimited
+  monthly: {
+    journalEntries: null,
     stories: null,
     recipes: null,
     timeCapsules: null,
@@ -45,7 +45,22 @@ export const PLAN_LIMITS = {
     mapLocations: null,
     videosPerEntry: 2,
     maxMembers: null, // unlimited
-    storageLimitBytes: 53687091200, // 50 GB
+    storageLimitBytes: 21474836480, // 20 GB
+    nestKeeperManagement: true,
+    successionProtocol: false,
+  },
+  annual: {
+    journalEntries: null,
+    stories: null,
+    recipes: null,
+    timeCapsules: null,
+    voiceMemos: null,
+    traditions: null,
+    events: null,
+    mapLocations: null,
+    videosPerEntry: 2,
+    maxMembers: null, // unlimited
+    storageLimitBytes: 21474836480, // 20 GB
     /** Annual plans can designate a Nest Keeper */
     nestKeeperManagement: true,
     /** Inactivity succession protocol not available on annual */

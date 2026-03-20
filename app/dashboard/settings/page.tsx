@@ -271,41 +271,11 @@ export default async function SettingsPage() {
           {/* Plan details depending on tier */}
           {planType === "free" && (
             <div className="space-y-4">
-              {/* Feature usage counters */}
-              <div className="grid gap-2 sm:grid-cols-2">
-                {([
-                  ["journalEntries", "Journal Entries"],
-                  ["stories", "Stories"],
-                  ["recipes", "Recipes"],
-                  ["timeCapsules", "Time Capsules"],
-                  ["voiceMemos", "Voice Memos"],
-                  ["traditions", "Traditions"],
-                  ["events", "Events"],
-                  ["mapLocations", "Map Locations"],
-                ] as const).map(([key, label]) => {
-                  const used = featureCounts[key] ?? 0;
-                  const limit = PLAN_LIMITS.free[key] as number;
-                  const pct = Math.min((used / limit) * 100, 100);
-                  const atLimit = used >= limit;
-                  return (
-                    <div key={key} className="rounded-lg border border-[var(--border)] px-3 py-2">
-                      <div className="flex items-baseline justify-between text-xs">
-                        <span className="font-medium text-[var(--foreground)]">{label}</span>
-                        <span className={atLimit ? "text-red-600 font-semibold" : "text-[var(--muted)]"}>
-                          {used} / {limit}
-                        </span>
-                      </div>
-                      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-[var(--border)]">
-                        <div
-                          className={`h-full rounded-full transition-all duration-500 ${
-                            atLimit ? "bg-red-500" : pct > 66 ? "bg-amber-500" : "bg-[var(--accent)]"
-                          }`}
-                          style={{ width: `${Math.max(pct, 1)}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+              {/* All features are unlimited — only storage has a cap */}
+              <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
+                <span className="font-medium text-[var(--foreground)]">All features are unlimited.</span>{" "}
+                Journal, stories, recipes, map, voice memos, traditions — write as much as you want.
+                Storage is the only limit on the free plan.
               </div>
 
               {/* Storage */}
@@ -316,7 +286,7 @@ export default async function SettingsPage() {
                 href="/pricing"
                 className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90"
               >
-                Upgrade for Unlimited
+                Upgrade for More Storage &amp; Members
                 <span aria-hidden="true">&rarr;</span>
               </Link>
             </div>

@@ -18,7 +18,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 async function activatePlan(
   familyId: string,
-  plan: "annual" | "legacy",
+  plan: "monthly" | "annual" | "legacy",
   stripeCustomerId: string,
   stripeSubscriptionId?: string
 ) {
@@ -44,16 +44,20 @@ async function activatePlan(
   }
 
   const now = new Date().toISOString();
-  const oneYearFromNow = new Date(
-    Date.now() + 365 * 24 * 60 * 60 * 1000
-  ).toISOString();
+  const oneYearFromNow = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+  const oneMonthFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  const planExpiresAt =
+    plan === "annual" ? oneYearFromNow :
+    plan === "monthly" ? oneMonthFromNow :
+    null; // legacy never expires
 
   await supabase
     .from("families")
     .update({
       plan_type: plan,
       plan_started_at: now,
-      plan_expires_at: plan === "annual" ? oneYearFromNow : null,
+      plan_expires_at: planExpiresAt,
       storage_limit_bytes: PLAN_LIMITS[plan].storageLimitBytes,
       stripe_customer_id: stripeCustomerId,
       stripe_subscription_id: stripeSubscriptionId ?? null,
@@ -215,7 +219,7 @@ async function deactivateStorageAddon(stripeSubscriptionId: string) {
 
 // ── Upgrade confirmation email ────────────────────────────────────────────────
 
-async function sendUpgradeEmail(familyId: string, plan: "annual" | "legacy") {
+async function sendUpgradeEmail(familyId: string, plan: "monthly" | "annual" | "legacy") {
   if (!resend) return;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -233,12 +237,17 @@ async function sendUpgradeEmail(familyId: string, plan: "annual" | "legacy") {
   const familyRecord = owner.families as any;
   const familyName = esc(familyRecord?.name ?? "your family");
   const ownerName = esc(owner.name ?? "there");
-  const planLabel = plan === "annual" ? "Annual Plan" : "Lifetime Plan";
+  const planLabel =
+    plan === "monthly" ? "Monthly Plan" :
+    plan === "annual"  ? "Annual Plan"  :
+    "Lifetime Plan";
 
   const benefits =
-    plan === "annual"
-      ? ["Unlimited photos & videos", "100 GB storage", "All features unlocked", "Priority support"]
-      : ["Everything in Annual, forever", "Lifetime access — pay once", "150 GB storage", "VIP founder status"];
+    plan === "monthly"
+      ? ["Unlimited members & features", "20 GB storage", "All features unlocked", "Cancel any time"]
+      : plan === "annual"
+      ? ["Unlimited members & features", "20 GB storage", "All features unlocked", "Save 34% vs monthly"]
+      : ["Everything in Annual, forever", "50 GB storage", "Lifetime access — pay once", "Inactivity succession protection"];
 
   const benefitList = benefits
     .map((b) => `<li style="margin:6px 0;color:#94a3b8;font-size:14px;list-style:none;padding-left:0;">✓ &nbsp;${esc(b)}</li>`)
@@ -329,16 +338,16 @@ export async function POST(request: Request) {
 
         if (!familyId || !plan) break;
 
-        if (plan === "annual") {
+        if (plan === "annual" || plan === "monthly") {
           await activatePlan(
             familyId,
-            "annual",
+            plan as "annual" | "monthly",
             invoice.customer as string,
             subscription.id
           );
           // Only email on first purchase, not renewals
           if ((invoice as unknown as Record<string, unknown>).billing_reason === "subscription_create") {
-            await sendUpgradeEmail(familyId, "annual");
+            await sendUpgradeEmail(familyId, plan as "annual" | "monthly");
           }
         } else if (
           plan === "storage_25gb" ||
@@ -371,10 +380,10 @@ export async function POST(request: Request) {
 
         if (!familyId || !plan) break;
 
-        if (plan === "annual" && subscription.status === "active") {
+        if ((plan === "annual" || plan === "monthly") && subscription.status === "active") {
           await activatePlan(
             familyId,
-            "annual",
+            plan as "annual" | "monthly",
             subscription.customer as string,
             subscription.id
           );

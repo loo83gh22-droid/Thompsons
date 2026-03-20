@@ -24,18 +24,22 @@ export const stripe = new Proxy({} as Stripe, {
  * Stripe Price IDs — set these in your Vercel environment variables.
  * Create products + prices in the Stripe Dashboard first, then paste the IDs.
  *
- * STRIPE_PRICE_ANNUAL      -> $79/year recurring price
- * STRIPE_PRICE_LEGACY      -> $349 one-time price
- * STRIPE_PRICE_STORAGE_25  -> $9/year recurring (+25 GB add-on)
- * STRIPE_PRICE_STORAGE_75  -> $24/year recurring (+75 GB add-on)
- * STRIPE_PRICE_STORAGE_150 -> $49/year recurring (+150 GB add-on)
+ * STRIPE_PRICE_MONTHLY         -> $9.99/month recurring price
+ * STRIPE_PRICE_ANNUAL          -> $79/year recurring price (standard)
+ * STRIPE_PRICE_ANNUAL_FOUNDING -> $49/year recurring price (founding member rate)
+ * STRIPE_PRICE_LEGACY          -> $349 one-time price
+ * STRIPE_PRICE_STORAGE_25      -> $9/year recurring (+25 GB add-on)
+ * STRIPE_PRICE_STORAGE_75      -> $24/year recurring (+75 GB add-on)
+ * STRIPE_PRICE_STORAGE_150     -> $49/year recurring (+150 GB add-on)
  */
 export const STRIPE_PRICES = {
-  annual:       process.env.STRIPE_PRICE_ANNUAL       ?? "",
-  legacy:       process.env.STRIPE_PRICE_LEGACY       ?? "",
-  storage_25gb: process.env.STRIPE_PRICE_STORAGE_25   ?? "",
-  storage_75gb: process.env.STRIPE_PRICE_STORAGE_75   ?? "",
-  storage_150gb: process.env.STRIPE_PRICE_STORAGE_150 ?? "",
+  monthly:         process.env.STRIPE_PRICE_MONTHLY         ?? "",
+  annual:          process.env.STRIPE_PRICE_ANNUAL          ?? "",
+  annual_founding: process.env.STRIPE_PRICE_ANNUAL_FOUNDING ?? "",
+  legacy:          process.env.STRIPE_PRICE_LEGACY          ?? "",
+  storage_25gb:    process.env.STRIPE_PRICE_STORAGE_25      ?? "",
+  storage_75gb:    process.env.STRIPE_PRICE_STORAGE_75      ?? "",
+  storage_150gb:   process.env.STRIPE_PRICE_STORAGE_150     ?? "",
 } as const;
 
 /** Config for each storage add-on tier (bytes, display label, price). */
@@ -58,4 +62,4 @@ export const STORAGE_ADDON_CONFIGS = {
 } as const;
 
 export type StorageAddonPlan = keyof typeof STORAGE_ADDON_CONFIGS;
-export type CheckoutPlan = "annual" | "legacy" | StorageAddonPlan;
+export type CheckoutPlan = "monthly" | "annual" | "annual_founding" | "legacy" | StorageAddonPlan;

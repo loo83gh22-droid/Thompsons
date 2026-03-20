@@ -8,7 +8,7 @@ export function UpgradeButton({
   label,
   highlighted,
 }: {
-  plan: "annual" | "legacy";
+  plan: "monthly" | "annual" | "annual_founding" | "legacy";
   label: string;
   highlighted: boolean;
 }) {
@@ -26,9 +26,10 @@ export function UpgradeButton({
       const data = await res.json();
 
       if (!res.ok) {
-        // If not authenticated, redirect to signup with plan
+        // If not authenticated, redirect to signup with the base plan
         if (res.status === 401) {
-          window.location.href = `/login?mode=signup&plan=${plan}`;
+          const signupPlan = plan === "annual_founding" || plan === "monthly" ? "annual" : plan;
+          window.location.href = `/login?mode=signup&plan=${signupPlan}`;
           return;
         }
         toast.error(data.error || "Something went wrong. Please try again.");
