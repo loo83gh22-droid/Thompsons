@@ -23,7 +23,7 @@ export function HeroSection() {
                 className="max-w-lg text-lg leading-relaxed"
                 style={{ color: "var(--muted)" }}
               >
-                One quiet corner of the internet for your photos, journals, recipes, and voice memos. Grandparents welcome. Advertisers are not.
+                Whether it's just the two of you or the whole crew — one private place for your photos, journals, recipes, and voice memos. No ads. No algorithms. Just yours.
               </p>
             </div>
 

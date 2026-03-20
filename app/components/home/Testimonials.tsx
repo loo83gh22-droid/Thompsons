@@ -6,6 +6,22 @@ import { Star } from "lucide-react";
 const testimonials = [
   {
     quote:
+      "We started our Nest on our honeymoon. Every trip, every recipe we\u2019ve tried, every dumb inside joke, it\u2019s all in one place. We sealed a time capsule for our fifth anniversary. Way better than scrolling back through 10,000 photos looking for that one night in Portugal.",
+    name: "Sarah & James M.",
+    location: "Denver, CO",
+    role: "Married 3 years",
+    scenario: "Started as Two",
+  },
+  {
+    quote:
+      "I used to be the only one saving photos and writing things down. Now my husband posts from the fishing trip, my mother-in-law shares her recipes, and the kids add their own stuff. I'm not the family archivist anymore.",
+    name: "Jessica W.",
+    location: "Nashville, TN",
+    role: "Mom of three",
+    scenario: "No Longer Doing It Alone",
+  },
+  {
+    quote:
       "I set up the Nest, uploaded 20 years of our favourite family photos, invited everyone, and wrapped the login on a card. My mom cried. My wife said it was the best gift I'd ever given. It cost less than a large bouquet of flowers.",
     name: "Daniel R.",
     location: "Portland, OR",
@@ -19,22 +35,6 @@ const testimonials = [
     location: "Columbus, OH",
     role: "Grandmother of 7",
     scenario: "The Grandma Test",
-  },
-  {
-    quote:
-      "My son started a Nest for his family. My daughter started one for hers. I'm in both. I just switch between them. I see my grandkids on both sides, all from one account. No juggling apps or group chats.",
-    name: "Patricia L.",
-    location: "Scottsdale, AZ",
-    role: "Grandparent in two families",
-    scenario: "One Account, Two Families",
-  },
-  {
-    quote:
-      "I used to be the only one saving photos and writing things down. Now my husband posts from the fishing trip, my mother-in-law shares her recipes, and the kids add their own stuff. I'm not the family archivist anymore.",
-    name: "Jessica W.",
-    location: "Nashville, TN",
-    role: "Mom of three",
-    scenario: "No Longer Doing It Alone",
   },
   {
     quote:
@@ -54,11 +54,11 @@ const testimonials = [
   },
   {
     quote:
-      "We started our Nest on our honeymoon. Every trip, every recipe we\u2019ve tried, every dumb inside joke, it\u2019s all in one place. We sealed a time capsule for our fifth anniversary. Way better than scrolling back through 10,000 photos looking for that one night in Portugal.",
-    name: "Sarah & James M.",
-    location: "Denver, CO",
-    role: "Married 3 years",
-    scenario: "Started as Two",
+      "My son started a Nest for his family. My daughter started one for hers. I\u2019m in both. I just switch between them. I see my grandkids on both sides, all from one account. No juggling apps or group chats.",
+    name: "Patricia L.",
+    location: "Scottsdale, AZ",
+    role: "Grandparent in two families",
+    scenario: "One Account, Two Families",
   },
 ];
 
