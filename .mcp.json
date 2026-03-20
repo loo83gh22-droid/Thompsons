@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "familynest-social": {
+      "command": "node",
+      "args": ["C:/Coding/Thompsons/social-mcp-server/src/index.js"],
+      "env": {}
+    }
+  }
+}

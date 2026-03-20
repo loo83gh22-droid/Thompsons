@@ -70,7 +70,9 @@ export function DashboardStats({ stats }: { stats: Stats }) {
               Your family&apos;s story so far
             </h2>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              {total.toLocaleString()} moments captured and counting.
+              {total === 0
+                ? "Every great story starts somewhere. Yours starts here."
+                : `${total.toLocaleString()} moment${total === 1 ? "" : "s"} captured and counting.`}
             </p>
           </div>
           <Link

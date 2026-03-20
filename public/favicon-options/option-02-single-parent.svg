@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#3A7D5C"/>
+
+  <!-- Single parent centered -->
+  <circle cx="220" cy="140" r="35" fill="#F0DCC8"/>
+  <line x1="220" y1="175" x2="220" y2="300" stroke="#F0DCC8" stroke-width="14" stroke-linecap="round"/>
+  <!-- Parent left arm reaching down to hold child -->
+  <line x1="220" y1="220" x2="160" y2="280" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <!-- Parent right arm extended protectively -->
+  <line x1="220" y1="220" x2="310" y2="200" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <!-- Parent legs -->
+  <line x1="220" y1="300" x2="185" y2="410" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <line x1="220" y1="300" x2="255" y2="410" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Child next to parent, held by hand -->
+  <circle cx="320" cy="230" r="25" fill="#C65D28"/>
+  <line x1="320" y1="255" x2="320" y2="345" stroke="#C65D28" stroke-width="11" stroke-linecap="round"/>
+  <!-- Child arm reaching up to parent -->
+  <line x1="320" y1="280" x2="290" y2="250" stroke="#C65D28" stroke-width="9" stroke-linecap="round"/>
+  <line x1="320" y1="280" x2="355" y2="300" stroke="#C65D28" stroke-width="9" stroke-linecap="round"/>
+  <!-- Child legs -->
+  <line x1="320" y1="345" x2="295" y2="420" stroke="#C65D28" stroke-width="9" stroke-linecap="round"/>
+  <line x1="320" y1="345" x2="345" y2="420" stroke="#C65D28" stroke-width="9" stroke-linecap="round"/>
+
+  <!-- Small heart between them -->
+  <path d="M268,185 C268,178 275,172 282,178 C289,172 296,178 296,185 C296,195 282,205 282,205 C282,205 268,195 268,185Z" fill="#C65D28" opacity="0.6"/>
+</svg>

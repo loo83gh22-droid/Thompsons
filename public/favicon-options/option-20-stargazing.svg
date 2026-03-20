@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#2D5A44"/>
+
+  <!-- Stars scattered above -->
+  <circle cx="100" cy="60" r="4" fill="#F0DCC8" opacity="0.7"/>
+  <circle cx="180" cy="40" r="3" fill="#F0DCC8" opacity="0.5"/>
+  <circle cx="290" cy="55" r="4" fill="#F0DCC8" opacity="0.6"/>
+  <circle cx="370" cy="35" r="3" fill="#F0DCC8" opacity="0.5"/>
+  <circle cx="420" cy="70" r="4" fill="#F0DCC8" opacity="0.7"/>
+  <circle cx="140" cy="95" r="2" fill="#F0DCC8" opacity="0.4"/>
+  <circle cx="340" cy="85" r="3" fill="#F0DCC8" opacity="0.5"/>
+  <circle cx="450" cy="110" r="2" fill="#F0DCC8" opacity="0.4"/>
+  <circle cx="70" cy="105" r="3" fill="#F0DCC8" opacity="0.5"/>
+
+  <!-- Bright star / North star -->
+  <path d="M256,70 L260,82 L273,82 L263,90 L267,102 L256,94 L245,102 L249,90 L239,82 L252,82 Z" fill="#C65D28" opacity="0.8"/>
+
+  <!-- Ground / hill -->
+  <path d="M0,400 Q128,350 256,370 Q384,390 512,360 L512,512 L0,512 Z" fill="#3A7D5C"/>
+
+  <!-- Family sitting on hill together looking up -->
+  <!-- Left parent sitting -->
+  <circle cx="155" cy="275" r="26" fill="#F0DCC8"/>
+  <line x1="155" y1="301" x2="155" y2="370" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <!-- Arm pointing up at stars -->
+  <line x1="155" y1="330" x2="120" y2="260" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+  <!-- Arm around child -->
+  <line x1="155" y1="330" x2="200" y2="340" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+  <!-- Legs sitting -->
+  <line x1="155" y1="370" x2="125" y2="400" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+  <line x1="155" y1="370" x2="185" y2="400" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- Right parent sitting -->
+  <circle cx="357" cy="275" r="26" fill="#F0DCC8"/>
+  <line x1="357" y1="301" x2="357" y2="370" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <!-- Arm pointing up -->
+  <line x1="357" y1="330" x2="392" y2="260" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+  <!-- Arm around child -->
+  <line x1="357" y1="330" x2="312" y2="340" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+  <!-- Legs sitting -->
+  <line x1="357" y1="370" x2="327" y2="400" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+  <line x1="357" y1="370" x2="387" y2="400" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- Child 1 between parents -->
+  <circle cx="228" cy="305" r="18" fill="#C65D28"/>
+  <line x1="228" y1="323" x2="228" y2="378" stroke="#C65D28" stroke-width="9" stroke-linecap="round"/>
+  <line x1="228" y1="342" x2="210" y2="360" stroke="#C65D28" stroke-width="7" stroke-linecap="round"/>
+  <line x1="228" y1="342" x2="248" y2="360" stroke="#C65D28" stroke-width="7" stroke-linecap="round"/>
+  <line x1="228" y1="378" x2="215" y2="408" stroke="#C65D28" stroke-width="7" stroke-linecap="round"/>
+  <line x1="228" y1="378" x2="241" y2="408" stroke="#C65D28" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- Child 2 -->
+  <circle cx="284" cy="305" r="18" fill="#C65D28"/>
+  <line x1="284" y1="323" x2="284" y2="378" stroke="#C65D28" stroke-width="9" stroke-linecap="round"/>
+  <line x1="284" y1="342" x2="264" y2="360" stroke="#C65D28" stroke-width="7" stroke-linecap="round"/>
+  <line x1="284" y1="342" x2="304" y2="360" stroke="#C65D28" stroke-width="7" stroke-linecap="round"/>
+  <line x1="284" y1="378" x2="271" y2="408" stroke="#C65D28" stroke-width="7" stroke-linecap="round"/>
+  <line x1="284" y1="378" x2="297" y2="408" stroke="#C65D28" stroke-width="7" stroke-linecap="round"/>
+</svg>

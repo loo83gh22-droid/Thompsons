@@ -1,7 +1,8 @@
 # FamilyNest Security Findings
 
-Last audited: 2026-03-07
+Last audited: 2026-03-12
 Last resolved: 2026-03-07 (S11)
+Re-audit: 2026-03-12 -- all S1-S11 and C1-C5 re-verified, zero new findings
 
 ---
 
@@ -101,7 +102,7 @@ All references are in Route Handlers or `"use server"` actions only.
 
 ---
 
-## Confirmed Correct (2026-03-06 audit)
+## Confirmed Correct (2026-03-12 re-audit)
 
 | Surface | Finding | Status |
 |---|---|---|
@@ -119,6 +120,20 @@ All references are in Route Handlers or `"use server"` actions only.
 | Service role key | Server-only files only; no client bundle exposure | ✅ Correct |
 | `localStorage` | UI flags only; no PII, tokens, or auth data | ✅ Correct |
 | Email HTML escaping | `esc()` applied to all user-supplied fields in templates | ✅ Correct |
+| SSRF in `/api/export` | Allowlist (`ALLOWED_STORAGE_HOSTS`) + HTTPS-only + 15s timeout | ✅ Correct |
+| SQL injection | All queries use Supabase parameterized client (`.eq()`, `.ilike()`) | ✅ Correct |
+| Path traversal (storage) | UUID filenames + bucket allowlist + RLS scoping | ✅ Correct |
+| Signed URL duration | Storage proxy: 60s; export downloads: 300s | ✅ Correct |
+| CSP headers | Comprehensive policy in `next.config.ts` incl. `object-src 'none'` | ✅ Correct |
+| X-Frame-Options | `DENY` -- prevents clickjacking | ✅ Correct |
+| HSTS | `max-age=63072000` (2 years) | ✅ Correct |
+| SafeMarkdown | `rehype-sanitize` with default schema on all user markdown | ✅ Correct |
+| Server actions auth | All 26 member actions + 13 journal actions check auth + role | ✅ Correct |
+| Zod validation | `createJournalEntrySchema` validates input before DB insert | ✅ Correct |
+| Storage quota | `enforceStorageLimit()` called before uploads, rollback on failure | ✅ Correct |
+| Share pages | Token + `is_public` double-check; content rendered as plain text | ✅ Correct |
+| Kid access links | Token lookup + expiry check; expired links return 404 | ✅ Correct |
+| No `eval()`/`new Function()` | Zero occurrences in codebase | ✅ Correct |
 
 ---
 

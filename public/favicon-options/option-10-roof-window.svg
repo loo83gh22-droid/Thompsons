@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#3A7D5C"/>
+
+  <!-- House with window showing family inside -->
+  <!-- Roof -->
+  <polygon points="256,60 60,240 452,240" fill="#2D5A44" stroke="#F0DCC8" stroke-width="10"/>
+
+  <!-- House body -->
+  <rect x="100" y="240" width="312" height="220" fill="#2D5A44" stroke="#F0DCC8" stroke-width="8" rx="4"/>
+
+  <!-- Door -->
+  <rect x="215" y="350" width="82" height="110" rx="41" fill="none" stroke="#F0DCC8" stroke-width="6"/>
+  <circle cx="280" cy="410" r="5" fill="#F0DCC8"/>
+
+  <!-- Window left -->
+  <rect x="125" y="270" width="70" height="60" rx="4" fill="none" stroke="#F0DCC8" stroke-width="5"/>
+  <line x1="160" y1="270" x2="160" y2="330" stroke="#F0DCC8" stroke-width="4"/>
+  <line x1="125" y1="300" x2="195" y2="300" stroke="#F0DCC8" stroke-width="4"/>
+
+  <!-- Window right -->
+  <rect x="317" y="270" width="70" height="60" rx="4" fill="none" stroke="#F0DCC8" stroke-width="5"/>
+  <line x1="352" y1="270" x2="352" y2="330" stroke="#F0DCC8" stroke-width="4"/>
+  <line x1="317" y1="300" x2="387" y2="300" stroke="#F0DCC8" stroke-width="4"/>
+
+  <!-- Family silhouettes visible through windows -->
+  <!-- Adult in left window -->
+  <circle cx="145" cy="282" r="8" fill="#C65D28"/>
+  <line x1="145" y1="290" x2="145" y2="315" stroke="#C65D28" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Child in left window -->
+  <circle cx="175" cy="292" r="6" fill="#C65D28"/>
+  <line x1="175" y1="298" x2="175" y2="318" stroke="#C65D28" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Adult in right window -->
+  <circle cx="335" cy="282" r="8" fill="#C65D28"/>
+  <line x1="335" y1="290" x2="335" y2="315" stroke="#C65D28" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Child in right window -->
+  <circle cx="368" cy="292" r="6" fill="#C65D28"/>
+  <line x1="368" y1="298" x2="368" y2="318" stroke="#C65D28" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Chimney -->
+  <rect x="340" y="80" width="35" height="80" fill="#2D5A44" stroke="#F0DCC8" stroke-width="6"/>
+
+  <!-- Roof window / attic circle -->
+  <circle cx="256" cy="170" r="30" fill="none" stroke="#F0DCC8" stroke-width="5"/>
+  <!-- Family heart in attic window -->
+  <path d="M256,185 C256,185 244,177 244,170 C244,165 248,162 252,162 C255,162 256,164 256,166 C256,164 257,162 260,162 C264,162 268,165 268,170 C268,177 256,185 256,185Z" fill="#C65D28"/>
+</svg>

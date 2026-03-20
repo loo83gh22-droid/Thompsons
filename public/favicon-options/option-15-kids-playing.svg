@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#3A7D5C"/>
+
+  <!-- Parents standing, arms forming roof -->
+  <!-- Left parent -->
+  <circle cx="120" cy="145" r="28" fill="#F0DCC8"/>
+  <line x1="120" y1="173" x2="120" y2="280" stroke="#F0DCC8" stroke-width="13" stroke-linecap="round"/>
+  <line x1="120" y1="210" x2="256" y2="95" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+  <line x1="120" y1="210" x2="80" y2="260" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+  <line x1="120" y1="280" x2="95" y2="370" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+  <line x1="120" y1="280" x2="145" y2="370" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+
+  <!-- Right parent -->
+  <circle cx="392" cy="145" r="28" fill="#F0DCC8"/>
+  <line x1="392" y1="173" x2="392" y2="280" stroke="#F0DCC8" stroke-width="13" stroke-linecap="round"/>
+  <line x1="392" y1="210" x2="256" y2="95" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+  <line x1="392" y1="210" x2="432" y2="260" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+  <line x1="392" y1="280" x2="367" y2="370" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+  <line x1="392" y1="280" x2="417" y2="370" stroke="#F0DCC8" stroke-width="11" stroke-linecap="round"/>
+
+  <!-- Roof peak -->
+  <circle cx="256" cy="85" r="18" fill="#C65D28"/>
+
+  <!-- Child 1 playing - arms up, one leg kicked out -->
+  <circle cx="215" cy="270" r="20" fill="#C65D28"/>
+  <line x1="215" y1="290" x2="215" y2="360" stroke="#C65D28" stroke-width="10" stroke-linecap="round"/>
+  <!-- Arms up celebrating -->
+  <line x1="215" y1="310" x2="185" y2="278" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <line x1="215" y1="310" x2="245" y2="278" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <!-- Legs - one running -->
+  <line x1="215" y1="360" x2="190" y2="420" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <line x1="215" y1="360" x2="245" y2="410" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Child 2 playing - jumping pose -->
+  <circle cx="305" cy="260" r="20" fill="#C65D28"/>
+  <line x1="305" y1="280" x2="305" y2="350" stroke="#C65D28" stroke-width="10" stroke-linecap="round"/>
+  <!-- Arms out wide -->
+  <line x1="305" y1="305" x2="275" y2="285" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <line x1="305" y1="305" x2="340" y2="290" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <!-- Legs spread (jumping) -->
+  <line x1="305" y1="350" x2="278" y2="415" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <line x1="305" y1="350" x2="335" y2="415" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Ball between kids -->
+  <circle cx="260" cy="385" r="14" fill="#C65D28" opacity="0.5"/>
+</svg>

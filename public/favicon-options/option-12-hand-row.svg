@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#3A7D5C"/>
+
+  <!-- Gentle arc roof line above the row -->
+  <path d="M60,180 Q256,50 452,180" fill="none" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round" opacity="0.35"/>
+
+  <!-- Parent 1 (far left) -->
+  <circle cx="95" cy="195" r="28" fill="#F0DCC8"/>
+  <line x1="95" y1="223" x2="95" y2="320" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <line x1="95" y1="320" x2="72" y2="410" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+  <line x1="95" y1="320" x2="118" y2="410" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+  <!-- Right arm to child -->
+  <line x1="95" y1="258" x2="170" y2="268" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+  <!-- Left arm wave -->
+  <line x1="95" y1="258" x2="55" y2="230" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- Child 1 -->
+  <circle cx="195" cy="230" r="20" fill="#C65D28"/>
+  <line x1="195" y1="250" x2="195" y2="325" stroke="#C65D28" stroke-width="10" stroke-linecap="round"/>
+  <line x1="195" y1="325" x2="178" y2="400" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <line x1="195" y1="325" x2="212" y2="400" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <!-- Arms holding parents -->
+  <line x1="195" y1="275" x2="155" y2="268" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <line x1="195" y1="275" x2="240" y2="268" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Child 2 -->
+  <circle cx="317" cy="230" r="20" fill="#C65D28"/>
+  <line x1="317" y1="250" x2="317" y2="325" stroke="#C65D28" stroke-width="10" stroke-linecap="round"/>
+  <line x1="317" y1="325" x2="300" y2="400" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <line x1="317" y1="325" x2="334" y2="400" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <!-- Arms -->
+  <line x1="317" y1="275" x2="272" y2="268" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+  <line x1="317" y1="275" x2="357" y2="268" stroke="#C65D28" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Parent 2 (far right) -->
+  <circle cx="417" cy="195" r="28" fill="#F0DCC8"/>
+  <line x1="417" y1="223" x2="417" y2="320" stroke="#F0DCC8" stroke-width="12" stroke-linecap="round"/>
+  <line x1="417" y1="320" x2="394" y2="410" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+  <line x1="417" y1="320" x2="440" y2="410" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+  <!-- Left arm to child -->
+  <line x1="417" y1="258" x2="342" y2="268" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+  <!-- Right arm wave -->
+  <line x1="417" y1="258" x2="457" y2="230" stroke="#F0DCC8" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- Connecting hand-hold line in center -->
+  <line x1="230" y1="268" x2="280" y2="268" stroke="#F0DCC8" stroke-width="8" stroke-linecap="round" opacity="0.5"/>
+</svg>

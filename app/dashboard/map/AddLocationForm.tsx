@@ -278,13 +278,13 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
           <label className="block text-sm font-medium text-[var(--muted)]">Type</label>
           <div className="mt-2 flex flex-wrap gap-3">
             {([
-              ["travel", "Visit / trip"],
-              ["lived", "Homes (lived here)"],
-              ["vacation", "Vacation"],
-              ["memorable_event", "Memorable event"],
-              ["other", "Other"],
-            ] as const).map(([value, label]) => (
-              <label key={value} className="flex items-center gap-2 cursor-pointer">
+              ["travel", "The tradition", "Spots you kept coming back to"],
+              ["lived", "Home base", "Where the family lived"],
+              ["vacation", "The trip", "Vacations & getaways"],
+              ["memorable_event", "The moment", "Weddings, graduations, big days"],
+              ["other", "Other", "School, first job, anything else"],
+            ] as const).map(([value, label, hint]) => (
+              <label key={value} className="flex items-center gap-2 cursor-pointer" title={hint}>
                 <input
                   type="radio"
                   name="locationKind"
@@ -296,9 +296,6 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
               </label>
             ))}
           </div>
-          <p className="mt-1 text-xs text-[var(--muted)]">
-            e.g. wedding, sports event, reunion. Use Other + label for school, first job, etc.
-          </p>
         </div>
 
         {locationKind === "other" && (
@@ -319,9 +316,9 @@ export function AddLocationForm({ onAdded }: { onAdded?: () => void }) {
           selectedIds={selectedMemberIds}
           onChange={setSelectedMemberIds}
           label={locationKind === "lived" ? "Who lived here?"
-            : locationKind === "vacation" ? "Who was on this vacation?"
-              : locationKind === "memorable_event" ? "Who was at this event?"
-                : locationKind === "other" ? "Who is this for?" : "Who traveled here?"}
+            : locationKind === "vacation" ? "Who was on this trip?"
+              : locationKind === "memorable_event" ? "Who was there for this moment?"
+                : locationKind === "other" ? "Who is this for?" : "Who kept coming back?"}
           hint="Select everyone who was there, or use Select All for the whole family."
           required
         />

@@ -229,8 +229,8 @@ function ClusterPopupContent({
   const livedLabel =
     livedHere && dateRangeStart
       ? dateRangeEnd && dateRangeEnd !== dateRangeStart
-        ? `Lived ${format(new Date(dateRangeStart + "T12:00:00"), "MMM d, yyyy")} – ${format(new Date(dateRangeEnd + "T12:00:00"), "MMM d, yyyy")}`
-        : `Lived from ${format(new Date(dateRangeStart + "T12:00:00"), "MMM d, yyyy")}`
+        ? `Home base ${format(new Date(dateRangeStart + "T12:00:00"), "MMM d, yyyy")} – ${format(new Date(dateRangeEnd + "T12:00:00"), "MMM d, yyyy")}`
+        : `Home base from ${format(new Date(dateRangeStart + "T12:00:00"), "MMM d, yyyy")}`
       : null;
 
   const firstLabel = first?.location_label?.trim();
@@ -240,13 +240,13 @@ function ClusterPopupContent({
       <div style={{ borderBottom: "1px solid #e5e7eb", paddingBottom: 8, marginBottom: 8 }}>
         <h3 style={{ fontWeight: "bold", fontSize: 16, margin: 0 }}>{locationName}</h3>
         {firstLabel && <p style={{ fontSize: 12, fontWeight: 500, color: "#b8860b", margin: "4px 0 0" }}>{firstLabel}</p>}
-        {livedHere && !livedLabel && <p style={{ fontSize: 12, fontWeight: 500, color: "#b8860b", margin: "4px 0 0" }}>Lived here</p>}
+        {livedHere && !livedLabel && <p style={{ fontSize: 12, fontWeight: 500, color: "#b8860b", margin: "4px 0 0" }}>Home base</p>}
         {livedLabel && <p style={{ fontSize: 12, fontWeight: 500, color: "#b8860b", margin: "4px 0 0" }}>{livedLabel}</p>}
         {locs.some((l) => l.location_type === "vacation") && !livedHere && (
-          <p style={{ fontSize: 12, color: "#6b7280", margin: "4px 0 0" }}>Vacation</p>
+          <p style={{ fontSize: 12, color: "#6b7280", margin: "4px 0 0" }}>The trip</p>
         )}
         {locs.some((l) => l.location_type === "memorable_event") && !livedHere && (
-          <p style={{ fontSize: 12, color: "#6b7280", margin: "4px 0 0" }}>Memorable event</p>
+          <p style={{ fontSize: 12, color: "#6b7280", margin: "4px 0 0" }}>The moment</p>
         )}
         {dateLabel && !livedLabel && <p style={{ fontSize: 13, color: "#6b7280", margin: "4px 0 0" }}>{dateLabel}</p>}
         {locs.length > 1 && (
@@ -259,12 +259,12 @@ function ClusterPopupContent({
         {sorted.map((l) => {
           const member = Array.isArray(l.family_members) ? l.family_members[0] : l.family_members;
           const title =
-            l.is_birth_place ? "Birth place"
-            : l.is_place_lived ? "Place lived"
-            : l.location_type === "vacation" ? (l.notes || "Vacation")
-            : l.location_type === "memorable_event" ? (l.notes || "Memorable event")
+            l.is_birth_place ? "Our roots"
+            : l.is_place_lived ? "Home base"
+            : l.location_type === "vacation" ? (l.notes || "The trip")
+            : l.location_type === "memorable_event" ? (l.notes || "The moment")
             : l.location_type === "other" ? (l.notes || l.location_label || "Other")
-            : l.notes || "Journal entry";
+            : l.notes || "The tradition";
           const dateStr = l.trip_date
             ? format(new Date(l.trip_date + "T12:00:00"), "MMMM d, yyyy")
             : l.year_visited ? String(l.year_visited) : "";

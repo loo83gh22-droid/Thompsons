@@ -5,6 +5,7 @@ import { PersonaSection } from "./components/home/PersonaSection";
 import { FeaturesBento } from "./components/home/FeaturesBento";
 import { AdditionalFeatures } from "./components/home/AdditionalFeatures";
 import { MakeItYours } from "./components/home/MakeItYours";
+import { PricingCallout } from "./components/home/PricingCallout";
 import { Testimonials } from "./components/home/Testimonials";
 import { PrivacyCallout } from "./components/home/PrivacyCallout";
 import { EmotionalSection } from "./components/home/EmotionalSection";
@@ -32,7 +33,7 @@ const faqStructuredData = {
       name: "What happens if I stop paying?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "You can downgrade to the Free plan anytime and keep your first 10 journal entries and 1 GB of photos forever. No data is ever deleted when you downgrade. If you choose the Legacy plan, you own it for life. No recurring payments, ever.",
+        text: "You can downgrade to the Free plan anytime and keep all your journal entries and 500 MB of storage forever. No data is ever deleted when you downgrade. If you choose the Legacy plan, you own it for life. No recurring payments, ever.",
       },
     },
     {
@@ -116,7 +117,7 @@ const softwareStructuredData = {
       price: "0",
       priceCurrency: "USD",
       name: "The Nest (Free)",
-      description: "10 journal entries, 1 GB storage, family tree, map view",
+      description: "Unlimited journal entries, 500 MB storage, family tree, map view",
     },
     {
       "@type": "Offer",
@@ -181,6 +182,7 @@ export default function HomePage() {
         <HeroSection />
         <HowItWorks />
         <FeaturesBento />
+        <PricingCallout />
         <MakeItYours />
         <PersonaSection />
         <AdditionalFeatures />
