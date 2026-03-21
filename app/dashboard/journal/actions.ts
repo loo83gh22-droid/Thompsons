@@ -1019,19 +1019,16 @@ export async function shareJournalEntryToFamily(
         const storagePath = photo.url.replace("/api/storage/journal-photos/", "");
         if (!storagePath || storagePath === photo.url) continue; // URL format unrecognised
 
-        const { data: fileData, error: dlError } = await adminClient.storage
-          .from("journal-photos")
-          .download(storagePath);
-        if (dlError || !fileData) continue;
-
         const ext = storagePath.split(".").pop() ?? "jpg";
         const newPath = `${crypto.randomUUID()}.${ext}`;
-        const { error: uploadError } = await adminClient.storage
+        const { error: copyError } = await adminClient.storage
           .from("journal-photos")
-          .upload(newPath, fileData, { contentType: fileData.type });
-        if (uploadError) continue;
+          .copy(storagePath, newPath);
+        if (copyError) {
+          console.error("[shareJournalEntryToFamily] photo copy error:", copyError.message, "path:", storagePath);
+          continue;
+        }
 
-        // Store as proxy URL — consistent with how all other photo uploads are stored
         const newProxyUrl = `/api/storage/journal-photos/${newPath}`;
         await supabase.from("journal_photos").insert({
           entry_id: newEntry.id,
