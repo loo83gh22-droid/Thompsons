@@ -272,6 +272,77 @@ export async function syncBirthPlacesToMap(familyId?: string): Promise<{ added: 
   return { added };
 }
 
+export type EditTravelLocationInput = {
+  locationId: string;
+  locationName: string;
+  locationKind: "travel" | "lived" | "vacation" | "memorable_event" | "other";
+  locationLabel?: string | null;
+  yearVisited?: number | null;
+  tripDate?: string | null;
+  tripDateEnd?: string | null;
+  notes?: string | null;
+  photoUrl?: string | null;
+};
+
+/** Edit an existing travel location (all fields except lat/lng/country). */
+export async function editTravelLocation(
+  input: EditTravelLocationInput
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return { error: "No active family" };
+
+  const { error: updateError } = await supabase
+    .from("travel_locations")
+    .update({
+      location_name: input.locationName,
+      notes: input.notes ?? null,
+      location_label: input.locationLabel?.trim() || null,
+      is_place_lived: input.locationKind === "lived",
+      location_type:
+        input.locationKind === "vacation" ? "vacation"
+          : input.locationKind === "memorable_event" ? "memorable_event"
+            : input.locationKind === "other" ? "other" : null,
+      year_visited: input.yearVisited ?? null,
+      trip_date: input.tripDate ?? null,
+      trip_date_end: input.tripDateEnd ?? null,
+      photo_url: input.photoUrl !== undefined ? input.photoUrl : undefined,
+    })
+    .eq("id", input.locationId)
+    .eq("family_id", activeFamilyId);
+
+  if (updateError) return { error: updateError.message };
+
+  revalidatePath("/dashboard/map");
+  return {};
+}
+
+/** Delete a travel location pin. */
+export async function deleteTravelLocation(
+  locationId: string
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return { error: "No active family" };
+
+  const { error } = await supabase
+    .from("travel_locations")
+    .delete()
+    .eq("id", locationId)
+    .eq("family_id", activeFamilyId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/dashboard/map");
+  return {};
+}
+
 /** Update the photo on an existing map pin (e.g. adding a photo to an auto-synced roots pin). */
 export async function updateLocationPhoto(
   locationId: string,

@@ -10,7 +10,8 @@ import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
 import { compressImage } from "@/src/lib/compressImage";
-import { updateLocationPhoto } from "./actions";
+import { updateLocationPhoto, editTravelLocation, deleteTravelLocation } from "./actions";
+import type { EditTravelLocationInput } from "./actions";
 import { UI_DISPLAY, LOCATION_CONSTANTS } from "@/src/lib/constants";
 import { COUNTRY_FLAG_STYLES } from "./countryFlagColors";
 import * as topojsonClient from "topojson-client";
@@ -195,6 +196,232 @@ function FitBounds({ positions }: { positions: [number, number][] }) {
   return null;
 }
 
+function EditLocationModal({
+  location,
+  onClose,
+  onSaved,
+}: {
+  location: TravelLocation;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const { activeFamilyId } = useFamily();
+
+  const initialKind = (): EditTravelLocationInput["locationKind"] => {
+    if (location.is_birth_place) return "travel"; // birth places shown as travel for editing
+    if (location.is_place_lived) return "lived";
+    if (location.location_type === "vacation") return "vacation";
+    if (location.location_type === "memorable_event") return "memorable_event";
+    if (location.location_type === "other") return "other";
+    return "travel";
+  };
+
+  const [locationName, setLocationName] = useState(location.location_name);
+  const [locationKind, setLocationKind] = useState<EditTravelLocationInput["locationKind"]>(initialKind);
+  const [locationLabel, setLocationLabel] = useState(location.location_label ?? "");
+  const [yearVisited, setYearVisited] = useState(location.year_visited ? String(location.year_visited) : "");
+  const [tripDate, setTripDate] = useState(location.trip_date ?? "");
+  const [tripDateEnd, setTripDateEnd] = useState(location.trip_date_end ?? "");
+  const [notes, setNotes] = useState(location.notes ?? "");
+  const [photoUrl, setPhotoUrl] = useState<string | null>(location.photo_url ?? null);
+  const [newPhotoFile, setNewPhotoFile] = useState<File | null>(null);
+  const [newPhotoPreview, setNewPhotoPreview] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const photoRef = useRef<HTMLInputElement | null>(null);
+
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (newPhotoPreview) URL.revokeObjectURL(newPhotoPreview);
+    setNewPhotoFile(file);
+    setNewPhotoPreview(URL.createObjectURL(file));
+  }
+
+  function removePhoto() {
+    setPhotoUrl(null);
+    setNewPhotoFile(null);
+    if (newPhotoPreview) { URL.revokeObjectURL(newPhotoPreview); setNewPhotoPreview(null); }
+    if (photoRef.current) photoRef.current.value = "";
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!locationName.trim()) { setError("Location name is required."); return; }
+    setLoading(true);
+    setError(null);
+    try {
+      let finalPhotoUrl: string | null | undefined = photoUrl;
+      if (newPhotoFile && activeFamilyId) {
+        const supabase = createClient();
+        const compressed = await compressImage(newPhotoFile);
+        const ext = compressed.name.split(".").pop() || "jpg";
+        const storagePath = `${activeFamilyId}/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("location-photos")
+          .upload(storagePath, compressed, { upsert: true });
+        if (uploadError) throw uploadError;
+        finalPhotoUrl = `/api/storage/location-photos/${storagePath}`;
+      }
+      const result = await editTravelLocation({
+        locationId: location.id,
+        locationName: locationName.trim(),
+        locationKind,
+        locationLabel: locationLabel.trim() || null,
+        yearVisited: yearVisited ? parseInt(yearVisited, 10) : null,
+        tripDate: tripDate || null,
+        tripDateEnd: tripDateEnd || null,
+        notes: notes.trim() || null,
+        photoUrl: finalPhotoUrl,
+      });
+      if (result.error) throw new Error(result.error);
+      onSaved();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Save failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDelete() {
+    setLoading(true);
+    const result = await deleteTravelLocation(location.id);
+    setLoading(false);
+    if (result.error) { setError(result.error); return; }
+    onSaved();
+  }
+
+  const isBirthPlace = location.is_birth_place === true;
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[9999] bg-black/60" aria-hidden onClick={onClose} />
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto">
+        <div
+          className="relative w-full max-w-lg rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-xl"
+          onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="edit-location-title"
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <h2 id="edit-location-title" className="font-display text-lg font-semibold text-[var(--foreground)]">
+              Edit location
+            </h2>
+            <button type="button" onClick={onClose} className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--surface-hover)]" aria-label="Close">×</button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {!isBirthPlace && (
+              <div>
+                <label className="block text-sm font-medium text-[var(--muted)]">Type</label>
+                <div className="mt-2 flex flex-wrap gap-3">
+                  {([
+                    ["travel", "The tradition"],
+                    ["lived", "Home base"],
+                    ["vacation", "The trip"],
+                    ["memorable_event", "The moment"],
+                    ["other", "Other"],
+                  ] as const).map(([value, label]) => (
+                    <label key={value} className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" checked={locationKind === value} onChange={() => setLocationKind(value)} className="rounded-full border-[var(--border)] text-[var(--accent)]" />
+                      <span className="text-sm text-[var(--foreground)]">{label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {locationKind === "other" && !isBirthPlace && (
+              <div>
+                <label className="block text-sm font-medium text-[var(--muted)]">Label (optional)</label>
+                <input type="text" value={locationLabel} onChange={(e) => setLocationLabel(e.target.value)} placeholder="e.g. School, First job" className="input-base mt-1" />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted)]">Location name *</label>
+              <input type="text" value={locationName} onChange={(e) => setLocationName(e.target.value)} required className="input-base mt-1" />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-[var(--muted)]">
+                  {locationKind === "lived" ? "Lived from" : "Year visited"}
+                </label>
+                {locationKind === "lived" ? (
+                  <input type="date" value={tripDate} onChange={(e) => setTripDate(e.target.value)} className="input-base mt-1" />
+                ) : (
+                  <input type="number" value={yearVisited} onChange={(e) => setYearVisited(e.target.value)} placeholder="2024" min="1900" max="2100" className="input-base mt-1" />
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--muted)]">
+                  {locationKind === "lived" ? "Lived until" : "Trip date (optional)"}
+                </label>
+                {locationKind === "lived" ? (
+                  <input type="date" value={tripDateEnd} onChange={(e) => setTripDateEnd(e.target.value)} className="input-base mt-1" />
+                ) : (
+                  <input type="date" value={tripDate} onChange={(e) => setTripDate(e.target.value)} className="input-base mt-1" />
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted)]">Story / notes</label>
+              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="What happened here? What do you remember?" className="input-base mt-1 resize-y" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted)]">Photo</label>
+              {(newPhotoPreview ?? photoUrl) ? (
+                <div className="relative mt-1 overflow-hidden rounded-lg border border-[var(--border)]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={newPhotoPreview ?? photoUrl!} alt="Location photo" className="max-h-48 w-full object-cover" />
+                  <div className="absolute right-2 top-2 flex gap-1">
+                    <button type="button" onClick={() => photoRef.current?.click()} className="flex h-7 items-center gap-1 rounded-full bg-black/60 px-2 text-xs text-white hover:bg-black/80">Replace</button>
+                    <button type="button" onClick={removePhoto} className="flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80" aria-label="Remove photo">×</button>
+                  </div>
+                </div>
+              ) : (
+                <button type="button" onClick={() => photoRef.current?.click()} className="mt-1 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--muted)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors">
+                  📷 Add a photo
+                </button>
+              )}
+              <input ref={photoRef} type="file" accept="image/*" onChange={handlePhotoChange} className="sr-only" aria-label="Choose photo" />
+            </div>
+
+            {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex gap-2">
+                <button type="submit" disabled={loading} className="btn-submit rounded-full bg-[var(--primary)] font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50">
+                  {loading ? "Saving…" : "Save changes"}
+                </button>
+                <button type="button" onClick={onClose} className="btn-secondary rounded-lg border border-[var(--border)] hover:bg-[var(--surface-hover)]">
+                  Cancel
+                </button>
+              </div>
+              {confirmDelete ? (
+                <span className="flex items-center gap-2 text-sm">
+                  <span className="text-[var(--muted)]">Remove this pin?</span>
+                  <button type="button" onClick={handleDelete} disabled={loading} className="font-medium text-red-600 hover:underline disabled:opacity-50">Yes, remove</button>
+                  <button type="button" onClick={() => setConfirmDelete(false)} className="text-[var(--muted)] hover:underline">Cancel</button>
+                </span>
+              ) : (
+                <button type="button" onClick={() => setConfirmDelete(true)} className="text-sm text-[var(--muted)] hover:text-red-600">
+                  Remove pin
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function PopupPhotoUpload({ locationId, onUploaded }: { locationId: string; onUploaded: (url: string) => void }) {
   const { activeFamilyId } = useFamily();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -241,9 +468,11 @@ function PopupPhotoUpload({ locationId, onUploaded }: { locationId: string; onUp
 function ClusterPopupContent({
   locs,
   onNavigate,
+  onEdit,
 }: {
   locs: TravelLocation[];
   onNavigate: (path: string) => void;
+  onEdit: (loc: TravelLocation) => void;
 }) {
   const [localPhotos, setLocalPhotos] = useState<Record<string, string>>({});
   const sorted = [...locs].sort((a, b) => {
@@ -357,14 +586,24 @@ function ClusterPopupContent({
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: 8 }}>
-                <div>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <h4 style={{ fontWeight: 600, fontSize: 14, margin: 0 }}>{title}</h4>
                   {dateStr && <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>{dateStr}</p>}
                   {member?.name && member.name !== "Family" && (
                     <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>{member.name}</p>
                   )}
                 </div>
-                {l.journal_entry_id && <span style={{ color: "#6b7280" }}>→</span>}
+                <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); onEdit(l); }}
+                    style={{ fontSize: 11, color: "#6b7280", background: "none", border: "1px solid #d1d5db", borderRadius: 6, padding: "3px 8px", cursor: "pointer" }}
+                    title="Edit this pin"
+                  >
+                    Edit
+                  </button>
+                  {l.journal_entry_id && <span style={{ color: "#6b7280" }}>→</span>}
+                </div>
               </div>
             </div>
           );
@@ -379,6 +618,7 @@ export default function MapComponent({ filter }: { filter?: MapFilter } = {}) {
   const { activeFamilyId } = useFamily();
   const [locations, setLocations] = useState<TravelLocation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingLocation, setEditingLocation] = useState<TravelLocation | null>(null);
 
   const fetchLocations = useCallback(
     (showLoading = true) => {
@@ -494,6 +734,17 @@ export default function MapComponent({ filter }: { filter?: MapFilter } = {}) {
   const center: [number, number] = [UI_DISPLAY.mapDefaultCenter.lat, UI_DISPLAY.mapDefaultCenter.lng];
 
   return (
+    <div>
+    {editingLocation && (
+      <EditLocationModal
+        location={editingLocation}
+        onClose={() => setEditingLocation(null)}
+        onSaved={() => {
+          setEditingLocation(null);
+          fetchLocations(false);
+        }}
+      />
+    )}
     <div className="overflow-hidden rounded-xl border-2 border-[var(--border)]" style={{ height: 500 }}>
       <MapContainer
         center={center}
@@ -522,12 +773,14 @@ export default function MapComponent({ filter }: { filter?: MapFilter } = {}) {
                 <ClusterPopupContent
                   locs={locs}
                   onNavigate={(path) => router.push(path)}
+                  onEdit={(loc) => setEditingLocation(loc)}
                 />
               </Popup>
             </Marker>
           );
         })}
       </MapContainer>
+    </div>
     </div>
   );
 }
