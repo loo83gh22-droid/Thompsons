@@ -37,9 +37,19 @@ export async function GET(request: Request) {
 
   const familyData = member.families as unknown as { name: string } | null;
 
+  // Check if any family_members row with this email already has a user_id (i.e. account exists)
+  const { data: existingLink } = await supabase
+    .from("family_members")
+    .select("user_id")
+    .eq("contact_email", member.contact_email)
+    .not("user_id", "is", null)
+    .limit(1)
+    .maybeSingle();
+
   return NextResponse.json({
     email: member.contact_email,
     name: member.name,
     familyName: familyData?.name ?? "",
+    hasAccount: !!existingLink?.user_id,
   });
 }
