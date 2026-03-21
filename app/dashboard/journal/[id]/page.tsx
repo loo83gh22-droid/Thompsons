@@ -6,6 +6,7 @@ import { formatDateOnly } from "@/src/lib/date";
 import { JournalPhotoGallery } from "../JournalPhotoGallery";
 import { JournalPerspectives } from "../JournalPerspectives";
 import { DeleteJournalEntryButton } from "../DeleteJournalEntryButton";
+import { ShareToNestButton } from "../ShareToNestButton";
 
 export const metadata = { title: "Journal Entry | Family Nest" };
 
@@ -122,17 +123,20 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ i
         </div>
       )}
 
-      {canEdit && (
-        <div className="mt-8 flex flex-wrap gap-2">
-          <Link
-            href={`/dashboard/journal/${id}/edit`}
-            className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-medium hover:bg-[var(--surface-hover)]"
-          >
-            Edit
-          </Link>
-          <DeleteJournalEntryButton entryId={id} title={entry.title ?? "this entry"} variant="list" />
-        </div>
-      )}
+      <div className="mt-8 flex flex-wrap gap-2">
+        <ShareToNestButton entryId={id} entryTitle={entry.title ?? "this entry"} />
+        {canEdit && (
+          <>
+            <Link
+              href={`/dashboard/journal/${id}/edit`}
+              className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-medium hover:bg-[var(--surface-hover)]"
+            >
+              Edit
+            </Link>
+            <DeleteJournalEntryButton entryId={id} title={entry.title ?? "this entry"} variant="list" />
+          </>
+        )}
+      </div>
 
       <JournalPerspectives entryId={id} />
     </div>

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/src/lib/supabase/server";
+import { createAdminClient } from "@/src/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { findOrCreateLocationCluster } from "@/src/lib/locationClustering";
@@ -944,4 +945,138 @@ export async function deleteJournalVideo(videoId: string, entryId?: string) {
 
   revalidatePath("/dashboard/journal");
   if (entryId) revalidatePath(`/dashboard/journal/${entryId}/edit`);
+}
+
+/* ── Share to another Nest ─────────────────────────────────────────── */
+
+export type ShareToNestResult = { success: true } | { success: false; error: string };
+
+function extractStoragePath(url: string, bucketName: string): string | null {
+  try {
+    const urlObj = new URL(url);
+    const segments = urlObj.pathname.split("/");
+    const bucketIdx = segments.findIndex((s) => s === bucketName);
+    if (bucketIdx === -1) return null;
+    return segments.slice(bucketIdx + 1).join("/");
+  } catch {
+    return null;
+  }
+}
+
+export async function shareJournalEntryToFamily(
+  entryId: string,
+  targetFamilyId: string
+): Promise<ShareToNestResult> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Not authenticated" };
+
+    // Verify user is a member of the target family
+    const { data: targetMember } = await supabase
+      .from("family_members")
+      .select("id")
+      .eq("family_id", targetFamilyId)
+      .eq("user_id", user.id)
+      .single();
+    if (!targetMember) return { success: false, error: "You are not a member of that family" };
+
+    // Fetch the source entry (RLS ensures user can only access entries in families they belong to)
+    const { data: entry } = await supabase
+      .from("journal_entries")
+      .select("title, content, location, trip_date, trip_date_end")
+      .eq("id", entryId)
+      .single();
+    if (!entry) return { success: false, error: "Entry not found" };
+
+    // Fetch photos + videos
+    const [{ data: photos }, { data: videos }] = await Promise.all([
+      supabase
+        .from("journal_photos")
+        .select("url, caption, sort_order, file_size_bytes")
+        .eq("entry_id", entryId)
+        .order("sort_order"),
+      supabase
+        .from("journal_videos")
+        .select("url, duration_seconds, sort_order, file_size_bytes")
+        .eq("entry_id", entryId)
+        .order("sort_order"),
+    ]);
+
+    // Create new journal entry in target family
+    const { data: newEntry, error: insertError } = await supabase
+      .from("journal_entries")
+      .insert({
+        family_id: targetFamilyId,
+        title: entry.title,
+        content: entry.content,
+        location: entry.location,
+        trip_date: entry.trip_date,
+        trip_date_end: entry.trip_date_end,
+        author_id: targetMember.id,
+        created_by: targetMember.id,
+      })
+      .select("id")
+      .single();
+    if (insertError || !newEntry) return { success: false, error: "Failed to create entry in target Nest" };
+
+    // Copy photos using admin client (private bucket — bypass RLS for download)
+    const adminClient = createAdminClient();
+    let totalBytesAdded = 0;
+
+    for (const photo of photos ?? []) {
+      try {
+        const storagePath = extractStoragePath(photo.url, "journal-photos");
+        if (!storagePath) continue;
+
+        const { data: fileData, error: dlError } = await adminClient.storage
+          .from("journal-photos")
+          .download(storagePath);
+        if (dlError || !fileData) continue;
+
+        const ext = storagePath.split(".").pop() ?? "jpg";
+        const newPath = `${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await adminClient.storage
+          .from("journal-photos")
+          .upload(newPath, fileData, { contentType: fileData.type });
+        if (uploadError) continue;
+
+        const { data: urlData } = supabase.storage.from("journal-photos").getPublicUrl(newPath);
+        await supabase.from("journal_photos").insert({
+          entry_id: newEntry.id,
+          url: urlData.publicUrl,
+          caption: photo.caption,
+          sort_order: photo.sort_order ?? 0,
+          uploaded_by: targetMember.id,
+          file_size_bytes: photo.file_size_bytes ?? 0,
+        });
+        if (photo.file_size_bytes) totalBytesAdded += photo.file_size_bytes;
+      } catch {
+        // Skip individual photo failures — don't abort the whole share
+      }
+    }
+
+    // Copy videos — journal-videos is a public bucket, safe to reference same URL
+    for (const video of videos ?? []) {
+      await supabase.from("journal_videos").insert({
+        entry_id: newEntry.id,
+        url: video.url,
+        duration_seconds: video.duration_seconds,
+        sort_order: video.sort_order ?? 0,
+        uploaded_by: targetMember.id,
+        file_size_bytes: video.file_size_bytes ?? 0,
+      });
+    }
+
+    // Track storage usage in target family
+    if (totalBytesAdded > 0) {
+      await addStorageUsage(supabase, targetFamilyId, totalBytesAdded);
+    }
+
+    revalidatePath("/dashboard/journal");
+    return { success: true };
+  } catch (err) {
+    console.error("[shareJournalEntryToFamily]", err);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
 }
