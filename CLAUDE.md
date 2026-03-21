@@ -117,6 +117,15 @@ Use `preview_start` with the name `"dev"`. The `.claude/launch.json` is configur
 to use `node` directly with the full npm-cli.js path — this is required on Windows
 because `npm` is a `.cmd` file that Node's `spawn()` cannot execute directly.
 
+**Note:** The launch.json passes `-- --webpack` to `next dev` because the Application
+Control policy on this machine blocks the native SWC binary (`@next/swc-win32-x64-msvc`),
+and Turbopack requires native bindings. Webpack uses the WASM fallback and works fine.
+If `preview_start` seems to succeed but port 3000 never binds, fall back to:
+```bash
+npx next dev --webpack
+```
+(run in Bash with `run_in_background: true`, then use Chrome MCP for screenshots)
+
 **Never** start the dev server via `mcp__Desktop_Commander__start_process` — its
 PowerShell shell does not have Node/npm in PATH.
 
