@@ -1037,6 +1037,7 @@ export async function shareJournalEntryToFamily(
           sort_order: photo.sort_order ?? 0,
           uploaded_by: targetMember.id,
           file_size_bytes: photo.file_size_bytes ?? 0,
+          family_id: targetFamilyId,
         });
         if (photo.file_size_bytes) totalBytesAdded += photo.file_size_bytes;
       } catch {

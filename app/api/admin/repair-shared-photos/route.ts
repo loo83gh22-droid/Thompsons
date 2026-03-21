@@ -69,6 +69,7 @@ export async function POST(request: Request) {
       sort_order: photo.sort_order ?? 0,
       uploaded_by: targetEntry?.created_by ?? null,
       file_size_bytes: photo.file_size_bytes ?? 0,
+      family_id: targetEntry?.family_id ?? null,
     });
 
     results.push({
