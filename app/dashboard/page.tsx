@@ -295,10 +295,8 @@ export default async function DashboardPage() {
       })
       .slice(0, 4);
 
-    // Set greeting first name — uses own nickname for self-greeting
-    userFirstName = currentMemberData
-      ? (currentMemberData.nickname?.trim() || currentMemberData.name)?.split(" ")[0] ?? null
-      : null;
+    // Set greeting first name — always use first word of name (nickname is a label set by others)
+    userFirstName = currentMemberData?.name?.split(" ")[0] ?? null;
 
     // Query journal entries where user has added perspective
     const { data: userPerspectives } = await supabase
