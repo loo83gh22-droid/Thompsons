@@ -156,6 +156,18 @@ export async function addStoryPerspective(storyId: string, content: string, fami
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
+  // Verify story and member both belong to the active family
+  const { data: story } = await supabase
+    .from("family_stories")
+    .select("id")
+    .eq("id", storyId)
+    .eq("family_id", activeFamilyId)
+    .single();
+  if (!story) throw new Error("Story not found in active family");
+
   const { error } = await supabase.from("story_perspectives").insert({
     story_id: storyId,
     family_member_id: familyMemberId,
