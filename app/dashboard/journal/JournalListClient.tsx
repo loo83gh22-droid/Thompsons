@@ -8,6 +8,7 @@ import { UI_DISPLAY } from "@/src/lib/constants";
 import { CalendarDrillDown } from "@/app/components/CalendarDrillDown";
 import { JournalPhotoGallery } from "./JournalPhotoGallery";
 import { DeleteJournalEntryButton } from "./DeleteJournalEntryButton";
+import { ShareToNestButton } from "./ShareToNestButton";
 
 /* ── Types ─────────────────────────────────────────────────── */
 
@@ -251,21 +252,24 @@ export function JournalListClient({
                           {entry.perspectiveCount !== 1 ? "s" : ""}
                         </span>
                       )}
-                      {canEdit(entry) && (
-                        <div className="ml-auto flex items-center gap-2">
-                          <Link
-                            href={`/dashboard/journal/${entry.id}/edit`}
-                            className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm font-medium hover:bg-[var(--surface-hover)]"
-                          >
-                            Edit
-                          </Link>
-                          <DeleteJournalEntryButton
-                            entryId={entry.id}
-                            title={entry.title ?? "this entry"}
-                            variant="list"
-                          />
-                        </div>
-                      )}
+                      <div className="ml-auto flex items-center gap-2">
+                        <ShareToNestButton entryId={entry.id} entryTitle={entry.title ?? "this entry"} />
+                        {canEdit(entry) && (
+                          <>
+                            <Link
+                              href={`/dashboard/journal/${entry.id}/edit`}
+                              className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm font-medium hover:bg-[var(--surface-hover)]"
+                            >
+                              Edit
+                            </Link>
+                            <DeleteJournalEntryButton
+                              entryId={entry.id}
+                              title={entry.title ?? "this entry"}
+                              variant="list"
+                            />
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
