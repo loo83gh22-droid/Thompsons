@@ -55,7 +55,7 @@ export default async function TimelinePage({
       .limit(QUERY_LIMITS.timelineItemsPerType),
     supabase
       .from("voice_memos")
-      .select("id, title, description, created_at, family_member_id, audio_url, duration_seconds, family_members!family_member_id(id, name, relationship)")
+      .select("id, title, description, created_at, family_member_id, audio_url, duration_seconds, photo_url, family_members!family_member_id(id, name, relationship)")
       .eq("family_id", activeFamilyId)
       .order("created_at", { ascending: false })
       .limit(QUERY_LIMITS.timelineItemsPerType),
@@ -94,7 +94,7 @@ export default async function TimelinePage({
       .limit(QUERY_LIMITS.timelineItemsPerType),
     supabase
       .from("family_traditions")
-      .select("id, title, description, created_at")
+      .select("id, title, description, created_at, photo_url")
       .eq("family_id", activeFamilyId)
       .order("created_at", { ascending: false })
       .limit(QUERY_LIMITS.timelineItemsPerType),
@@ -144,7 +144,7 @@ export default async function TimelinePage({
       authorName: name,
       authorRelationship: relationship,
       authorMemberId: row.family_member_id ?? null,
-      thumbnailUrl: null,
+      thumbnailUrl: (row as { photo_url?: string | null }).photo_url ?? null,
       href: "/dashboard/voice-memos",
       durationSeconds: row.duration_seconds ?? null,
       audioUrl: row.audio_url ?? null,
@@ -240,7 +240,7 @@ export default async function TimelinePage({
       authorName: null,
       authorRelationship: null,
       authorMemberId: null,
-      thumbnailUrl: null,
+      thumbnailUrl: (row as { photo_url?: string | null }).photo_url ?? null,
       href: "/dashboard/traditions",
     });
   }
