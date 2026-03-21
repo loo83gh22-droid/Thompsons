@@ -951,17 +951,6 @@ export async function deleteJournalVideo(videoId: string, entryId?: string) {
 
 export type ShareToNestResult = { success: true } | { success: false; error: string };
 
-function extractStoragePath(url: string, bucketName: string): string | null {
-  try {
-    const urlObj = new URL(url);
-    const segments = urlObj.pathname.split("/");
-    const bucketIdx = segments.findIndex((s) => s === bucketName);
-    if (bucketIdx === -1) return null;
-    return segments.slice(bucketIdx + 1).join("/");
-  } catch {
-    return null;
-  }
-}
 
 export async function shareJournalEntryToFamily(
   entryId: string,
@@ -1026,8 +1015,9 @@ export async function shareJournalEntryToFamily(
 
     for (const photo of photos ?? []) {
       try {
-        const storagePath = extractStoragePath(photo.url, "journal-photos");
-        if (!storagePath) continue;
+        // URLs are stored as proxy paths: /api/storage/journal-photos/<uuid.ext>
+        const storagePath = photo.url.replace("/api/storage/journal-photos/", "");
+        if (!storagePath || storagePath === photo.url) continue; // URL format unrecognised
 
         const { data: fileData, error: dlError } = await adminClient.storage
           .from("journal-photos")
@@ -1041,10 +1031,11 @@ export async function shareJournalEntryToFamily(
           .upload(newPath, fileData, { contentType: fileData.type });
         if (uploadError) continue;
 
-        const { data: urlData } = supabase.storage.from("journal-photos").getPublicUrl(newPath);
+        // Store as proxy URL — consistent with how all other photo uploads are stored
+        const newProxyUrl = `/api/storage/journal-photos/${newPath}`;
         await supabase.from("journal_photos").insert({
           entry_id: newEntry.id,
-          url: urlData.publicUrl,
+          url: newProxyUrl,
           caption: photo.caption,
           sort_order: photo.sort_order ?? 0,
           uploaded_by: targetMember.id,
