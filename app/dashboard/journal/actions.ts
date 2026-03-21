@@ -701,6 +701,26 @@ export async function addJournalPerspective(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
+  // Verify the entry belongs to the active family before adding perspective
+  const { data: entry } = await supabase
+    .from("journal_entries")
+    .select("id")
+    .eq("id", entryId)
+    .eq("family_id", activeFamilyId)
+    .single();
+  if (!entry) throw new Error("Entry not found in active family");
+
+  // Verify the member belongs to the active family
+  const { data: member } = await supabase
+    .from("family_members")
+    .select("id")
+    .eq("id", familyMemberId)
+    .eq("family_id", activeFamilyId)
+    .single();
+  if (!member) throw new Error("Member not found in active family");
 
   const { error } = await supabase.from("journal_perspectives").insert({
     journal_entry_id: entryId,
@@ -717,6 +737,17 @@ export async function removeJournalPerspective(id: string, entryId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) throw new Error("No active family");
+
+  // Verify the entry belongs to the active family before removing perspective
+  const { data: entry } = await supabase
+    .from("journal_entries")
+    .select("id")
+    .eq("id", entryId)
+    .eq("family_id", activeFamilyId)
+    .single();
+  if (!entry) throw new Error("Entry not found in active family");
 
   const { error } = await supabase.from("journal_perspectives").delete().eq("id", id);
   if (error) throw error;
@@ -961,6 +992,17 @@ export async function shareJournalEntryToFamily(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: "Not authenticated" };
 
+    // Verify user is a member of the source family (active family)
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { success: false, error: "No active family" };
+    const { data: sourceMember } = await supabase
+      .from("family_members")
+      .select("id")
+      .eq("family_id", activeFamilyId)
+      .eq("user_id", user.id)
+      .single();
+    if (!sourceMember) return { success: false, error: "You are not a member of the source family" };
+
     // Verify user is a member of the target family
     const { data: targetMember } = await supabase
       .from("family_members")
@@ -970,11 +1012,12 @@ export async function shareJournalEntryToFamily(
       .single();
     if (!targetMember) return { success: false, error: "You are not a member of that family" };
 
-    // Fetch the source entry (RLS ensures user can only access entries in families they belong to)
+    // Fetch the source entry — explicitly scoped to active family (defense-in-depth)
     const { data: entry } = await supabase
       .from("journal_entries")
       .select("title, content, location, trip_date, trip_date_end")
       .eq("id", entryId)
+      .eq("family_id", activeFamilyId)
       .single();
     if (!entry) return { success: false, error: "Entry not found" };
 
