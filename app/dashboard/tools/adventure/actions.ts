@@ -207,6 +207,39 @@ export async function deleteVisit(featureSlug: string, visitId: string) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Update a visit (date + notes)                                      */
+/* ------------------------------------------------------------------ */
+
+export async function updateVisit(
+  featureSlug: string,
+  visitId: string,
+  visitedDate: string,
+  notes: string,
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  await requireRole(supabase, user.id, ["owner", "adult", "teen"]);
+
+  const { error } = await supabase
+    .from("adventure_location_visits")
+    .update({ visited_date: visitedDate || null, notes: notes.trim() || null })
+    .eq("id", visitId);
+  if (error) throw error;
+
+  // Re-sync the location's visited_date to the latest visit
+  const { data: visit } = await supabase
+    .from("adventure_location_visits")
+    .select("location_id")
+    .eq("id", visitId)
+    .single();
+  if (visit) await syncVisitedFlag(supabase, visit.location_id);
+
+  revalidatePath(`/dashboard/tools/${featureSlug}`);
+}
+
+/* ------------------------------------------------------------------ */
 /*  Legacy toggle (whole-family visited)                                */
 /* ------------------------------------------------------------------ */
 

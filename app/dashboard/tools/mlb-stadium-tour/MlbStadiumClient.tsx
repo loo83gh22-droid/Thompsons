@@ -9,6 +9,7 @@ import type { AdventureLocation, AdventureVisit, AdventurePhoto } from "../adven
 import {
   addVisit,
   deleteVisit,
+  updateVisit,
   uploadLocationPhoto,
   deleteLocationPhoto,
   updateRating,
@@ -270,6 +271,165 @@ function PhotoUploadButton({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Visit Row (with inline edit)                                       */
+/* ------------------------------------------------------------------ */
+
+function VisitRow({
+  visit,
+  stadium,
+  member,
+  isPending,
+  startTransition,
+  onDelete,
+}: {
+  visit: AdventureVisit;
+  stadium: MlbStadium;
+  member: FamilyMember | undefined;
+  isPending: boolean;
+  startTransition: (fn: () => Promise<void>) => void;
+  onDelete: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [date, setDate] = useState(visit.visited_date ?? "");
+  const [notes, setNotes] = useState(visit.notes ?? "");
+  const photoRef = useRef<HTMLInputElement>(null);
+
+  const handleSave = () => {
+    startTransition(async () => {
+      await updateVisit("mlb-stadium-tour", visit.id, date, notes);
+      setEditing(false);
+    });
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.set("photo", file);
+    startTransition(async () => {
+      await uploadLocationPhoto(
+        "mlb-stadium-tour",
+        stadium.name,
+        fd,
+        stadium.latitude,
+        stadium.longitude,
+        undefined,
+        visit.id,
+      );
+    });
+    if (photoRef.current) photoRef.current.value = "";
+  };
+
+  if (editing) {
+    return (
+      <div
+        className="rounded-lg border p-2 text-xs flex flex-col gap-2"
+        style={{ borderColor: "var(--accent)", backgroundColor: "var(--card)" }}
+      >
+        <div className="flex items-center gap-1 font-medium" style={{ color: "var(--foreground)" }}>
+          {member?.color && <span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: member.color }} />}
+          {member?.name || "Unknown"}
+        </div>
+        <div>
+          <label className="block text-[10px] mb-0.5" style={{ color: "var(--muted)" }}>Date</label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="rounded border px-2 py-1 w-full text-xs"
+            style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)", color: "var(--foreground)" }}
+          />
+        </div>
+        <div>
+          <label className="block text-[10px] mb-0.5" style={{ color: "var(--muted)" }}>Story / notes</label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={2}
+            placeholder="Great seats behind home plate..."
+            className="rounded border px-2 py-1 w-full text-xs resize-none"
+            style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)", color: "var(--foreground)" }}
+          />
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => photoRef.current?.click()}
+            disabled={isPending}
+            className="text-[10px] px-2 py-0.5 rounded border"
+            style={{ borderColor: "var(--border)", color: "var(--muted)" }}
+          >
+            + Photo
+          </button>
+          <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+          <div className="ml-auto flex gap-1.5">
+            <button
+              type="button"
+              onClick={() => { setDate(visit.visited_date ?? ""); setNotes(visit.notes ?? ""); setEditing(false); }}
+              className="text-[10px] px-2 py-0.5 rounded"
+              style={{ color: "var(--muted)" }}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={handleSave}
+              className="text-[10px] px-2 py-0.5 rounded font-medium text-white disabled:opacity-50"
+              style={{ backgroundColor: "var(--accent)" }}
+            >
+              {isPending ? "Saving…" : "Save"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="flex items-center gap-2 text-xs rounded-lg px-2 py-1.5 group"
+      style={{ backgroundColor: "var(--surface)" }}
+    >
+      {member?.color && (
+        <span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: member.color }} />
+      )}
+      <span style={{ color: "var(--foreground)" }} className="font-medium shrink-0">
+        {member?.name || "Unknown"}
+      </span>
+      {visit.visited_date && (
+        <span style={{ color: "var(--muted)" }} className="shrink-0">{formatDate(visit.visited_date)}</span>
+      )}
+      {visit.notes && (
+        <span style={{ color: "var(--muted)" }} className="truncate flex-1">{visit.notes}</span>
+      )}
+      <div className="ml-auto flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => setEditing(true)}
+          className="text-[10px] px-1.5 py-0.5 rounded border hover:opacity-80 transition-opacity"
+          style={{ borderColor: "var(--border)", color: "var(--muted)" }}
+          title="Edit visit"
+        >
+          Edit
+        </button>
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={onDelete}
+          className="text-[10px] px-1 rounded hover:text-red-600 transition-colors"
+          style={{ color: "var(--muted)" }}
+          title="Remove visit"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Stadium Card                                                       */
 /* ------------------------------------------------------------------ */
 
@@ -426,46 +586,17 @@ function StadiumCard({
 
           {expanded && (
             <div className="mt-1.5 flex flex-col gap-1.5">
-              {visits.map((visit) => {
-                const member = memberMap.get(visit.member_id);
-                return (
-                  <div
-                    key={visit.id}
-                    className="flex items-center gap-2 text-xs rounded-lg px-2 py-1.5"
-                    style={{ backgroundColor: "var(--surface)" }}
-                  >
-                    {member?.color && (
-                      <span
-                        className="inline-block w-2 h-2 rounded-full shrink-0"
-                        style={{ backgroundColor: member.color }}
-                      />
-                    )}
-                    <span style={{ color: "var(--foreground)" }} className="font-medium">
-                      {member?.name || "Unknown"}
-                    </span>
-                    {visit.visited_date && (
-                      <span style={{ color: "var(--muted)" }}>
-                        {formatDate(visit.visited_date)}
-                      </span>
-                    )}
-                    {visit.notes && (
-                      <span style={{ color: "var(--muted)" }} className="truncate flex-1">
-                        {visit.notes}
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      disabled={isPending}
-                      onClick={() => handleDeleteVisit(visit.id)}
-                      className="ml-auto shrink-0 text-[10px] px-1 rounded hover:text-red-600 transition-colors"
-                      style={{ color: "var(--muted)" }}
-                      title="Remove visit"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                );
-              })}
+              {visits.map((visit) => (
+                <VisitRow
+                  key={visit.id}
+                  visit={visit}
+                  stadium={stadium}
+                  member={memberMap.get(visit.member_id)}
+                  isPending={isPending}
+                  startTransition={startTransition}
+                  onDelete={() => handleDeleteVisit(visit.id)}
+                />
+              ))}
             </div>
           )}
         </div>
