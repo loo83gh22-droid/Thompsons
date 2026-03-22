@@ -14,7 +14,7 @@ import { Resend } from "resend";
 import { NextResponse } from "next/server";
 import { birthdayEmailHtml } from "@/app/api/emails/templates/birthday";
 import { capsuleEmailHtml } from "@/app/api/emails/templates/capsule";
-import { digestEmailHtml } from "@/app/api/emails/templates/digest";
+import { digestEmailHtml, type DigestSection } from "@/app/api/emails/templates/digest";
 import {
   day1ActivationEmailHtml,
   day3DiscoveryEmailHtml,
@@ -550,43 +550,211 @@ export async function GET(request: Request) {
     results.errors.push(`Day 30 campaign: ${err}`);
   }
 
-  // ── 5. Weekly digest (Sundays only) ──
-  if (dayOfWeek === 0) {
+  // ── 5. Weekly digest (Sundays only, or force_digest=1 for testing) ──
+  const forceDigest = new URL(request.url).searchParams.get("force_digest") === "1";
+  if (dayOfWeek === 0 || forceDigest) {
     try {
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-      const { data: families } = await supabase.from("families").select("id, name");
+
+      // ISO week key for deduplication (e.g. "weekly_digest_2026-W12")
+      const isoWeek = (() => {
+        const d = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+        return `weekly_digest_${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
+      })();
+
+      const { data: families } = await supabase
+        .from("families")
+        .select("id, name, plan_type");
+
+      const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const ITEMS_PER_SECTION = 3;
 
       for (const family of families ?? []) {
-        const [journals, voices, stories] = await Promise.all([
-          supabase.from("journal_entries").select("id", { count: "exact", head: true }).eq("family_id", family.id).gte("created_at", weekAgo),
-          supabase.from("voice_memos").select("id", { count: "exact", head: true }).eq("family_id", family.id).gte("created_at", weekAgo),
-          supabase.from("family_stories").select("id", { count: "exact", head: true }).eq("family_id", family.id).gte("created_at", weekAgo),
+        // ── Fetch this week's content in parallel ──
+        const [journalRes, voiceRes, storyRes, recipeRes] = await Promise.all([
+          supabase
+            .from("journal_entries")
+            .select("id, title, created_at, family_members!author_id(name), journal_photos!entry_id(url, sort_order)")
+            .eq("family_id", family.id)
+            .gte("created_at", weekAgo)
+            .order("created_at", { ascending: false })
+            .limit(ITEMS_PER_SECTION),
+          supabase
+            .from("voice_memos")
+            .select("id, title, created_at, family_members!family_member_id(name)")
+            .eq("family_id", family.id)
+            .gte("created_at", weekAgo)
+            .order("created_at", { ascending: false })
+            .limit(ITEMS_PER_SECTION),
+          supabase
+            .from("family_stories")
+            .select("id, title, created_at, cover_url, family_members!author_family_member_id(name)")
+            .eq("family_id", family.id)
+            .eq("published", true)
+            .gte("created_at", weekAgo)
+            .order("created_at", { ascending: false })
+            .limit(ITEMS_PER_SECTION),
+          supabase
+            .from("family_recipes")
+            .select("id, title, created_at, family_members!author_id(name)")
+            .eq("family_id", family.id)
+            .gte("created_at", weekAgo)
+            .order("created_at", { ascending: false })
+            .limit(ITEMS_PER_SECTION),
         ]);
 
-        const jCount = journals.count ?? 0;
-        const vCount = voices.count ?? 0;
-        const sCount = stories.count ?? 0;
-        if (jCount + vCount + sCount === 0) continue;
+        // ── Upcoming birthdays (next 7 days) ──
+        const { data: allMembersForBirthday } = await supabase
+          .from("family_members")
+          .select("name, birth_date")
+          .eq("family_id", family.id)
+          .not("birth_date", "is", null);
 
+        const todayLocal = new Date();
+        todayLocal.setHours(0, 0, 0, 0);
+        const upcomingBirthdays = (allMembersForBirthday ?? [])
+          .map((m: { name: string; birth_date: string }) => {
+            const bd = new Date(m.birth_date + "T12:00:00");
+            const thisYear = new Date(todayLocal.getFullYear(), bd.getMonth(), bd.getDate());
+            const next = thisYear < todayLocal
+              ? new Date(todayLocal.getFullYear() + 1, bd.getMonth(), bd.getDate())
+              : thisYear;
+            const daysUntil = Math.round((next.getTime() - todayLocal.getTime()) / 86_400_000);
+            const turningAge = bd.getFullYear() > 1900 ? next.getFullYear() - bd.getFullYear() : null;
+            return { name: m.name, daysUntil, turningAge };
+          })
+          .filter((b: { daysUntil: number }) => b.daysUntil <= 7)
+          .sort((a: { daysUntil: number }, b: { daysUntil: number }) => a.daysUntil - b.daysUntil);
+
+        // ── On This Day (same MM-DD in prior years, 1 item) ──
+        const { data: allJournal } = await supabase
+          .from("journal_entries")
+          .select("id, title, created_at")
+          .eq("family_id", family.id)
+          .order("created_at", { ascending: false })
+          .limit(300);
+
+        const todayMonth = todayLocal.getMonth();
+        const todayDay = todayLocal.getDate();
+        const todayYear = todayLocal.getFullYear();
+        const onThisDayItem = ((allJournal ?? []) as { id: string; title: string; created_at: string }[])
+          .filter((j) => {
+            const d = new Date(j.created_at);
+            return d.getMonth() === todayMonth && d.getDate() === todayDay && d.getFullYear() < todayYear;
+          })
+          .map((j) => ({
+            title: j.title,
+            yearsAgo: todayYear - new Date(j.created_at).getFullYear(),
+            href: `/dashboard/journal/${j.id}`,
+          }))
+          .sort((a, b) => a.yearsAgo - b.yearsAgo)[0] ?? null;
+
+        // ── Build content sections ──
+        type MemberJoin = { name: string } | { name: string }[] | null;
+        const resolveMember = (m: MemberJoin): string => {
+          if (!m) return "Family";
+          const mem = Array.isArray(m) ? m[0] : m;
+          return mem?.name?.split(" ")[0] ?? "Family";
+        };
+
+        const sections: DigestSection[] = [];
+
+        const journalItems = (journalRes.data ?? []).map((j: {
+          id: string; title: string; created_at: string;
+          family_members: MemberJoin;
+          journal_photos: { url: string; sort_order: number | null }[] | { url: string; sort_order: number | null } | null;
+        }) => ({
+          title: j.title,
+          authorName: resolveMember(j.family_members),
+          thumbnailUrl: null,
+          href: `/dashboard/journal/${j.id}`,
+          dateLabel: DAYS[new Date(j.created_at).getDay()],
+        }));
+        if (journalItems.length > 0) sections.push({ label: "Journal", icon: "📓", items: journalItems });
+
+        const voiceItems = (voiceRes.data ?? []).map((v: {
+          id: string; title: string; created_at: string; family_members: MemberJoin;
+        }) => ({
+          title: v.title,
+          authorName: resolveMember(v.family_members),
+          thumbnailUrl: null,
+          href: `/dashboard/voice-memos`,
+          dateLabel: DAYS[new Date(v.created_at).getDay()],
+        }));
+        if (voiceItems.length > 0) sections.push({ label: "Voice Memos", icon: "🎙️", items: voiceItems });
+
+        const storyItems = (storyRes.data ?? []).map((s: {
+          id: string; title: string; created_at: string; cover_url: string | null; family_members: MemberJoin;
+        }) => ({
+          title: s.title,
+          authorName: resolveMember(s.family_members),
+          thumbnailUrl: null,
+          href: `/dashboard/stories/${s.id}`,
+          dateLabel: DAYS[new Date(s.created_at).getDay()],
+        }));
+        if (storyItems.length > 0) sections.push({ label: "Stories", icon: "📖", items: storyItems });
+
+        const recipeItems = (recipeRes.data ?? []).map((r: {
+          id: string; title: string; created_at: string; family_members: MemberJoin;
+        }) => ({
+          title: r.title,
+          authorName: resolveMember(r.family_members),
+          thumbnailUrl: null,
+          href: `/dashboard/recipes`,
+          dateLabel: DAYS[new Date(r.created_at).getDay()],
+        }));
+        if (recipeItems.length > 0) sections.push({ label: "Recipes", icon: "🍳", items: recipeItems });
+
+        // Skip families with nothing to report
+        if (sections.length === 0 && upcomingBirthdays.length === 0 && !onThisDayItem) continue;
+
+        // ── Format date range label ──
+        const weekStart = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000);
+        const weekStartLabel = weekStart.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+        const weekEndLabel = todayLocal.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+
+        // ── Send one personalised email per subscribed member ──
         const { data: members } = await supabase
           .from("family_members")
-          .select("contact_email, name, nickname")
+          .select("id, name, nickname, contact_email")
           .eq("family_id", family.id)
           .eq("email_notifications", true)
           .not("contact_email", "is", null);
 
         for (const m of members ?? []) {
           if (!m.contact_email) continue;
+
+          // Dedup: skip if we already sent this week's digest to this member
+          const { data: alreadySent } = await supabase
+            .from("email_campaigns")
+            .select("id")
+            .eq("family_member_id", m.id)
+            .eq("campaign_type", isoWeek)
+            .maybeSingle();
+          if (alreadySent) continue;
+
           try {
             await resend.emails.send({
               from: fromEmail,
               to: m.contact_email,
               subject: `This week in ${esc(family.name)} Nest`,
-              html: digestEmailHtml(
-                m.nickname?.trim() || m.name,
-                family.name,
-                { journals: jCount, voices: vCount, stories: sCount }
-              ),
+              html: digestEmailHtml({
+                familyName: family.name,
+                recipientName: m.nickname?.trim() || m.name,
+                weekStart: weekStartLabel,
+                weekEnd: weekEndLabel,
+                sections,
+                upcomingBirthdays,
+                onThisDayItem,
+              }),
+            });
+            await supabase.from("email_campaigns").insert({
+              family_member_id: m.id,
+              campaign_type: isoWeek,
             });
             results.weeklyDigests++;
           } catch (err) {

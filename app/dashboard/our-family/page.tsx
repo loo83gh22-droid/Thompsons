@@ -69,6 +69,7 @@ export default async function OurFamilyPage() {
       .from("family_members")
       .select("id, name, nickname, relationship, contact_email, user_id, birth_date, birth_place, avatar_url, role, kid_access_token, created_at, is_deceased, death_date, is_remembered, passed_date")
       .eq("family_id", activeFamilyId)
+      .order("is_deceased", { ascending: true })
       .order("name"),
     supabase
       .from("family_relationships")

@@ -96,31 +96,70 @@ describe("capsule email template", () => {
 });
 
 describe("digest email template", () => {
-  it("includes family name and activity summary", () => {
-    const html = digestEmailHtml("Alice", "Smith", {
-      journals: 2,
-      photos: 5,
-      voices: 1,
-      stories: 0,
+  it("includes family name and section labels", () => {
+    const html = digestEmailHtml({
+      familyName: "Smith",
+      recipientName: "Alice",
+      weekStart: "March 17",
+      weekEnd: "March 23",
+      sections: [
+        { label: "Journal", icon: "📓", items: [{ title: "Camping trip", authorName: "Dad", thumbnailUrl: null, href: "/dashboard/journal/1", dateLabel: "Monday" }] },
+        { label: "Voice Memos", icon: "🎙️", items: [{ title: "Grandma's story", authorName: "Grandma", thumbnailUrl: null, href: "/dashboard/voice-memos", dateLabel: "Tuesday" }] },
+      ],
+      upcomingBirthdays: [],
+      onThisDayItem: null,
+      isPaidPlan: true,
     });
     expect(html).toContain("Smith");
-    expect(html).toContain("2 journal entries");
-    expect(html).toContain("5 photos");
-    expect(html).toContain("1 voice memo");
-    expect(html).not.toContain("stories");
+    expect(html).toContain("Alice");
+    expect(html).toContain("Camping trip");
+    expect(html).toContain("Grandma&#39;s story");
+    expect(html).toContain("Journal");
+    expect(html).toContain("Voice Memos");
   });
 
-  it("uses singular forms correctly", () => {
-    const html = digestEmailHtml("Alice", "Family", {
-      journals: 1,
-      photos: 1,
-      voices: 1,
-      stories: 1,
+  it("shows upgrade teaser for free plan", () => {
+    const html = digestEmailHtml({
+      familyName: "Family",
+      recipientName: "Alice",
+      weekStart: "March 17",
+      weekEnd: "March 23",
+      sections: [],
+      upcomingBirthdays: [],
+      onThisDayItem: null,
+      isPaidPlan: false,
     });
-    expect(html).toContain("1 journal entry");
-    expect(html).toContain("1 photo");
-    expect(html).toContain("1 voice memo");
-    expect(html).toContain("1 story");
+    expect(html).toContain("Upgrade to Full Nest");
+  });
+
+  it("shows upcoming birthdays", () => {
+    const html = digestEmailHtml({
+      familyName: "Family",
+      recipientName: "Alice",
+      weekStart: "March 17",
+      weekEnd: "March 23",
+      sections: [],
+      upcomingBirthdays: [{ name: "Emma", daysUntil: 2, turningAge: 8 }],
+      onThisDayItem: null,
+      isPaidPlan: true,
+    });
+    expect(html).toContain("Emma");
+    expect(html).toContain("turning 8");
+  });
+
+  it("shows on this day item", () => {
+    const html = digestEmailHtml({
+      familyName: "Family",
+      recipientName: "Alice",
+      weekStart: "March 17",
+      weekEnd: "March 23",
+      sections: [],
+      upcomingBirthdays: [],
+      onThisDayItem: { title: "Summer vacation 2019", yearsAgo: 7, href: "/dashboard/journal/42" },
+      isPaidPlan: true,
+    });
+    expect(html).toContain("Summer vacation 2019");
+    expect(html).toContain("7 years ago");
   });
 });
 
