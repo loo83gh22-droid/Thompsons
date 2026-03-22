@@ -22,16 +22,12 @@ export interface DigestData {
   sections: DigestSection[];
   upcomingBirthdays: { name: string; daysUntil: number; turningAge: number | null }[];
   onThisDayItem: { title: string; yearsAgo: number; href: string } | null;
-  isPaidPlan: boolean;
 }
 
-function itemRow(item: DigestItem, showThumbnail: boolean): string {
-  const thumb = showThumbnail && item.thumbnailUrl
-    ? `<img src="${item.thumbnailUrl}" alt="" width="56" height="56"
-         style="width:56px;height:56px;object-fit:cover;border-radius:6px;display:block;flex-shrink:0;">`
-    : `<div style="width:56px;height:56px;border-radius:6px;background:#334155;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
-         <span style="font-size:22px;">📷</span>
-       </div>`;
+function itemRow(item: DigestItem): string {
+  const thumb = `<div style="width:56px;height:56px;border-radius:6px;background:#334155;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+       <span style="font-size:22px;">📷</span>
+     </div>`;
 
   return `
 <tr><td style="padding:10px 0;border-bottom:1px solid #1e293b;">
@@ -48,9 +44,9 @@ function itemRow(item: DigestItem, showThumbnail: boolean): string {
 </td></tr>`;
 }
 
-function sectionBlock(section: DigestSection, showThumbnails: boolean): string {
+function sectionBlock(section: DigestSection): string {
   if (section.items.length === 0) return "";
-  const rows = section.items.map((i) => itemRow(i, showThumbnails)).join("");
+  const rows = section.items.map((i) => itemRow(i)).join("");
   return `
 <tr><td style="padding-top:20px;">
   <p style="margin:0 0 10px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#94a3b8;">
@@ -61,24 +57,12 @@ function sectionBlock(section: DigestSection, showThumbnails: boolean): string {
 }
 
 export function digestEmailHtml(data: DigestData): string {
-  const { familyName, recipientName, weekStart, weekEnd, sections, upcomingBirthdays, onThisDayItem, isPaidPlan } = data;
+  const { familyName, recipientName, weekStart, weekEnd, sections, upcomingBirthdays, onThisDayItem } = data;
 
   const hasSections = sections.some((s) => s.items.length > 0);
-  const showThumbnails = isPaidPlan;
 
   // ── Content sections ─────────────────────────────────────────────────────
-  const sectionsHtml = sections.map((s) => sectionBlock(s, showThumbnails)).join("");
-
-  // ── Upgrade teaser (free plan) ───────────────────────────────────────────
-  const upgradeBanner = !isPaidPlan ? `
-<tr><td style="padding-top:20px;">
-  <div style="background:#1a2942;border:1px solid #2d4a7a;border-radius:8px;padding:14px 16px;">
-    <p style="margin:0;font-size:13px;color:#7da7d9;line-height:1.5;">
-      <strong style="color:#a8c7f0;">Upgrade to Full Nest</strong> to see full photo previews in your digest
-      and unlock unlimited family members. <a href="${appUrl}/pricing" style="color:#D4A843;text-decoration:underline;">View plans</a>
-    </p>
-  </div>
-</td></tr>` : "";
+  const sectionsHtml = sections.map((s) => sectionBlock(s)).join("");
 
   // ── Upcoming birthdays ───────────────────────────────────────────────────
   let birthdayHtml = "";
@@ -140,7 +124,6 @@ ${card(`
     ${sectionsHtml}
     ${birthdayHtml}
     ${onThisDayHtml}
-    ${upgradeBanner}
     <tr><td style="padding-top:24px;">${ctaButton("Open Family Nest", `${appUrl}/dashboard`)}</td></tr>
   </table>
 `)}`;
