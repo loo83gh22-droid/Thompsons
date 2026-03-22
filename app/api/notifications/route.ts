@@ -551,6 +551,21 @@ export async function GET(request: Request) {
   }
 
   // ── 5. Weekly digest (Sundays only, or force_digest=1 for testing) ──
+
+  /** Convert a stored /api/storage/<bucket>/<path> URL into a 7-day signed Supabase URL.
+   *  Returns null if the input is falsy or doesn't match the expected pattern. */
+  async function toSignedUrl(storedUrl: string | null): Promise<string | null> {
+    if (!storedUrl) return null;
+    // Stored format: /api/storage/<bucket>/<...objectPath>
+    const match = storedUrl.match(/^\/api\/storage\/([^/]+)\/(.+)$/);
+    if (!match) return null;
+    const [, bucket, objectPath] = match;
+    const { data } = await supabase.storage
+      .from(bucket)
+      .createSignedUrl(objectPath, 7 * 24 * 60 * 60); // 7 days
+    return data?.signedUrl ?? null;
+  }
+
   const forceDigest = new URL(request.url).searchParams.get("force_digest") === "1";
   if (dayOfWeek === 0 || forceDigest) {
     try {
@@ -663,7 +678,7 @@ export async function GET(request: Request) {
 
         const sections: DigestSection[] = [];
 
-        const journalItems = (journalRes.data ?? []).map((j: {
+        const journalItems = await Promise.all((journalRes.data ?? []).map(async (j: {
           id: string; title: string; created_at: string;
           family_members: MemberJoin;
           journal_photos: { url: string; sort_order: number | null }[] | { url: string; sort_order: number | null } | null;
@@ -675,13 +690,11 @@ export async function GET(request: Request) {
           return {
             title: j.title,
             authorName: resolveMember(j.family_members),
-            thumbnailUrl: sorted[0]?.url
-              ? (sorted[0].url.startsWith('/') ? `${appUrl}${sorted[0].url}` : sorted[0].url)
-              : null,
+            thumbnailUrl: await toSignedUrl(sorted[0]?.url ?? null),
             href: `/dashboard/journal/${j.id}`,
             dateLabel: DAYS[new Date(j.created_at).getDay()],
           };
-        });
+        }));
         if (journalItems.length > 0) sections.push({ label: "Journal", icon: "📓", items: journalItems });
 
         const voiceItems = (voiceRes.data ?? []).map((v: {
@@ -695,17 +708,15 @@ export async function GET(request: Request) {
         }));
         if (voiceItems.length > 0) sections.push({ label: "Voice Memos", icon: "🎙️", items: voiceItems });
 
-        const storyItems = (storyRes.data ?? []).map((s: {
+        const storyItems = await Promise.all((storyRes.data ?? []).map(async (s: {
           id: string; title: string; created_at: string; cover_url: string | null; family_members: MemberJoin;
         }) => ({
           title: s.title,
           authorName: resolveMember(s.family_members),
-          thumbnailUrl: s.cover_url
-            ? (s.cover_url.startsWith('/') ? `${appUrl}${s.cover_url}` : s.cover_url)
-            : null,
+          thumbnailUrl: await toSignedUrl(s.cover_url ?? null),
           href: `/dashboard/stories/${s.id}`,
           dateLabel: DAYS[new Date(s.created_at).getDay()],
-        }));
+        })));
         if (storyItems.length > 0) sections.push({ label: "Stories", icon: "📖", items: storyItems });
 
         const recipeItems = (recipeRes.data ?? []).map((r: {
