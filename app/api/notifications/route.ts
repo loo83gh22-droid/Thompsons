@@ -675,7 +675,9 @@ export async function GET(request: Request) {
           return {
             title: j.title,
             authorName: resolveMember(j.family_members),
-            thumbnailUrl: sorted[0]?.url ?? null,
+            thumbnailUrl: sorted[0]?.url
+              ? (sorted[0].url.startsWith('/') ? `${appUrl}${sorted[0].url}` : sorted[0].url)
+              : null,
             href: `/dashboard/journal/${j.id}`,
             dateLabel: DAYS[new Date(j.created_at).getDay()],
           };
@@ -698,7 +700,9 @@ export async function GET(request: Request) {
         }) => ({
           title: s.title,
           authorName: resolveMember(s.family_members),
-          thumbnailUrl: s.cover_url ?? null,
+          thumbnailUrl: s.cover_url
+            ? (s.cover_url.startsWith('/') ? `${appUrl}${s.cover_url}` : s.cover_url)
+            : null,
           href: `/dashboard/stories/${s.id}`,
           dateLabel: DAYS[new Date(s.created_at).getDay()],
         }));
