@@ -231,14 +231,6 @@ export function HeroSection() {
               </div>
             </div>
 
-            {/* Floating accent badge */}
-            <div
-              className="absolute -bottom-3 -right-3 rounded-xl px-3 py-2 shadow-lg sm:-bottom-4 sm:-right-4"
-              style={{ backgroundColor: "var(--primary)", color: "var(--primary-foreground)" }}
-            >
-              <p className="text-[10px] font-medium opacity-75">Updated just now</p>
-              <p className="text-xs font-semibold">3 family members online</p>
-            </div>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { fbqTrack } from "@/app/components/MetaPixel";
 
 export function UpgradeButton({
   plan,
@@ -16,6 +17,7 @@ export function UpgradeButton({
 
   async function handleUpgrade() {
     setLoading(true);
+    fbqTrack("InitiateCheckout", { content_name: plan });
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",

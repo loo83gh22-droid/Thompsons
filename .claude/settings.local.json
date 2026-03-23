@@ -59,7 +59,20 @@
       "WebFetch(domain:doc-0g-9o-sheets.googleusercontent.com)",
       "WebFetch(domain:doc-0c-9o-sheets.googleusercontent.com)",
       "Bash(sed 's/^< //')",
-      "Bash(sed 's/^> //')"
+      "Bash(sed 's/^> //')",
+      "mcp__familynest-social__update_campaign_status",
+      "Bash(npm list:*)",
+      "Bash(node create_roadmap.js)",
+      "Bash(npm root:*)",
+      "Bash(NODE_PATH=\"C:/Users/keepi/AppData/Roaming/npm/node_modules\" node create_roadmap.js)",
+      "Bash(python \"C:/Users/keepi/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/8e2034b1-b27e-4276-85b4-37dad44163d7/53768c7e-bb6e-4acc-81f4-d9b74657f2fb/skills/pptx/scripts/office/soffice.py\" --headless --convert-to pdf Thompson_Financial_Roadmap.pptx)",
+      "Read(//c/Program Files/LibreOffice/program/**)",
+      "Read(//c/Program Files \\(x86\\)/LibreOffice/program/**)",
+      "Bash(python -m markitdown \"C:/Users/keepi/Documents/Thompson_Financial_Roadmap.pptx\")",
+      "Bash(pip install:*)",
+      "Bash(tasklist)",
+      "Bash(npx tsc:*)",
+      "Bash(curl.exe -s -H \"Authorization: Bearer 76c14e1528f3e4c8e2f8193b541d46ca6c622c25009bce6a819fe4225957fdba\" \"http://localhost:3000/api/notifications?force_digest=1\")"
     ]
   }
 }
