@@ -4,7 +4,7 @@ const trustBadges = [
   { icon: Lock, label: "Bank-level encryption" },
   { icon: Shield, label: "Privacy-first design" },
   { icon: Database, label: "Your data, always yours" },
-  { icon: Globe, label: "US-based secure servers" },
+  { icon: Globe, label: "Encrypted at rest and in transit" },
 ];
 
 const differentiators = [
@@ -34,7 +34,7 @@ export function EmotionalSection() {
               textWrap: "balance",
             }}
           >
-            Not a startup idea. Something I built for my own family first.
+            Built for my own family first. Opened for yours.
           </h2>
 
           <div
@@ -42,13 +42,26 @@ export function EmotionalSection() {
             style={{ color: "var(--primary-foreground)", opacity: 0.8 }}
           >
             <p>
-              I started building Family Nest because I wanted a place for my own
-              family. Somewhere without ads, without recommendations, without
-              strangers in the feed. Just a private corner of the internet that
-              belonged to us.
+              I never kept a journal. Too clunky, no pictures, and the second
+              you miss a week it starts to feel like homework.
             </p>
             <p>
-              Turns out a lot of families wanted the same thing.
+              But I wanted to remember things. My wife sings a song to our boys
+              every night before bed. My grandfather recorded himself reading
+              The Night Before Christmas every single year. My step dad left
+              voicemails I still go back and listen to. My dad and I have been
+              chasing MLB stadiums together for years. I always wanted a map of
+              everywhere our family has ever lived, traveled, or called home.
+            </p>
+            <p>
+              None of it had a place to live. Group chats bury everything.
+              Facebook isn&apos;t private. Apple Maps connects your photos to a
+              map but your whole family can&apos;t build it together. A poster
+              on the wall is great until you want to share it.
+            </p>
+            <p>
+              So I started building something. First as a family gift. Then I
+              realized other families probably wanted the same thing.
             </p>
           </div>
 
@@ -61,9 +74,9 @@ export function EmotionalSection() {
               className="text-center text-sm leading-relaxed"
               style={{ color: "var(--primary-foreground)", opacity: 0.9 }}
             >
-              Unlike a group chat, nothing gets buried. Unlike a photo album,
-              everyone can contribute. Unlike social media, it&apos;s actually
-              private.
+              One private place for the journals, photos, voice memos, maps,
+              recipes, and stories that would otherwise disappear. No ads. No
+              algorithm. Just your family.
             </p>
           </div>
 

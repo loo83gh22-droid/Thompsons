@@ -474,25 +474,6 @@ function LoginForm() {
                   placeholder="e.g. Sarah"
                 />
               </div>
-              <div>
-                <label htmlFor="relationship" className="block text-sm font-medium text-[var(--muted)]">
-                  Your role in the family
-                </label>
-                <p className="mt-0.5 text-xs text-[var(--muted)]">
-                  Pick your role in the family. Choose &quot;Me&quot; if you&apos;re adding yourself, or your family role like &quot;Father&quot; or &quot;Mother&quot;.
-                </p>
-                <select
-                  id="relationship"
-                  value={relationship}
-                  onChange={(e) => setRelationship(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
-                >
-                  <option value="">Select your role…</option>
-                  {RELATIONSHIP_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
-              </div>
             </>
           )}
           <div>
