@@ -190,6 +190,51 @@ export async function deleteBabyBookYear(yearId: string, memberId: string): Prom
   }
 }
 
+export type BabyBookProfile = {
+  id?: string;
+  birth_time?: string | null;
+  birth_weight?: string | null;
+  birth_length?: string | null;
+  birth_place?: string | null;
+  birth_story?: string | null;
+};
+
+export async function saveBabyBookProfile(
+  memberId: string,
+  data: BabyBookProfile
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Not authenticated" };
+
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { success: false, error: "No active family" };
+
+    const payload = {
+      family_id: activeFamilyId,
+      family_member_id: memberId,
+      birth_time: data.birth_time?.trim() || null,
+      birth_weight: data.birth_weight?.trim() || null,
+      birth_length: data.birth_length?.trim() || null,
+      birth_place: data.birth_place?.trim() || null,
+      birth_story: data.birth_story?.trim() || null,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await supabase
+      .from("baby_book_profiles")
+      .upsert(payload, { onConflict: "family_member_id" });
+
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath(`/dashboard/baby-book/${memberId}`);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Something went wrong." };
+  }
+}
+
 export async function deleteBabyBookPhoto(
   photoId: string,
   yearId: string,
