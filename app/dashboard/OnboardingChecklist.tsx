@@ -132,8 +132,22 @@ export function OnboardingChecklist({
     }
   }, [allDone]);
 
-  // Don't show if archived, session-hidden, or all done
-  if (archived || sessionHidden || allDone) return null;
+  // Don't show if archived or session-hidden
+  if (archived || sessionHidden) return null;
+
+  // All done — show confetti briefly, then disappear
+  if (allDone) {
+    if (!showConfetti) return null;
+    return (
+      <Confetti
+        width={windowSize.width}
+        height={windowSize.height}
+        numberOfPieces={200}
+        recycle={false}
+        gravity={0.3}
+      />
+    );
+  }
 
   const progressPercent = Math.round((completedCount / steps.length) * 100);
 
@@ -157,27 +171,7 @@ export function OnboardingChecklist({
 
   return (
     <>
-      {showConfetti && (
-        <Confetti
-          width={windowSize.width}
-          height={windowSize.height}
-          numberOfPieces={200}
-          recycle={false}
-          gravity={0.3}
-        />
-      )}
       <section className="rounded-xl border border-[var(--accent)]/30 bg-gradient-to-br from-[var(--accent)]/5 to-[var(--surface)] p-5 sm:p-6">
-        {allDone && (
-          <div className="mb-4 rounded-lg border-2 border-emerald-500 bg-emerald-50 p-4 text-center">
-            <div className="mb-2 text-4xl">🎉</div>
-            <h3 className="font-display text-lg font-bold text-emerald-700">
-              Congratulations!
-            </h3>
-            <p className="mt-1 text-sm text-emerald-600">
-              You&apos;ve completed all onboarding steps. Your Family Nest is ready to grow!
-            </p>
-          </div>
-        )}
         <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="font-display text-lg font-bold text-[var(--foreground)]">
