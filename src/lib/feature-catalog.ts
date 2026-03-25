@@ -8,7 +8,8 @@
 
 export type FeatureCategory =
   | "memories"
-  | "features"
+  | "family-life"
+  | "games"
   | "goals"
   | "planning"
   | "travel"
@@ -28,7 +29,8 @@ export interface CatalogFeature {
 
 export const CATEGORY_LABELS: Record<FeatureCategory, string> = {
   memories: "Memories & Stories",
-  features: "Features",
+  "family-life": "Family Life",
+  games: "Games & Challenges",
   goals: "Goals & Lists",
   planning: "Planning & Events",
   travel: "Travel & Adventure",
@@ -37,7 +39,8 @@ export const CATEGORY_LABELS: Record<FeatureCategory, string> = {
 
 export const CATEGORY_ORDER: FeatureCategory[] = [
   "memories",
-  "features",
+  "family-life",
+  "games",
   "goals",
   "planning",
   "travel",
@@ -135,13 +138,26 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     navGroup: "family",
   },
 
-  // Features (opt-in)
+  // Memories & Stories (continued)
+  {
+    slug: "ancestry-stories",
+    name: "Ancestry Stories",
+    description:
+      "Capture where your family came from. Immigration journeys, family origins, and the stories behind your name.",
+    category: "memories",
+    icon: "\u{1F333}",
+    href: "/dashboard/ancestry-stories",
+    available: false,
+    navGroup: "memories",
+  },
+
+  // Family Life (opt-in)
   {
     slug: "favourites",
     name: "Favourites",
     description:
       "Track your family's favourite books, movies, music, games, shows, and toys. Everyone adds their own picks.",
-    category: "features",
+    category: "family-life",
     icon: "\u{2764}\u{FE0F}",
     href: "/dashboard/favourites",
     available: true,
@@ -151,10 +167,62 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     name: "Traditions",
     description:
       "Document the traditions that make your family yours. Pancake Sundays, holiday rituals, and everything in between.",
-    category: "features",
+    category: "family-life",
     icon: "\u{1F56F}\u{FE0F}",
     href: "/dashboard/traditions",
     available: true,
+  },
+  {
+    slug: "family-motto",
+    name: "Family Motto & Values",
+    description:
+      "Write your family's motto and the values you want to pass down. Simple, visible, and yours.",
+    category: "family-life",
+    icon: "\u{1F4DC}",
+    href: "/dashboard/family-motto",
+    available: false,
+  },
+  {
+    slug: "gratitude-board",
+    name: "Gratitude Board",
+    description:
+      "A shared space to post what each family member is grateful for. A small habit that adds up.",
+    category: "family-life",
+    icon: "\u{1F31F}",
+    href: "/dashboard/gratitude-board",
+    available: false,
+  },
+  {
+    slug: "book-club",
+    name: "Family Book Club",
+    description:
+      "Track what everyone is reading, share ratings, and pick the next family read together.",
+    category: "family-life",
+    icon: "\u{1F4DA}",
+    href: "/dashboard/book-club",
+    available: false,
+  },
+
+  // Games & Challenges
+  {
+    slug: "family-trivia",
+    name: "Family Trivia",
+    description:
+      "Quiz your family with trivia questions. Covers history, pop culture, science, and more — all family-friendly.",
+    category: "games",
+    icon: "\u{1F9E0}",
+    href: "/dashboard/family-trivia",
+    available: false,
+  },
+  {
+    slug: "family-challenges",
+    name: "Family Challenges",
+    description:
+      "Set fun challenges together — 30-day screen-free evenings, reading goals, outdoor adventures. Track who completes them.",
+    category: "games",
+    icon: "\u{1F3C6}",
+    href: "/dashboard/family-challenges",
+    available: false,
   },
 
   // Goals & Lists
