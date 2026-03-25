@@ -9,6 +9,7 @@ import {
 } from "@/src/lib/feature-catalog";
 import { toggleFeature } from "./actions";
 import { canManageMembers } from "@/src/lib/roles";
+import { FeaturePreviewModal } from "./FeaturePreviewModal";
 
 export function FeatureCatalogClient({
   enabledSlugs: initialSlugs,
@@ -23,6 +24,7 @@ export function FeatureCatalogClient({
   );
   const [pending, startTransition] = useTransition();
   const [togglingSlug, setTogglingSlug] = useState<string | null>(null);
+  const [previewFeature, setPreviewFeature] = useState<CatalogFeature | null>(null);
 
   function handleToggle(slug: string) {
     setTogglingSlug(slug);
@@ -76,12 +78,24 @@ export function FeatureCatalogClient({
                   isToggling={togglingSlug === feature.slug && pending}
                   canManage={canManage}
                   onToggle={handleToggle}
+                  onPreview={() => setPreviewFeature(feature)}
                 />
               ))}
             </div>
           </section>
         ))}
       </div>
+
+      {previewFeature && (
+        <FeaturePreviewModal
+          feature={previewFeature}
+          isEnabled={enabledSet.has(previewFeature.slug)}
+          isToggling={togglingSlug === previewFeature.slug && pending}
+          canManage={canManage}
+          onToggle={handleToggle}
+          onClose={() => setPreviewFeature(null)}
+        />
+      )}
     </div>
   );
 }
@@ -92,12 +106,14 @@ function FeatureCard({
   isToggling,
   canManage,
   onToggle,
+  onPreview,
 }: {
   feature: CatalogFeature;
   isEnabled: boolean;
   isToggling: boolean;
   canManage: boolean;
   onToggle: (slug: string) => void;
+  onPreview: () => void;
 }) {
   const isAvailable = feature.available;
 
@@ -110,9 +126,9 @@ function FeatureCard({
       } ${!isAvailable ? "opacity-50" : ""}`}
     >
       <div className="flex items-start justify-between gap-3">
-        <span className={`text-3xl ${!isAvailable ? "grayscale" : ""}`}>
-          {feature.icon}
-        </span>
+        <button type="button" onClick={onPreview} className="text-3xl transition-transform hover:scale-110" title={`About ${feature.name}`}>
+          <span className={!isAvailable ? "grayscale" : ""}>{feature.icon}</span>
+        </button>
         {isEnabled && isAvailable && (
           <span className="shrink-0 rounded-full bg-[var(--accent)] px-2.5 py-0.5 text-xs font-medium text-white">
             Active
@@ -122,14 +138,13 @@ function FeatureCard({
 
       <h3 className="mt-3 font-display text-lg font-semibold">
         {isEnabled && isAvailable ? (
-          <Link
-            href={feature.href}
-            className="hover:text-[var(--accent)] transition-colors"
-          >
+          <Link href={feature.href} className="hover:text-[var(--accent)] transition-colors">
             {feature.name}
           </Link>
         ) : (
-          feature.name
+          <button type="button" onClick={onPreview} className="text-left hover:text-[var(--accent)] transition-colors">
+            {feature.name}
+          </button>
         )}
       </h3>
 
@@ -137,7 +152,7 @@ function FeatureCard({
         {feature.description}
       </p>
 
-      <div className="mt-4">
+      <div className="mt-4 flex items-center gap-3">
         {!isAvailable ? (
           <span className="inline-block rounded-full bg-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--muted)]">
             Coming soon
@@ -159,17 +174,15 @@ function FeatureCard({
             {isEnabled ? "Remove" : "Add to Nest"}
           </button>
         ) : isEnabled ? (
-          <Link
-            href={feature.href}
-            className="inline-block rounded-full bg-[var(--accent)] px-4 py-1.5 text-sm font-medium text-white hover:brightness-110 transition-all"
-          >
+          <Link href={feature.href} className="inline-block rounded-full bg-[var(--accent)] px-4 py-1.5 text-sm font-medium text-white hover:brightness-110 transition-all">
             Open
           </Link>
         ) : (
-          <span className="text-xs text-[var(--muted)]">
-            Ask an adult to enable this feature
-          </span>
+          <span className="text-xs text-[var(--muted)]">Ask an adult to enable this</span>
         )}
+        <button type="button" onClick={onPreview} className="text-xs text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
+          Learn more
+        </button>
       </div>
     </div>
   );

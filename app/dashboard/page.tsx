@@ -17,6 +17,7 @@ import { InspirationTip } from "./InspirationTip";
 import { BirthdayBanner, type BirthdayPerson } from "./BirthdayBanner";
 import { WeeklyStreak } from "./WeeklyStreak";
 import { OnThisDay, type OnThisDayItem } from "./OnThisDay";
+import { GratitudeOfTheDay } from "./GratitudeOfTheDay";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -44,6 +45,7 @@ export default async function DashboardPage() {
   let weekStreak = 0;
   let onThisDayItems: OnThisDayItem[] = [];
   let userFirstName: string | null = null;
+  let gratitudeOfTheDay: { content: string; member_name: string } | null = null;
 
   if (activeFamilyId) {
     const [
@@ -351,6 +353,20 @@ export default async function DashboardPage() {
       const daySeed = Math.floor(nowMs / 86_400_000);
       highlight = highlightCandidates[daySeed % highlightCandidates.length];
     }
+
+    // Gratitude of the Day — pick one post per day, rotates daily
+    const { data: gratitudePosts } = await supabase
+      .from("gratitude_posts")
+      .select("content, family_members!member_id(name, nickname)")
+      .eq("family_id", activeFamilyId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (gratitudePosts && gratitudePosts.length > 0) {
+      const daySeed = Math.floor(nowMs / 86_400_000);
+      const pick = gratitudePosts[daySeed % gratitudePosts.length] as { content: string; family_members: { name: string; nickname: string | null } | { name: string; nickname: string | null }[] | null };
+      const m = Array.isArray(pick.family_members) ? pick.family_members[0] : pick.family_members;
+      gratitudeOfTheDay = { content: pick.content, member_name: m?.nickname ?? m?.name ?? "Family" };
+    }
   }
 
   return (
@@ -400,6 +416,9 @@ export default async function DashboardPage() {
           <div className="mt-12 grid grid-cols-1 gap-6 min-[768px]:grid-cols-2">
             <FamilyHighlight item={highlight} />
             <InspirationTip />
+            {gratitudeOfTheDay && (
+              <GratitudeOfTheDay post={gratitudeOfTheDay} />
+            )}
             {onThisDayItems.length > 0 && (
               <div className="min-[768px]:col-span-2">
                 <OnThisDay items={onThisDayItems} />

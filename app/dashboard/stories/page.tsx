@@ -38,6 +38,9 @@ export default async function StoriesPage() {
     .order("created_at", { ascending: false })
     .limit(100);
 
+  const ancestryStories = (stories ?? []).filter((s) => s.category === "ancestry");
+  const otherStories = (stories ?? []).filter((s) => s.category !== "ancestry");
+
   return (
     <div>
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
@@ -77,7 +80,26 @@ export default async function StoriesPage() {
           ctaHref="/dashboard/stories/new"
         />
       ) : (
-        <StoriesList stories={stories} />
+        <>
+          {ancestryStories.length > 0 && (
+            <div className="mb-10">
+              <h2 className="mb-4 font-display text-xl font-semibold text-[var(--foreground)]">
+                🌳 Where We Come From
+              </h2>
+              <StoriesList stories={ancestryStories} />
+            </div>
+          )}
+          {otherStories.length > 0 && (
+            <div>
+              {ancestryStories.length > 0 && (
+                <h2 className="mb-4 font-display text-xl font-semibold text-[var(--foreground)]">
+                  All Stories
+                </h2>
+              )}
+              <StoriesList stories={otherStories} />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

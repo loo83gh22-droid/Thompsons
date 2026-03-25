@@ -13,6 +13,7 @@ type Member = { id: string; name: string };
 
 const CATEGORIES = [
   { value: "family_history", label: "Family History" },
+  { value: "ancestry", label: "Ancestry & Origins" },
   { value: "advice_wisdom", label: "Advice & Wisdom" },
   { value: "memorable_moments", label: "Memorable Moments" },
   { value: "traditions", label: "Traditions" },
