@@ -1,0 +1,58 @@
+export const STARTER_CHALLENGES = [
+  {
+    emoji: "📚",
+    title: "30-Day Reading Challenge",
+    description: "Everyone reads for 20 minutes a day. No phones, just a good book.",
+    challenge_type: "daily" as const,
+    duration_days: 30,
+  },
+  {
+    emoji: "🍳",
+    title: "Cook Together This Week",
+    description: "Make one meal together as a family. Everyone helps — even just washing dishes counts.",
+    challenge_type: "single" as const,
+    duration_days: 7,
+  },
+  {
+    emoji: "📵",
+    title: "Screen-Free Sunday",
+    description: "One Sunday, no screens after noon. Board games, walks, and real conversations only.",
+    challenge_type: "single" as const,
+    duration_days: 7,
+  },
+  {
+    emoji: "🌿",
+    title: "Daily Walk for a Week",
+    description: "Get outside every day this week, even just for 10 minutes.",
+    challenge_type: "daily" as const,
+    duration_days: 7,
+  },
+  {
+    emoji: "🎲",
+    title: "Game Night This Month",
+    description: "Schedule and actually do a family game night. No excuses.",
+    challenge_type: "single" as const,
+    duration_days: 30,
+  },
+  {
+    emoji: "✉️",
+    title: "Write a Letter to Someone",
+    description: "Write a handwritten note or letter to someone you love. Old school.",
+    challenge_type: "single" as const,
+    duration_days: 14,
+  },
+  {
+    emoji: "🌅",
+    title: "Wake Up Early Together",
+    description: "One week of early mornings. Watch the sunrise at least once.",
+    challenge_type: "daily" as const,
+    duration_days: 7,
+  },
+  {
+    emoji: "🙏",
+    title: "Daily Gratitude",
+    description: "Each day, everyone shares one thing they are grateful for at dinner.",
+    challenge_type: "daily" as const,
+    duration_days: 14,
+  },
+];

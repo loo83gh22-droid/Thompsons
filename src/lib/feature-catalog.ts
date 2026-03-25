@@ -225,6 +225,28 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     available: false,
   },
 
+  // New Family Life features
+  {
+    slug: "book-club",
+    name: "Family Book Club",
+    description:
+      "Track what everyone is reading, share ratings, and set the family pick. One shelf, every reader.",
+    category: "features",
+    icon: "\u{1F4DA}",
+    href: "/dashboard/book-club",
+    available: true,
+  },
+  {
+    slug: "family-challenges",
+    name: "Family Challenges",
+    description:
+      "Set goals your family tackles together. One-time challenges or daily streaks — track who's in.",
+    category: "features",
+    icon: "\u{1F3AF}",
+    href: "/dashboard/challenges",
+    available: true,
+  },
+
   // Goals & Lists
   {
     slug: "bucket-list",
