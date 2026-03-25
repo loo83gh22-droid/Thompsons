@@ -153,102 +153,42 @@ export function CategoryView({
   // Stats
   const uniqueMembersInView = new Set(displayedItems.map((i) => i.member_id)).size;
 
-  const chipBase =
-    "shrink-0 rounded-full px-3 py-1.5 text-sm cursor-pointer transition-colors border";
-  const chipSelected =
-    "bg-[var(--primary)]/10 border-[var(--primary)] text-[var(--primary)] font-medium";
-  const chipUnselected =
-    "border-[var(--border)] text-[var(--muted)] hover:border-[var(--accent)]";
-
   return (
     <div>
-      {/* Filter chips + sort + add button */}
-      <div className="flex items-center gap-3">
-        {/* Scrollable filter chips */}
-        <div
-          className="flex flex-1 items-center gap-2 overflow-x-auto"
-          style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}
-        >
-          {/* Everyone chip */}
-          <button
-            type="button"
-            onClick={() => setFilterMemberId(null)}
-            className={`${chipBase} ${isAllView ? chipSelected : chipUnselected}`}
+      {/* Filter row: member dropdown + sort + add button */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Member filter dropdown */}
+        {members.length > 0 && (
+          <select
+            value={filterMemberId ?? ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              setFilterMemberId(v === "" ? null : v);
+            }}
+            className="input-base h-9 rounded-full px-3 py-0 text-sm"
           >
-            Everyone
-          </button>
-
-          {/* Per-member chips */}
-          {members.map((member) => {
-            const color = memberColorMap.get(member.id) ?? "#94a3b8";
-            const isSelected = filterMemberId === member.id;
-            return (
-              <button
-                key={member.id}
-                type="button"
-                onClick={() => setFilterMemberId(member.id)}
-                className={`${chipBase} inline-flex items-center gap-1.5 ${
-                  isSelected
-                    ? "font-medium"
-                    : chipUnselected
-                }`}
-                style={
-                  isSelected
-                    ? {
-                        backgroundColor: color + "18",
-                        borderColor: color,
-                        color: color,
-                      }
-                    : undefined
-                }
-              >
-                <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: color }}
-                />
+            <option value="">Everyone</option>
+            {members.map((member) => (
+              <option key={member.id} value={member.id}>
                 {member.name}
-              </button>
-            );
-          })}
+              </option>
+            ))}
+            {sharedCount > 0 && (
+              <option value="__shared__">Family Favourites</option>
+            )}
+          </select>
+        )}
 
-          {/* Family Favourites chip */}
-          {sharedCount > 0 && (
-            <button
-              type="button"
-              onClick={() => setFilterMemberId("__shared__")}
-              className={`${chipBase} ${isSharedView ? chipSelected : chipUnselected}`}
-            >
-              Family Favourites
-            </button>
-          )}
-        </div>
-
-        {/* Sort buttons */}
-        <div className="hidden shrink-0 items-center gap-1 text-xs text-[var(--muted)] sm:flex">
-          <button
-            type="button"
-            onClick={() => setSortBy("recent")}
-            className={`px-1.5 py-0.5 transition-colors ${sortBy === "recent" ? "font-medium text-[var(--foreground)]" : "hover:text-[var(--foreground)]"}`}
-          >
-            Recent
-          </button>
-          <span className="text-[var(--border)]">|</span>
-          <button
-            type="button"
-            onClick={() => setSortBy("alpha")}
-            className={`px-1.5 py-0.5 transition-colors ${sortBy === "alpha" ? "font-medium text-[var(--foreground)]" : "hover:text-[var(--foreground)]"}`}
-          >
-            A-Z
-          </button>
-          <span className="text-[var(--border)]">|</span>
-          <button
-            type="button"
-            onClick={() => setSortBy("member")}
-            className={`px-1.5 py-0.5 transition-colors ${sortBy === "member" ? "font-medium text-[var(--foreground)]" : "hover:text-[var(--foreground)]"}`}
-          >
-            By member
-          </button>
-        </div>
+        {/* Sort dropdown */}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as "recent" | "alpha" | "member")}
+          className="input-base h-9 rounded-full px-3 py-0 text-sm"
+        >
+          <option value="recent">Recent</option>
+          <option value="alpha">A-Z</option>
+          <option value="member">By member</option>
+        </select>
 
         {/* Add button */}
         <AddFavouriteForm
