@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { ThroughTheYears } from "./ThroughTheYears";
+import { BirthDetailsCard } from "./BirthDetailsCard";
 
 export const metadata = { title: "Baby Book | Family Nest" };
 
@@ -38,6 +39,13 @@ export default async function MemberBabyBookPage({
     .eq("family_member_id", memberId)
     .order("year", { ascending: true });
 
+  const { data: birthProfile } = await supabase
+    .from("baby_book_profiles")
+    .select("id, birth_time, birth_weight, birth_length, birth_place, birth_story")
+    .eq("family_member_id", memberId)
+    .eq("family_id", activeFamilyId)
+    .maybeSingle();
+
   const displayName = member.nickname || member.name;
 
   return (
@@ -72,6 +80,12 @@ export default async function MemberBabyBookPage({
           </Link>
         </div>
       </div>
+
+      <BirthDetailsCard
+        memberId={memberId}
+        memberName={displayName}
+        profile={birthProfile ?? null}
+      />
 
       <ThroughTheYears
         years={years ?? []}
