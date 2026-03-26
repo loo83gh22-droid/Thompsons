@@ -13,6 +13,7 @@ export async function createGiftExchange(data: {
   description?: string;
   budgetLimit?: number;
   exchangeDate?: string;
+  memberIds?: string[];
 }) {
   const supabase = await createClient();
   const {
@@ -25,16 +26,27 @@ export async function createGiftExchange(data: {
     "adult",
   ]);
 
-  const { error } = await supabase.from("gift_exchanges").insert({
-    family_id: familyId,
-    name: data.name.trim(),
-    description: data.description?.trim() || null,
-    budget_limit: data.budgetLimit ?? null,
-    exchange_date: data.exchangeDate || null,
-    created_by: memberId,
-  });
+  const { data: created, error } = await supabase
+    .from("gift_exchanges")
+    .insert({
+      family_id: familyId,
+      name: data.name.trim(),
+      description: data.description?.trim() || null,
+      budget_limit: data.budgetLimit ?? null,
+      exchange_date: data.exchangeDate || null,
+      created_by: memberId,
+    })
+    .select("id")
+    .single();
 
   if (error) throw error;
+
+  if (created && data.memberIds?.length) {
+    await supabase.from("gift_exchange_participants").insert(
+      data.memberIds.map((mid) => ({ exchange_id: created.id, member_id: mid }))
+    );
+  }
+
   revalidatePath(REVALIDATE_PATH);
 }
 
@@ -46,6 +58,7 @@ export async function updateGiftExchange(
     description?: string;
     budgetLimit?: number | null;
     exchangeDate?: string | null;
+    memberIds?: string[];
   }
 ) {
   const supabase = await createClient();
@@ -69,6 +82,20 @@ export async function updateGiftExchange(
     .eq("id", exchangeId);
 
   if (error) throw error;
+
+  // Sync participants if provided
+  if (data.memberIds !== undefined) {
+    await supabase
+      .from("gift_exchange_participants")
+      .delete()
+      .eq("exchange_id", exchangeId);
+    if (data.memberIds.length > 0) {
+      await supabase.from("gift_exchange_participants").insert(
+        data.memberIds.map((mid) => ({ exchange_id: exchangeId, member_id: mid }))
+      );
+    }
+  }
+
   revalidatePath(REVALIDATE_PATH);
 }
 

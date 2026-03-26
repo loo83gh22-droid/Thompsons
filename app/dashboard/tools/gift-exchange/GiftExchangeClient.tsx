@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import {
   createGiftExchange,
+  updateGiftExchange,
   deleteGiftExchange,
   addParticipant,
   removeParticipant,
@@ -137,7 +138,10 @@ export function GiftExchangeClient({
       </div>
 
       {showCreateForm && (
-        <CreateExchangeModal onClose={() => setShowCreateForm(false)} />
+        <CreateExchangeModal
+          familyMembers={familyMembers}
+          onClose={() => setShowCreateForm(false)}
+        />
       )}
 
       {exchanges.length === 0 ? (
@@ -212,12 +216,25 @@ export function GiftExchangeClient({
 }
 
 // ── Create Exchange Modal ──────────────────────────────────────────
-function CreateExchangeModal({ onClose }: { onClose: () => void }) {
+function CreateExchangeModal({
+  familyMembers,
+  onClose,
+}: {
+  familyMembers: FamilyMember[];
+  onClose: () => void;
+}) {
   const [isPending, startTransition] = useTransition();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [budgetLimit, setBudgetLimit] = useState("");
   const [exchangeDate, setExchangeDate] = useState("");
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+
+  function toggleMember(id: string) {
+    setSelectedMemberIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
 
   function handleCreate() {
     if (!name.trim()) return;
@@ -227,6 +244,7 @@ function CreateExchangeModal({ onClose }: { onClose: () => void }) {
         description: description || undefined,
         budgetLimit: budgetLimit ? parseFloat(budgetLimit) : undefined,
         exchangeDate: exchangeDate || undefined,
+        memberIds: selectedMemberIds,
       });
       onClose();
     });
@@ -290,6 +308,34 @@ function CreateExchangeModal({ onClose }: { onClose: () => void }) {
               />
             </div>
           </div>
+          {familyMembers.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted)]">
+                Participants
+              </label>
+              <div className="mt-1 space-y-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2">
+                {familyMembers.map((m) => (
+                  <label
+                    key={m.id}
+                    className="flex cursor-pointer items-center gap-2 rounded py-1 hover:text-[var(--foreground)]"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedMemberIds.includes(m.id)}
+                      onChange={() => toggleMember(m.id)}
+                      className="rounded border-[var(--border)]"
+                    />
+                    <span className="text-sm">{memberDisplayName(m)}</span>
+                  </label>
+                ))}
+              </div>
+              {selectedMemberIds.length > 0 && (
+                <p className="mt-1 text-xs text-[var(--muted)]">
+                  {selectedMemberIds.length} participant{selectedMemberIds.length !== 1 ? "s" : ""} selected
+                </p>
+              )}
+            </div>
+          )}
         </div>
         <div className="mt-6 flex justify-end gap-3">
           <button
@@ -333,6 +379,7 @@ function ExchangeDetail({
 }) {
   const [isPending, startTransition] = useTransition();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [drawError, setDrawError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
     "participants" | "my-wishlist" | "assignment"
@@ -451,6 +498,15 @@ function ExchangeDetail({
 
         {canManage && exchange.status !== "completed" && (
           <div className="flex gap-2">
+            {exchange.status === "open" && (
+              <button
+                type="button"
+                onClick={() => setShowEditModal(true)}
+                className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]"
+              >
+                Edit
+              </button>
+            )}
             {exchange.status === "open" && participants.length >= 3 && (
               <button
                 type="button"
@@ -486,6 +542,16 @@ function ExchangeDetail({
         <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {drawError}
         </div>
+      )}
+
+      {/* Edit modal */}
+      {showEditModal && (
+        <EditExchangeModal
+          exchange={exchange}
+          familyMembers={familyMembers}
+          participants={participants}
+          onClose={() => setShowEditModal(false)}
+        />
       )}
 
       {/* Delete confirmation */}
@@ -567,6 +633,154 @@ function ExchangeDetail({
           exchangeStatus={exchange.status}
         />
       )}
+    </div>
+  );
+}
+
+// ── Edit Exchange Modal ────────────────────────────────────────────
+function EditExchangeModal({
+  exchange,
+  familyMembers,
+  participants,
+  onClose,
+}: {
+  exchange: Exchange;
+  familyMembers: FamilyMember[];
+  participants: Participant[];
+  onClose: () => void;
+}) {
+  const [isPending, startTransition] = useTransition();
+  const [name, setName] = useState(exchange.name);
+  const [description, setDescription] = useState(exchange.description ?? "");
+  const [budgetLimit, setBudgetLimit] = useState(
+    exchange.budget_limit != null ? String(exchange.budget_limit) : ""
+  );
+  const [exchangeDate, setExchangeDate] = useState(exchange.exchange_date ?? "");
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>(
+    participants.map((p) => p.member_id)
+  );
+
+  function toggleMember(id: string) {
+    setSelectedMemberIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
+
+  function handleSave() {
+    if (!name.trim()) return;
+    startTransition(async () => {
+      await updateGiftExchange(exchange.id, {
+        name,
+        description: description || undefined,
+        budgetLimit: budgetLimit ? parseFloat(budgetLimit) : null,
+        exchangeDate: exchangeDate || null,
+        memberIds: selectedMemberIds,
+      });
+      onClose();
+    });
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--background)] p-6 shadow-xl">
+        <h2 className="font-display text-lg font-semibold">Edit Exchange</h2>
+        <div className="mt-4 space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-[var(--muted)]">
+              Name *
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[var(--muted)]">
+              Description
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted)]">
+                Budget limit
+              </label>
+              <input
+                type="number"
+                value={budgetLimit}
+                onChange={(e) => setBudgetLimit(e.target.value)}
+                placeholder="50"
+                min={0}
+                step={5}
+                className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted)]">
+                Exchange date
+              </label>
+              <input
+                type="date"
+                value={exchangeDate}
+                onChange={(e) => setExchangeDate(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none"
+              />
+            </div>
+          </div>
+          {familyMembers.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted)]">
+                Participants
+              </label>
+              <div className="mt-1 space-y-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2">
+                {familyMembers.map((m) => (
+                  <label
+                    key={m.id}
+                    className="flex cursor-pointer items-center gap-2 rounded py-1 hover:text-[var(--foreground)]"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedMemberIds.includes(m.id)}
+                      onChange={() => toggleMember(m.id)}
+                      className="rounded border-[var(--border)]"
+                    />
+                    <span className="text-sm">{memberDisplayName(m)}</span>
+                  </label>
+                ))}
+              </div>
+              {selectedMemberIds.length > 0 && (
+                <p className="mt-1 text-xs text-[var(--muted)]">
+                  {selectedMemberIds.length} participant{selectedMemberIds.length !== 1 ? "s" : ""} selected
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--muted)] hover:bg-[var(--surface)]"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isPending || !name.trim()}
+            className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-50"
+          >
+            {isPending ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

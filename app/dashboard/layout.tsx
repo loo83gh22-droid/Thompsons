@@ -209,7 +209,7 @@ export default async function DashboardLayout({
     let enabledMemoryAddOns: { name: string; href: string }[] = [];
     let enabledFamilyAddOns: { name: string; href: string }[] = [];
     let enabledActivitiesAddOns: { name: string; href: string }[] = [];
-    let enabledOrganiseAddOns: { name: string; href: string }[] = [];
+    let enabledExtrasAddOns: { name: string; href: string }[] = [];
 
     if (activeFamilyId) {
       // Run all independent queries in parallel to avoid waterfall
@@ -235,7 +235,7 @@ export default async function DashboardLayout({
         if (f.navGroup === "memories") enabledMemoryAddOns.push(item);
         else if (f.navGroup === "family") enabledFamilyAddOns.push(item);
         else if (f.navGroup === "activities") enabledActivitiesAddOns.push(item);
-        else if (f.navGroup === "organise") enabledOrganiseAddOns.push(item);
+        else if (f.navGroup === "organise") enabledExtrasAddOns.push(item);
       }
 
       if (myMemberRes.data) {
@@ -276,7 +276,7 @@ export default async function DashboardLayout({
             enabledMemoryAddOns={enabledMemoryAddOns}
             enabledFamilyAddOns={enabledFamilyAddOns}
             enabledActivitiesAddOns={enabledActivitiesAddOns}
-            enabledOrganiseAddOns={enabledOrganiseAddOns}
+            enabledExtrasAddOns={enabledExtrasAddOns}
           />
           <PWAInstallBanner />
           <WhatsNewBanner />
