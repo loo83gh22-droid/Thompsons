@@ -20,7 +20,7 @@ type EventRow = {
   family_event_invitees?: { family_member_id: string; family_members: { id: string; name: string } | null }[];
 };
 
-export const metadata = { title: "Family Events | Family Nest" };
+export const metadata = { title: "Annual Events | Family Nest" };
 
 export default async function EventsPage() {
   const supabase = await createClient();
@@ -92,10 +92,10 @@ export default async function EventsPage() {
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-            Family Events
+            Annual Events
           </h1>
           <p className="mt-2 text-[var(--muted)]">
-            Birthdays, anniversaries, and the stuff you&apos;d get in trouble for forgetting.
+            Birthdays, anniversaries, and the dates that come back every year. Not a calendar — a reminder of what matters.
           </p>
           {planType === "free" && (
             <div className="mt-2">

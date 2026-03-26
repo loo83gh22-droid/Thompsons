@@ -22,7 +22,7 @@ const coreFamilyItems: { href: string; label: string }[] = [
   { href: "/dashboard/pets", label: "Pets" },
   { href: "/dashboard/map", label: "Family Map" },
   { href: "/dashboard/messages", label: "Messages" },
-  { href: "/dashboard/events", label: "Events" },
+  { href: "/dashboard/events", label: "Annual Events" },
 ];
 
 // Core memories items — always shown in the Memories dropdown
@@ -40,7 +40,8 @@ export function Nav({
   activeFamilyId = null,
   enabledMemoryAddOns = [],
   enabledFamilyAddOns = [],
-  enabledExtrasAddOns = [],
+  enabledActivitiesAddOns = [],
+  enabledOrganiseAddOns = [],
 }: {
   user: User;
   familyName?: string;
@@ -48,7 +49,8 @@ export function Nav({
   activeFamilyId?: string | null;
   enabledMemoryAddOns?: AddOn[];
   enabledFamilyAddOns?: AddOn[];
-  enabledExtrasAddOns?: AddOn[];
+  enabledActivitiesAddOns?: AddOn[];
+  enabledOrganiseAddOns?: AddOn[];
 }) {
   // Build memories dropdown from core + enabled memory add-ons
   const memoriesItems: { href: string; label: string }[] = [
@@ -62,25 +64,33 @@ export function Nav({
     ...enabledFamilyAddOns.map((a) => ({ href: a.href, label: a.name })),
   ];
 
-  // Build extras dropdown from enabled non-memory add-ons
-  const extrasItems: { href: string; label: string }[] = [
-    ...enabledExtrasAddOns.map((a) => ({ href: a.href, label: a.name })),
+  // Activities: games, goals, travel add-ons — only shown when at least one is enabled
+  const activitiesItems: { href: string; label: string }[] = [
+    ...enabledActivitiesAddOns.map((a) => ({ href: a.href, label: a.name })),
+  ];
+
+  // Organise: planning + essentials add-ons — Feature Catalog always included
+  const organiseItems: { href: string; label: string }[] = [
+    ...enabledOrganiseAddOns.map((a) => ({ href: a.href, label: a.name })),
     { href: "/dashboard/tools", label: "Feature Catalog" },
   ];
   const pathname = usePathname();
   const router = useRouter();
   const [familyOpen, setFamilyOpen] = useState(false);
   const [memoriesOpen, setMemoriesOpen] = useState(false);
-  const [extrasOpen, setExtrasOpen] = useState(false);
+  const [activitiesOpen, setActivitiesOpen] = useState(false);
+  const [organiseOpen, setOrganiseOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [familyMenuOpen, setFamilyMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileFamilyOpen, setMobileFamilyOpen] = useState(false);
   const [mobileMemoriesOpen, setMobileMemoriesOpen] = useState(false);
-  const [mobileExtrasOpen, setMobileExtrasOpen] = useState(false);
+  const [mobileActivitiesOpen, setMobileActivitiesOpen] = useState(false);
+  const [mobileOrganiseOpen, setMobileOrganiseOpen] = useState(false);
   const familyRef = useRef<HTMLDivElement>(null);
   const memoriesRef = useRef<HTMLDivElement>(null);
-  const extrasRef = useRef<HTMLDivElement>(null);
+  const activitiesRef = useRef<HTMLDivElement>(null);
+  const organiseRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const familySwitcherRef = useRef<HTMLDivElement>(null);
 
@@ -97,7 +107,10 @@ export function Nav({
   const isMemoriesActive = memoriesItems.some(
     (item) => pathname === item.href || pathname.startsWith(item.href + "/")
   );
-  const isExtrasActive = extrasItems.some(
+  const isActivitiesActive = activitiesItems.some(
+    (item) => pathname === item.href || pathname.startsWith(item.href + "/")
+  );
+  const isOrganiseActive = organiseItems.some(
     (item) => pathname === item.href || pathname.startsWith(item.href + "/")
   );
 
@@ -106,7 +119,8 @@ export function Nav({
       const target = e.target as Node;
       if (familyRef.current && !familyRef.current.contains(target)) setFamilyOpen(false);
       if (memoriesRef.current && !memoriesRef.current.contains(target)) setMemoriesOpen(false);
-      if (extrasRef.current && !extrasRef.current.contains(target)) setExtrasOpen(false);
+      if (activitiesRef.current && !activitiesRef.current.contains(target)) setActivitiesOpen(false);
+      if (organiseRef.current && !organiseRef.current.contains(target)) setOrganiseOpen(false);
       if (menuRef.current && !menuRef.current.contains(target)) setMenuOpen(false);
       if (familySwitcherRef.current && !familySwitcherRef.current.contains(target)) setFamilyMenuOpen(false);
     }
@@ -124,10 +138,12 @@ export function Nav({
     setMobileMenuOpen(false);
     setFamilyOpen(false);
     setMemoriesOpen(false);
-    setExtrasOpen(false);
+    setActivitiesOpen(false);
+    setOrganiseOpen(false);
     setMobileFamilyOpen(false);
     setMobileMemoriesOpen(false);
-    setMobileExtrasOpen(false);
+    setMobileActivitiesOpen(false);
+    setMobileOrganiseOpen(false);
   }
 
   useEffect(() => {
@@ -295,28 +311,65 @@ export function Nav({
                 </div>
               )}
             </div>
-            <div className="relative" ref={extrasRef}>
+            {activitiesItems.length > 0 && (
+              <div className="relative" ref={activitiesRef}>
+                <button
+                  type="button"
+                  onClick={() => setActivitiesOpen((o) => !o)}
+                  className={dropdownButtonClass(activitiesOpen, isActivitiesActive)}
+                  aria-haspopup="true"
+                  aria-expanded={activitiesOpen}
+                  aria-label={activitiesOpen ? "Close Activities menu" : "Open Activities menu"}
+                >
+                  Activities
+                  <span className={`transition-transform ${activitiesOpen ? "rotate-180" : ""}`}>▼</span>
+                </button>
+                {activitiesOpen && (
+                  <div
+                    className="absolute left-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]"
+                    role="menu"
+                  >
+                    {activitiesItems.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setActivitiesOpen(false)}
+                        role="menuitem"
+                        className={`block px-4 py-3 text-sm transition-colors hover:bg-[var(--surface-hover)] focus:bg-[var(--surface-hover)] ${
+                          pathname === item.href || pathname.startsWith(item.href + "/")
+                            ? "text-[var(--accent)]"
+                            : "text-[var(--foreground)]"
+                        }`}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="relative" ref={organiseRef}>
               <button
                 type="button"
-                onClick={() => setExtrasOpen((o) => !o)}
-                className={dropdownButtonClass(extrasOpen, isExtrasActive)}
+                onClick={() => setOrganiseOpen((o) => !o)}
+                className={dropdownButtonClass(organiseOpen, isOrganiseActive)}
                 aria-haspopup="true"
-                aria-expanded={extrasOpen}
-                aria-label={extrasOpen ? "Close Extras menu" : "Open Extras menu"}
+                aria-expanded={organiseOpen}
+                aria-label={organiseOpen ? "Close Organise menu" : "Open Organise menu"}
               >
-                Extras
-                <span className={`transition-transform ${extrasOpen ? "rotate-180" : ""}`}>▼</span>
+                Organise
+                <span className={`transition-transform ${organiseOpen ? "rotate-180" : ""}`}>▼</span>
               </button>
-              {extrasOpen && (
+              {organiseOpen && (
                 <div
                   className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]"
                   role="menu"
                 >
-                  {extrasItems.map((item) => (
+                  {organiseItems.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
-                      onClick={() => setExtrasOpen(false)}
+                      onClick={() => setOrganiseOpen(false)}
                       role="menuitem"
                       className={`block px-4 py-3 text-sm transition-colors hover:bg-[var(--surface-hover)] focus:bg-[var(--surface-hover)] ${
                         pathname === item.href || pathname.startsWith(item.href + "/")
@@ -512,19 +565,41 @@ export function Nav({
                 </div>
               )}
             </div>
+            {activitiesItems.length > 0 && (
+              <div className="border-t border-[var(--border)] pt-2 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setMobileActivitiesOpen((o) => !o)}
+                  className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors min-h-[44px] ${mobileActivitiesOpen || isActivitiesActive ? "bg-[var(--surface)] text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}
+                  aria-expanded={mobileActivitiesOpen}
+                >
+                  Activities
+                  <span className={`block transition-transform ${mobileActivitiesOpen ? "rotate-180" : ""}`}>▼</span>
+                </button>
+                {mobileActivitiesOpen && (
+                  <div className="pl-2 pt-1 space-y-0.5">
+                    {activitiesItems.map((item) => (
+                      <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={`block rounded-lg px-4 py-2.5 text-sm min-h-[44px] flex items-center ${pathname === item.href || pathname.startsWith(item.href + "/") ? "text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}>
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             <div className="border-t border-[var(--border)] pt-2 mt-2">
               <button
                 type="button"
-                onClick={() => setMobileExtrasOpen((o) => !o)}
-                className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors min-h-[44px] ${mobileExtrasOpen || isExtrasActive ? "bg-[var(--surface)] text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}
-                aria-expanded={mobileExtrasOpen}
+                onClick={() => setMobileOrganiseOpen((o) => !o)}
+                className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors min-h-[44px] ${mobileOrganiseOpen || isOrganiseActive ? "bg-[var(--surface)] text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}
+                aria-expanded={mobileOrganiseOpen}
               >
-                Extras
-                <span className={`block transition-transform ${mobileExtrasOpen ? "rotate-180" : ""}`}>▼</span>
+                Organise
+                <span className={`block transition-transform ${mobileOrganiseOpen ? "rotate-180" : ""}`}>▼</span>
               </button>
-              {mobileExtrasOpen && (
+              {mobileOrganiseOpen && (
                 <div className="pl-2 pt-1 space-y-0.5">
-                  {extrasItems.map((item) => (
+                  {organiseItems.map((item) => (
                     <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={`block rounded-lg px-4 py-2.5 text-sm min-h-[44px] flex items-center ${pathname === item.href || pathname.startsWith(item.href + "/") ? "text-[var(--accent)]" : item.label === "Feature Catalog" ? "text-[var(--muted)] font-medium" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}>
                       {item.label}
                     </Link>

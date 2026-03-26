@@ -163,7 +163,7 @@ function MemberRow({
       clearNewPhoto();
       setMessage({
         type: "success",
-        text: result?.birthdayEventAdded ? "Updated. Birthday added to Family Events!" : "Updated.",
+        text: result?.birthdayEventAdded ? "Updated. Birthday added to Annual Events!" : "Updated.",
       });
       setEditing(false);
     } catch (err) {
@@ -424,7 +424,7 @@ function MemberCard({
       clearNewPhoto();
       setMessage({
         type: "success",
-        text: result?.birthdayEventAdded ? "Updated. Birthday added to Family Events!" : "Updated.",
+        text: result?.birthdayEventAdded ? "Updated. Birthday added to Annual Events!" : "Updated.",
       });
       setEditing(false);
     } catch (err) {

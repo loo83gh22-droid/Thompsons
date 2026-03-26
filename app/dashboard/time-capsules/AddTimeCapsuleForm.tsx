@@ -9,6 +9,20 @@ import { MemberSelect } from "@/app/components/MemberSelect";
 
 type Member = { id: string; name: string; birth_date: string | null };
 
+function calcAge18Date(birthDate: string): string {
+  const [y, m, d] = birthDate.split("-").map(Number);
+  return `${y + 18}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+function calcNextBirthdayDate(birthDate: string): string {
+  const [, bMonth, bDay] = birthDate.split("-").map(Number);
+  const today = new Date();
+  const year = today.getFullYear();
+  let next = new Date(year, bMonth - 1, bDay);
+  if (next <= today) next = new Date(year + 1, bMonth - 1, bDay);
+  return next.toISOString().slice(0, 10);
+}
+
 export function AddTimeCapsuleForm({ onAdded }: { onAdded?: () => void }) {
   const router = useRouter();
   const { activeFamilyId } = useFamily();
@@ -21,6 +35,7 @@ export function AddTimeCapsuleForm({ onAdded }: { onAdded?: () => void }) {
   const [content, setContent] = useState("");
   const [unlockDate, setUnlockDate] = useState("");
   const [useAge18, setUseAge18] = useState(false);
+  const [useNextBirthday, setUseNextBirthday] = useState(false);
   const [unlockOnPassing, setUnlockOnPassing] = useState(false);
 
   useEffect(() => {
@@ -31,6 +46,7 @@ export function AddTimeCapsuleForm({ onAdded }: { onAdded?: () => void }) {
         .from("family_members")
         .select("id, name, birth_date")
         .eq("family_id", activeFamilyId)
+        .neq("is_remembered", true)
         .order("name");
       if (data) setMembers(data as Member[]);
     }
@@ -39,24 +55,30 @@ export function AddTimeCapsuleForm({ onAdded }: { onAdded?: () => void }) {
 
   function handleRecipientChange(ids: string[]) {
     setSelectedRecipientIds(ids);
-    // Auto-set unlock date for the first selected member if useAge18 is on
-    if (ids.length > 0) {
-      const member = members.find((m) => m.id === ids[0]);
-      if (member?.birth_date && useAge18) {
-        const [y, m, d] = member.birth_date.split("-").map(Number);
-        setUnlockDate(`${y + 18}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
-      }
+    const member = ids.length > 0 ? members.find((m) => m.id === ids[0]) : null;
+    if (member?.birth_date) {
+      if (useAge18) setUnlockDate(calcAge18Date(member.birth_date));
+      if (useNextBirthday) setUnlockDate(calcNextBirthdayDate(member.birth_date));
     }
   }
 
   function handleAge18Toggle() {
-    setUseAge18((prev) => !prev);
-    if (!useAge18 && selectedRecipientIds.length > 0) {
+    const next = !useAge18;
+    setUseAge18(next);
+    setUseNextBirthday(false);
+    if (next && selectedRecipientIds.length > 0) {
       const member = members.find((m) => m.id === selectedRecipientIds[0]);
-      if (member?.birth_date) {
-        const [y, m, d] = member.birth_date.split("-").map(Number);
-        setUnlockDate(`${y + 18}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
-      }
+      if (member?.birth_date) setUnlockDate(calcAge18Date(member.birth_date));
+    }
+  }
+
+  function handleNextBirthdayToggle() {
+    const next = !useNextBirthday;
+    setUseNextBirthday(next);
+    setUseAge18(false);
+    if (next && selectedRecipientIds.length > 0) {
+      const member = members.find((m) => m.id === selectedRecipientIds[0]);
+      if (member?.birth_date) setUnlockDate(calcNextBirthdayDate(member.birth_date));
     }
   }
 
@@ -84,6 +106,7 @@ export function AddTimeCapsuleForm({ onAdded }: { onAdded?: () => void }) {
       setContent("");
       setUnlockDate("");
       setUseAge18(false);
+      setUseNextBirthday(false);
       setUnlockOnPassing(false);
       setOpen(false);
       router.refresh();
@@ -149,22 +172,29 @@ export function AddTimeCapsuleForm({ onAdded }: { onAdded?: () => void }) {
             When should it unlock?
           </label>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="age18"
-              checked={useAge18}
-              onChange={handleAge18Toggle}
-              disabled={selectedRecipientIds.length === 0 || !members.find((m) => m.id === selectedRecipientIds[0])?.birth_date}
-              className="rounded border-[var(--border)]"
-            />
-            <label htmlFor="age18" className="text-sm text-[var(--muted)]">
-              When they turn 18
-              {selectedRecipientIds.length > 0 && !members.find((m) => m.id === selectedRecipientIds[0])?.birth_date && (
-                <span className="ml-1 text-[var(--muted)]/70">(add birth date on Members)</span>
-              )}
-            </label>
-          </div>
+          {(() => {
+            const selectedMember = selectedRecipientIds.length > 0 ? members.find((m) => m.id === selectedRecipientIds[0]) : null;
+            const hasBirthDate = !!selectedMember?.birth_date;
+            const noBirthDateHint = selectedRecipientIds.length > 0 && !hasBirthDate
+              ? <span className="ml-1 text-[var(--muted)]/70">(add birth date on Members)</span>
+              : null;
+            return (
+              <>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="nextBirthday" checked={useNextBirthday} onChange={handleNextBirthdayToggle} disabled={!hasBirthDate} className="rounded border-[var(--border)]" />
+                  <label htmlFor="nextBirthday" className="text-sm text-[var(--muted)]">
+                    On their next birthday {noBirthDateHint}
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="age18" checked={useAge18} onChange={handleAge18Toggle} disabled={!hasBirthDate} className="rounded border-[var(--border)]" />
+                  <label htmlFor="age18" className="text-sm text-[var(--muted)]">
+                    When they turn 18 {noBirthDateHint}
+                  </label>
+                </div>
+              </>
+            );
+          })()}
 
           <div className="flex items-center gap-2">
             <input

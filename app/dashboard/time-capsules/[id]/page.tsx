@@ -62,9 +62,20 @@ export default async function TimeCapsulePage({
   const isRecipient = isLegacyRecipient || isJunctionRecipient;
   const isOwnerOrAdult = myMember.role === "owner" || myMember.role === "adult";
 
-  // Only sender and recipients can view the full capsule
-  // Owners/adults can see it exists but NOT the content (privacy)
-  if (!isSender && !isRecipient && !isOwnerOrAdult) {
+  // Check if the primary recipient is a dependent (no user account)
+  // Guardians (owners/adults) may read on behalf of unregistered children
+  let isGuardian = false;
+  if (isOwnerOrAdult && meta.to_family_member_id) {
+    const { data: recipientMember } = await supabase
+      .from("family_members")
+      .select("user_id")
+      .eq("id", meta.to_family_member_id)
+      .single();
+    isGuardian = !recipientMember?.user_id;
+  }
+
+  // Only sender, recipients, or guardians (for dependents) can access
+  if (!isSender && !isRecipient && !isGuardian) {
     redirect("/dashboard/time-capsules");
   }
 
@@ -90,8 +101,8 @@ export default async function TimeCapsulePage({
     redirect("/dashboard/time-capsules");
   }
 
-  // Privacy: only sender + recipients can see content. Others see metadata only.
-  const canSeeContent = isSender || isRecipient;
+  // Privacy: sender, recipients, and guardians (for dependents) can see content
+  const canSeeContent = isSender || isRecipient || isGuardian;
 
   // Only fetch content if unlocked AND user is authorized
   let content: string | null = null;
