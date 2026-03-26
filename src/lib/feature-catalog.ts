@@ -24,8 +24,8 @@ export interface CatalogFeature {
   href: string;
   available: boolean;
   highlights?: string[];
-  /** If true, this feature appears in the Memories nav group instead of Extras */
-  navGroup?: "memories" | "family" | "extras";
+  /** Which nav dropdown this feature appears in when enabled */
+  navGroup?: "memories" | "family" | "activities" | "organise";
 }
 
 export const CATEGORY_LABELS: Record<FeatureCategory, string> = {
@@ -181,6 +181,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{2764}\u{FE0F}",
     href: "/dashboard/favourites",
     available: true,
+    navGroup: "family",
     highlights: [
       "Track books, movies, shows, games, and music",
       "Everyone adds and updates their own current picks",
@@ -196,6 +197,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{1F56F}\u{FE0F}",
     href: "/dashboard/traditions",
     available: true,
+    navGroup: "family",
     highlights: [
       "Document the rituals that make your family yours",
       "Annual, seasonal, and weekly traditions",
@@ -210,6 +212,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{1F4DC}",
     href: "/dashboard/family-motto",
     available: true,
+    navGroup: "family",
     highlights: [
       "Write your family's guiding motto in your own words",
       "Add the values your family lives by",
@@ -225,6 +228,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{1F31F}",
     href: "/dashboard/gratitude-board",
     available: true,
+    navGroup: "family",
     highlights: [
       "Post what you're grateful for — short and sweet",
       "The whole family can read and add to it",
@@ -239,6 +243,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{1F4DA}",
     href: "/dashboard/book-club",
     available: true,
+    navGroup: "family",
     highlights: [
       "Track what everyone is reading right now",
       "Rate and review finished books",
@@ -255,6 +260,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{1F9E0}",
     href: "/dashboard/family-trivia",
     available: false,
+    navGroup: "activities",
     highlights: [
       "Public trivia only — never pulls from your private family data",
       "History, science, pop culture, and geography",
@@ -269,6 +275,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{1F3AF}",
     href: "/dashboard/challenges",
     available: true,
+    navGroup: "activities",
     highlights: [
       "One-time goals or daily streak challenges",
       "See who has checked in across the family",
@@ -285,6 +292,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{1F31F}",
     href: "/dashboard/bucket-list",
     available: true,
+    navGroup: "activities",
     highlights: [
       "Dream big together as a family",
       "Check things off as you complete them",
@@ -301,6 +309,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{1F389}",
     href: "/dashboard/tools/reunion-planner",
     available: true,
+    navGroup: "organise",
     highlights: [
       "Coordinate dates and who can make it",
       "Track who's bringing what",
@@ -315,6 +324,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{1F381}",
     href: "/dashboard/tools/gift-exchange",
     available: true,
+    navGroup: "organise",
     highlights: [
       "Run a Secret Santa draw right in the app",
       "Everyone adds to their own wishlist",
@@ -329,6 +339,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{2708}\u{FE0F}",
     href: "/dashboard/tools/trip-planner",
     available: true,
+    navGroup: "organise",
     highlights: [
       "Build itineraries together before you go",
       "Collaborative packing lists",
@@ -345,6 +356,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{26BE}",
     href: "/dashboard/tools/mlb-stadium-tour",
     available: true,
+    navGroup: "activities",
     highlights: [
       "Check off every ballpark you've visited",
       "Pin them on your family map",
@@ -359,6 +371,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{1F3A3}",
     href: "/dashboard/tools/fishing-map",
     available: true,
+    navGroup: "activities",
     highlights: [
       "Pin your best fishing spots on the map",
       "Log what you caught and when",
@@ -373,6 +386,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{1F3D5}\u{FE0F}",
     href: "/dashboard/tools/national-parks",
     available: true,
+    navGroup: "activities",
     highlights: [
       "Check off every national park you've visited",
       "Plan which ones are next on the list",
@@ -389,6 +403,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{1F3E5}",
     href: "/dashboard/tools/emergency-info",
     available: true,
+    navGroup: "organise",
     highlights: [
       "Medical contacts, allergies, and conditions",
       "Insurance info and policy numbers",

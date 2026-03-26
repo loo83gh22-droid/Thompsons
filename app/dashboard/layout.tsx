@@ -208,6 +208,7 @@ export default async function DashboardLayout({
     let welcomeJournalCount = 0;
     let enabledMemoryAddOns: { name: string; href: string }[] = [];
     let enabledFamilyAddOns: { name: string; href: string }[] = [];
+    let enabledActivitiesAddOns: { name: string; href: string }[] = [];
     let enabledExtrasAddOns: { name: string; href: string }[] = [];
 
     if (activeFamilyId) {
@@ -233,7 +234,8 @@ export default async function DashboardLayout({
         const item = { name: f.name, href: f.href };
         if (f.navGroup === "memories") enabledMemoryAddOns.push(item);
         else if (f.navGroup === "family") enabledFamilyAddOns.push(item);
-        else enabledExtrasAddOns.push(item);
+        else if (f.navGroup === "activities") enabledActivitiesAddOns.push(item);
+        else if (f.navGroup === "organise") enabledExtrasAddOns.push(item);
       }
 
       if (myMemberRes.data) {
@@ -273,6 +275,7 @@ export default async function DashboardLayout({
             activeFamilyId={activeFamilyId}
             enabledMemoryAddOns={enabledMemoryAddOns}
             enabledFamilyAddOns={enabledFamilyAddOns}
+            enabledActivitiesAddOns={enabledActivitiesAddOns}
             enabledExtrasAddOns={enabledExtrasAddOns}
           />
           <PWAInstallBanner />

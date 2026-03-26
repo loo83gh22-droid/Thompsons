@@ -14,7 +14,7 @@ const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
   journal_entries: "Journal Entries",
   stories: "Stories",
   recipes: "Recipes",
-  events: "Events",
+  events: "Annual Events",
 };
 
 const CONTENT_TYPE_PATHS: Record<ContentType, string> = {
