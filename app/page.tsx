@@ -8,6 +8,7 @@ import { MakeItYours } from "./components/home/MakeItYours";
 import { PricingCallout } from "./components/home/PricingCallout";
 import { Testimonials } from "./components/home/Testimonials";
 import { PrivacyCallout } from "./components/home/PrivacyCallout";
+import { FamilyMediaSection } from "./components/home/FamilyMediaSection";
 import { EmotionalSection } from "./components/home/EmotionalSection";
 import { HomepageFAQ } from "./components/home/HomepageFAQ";
 import { PricingCards } from "./components/home/PricingCards";
@@ -188,6 +189,7 @@ export default function HomePage() {
         <AdditionalFeatures />
         <EmotionalSection />
         <PrivacyCallout />
+        <FamilyMediaSection />
         <Testimonials />
         <HomepageFAQ />
         <PricingCards />
