@@ -48,9 +48,9 @@ export function EmotionalSection() {
             <p>
               But I wanted to remember things. My wife sings a song to our boys
               every night before bed. My grandfather recorded himself reading
-              The Night Before Christmas every single year. My step dad left
-              voicemails I still go back and listen to. My dad and I have been
-              chasing MLB stadiums together for years. I always wanted a map of
+              The Night Before Christmas every single year. My dad and I have been
+              chasing MLB stadiums together for years. My kids say things every
+              week I don&apos;t want to forget. I always wanted a map of
               everywhere our family has ever lived, traveled, or called home.
             </p>
             <p>

@@ -9,7 +9,12 @@ export function HeroSection() {
           {/* Text Content */}
           <div className="flex flex-col gap-8 min-w-0">
             <div className="flex flex-col gap-6">
-<h1
+<div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-2" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
+                <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--primary)" }}>
+                  Family Media. Not Social Media.
+                </span>
+              </div>
+              <h1
                 className="text-4xl font-bold leading-tight md:text-5xl lg:text-6xl"
                 style={{
                   fontFamily: "var(--font-display-serif)",

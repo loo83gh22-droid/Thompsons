@@ -42,6 +42,10 @@ export function PrivacyCallout() {
               If that sounds like a low bar, you&apos;re right. But apparently
               someone had to clear it.
             </p>
+            <p>
+              A lot of apps are learning this the hard way right now. We built it
+              this way from day one.
+            </p>
           </div>
         </div>
       </div>
