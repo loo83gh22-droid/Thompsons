@@ -1,9 +1,11 @@
 # FamilyNest Security Findings
 
-Last audited: 2026-03-20
-Last resolved: 2026-03-07 (S11)
+Last audited: 2026-03-26
+Last resolved: 2026-03-26 (S14)
 Re-audit: 2026-03-12 -- all S1-S11 and C1-C5 re-verified, zero new findings
 Re-audit: 2026-03-20 -- new code audited (pricing overhaul, account deletion, onboarding, dashboard redesign), zero new findings
+Re-audit: 2026-03-26 -- new code audited (family motto, gratitude board, gift exchange, family media); 3 new findings (S12-S14) found and fixed same session
+Privacy audit: 2026-03-26 -- full exterior + interior privacy review; 1 new finding (P1) found and fixed same session
 
 ---
 
@@ -78,6 +80,26 @@ proper `setAll` cookie wiring; (2) `/dashboard/*` → `/login` redirect for unau
 preserving `?next=` path; (3) hard 404 for `/admin` unless the request user matches
 `ADMIN_NOTIFICATION_EMAIL`. S11 was a false alarm caused by auditing for `middleware.ts` without
 checking the Next.js 16 proxy equivalent. No code change needed.
+
+### S12 — `postGratitude` Accepted Client-Supplied `memberId` · ✅ FIXED 2026-03-26
+**File:** `app/dashboard/gratitude-board/actions.ts:7`
+**Attack:** Any family member could call `postGratitude(content, victimMemberId)` from the browser console and post gratitude messages attributed to another family member (e.g., a teen impersonating a parent). The RLS INSERT policy only checked `family_id`, not `member_id` ownership.
+**Fix applied:** Removed `memberId` param from the Server Action entirely. Member ID is now looked up server-side via `auth.uid()` → `family_members.id`. Also added a tighter RLS INSERT policy (`20260326000001_tighten_motto_gratitude_rls.sql`) requiring `member_id` to match the caller's own `family_members.id`.
+
+### S13 — `savePersonalNote` Accepted Client-Supplied `memberId` · ✅ FIXED 2026-03-26
+**File:** `app/dashboard/family-motto/actions.ts:72`
+**Attack:** Any family member could call `savePersonalNote(victimMemberId, text)` to overwrite another family member's personal motto note. The RLS UPDATE policy only checked `family_id`.
+**Fix applied:** Removed `memberId` param from the Server Action. Member ID derived server-side. Tighter RLS UPDATE policy added requiring `family_member_id` to match the caller's own member record.
+
+### P1 — Artwork Email Signed URL Duration Excessive · ✅ FIXED 2026-03-26
+**File:** `app/dashboard/artwork/actions.ts:372`
+**Risk:** Artwork photo was embedded in share emails using a 48-hour signed URL (code comment incorrectly said "30 day"). If the email was forwarded to an unintended recipient or captured in email server logs, the private photo remained accessible for 2 days.
+**Fix applied:** Reduced to `60 * 60 * 24` (24 hours) — long enough to cover delayed email opens; short enough to limit forwarding exposure.
+
+### S14 — `deleteGratitude` Missing Ownership Check · ✅ FIXED 2026-03-26
+**File:** `app/dashboard/gratitude-board/actions.ts:32`
+**Attack:** Any family member (including `teen`/`child`) could delete any other family member's gratitude post by calling the Server Action directly, bypassing the UI which only shows delete on the user's own posts.
+**Fix applied:** Server Action now looks up caller's `role` server-side. Owner/adult roles may delete any post; teen/child roles are restricted to their own posts via `.eq("member_id", member.id)`. Same logic enforced at the DB layer via updated RLS DELETE policy.
 
 ---
 
@@ -174,6 +196,10 @@ All references are in Route Handlers or `"use server"` actions only.
 | S6 | Low | ✅ FIXED 2026-03-05 |
 | S8 | Low | ✅ FIXED 2026-03-05 |
 | S11 | Informational | ✅ Already resolved via proxy.ts (Next.js 16) |
+| S12 | Medium | ✅ FIXED 2026-03-26 |
+| S13 | Medium | ✅ FIXED 2026-03-26 |
+| S14 | Medium | ✅ FIXED 2026-03-26 |
+| P1 | Low | ✅ FIXED 2026-03-26 |
 | S7 | Informational | No action needed |
 | C1 | Safe | No action needed |
 | C3 | Safe | No action needed |

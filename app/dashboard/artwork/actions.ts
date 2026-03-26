@@ -359,7 +359,7 @@ export async function sendArtworkShareEmail(
     return { success: false, error: "You've reached the daily email limit (20 per day). Try again tomorrow." };
   }
 
-  // Get a publicly accessible signed URL for the first photo (30 day expiry)
+  // 24-hour signed URL: long enough for delayed email opens, short enough to limit forwarding exposure
   const admin = createAdminClient();
   let photoEmailUrl: string | null = null;
   const photos = [...((piece.artwork_photos as { url: string; sort_order: number }[]) ?? [])].sort(
@@ -369,7 +369,7 @@ export async function sendArtworkShareEmail(
     const storagePath = photos[0].url.replace("/api/storage/artwork-photos/", "");
     const { data: signed } = await admin.storage
       .from("artwork-photos")
-      .createSignedUrl(storagePath, 60 * 60 * 48); // 48 hours
+      .createSignedUrl(storagePath, 60 * 60 * 24); // 24 hours
     photoEmailUrl = signed?.signedUrl ?? null;
   }
 

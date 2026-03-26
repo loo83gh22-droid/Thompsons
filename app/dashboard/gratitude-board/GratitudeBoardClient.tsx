@@ -41,7 +41,7 @@ export function GratitudeBoardClient({
     setText("");
     setComposing(false);
     startTransition(async () => {
-      const res = await postGratitude(draft, currentMemberId);
+      const res = await postGratitude(draft);
       if (!res.success) {
         setPosts((p) => p.filter((x) => x.id !== optimistic.id));
         setError(res.error ?? "Failed to post.");

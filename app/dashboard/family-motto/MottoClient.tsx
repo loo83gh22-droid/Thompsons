@@ -63,7 +63,7 @@ export function MottoClient({ motto, values, currentMemberId, currentMemberName,
     if (!currentMemberId) return;
     setError(null);
     startTransition(async () => {
-      const res = await savePersonalNote(currentMemberId, noteText);
+      const res = await savePersonalNote(noteText);
       if (res.success) { setLocalNote(noteText || null); setEditingNote(false); }
       else setError(res.error ?? "Failed to save.");
     });
