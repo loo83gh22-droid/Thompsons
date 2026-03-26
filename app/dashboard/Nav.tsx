@@ -41,7 +41,7 @@ export function Nav({
   enabledMemoryAddOns = [],
   enabledFamilyAddOns = [],
   enabledActivitiesAddOns = [],
-  enabledOrganiseAddOns = [],
+  enabledExtrasAddOns = [],
 }: {
   user: User;
   familyName?: string;
@@ -50,7 +50,7 @@ export function Nav({
   enabledMemoryAddOns?: AddOn[];
   enabledFamilyAddOns?: AddOn[];
   enabledActivitiesAddOns?: AddOn[];
-  enabledOrganiseAddOns?: AddOn[];
+  enabledExtrasAddOns?: AddOn[];
 }) {
   // Build memories dropdown from core + enabled memory add-ons
   const memoriesItems: { href: string; label: string }[] = [
@@ -69,9 +69,9 @@ export function Nav({
     ...enabledActivitiesAddOns.map((a) => ({ href: a.href, label: a.name })),
   ];
 
-  // Organise: planning + essentials add-ons — Feature Catalog always included
-  const organiseItems: { href: string; label: string }[] = [
-    ...enabledOrganiseAddOns.map((a) => ({ href: a.href, label: a.name })),
+  // Extras: planning + essentials add-ons — Feature Catalog always included
+  const extrasItems: { href: string; label: string }[] = [
+    ...enabledExtrasAddOns.map((a) => ({ href: a.href, label: a.name })),
     { href: "/dashboard/tools", label: "Feature Catalog" },
   ];
   const pathname = usePathname();
@@ -79,18 +79,18 @@ export function Nav({
   const [familyOpen, setFamilyOpen] = useState(false);
   const [memoriesOpen, setMemoriesOpen] = useState(false);
   const [activitiesOpen, setActivitiesOpen] = useState(false);
-  const [organiseOpen, setOrganiseOpen] = useState(false);
+  const [extrasOpen, setExtrasOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [familyMenuOpen, setFamilyMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileFamilyOpen, setMobileFamilyOpen] = useState(false);
   const [mobileMemoriesOpen, setMobileMemoriesOpen] = useState(false);
   const [mobileActivitiesOpen, setMobileActivitiesOpen] = useState(false);
-  const [mobileOrganiseOpen, setMobileOrganiseOpen] = useState(false);
+  const [mobileExtrasOpen, setMobileExtrasOpen] = useState(false);
   const familyRef = useRef<HTMLDivElement>(null);
   const memoriesRef = useRef<HTMLDivElement>(null);
   const activitiesRef = useRef<HTMLDivElement>(null);
-  const organiseRef = useRef<HTMLDivElement>(null);
+  const extrasRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const familySwitcherRef = useRef<HTMLDivElement>(null);
 
@@ -110,7 +110,7 @@ export function Nav({
   const isActivitiesActive = activitiesItems.some(
     (item) => pathname === item.href || pathname.startsWith(item.href + "/")
   );
-  const isOrganiseActive = organiseItems.some(
+  const isExtrasActive = extrasItems.some(
     (item) => pathname === item.href || pathname.startsWith(item.href + "/")
   );
 
@@ -120,7 +120,7 @@ export function Nav({
       if (familyRef.current && !familyRef.current.contains(target)) setFamilyOpen(false);
       if (memoriesRef.current && !memoriesRef.current.contains(target)) setMemoriesOpen(false);
       if (activitiesRef.current && !activitiesRef.current.contains(target)) setActivitiesOpen(false);
-      if (organiseRef.current && !organiseRef.current.contains(target)) setOrganiseOpen(false);
+      if (extrasRef.current && !extrasRef.current.contains(target)) setExtrasOpen(false);
       if (menuRef.current && !menuRef.current.contains(target)) setMenuOpen(false);
       if (familySwitcherRef.current && !familySwitcherRef.current.contains(target)) setFamilyMenuOpen(false);
     }
@@ -139,11 +139,11 @@ export function Nav({
     setFamilyOpen(false);
     setMemoriesOpen(false);
     setActivitiesOpen(false);
-    setOrganiseOpen(false);
+    setExtrasOpen(false);
     setMobileFamilyOpen(false);
     setMobileMemoriesOpen(false);
     setMobileActivitiesOpen(false);
-    setMobileOrganiseOpen(false);
+    setMobileExtrasOpen(false);
   }
 
   useEffect(() => {
@@ -348,28 +348,28 @@ export function Nav({
                 )}
               </div>
             )}
-            <div className="relative" ref={organiseRef}>
+            <div className="relative" ref={extrasRef}>
               <button
                 type="button"
-                onClick={() => setOrganiseOpen((o) => !o)}
-                className={dropdownButtonClass(organiseOpen, isOrganiseActive)}
+                onClick={() => setExtrasOpen((o) => !o)}
+                className={dropdownButtonClass(extrasOpen, isExtrasActive)}
                 aria-haspopup="true"
-                aria-expanded={organiseOpen}
-                aria-label={organiseOpen ? "Close Organise menu" : "Open Organise menu"}
+                aria-expanded={extrasOpen}
+                aria-label={extrasOpen ? "Close Extras menu" : "Open Extras menu"}
               >
-                Organise
-                <span className={`transition-transform ${organiseOpen ? "rotate-180" : ""}`}>▼</span>
+                Extras
+                <span className={`transition-transform ${extrasOpen ? "rotate-180" : ""}`}>▼</span>
               </button>
-              {organiseOpen && (
+              {extrasOpen && (
                 <div
                   className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]"
                   role="menu"
                 >
-                  {organiseItems.map((item) => (
+                  {extrasItems.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
-                      onClick={() => setOrganiseOpen(false)}
+                      onClick={() => setExtrasOpen(false)}
                       role="menuitem"
                       className={`block px-4 py-3 text-sm transition-colors hover:bg-[var(--surface-hover)] focus:bg-[var(--surface-hover)] ${
                         pathname === item.href || pathname.startsWith(item.href + "/")
@@ -590,16 +590,16 @@ export function Nav({
             <div className="border-t border-[var(--border)] pt-2 mt-2">
               <button
                 type="button"
-                onClick={() => setMobileOrganiseOpen((o) => !o)}
-                className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors min-h-[44px] ${mobileOrganiseOpen || isOrganiseActive ? "bg-[var(--surface)] text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}
-                aria-expanded={mobileOrganiseOpen}
+                onClick={() => setMobileExtrasOpen((o) => !o)}
+                className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors min-h-[44px] ${mobileExtrasOpen || isExtrasActive ? "bg-[var(--surface)] text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}
+                aria-expanded={mobileExtrasOpen}
               >
-                Organise
-                <span className={`block transition-transform ${mobileOrganiseOpen ? "rotate-180" : ""}`}>▼</span>
+                Extras
+                <span className={`block transition-transform ${mobileExtrasOpen ? "rotate-180" : ""}`}>▼</span>
               </button>
-              {mobileOrganiseOpen && (
+              {mobileExtrasOpen && (
                 <div className="pl-2 pt-1 space-y-0.5">
-                  {organiseItems.map((item) => (
+                  {extrasItems.map((item) => (
                     <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={`block rounded-lg px-4 py-2.5 text-sm min-h-[44px] flex items-center ${pathname === item.href || pathname.startsWith(item.href + "/") ? "text-[var(--accent)]" : item.label === "Feature Catalog" ? "text-[var(--muted)] font-medium" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}>
                       {item.label}
                     </Link>
