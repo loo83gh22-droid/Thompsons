@@ -69,13 +69,19 @@ export async function deleteValue(valueId: string): Promise<{ success: boolean; 
   }
 }
 
-export async function savePersonalNote(memberId: string, note: string): Promise<{ success: boolean; error?: string }> {
+export async function savePersonalNote(note: string): Promise<{ success: boolean; error?: string }> {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: "Not authenticated" };
     const { activeFamilyId } = await getActiveFamilyId(supabase);
     if (!activeFamilyId) return { success: false, error: "No active family" };
+
+    // Derive memberId server-side — a user may only write their own personal note
+    const { data: member } = await supabase
+      .from("family_members").select("id").eq("family_id", activeFamilyId).eq("user_id", user.id).single();
+    if (!member) return { success: false, error: "Member not found." };
+    const memberId = member.id;
 
     const { error } = await supabase.from("member_motto_notes").upsert(
       { family_id: activeFamilyId, family_member_id: memberId, personal_note: note.trim(), updated_at: new Date().toISOString() },
