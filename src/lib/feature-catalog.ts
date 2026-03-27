@@ -251,6 +251,23 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     ],
   },
 
+  {
+    slug: "our-teams",
+    name: "Our Teams",
+    description: "Document every season, club, and team your family has been part of — with photos, write-ups, and a map pin for where you played.",
+    category: "family-life",
+    icon: "\u{1F3C5}",
+    href: "/dashboard/teams",
+    available: true,
+    navGroup: "activities",
+    highlights: [
+      "One entry per team or season — sport, year, and city",
+      "Up to 20 photos per team with a cover shot",
+      "Tag each family member with their role (Player, Coach, etc.)",
+      "Automatically pins the city to your Family Map",
+    ],
+  },
+
   // Games & Challenges
   {
     slug: "family-trivia",
