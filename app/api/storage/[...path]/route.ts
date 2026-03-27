@@ -17,6 +17,7 @@ const ALLOWED_BUCKETS = new Set([
   "achievements",
   "adventure-locations",
   "tradition-photos",
+  "team-photos",
 ]);
 
 /**
