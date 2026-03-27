@@ -3,202 +3,213 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
-import { enforceStorageLimit, addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
 
-export type FavouriteCategory = "books" | "movies" | "shows" | "music" | "toys" | "games" | "recipes";
+type Result = { success: boolean; error?: string; id?: string };
 
-const ALL_CATEGORIES: FavouriteCategory[] = ["books", "movies", "shows", "music", "toys", "games", "recipes"];
+// ── Lists ─────────────────────────────────────────────────────────────────────
 
-function revalidateAll(category?: FavouriteCategory) {
-  revalidatePath("/dashboard/favourites");
-  if (category) {
-    revalidatePath(`/dashboard/favourites/${category}`);
-  } else {
-    for (const cat of ALL_CATEGORIES) {
-      revalidatePath(`/dashboard/favourites/${cat}`);
-    }
-  }
-}
+export async function createList(name: string, emoji: string): Promise<Result> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Not authenticated" };
 
-/** Remove a favourite photo from storage and decrement the storage counter (G17) */
-async function removeFavouritePhoto(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  photoUrl: string,
-  familyId: string,
-): Promise<void> {
-  const storagePath = photoUrl.replace("/api/storage/favourite-photos/", "");
-  if (!storagePath || storagePath === photoUrl) return;
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { success: false, error: "No active family" };
 
-  // Get file size before removal
-  const { data: fileList } = await supabase.storage
-    .from("favourite-photos")
-    .list("", { search: storagePath });
-  const fileSize = fileList?.[0]?.metadata?.size ?? 0;
-
-  await supabase.storage.from("favourite-photos").remove([storagePath]);
-
-  if (fileSize > 0) {
-    await subtractStorageUsage(supabase, familyId, fileSize);
-  }
-}
-
-async function uploadFavouritePhoto(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  photo: File,
-  familyId: string
-): Promise<string> {
-  // Enforce storage limit before upload (G5)
-  await enforceStorageLimit(supabase, familyId, photo.size);
-
-  const ext = photo.name.split(".").pop() || "jpg";
-  const path = `${crypto.randomUUID()}.${ext}`;
-  const { error } = await supabase.storage
-    .from("favourite-photos")
-    .upload(path, photo, { upsert: true });
-  if (error) throw error;
-
-  // Track storage after successful upload
-  await addStorageUsage(supabase, familyId, photo.size);
-
-  return `/api/storage/favourite-photos/${path}`;
-}
-
-export async function addFavourite(
-  category: FavouriteCategory,
-  title: string,
-  memberId: string,
-  description?: string,
-  notes?: string,
-  age?: number,
-  photo?: File | null,
-) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) throw new Error("No active family");
-
-  let photoUrl: string | null = null;
-  let uploadedPath: string | null = null;
-  if (photo && photo.size > 0) {
-    photoUrl = await uploadFavouritePhoto(supabase, photo, activeFamilyId);
-    uploadedPath = photoUrl.replace("/api/storage/favourite-photos/", "");
-  }
-
-  const { error } = await supabase.from("favourites").insert({
-    family_id: activeFamilyId,
-    category,
-    title,
-    description: description || null,
-    notes: notes || null,
-    age: age ?? null,
-    photo_url: photoUrl,
-    added_by: memberId,
-    member_id: memberId,
-  });
-
-  if (error) {
-    // Rollback: remove orphaned file and undo storage counter (W20)
-    if (uploadedPath && photo) {
-      await supabase.storage.from("favourite-photos").remove([uploadedPath]);
-      await subtractStorageUsage(supabase, activeFamilyId, photo.size);
-    }
-    throw error;
-  }
-  revalidateAll(category);
-}
-
-export async function updateFavourite(
-  id: string,
-  data: { title: string; description?: string; notes?: string; age?: number; photo?: File | null; clearPhoto?: boolean }
-) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) throw new Error("No active family");
-
-  // If replacing or clearing photo, clean up the old one from storage (G17)
-  if (data.clearPhoto || (data.photo && data.photo.size > 0)) {
-    const { data: existing } = await supabase
-      .from("favourites")
-      .select("photo_url")
-      .eq("id", id)
+    const { data: myMember } = await supabase
+      .from("family_members")
+      .select("id")
+      .eq("user_id", user.id)
       .eq("family_id", activeFamilyId)
       .single();
-    if (existing?.photo_url) {
-      await removeFavouritePhoto(supabase, existing.photo_url, activeFamilyId);
-    }
+
+    const { count } = await supabase
+      .from("favourite_lists")
+      .select("id", { count: "exact", head: true })
+      .eq("family_id", activeFamilyId);
+
+    const { data, error } = await supabase
+      .from("favourite_lists")
+      .insert({
+        family_id: activeFamilyId,
+        name: name.trim(),
+        emoji: emoji.trim() || null,
+        created_by: myMember?.id ?? null,
+        sort_order: count ?? 0,
+      })
+      .select("id")
+      .single();
+
+    if (error) return { success: false, error: error.message };
+    revalidatePath("/dashboard/favourites");
+    return { success: true, id: data.id };
+  } catch {
+    return { success: false, error: "Something went wrong." };
   }
-
-  let photoUrl: string | undefined = undefined;
-  if (data.clearPhoto) {
-    photoUrl = null as unknown as undefined;
-  } else if (data.photo && data.photo.size > 0) {
-    photoUrl = await uploadFavouritePhoto(supabase, data.photo, activeFamilyId);
-  }
-
-  const update: Record<string, unknown> = {
-    title: data.title,
-    description: data.description || null,
-    notes: data.notes || null,
-    age: data.age ?? null,
-  };
-  if (photoUrl !== undefined || data.clearPhoto) {
-    update.photo_url = data.clearPhoto ? null : photoUrl;
-  }
-
-  const { error } = await supabase
-    .from("favourites")
-    .update(update)
-    .eq("id", id)
-    .eq("family_id", activeFamilyId);
-
-  if (error) throw error;
-  revalidateAll();
 }
 
-export async function removeFavourite(id: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) throw new Error("No active family");
+export async function updateList(listId: string, name: string, emoji: string): Promise<Result> {
+  try {
+    const supabase = await createClient();
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { success: false, error: "No active family" };
 
-  // Clean up photo from storage before soft-deleting (G17)
-  const { data: existing } = await supabase
-    .from("favourites")
-    .select("photo_url")
-    .eq("id", id)
-    .eq("family_id", activeFamilyId)
-    .single();
-  if (existing?.photo_url) {
-    await removeFavouritePhoto(supabase, existing.photo_url, activeFamilyId);
+    const { error } = await supabase
+      .from("favourite_lists")
+      .update({ name: name.trim(), emoji: emoji.trim() || null })
+      .eq("id", listId)
+      .eq("family_id", activeFamilyId);
+
+    if (error) return { success: false, error: error.message };
+    revalidatePath("/dashboard/favourites");
+    revalidatePath(`/dashboard/favourites/${listId}`);
+    return { success: true };
+  } catch {
+    return { success: false, error: "Something went wrong." };
   }
-
-  const { error } = await supabase
-    .from("favourites")
-    .update({ removed_at: new Date().toISOString(), photo_url: null })
-    .eq("id", id)
-    .eq("family_id", activeFamilyId);
-
-  if (error) throw error;
-  revalidateAll();
 }
 
-export async function restoreFavourite(id: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-  const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) throw new Error("No active family");
+export async function deleteList(listId: string): Promise<Result> {
+  try {
+    const supabase = await createClient();
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { success: false, error: "No active family" };
 
-  const { error } = await supabase
-    .from("favourites")
-    .update({ removed_at: null })
-    .eq("id", id)
-    .eq("family_id", activeFamilyId);
+    const { error } = await supabase
+      .from("favourite_lists")
+      .delete()
+      .eq("id", listId)
+      .eq("family_id", activeFamilyId);
 
-  if (error) throw error;
-  revalidateAll();
+    if (error) return { success: false, error: error.message };
+    revalidatePath("/dashboard/favourites");
+    return { success: true };
+  } catch {
+    return { success: false, error: "Something went wrong." };
+  }
+}
+
+// ── Items ─────────────────────────────────────────────────────────────────────
+
+export async function addItem(
+  listId: string,
+  title: string,
+  notes: string,
+  url: string
+): Promise<Result> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Not authenticated" };
+
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { success: false, error: "No active family" };
+
+    const { data: myMember } = await supabase
+      .from("family_members")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("family_id", activeFamilyId)
+      .single();
+
+    const { data: list } = await supabase
+      .from("favourite_lists")
+      .select("id")
+      .eq("id", listId)
+      .eq("family_id", activeFamilyId)
+      .single();
+    if (!list) return { success: false, error: "List not found." };
+
+    const { data, error } = await supabase
+      .from("favourite_items")
+      .insert({
+        list_id: listId,
+        family_id: activeFamilyId,
+        title: title.trim(),
+        notes: notes.trim() || null,
+        url: url.trim() || null,
+        added_by: myMember?.id ?? null,
+      })
+      .select("id")
+      .single();
+
+    if (error) return { success: false, error: error.message };
+    revalidatePath(`/dashboard/favourites/${listId}`);
+    revalidatePath("/dashboard/favourites");
+    return { success: true, id: data.id };
+  } catch {
+    return { success: false, error: "Something went wrong." };
+  }
+}
+
+export async function updateItem(
+  itemId: string,
+  listId: string,
+  title: string,
+  notes: string,
+  url: string
+): Promise<Result> {
+  try {
+    const supabase = await createClient();
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { success: false, error: "No active family" };
+
+    const { error } = await supabase
+      .from("favourite_items")
+      .update({
+        title: title.trim(),
+        notes: notes.trim() || null,
+        url: url.trim() || null,
+      })
+      .eq("id", itemId)
+      .eq("family_id", activeFamilyId);
+
+    if (error) return { success: false, error: error.message };
+    revalidatePath(`/dashboard/favourites/${listId}`);
+    return { success: true };
+  } catch {
+    return { success: false, error: "Something went wrong." };
+  }
+}
+
+export async function removeItem(itemId: string, listId: string): Promise<Result> {
+  try {
+    const supabase = await createClient();
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { success: false, error: "No active family" };
+
+    const { error } = await supabase
+      .from("favourite_items")
+      .update({ removed_at: new Date().toISOString() })
+      .eq("id", itemId)
+      .eq("family_id", activeFamilyId);
+
+    if (error) return { success: false, error: error.message };
+    revalidatePath(`/dashboard/favourites/${listId}`);
+    revalidatePath("/dashboard/favourites");
+    return { success: true };
+  } catch {
+    return { success: false, error: "Something went wrong." };
+  }
+}
+
+export async function restoreItem(itemId: string, listId: string): Promise<Result> {
+  try {
+    const supabase = await createClient();
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { success: false, error: "No active family" };
+
+    const { error } = await supabase
+      .from("favourite_items")
+      .update({ removed_at: null })
+      .eq("id", itemId)
+      .eq("family_id", activeFamilyId);
+
+    if (error) return { success: false, error: error.message };
+    revalidatePath(`/dashboard/favourites/${listId}`);
+    return { success: true };
+  } catch {
+    return { success: false, error: "Something went wrong." };
+  }
 }
