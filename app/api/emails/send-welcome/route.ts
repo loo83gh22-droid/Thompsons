@@ -128,17 +128,29 @@ function buildWelcomeEmail(name: string, familyName: string, appUrl: string): st
 
     <div style="padding:32px 32px 36px;">
 
-      <!-- Personal welcome -->
-      <p style="margin:0 0 20px;font-size:15px;color:#c8cdd8;line-height:1.7;">
-        This is the beginning of something really special. Every family photo, every recipe, every funny story, every
-        &ldquo;remember when&rdquo; moment &mdash; it all has a home now. And <strong style="color:#D4A843;">you</strong>
-        made it happen.
+      <!-- Personal welcome from Rob -->
+      <p style="margin:0 0 16px;font-size:15px;color:#c8cdd8;line-height:1.7;">
+        Hey ${name} &mdash; I&rsquo;m Rob, the person who built this.
       </p>
+      <p style="margin:0 0 16px;font-size:15px;color:#c8cdd8;line-height:1.7;">
+        Family Nest started because I wanted a better place to keep the stuff that actually matters &mdash; not social media, not just photos in a drawer. Something that captures <em>your</em> family&rsquo;s real story. The funny things the kids say. The recipes. The homes you&rsquo;ve lived in. The people.
+      </p>
+      <p style="margin:0 0 24px;font-size:15px;color:#c8cdd8;line-height:1.7;">
+        I&rsquo;d genuinely love to know what brought you here. One honest reply helps more than you&rsquo;d think. If you have a minute, just hit reply and tell me &mdash; what made you sign up?
+      </p>
+
+      <!-- Reply CTA -->
+      <div style="text-align:center;margin-bottom:28px;">
+        <a href="mailto:rob@familynest.io?subject=Why I signed up for Family Nest&body=Hey Rob,"
+           style="display:inline-block;background:rgba(212,168,67,0.12);border:1px solid rgba(212,168,67,0.35);color:#D4A843;padding:12px 28px;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px;">
+          Reply to Rob &#9993;
+        </a>
+      </div>
 
       <!-- Quick start steps -->
       <div style="background:#0d111e;border-radius:12px;padding:24px;margin:0 0 28px;border:1px solid #1a2038;">
         <p style="margin:0 0 16px;font-size:13px;font-weight:600;color:#D4A843;text-transform:uppercase;letter-spacing:1px;">
-          &#9889; Your first 5 minutes
+          &#9889; Get started in 5 minutes
         </p>
 
         <!-- Step 1 -->
@@ -181,14 +193,6 @@ function buildWelcomeEmail(name: string, familyName: string, appUrl: string): st
         </table>
       </div>
 
-      <!-- Fun fact callout -->
-      <div style="background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.2);border-radius:10px;padding:16px 20px;margin:0 0 28px;">
-        <p style="margin:0;font-size:14px;color:#c8cdd8;line-height:1.6;">
-          <strong style="color:#D4A843;">Fun fact:</strong> Families who add their first photo in the first day
-          are 3x more likely to keep their Nest active for years. No pressure though &#128521;
-        </p>
-      </div>
-
       <!-- CTA Button -->
       <div style="text-align:center;">
         <a href="${appUrl}/dashboard"
@@ -202,12 +206,15 @@ function buildWelcomeEmail(name: string, familyName: string, appUrl: string): st
 
   <!-- Footer -->
   <tr><td style="padding:28px 20px;text-align:center;">
+    <p style="margin:0 0 6px;color:#5a6278;font-size:13px;">
+      Got a feature idea? Just reply &mdash; I read every one.
+    </p>
     <p style="margin:0 0 4px;color:#5a6278;font-size:13px;">
       Welcome to the Family Nest family &#128155;
     </p>
     <p style="margin:0;color:#3d4560;font-size:11px;">
       <a href="${appUrl}/dashboard/settings" style="color:#4a5068;text-decoration:underline;">Manage notifications</a>
-      &ensp;&middot;&ensp;Family Nest
+      &ensp;&middot;&ensp;Family Nest &mdash; rob@familynest.io
     </p>
   </td></tr>
 

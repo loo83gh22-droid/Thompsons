@@ -8,6 +8,7 @@ import { MusicPlayer } from "@/app/dashboard/MusicPlayer";
 import { UnreadMessagesFetcher } from "@/app/dashboard/UnreadMessagesFetcher";
 import { FamilyProvider } from "@/app/dashboard/FamilyContext";
 import { WelcomeModal } from "@/app/dashboard/WelcomeModal";
+import { FounderNoteModal } from "@/app/dashboard/FounderNoteModal";
 import { AgeTransitionBanner } from "@/app/dashboard/AgeTransitionBanner";
 import { BirthdayPrompt } from "@/app/dashboard/BirthdayPrompt";
 import { FeedbackPromptModal } from "@/app/dashboard/FeedbackPromptModal";
@@ -260,6 +261,7 @@ export default async function DashboardLayout({
       <FamilyProvider activeFamilyId={activeFamilyId} families={families} currentUserRole={currentUserRole} currentMemberId={currentMemberId} planType={planType}>
         <ThemeApplicator theme={userTheme} />
         <WelcomeModal familyName={familyName} memberCount={welcomeMemberCount} journalCount={welcomeJournalCount} />
+        <FounderNoteModal />
         <BirthdayPrompt />
         <FeedbackPromptModal />
         {/* Quick entry widget: desktop only — mobile uses MobileBottomNav FAB instead */}
