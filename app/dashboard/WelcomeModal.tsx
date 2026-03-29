@@ -204,15 +204,15 @@ export function WelcomeModal({
           <div className="p-6 sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">Step 2 of 3</p>
             <h1 id="welcome-title" className="mt-2 font-display text-2xl font-bold text-[var(--foreground)] sm:text-3xl">
-              Who&apos;s in your nest?
+              Start with who&apos;s in your home
             </h1>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              Add your partner, your kids, grandparents — everyone who should be part of this. They&apos;ll get an invite by email.
+              Add the people you come home to — your partner, your kids. Extended family and others can be added as contacts later, so you can share things with them without giving them full access.
             </p>
 
             {/* Visual: seats */}
             <div className="mt-6 flex items-center justify-center gap-3">
-              {["You", "Partner", "Kid", "Grandparent"].map((label, i) => (
+              {["You", "Partner", "Kid", "Kid"].map((label, i) => (
                 <div key={i} className={`flex flex-col items-center gap-1 ${i === 0 ? "opacity-100" : "opacity-40"}`}>
                   <div className={`flex h-12 w-12 items-center justify-center rounded-full text-xl border-2 ${
                     i === 0 ? "border-[var(--accent)] bg-[var(--surface)]" : "border-dashed border-[var(--border)] bg-[var(--surface)]"
@@ -229,7 +229,7 @@ export function WelcomeModal({
               onClick={handleClose}
               className="mt-6 flex min-h-[48px] w-full items-center justify-center rounded-full bg-[var(--primary)] px-6 py-3 text-center font-semibold text-[var(--primary-foreground)] transition-opacity hover:opacity-90"
             >
-              Add Family Members →
+              Add the people in your nest →
             </Link>
 
             <div className="mt-3 flex gap-2">

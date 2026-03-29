@@ -50,6 +50,21 @@ export const CATEGORY_ORDER: FeatureCategory[] = [
 
 export const FEATURE_CATALOG: CatalogFeature[] = [
   {
+    slug: "family-letters",
+    name: "Letters",
+    description: "Write personal letters to family members — to be read now or someday.",
+    category: "memories",
+    icon: "\u{1F4DD}",
+    href: "/dashboard/letters",
+    available: true,
+    navGroup: "memories",
+    highlights: [
+      "Write a letter addressed to someone you love",
+      "Optionally seal it until they reach a certain age",
+      "Always private — never shared outside the nest",
+    ],
+  },
+  {
     slug: "stories",
     name: "Stories",
     description: "Write and preserve family stories, passed down through generations.",

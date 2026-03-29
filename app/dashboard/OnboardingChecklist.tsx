@@ -81,15 +81,15 @@ export function OnboardingChecklist({
     {
       id: "members",
       label: "Add your first family member",
-      description: "Start your family tree. Add a spouse, child, or parent.",
+      description: "Add the people who share your home. This is their space too.",
       href: "/dashboard/our-family",
       icon: "👨‍👩‍👧‍👦",
       done: memberCount >= 2, // They're already 1 (themselves), so 2+ means they added someone
     },
     {
       id: "journal",
-      label: "Write a journal entry",
-      description: "Capture a memory, trip, or milestone.",
+      label: "Write your first memory",
+      description: "Capture something worth keeping. A moment, a milestone, a day.",
       href: "/dashboard/journal/new",
       icon: "📔",
       done: journalCount >= 1,
@@ -97,7 +97,7 @@ export function OnboardingChecklist({
     {
       id: "story",
       label: "Share a family story",
-      description: "Write about how your parents met, a family tradition, or a lesson learned.",
+      description: "Write about how your family came together, a tradition, or something you never want to forget.",
       href: "/dashboard/stories/new",
       icon: "📖",
       done: storyCount >= 1,
@@ -105,7 +105,7 @@ export function OnboardingChecklist({
     {
       id: "voice",
       label: "Record a voice memo",
-      description: "Preserve a voice for the future. Tell a story, sing a lullaby.",
+      description: "Your voice is irreplaceable. Sing, tell a story, just talk. They'll listen someday.",
       href: "/dashboard/voice-memos",
       icon: "🎙️",
       done: voiceMemoCount >= 1,
@@ -175,10 +175,10 @@ export function OnboardingChecklist({
         <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="font-display text-lg font-bold text-[var(--foreground)]">
-            Get Started
+            Build Your Nest
           </h2>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Complete these steps to bring your Family Nest to life.
+            A few things to make this space feel like home.
           </p>
         </div>
         <div className="flex items-center gap-2">
