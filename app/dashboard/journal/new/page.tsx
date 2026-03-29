@@ -223,10 +223,10 @@ export default function NewJournalPage() {
       </Link>
 
       <h1 className="mt-4 font-display text-2xl font-bold text-[var(--foreground)] sm:mt-6 sm:text-3xl">
-        New journal entry
+        Write a memory
       </h1>
       <p className="mt-1 text-sm text-[var(--muted)] sm:mt-2">
-        Capture the moment. Title and location are optional.
+        Write it down. The details fade faster than you think.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-5 sm:mt-8 sm:space-y-6">
@@ -304,7 +304,7 @@ export default function NewJournalPage() {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none text-base"
-            placeholder="What happened? What did you see? What will you remember?"
+            placeholder="What do you want to remember about today? What would you want them to know?"
           />
           {content.length === 0 && (
             <p className="mt-1 text-xs text-[var(--muted)]">

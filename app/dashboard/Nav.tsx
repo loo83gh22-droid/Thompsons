@@ -29,6 +29,7 @@ const coreFamilyItems: { href: string; label: string }[] = [
 const coreMemoriesItems: { href: string; label: string }[] = [
   { href: "/dashboard/timeline", label: "Timeline" },
   { href: "/dashboard/journal", label: "Journal" },
+  { href: "/dashboard/letters", label: "Letters" },
 ];
 
 type AddOn = { name: string; href: string };

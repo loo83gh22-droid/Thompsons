@@ -395,10 +395,10 @@ export default async function DashboardPage() {
             <div className="flex flex-col gap-2 min-[768px]:flex-row min-[768px]:items-center min-[768px]:justify-between">
               <div className="border-l-[3px] border-[var(--accent)] pl-3">
                 <h2 id="activity-heading" className="font-display text-xl font-semibold text-[var(--foreground)]">
-                  Recent Activity
+                  In the Nest
                 </h2>
                 <p className="mt-0.5 text-sm text-[var(--muted)]">
-                  Here&apos;s what everyone&apos;s been up to lately
+                  What&apos;s been added to your family&apos;s story
                 </p>
               </div>
               <Link

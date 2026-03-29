@@ -78,11 +78,10 @@ export default async function VoiceMemosPage() {
       <div className="mb-8 flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
-            Voice Memos
+            Your voice, preserved.
           </h1>
           <p className="mt-2 text-[var(--muted)]">
-            Record voices for the future. Stories, songs, jokes. Imagine your kids hearing
-            their great-grandmother&apos;s voice decades from now.
+            Stories, songs, jokes. Imagine your kids hearing their great-grandmother&apos;s voice decades from now.
           </p>
           {planType === "free" && (
             <div className="mt-2">
