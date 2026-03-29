@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/client";
 import { removeVoiceMemo, updateVoiceMemo, sendTranscriptToJournal } from "./actions";
 import { transcribeVoiceMemo } from "./transcribe";
+import { toggleMemoShare } from "./share-actions";
 import { EmptyStateGuide } from "@/app/components/EmptyStateGuide";
+import { ShareButton } from "@/app/components/ShareButton";
 import { UI_DISPLAY } from "@/src/lib/constants";
 import { CalendarDrillDown } from "@/app/components/CalendarDrillDown";
 
@@ -28,6 +30,8 @@ type VoiceMemo = {
   transcript: string | null;
   transcription_status: string | null;
   transcribed_at: string | null;
+  is_public: boolean;
+  share_token: string | null;
 };
 
 function formatDuration(seconds: number | null): string {
@@ -85,10 +89,12 @@ export function VoiceMemoList({
   memos,
   currentUserMemberId,
   members,
+  contacts = [],
 }: {
   memos: VoiceMemo[];
   currentUserMemberId: string | null;
   members: { id: string; name: string; nickname: string | null; relationship: string | null }[];
+  contacts?: { id: string; name: string; email: string | null; relationship: string | null }[];
 }) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -313,6 +319,18 @@ export function VoiceMemoList({
                     {transcribingId === memo.id ? "Transcribing..." : "Transcribe this memo"}
                   </button>
                 )}
+
+                {/* Share button */}
+                <div className="mt-3">
+                  <ShareButton
+                    isPublic={memo.is_public ?? false}
+                    shareToken={memo.share_token ?? null}
+                    shareType="memo"
+                    title={memo.title}
+                    onToggle={() => toggleMemoShare(memo.id)}
+                    contacts={contacts}
+                  />
+                </div>
 
                 {/* Edit / Delete buttons */}
                 {isCreator && (

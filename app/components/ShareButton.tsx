@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 /* ─── Social icon SVGs ─── */
@@ -41,6 +41,23 @@ function LockIcon({ className }: { className?: string }) {
   );
 }
 
+function MailIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+    </svg>
+  );
+}
+
+function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
 /* ─── Main component ─── */
 
 export function ShareButton({
@@ -49,18 +66,29 @@ export function ShareButton({
   shareType,
   title,
   onToggle,
+  contacts = [],
 }: {
   isPublic: boolean;
   shareToken: string | null;
-  shareType: "story" | "recipe" | "artwork";
+  shareType: "story" | "recipe" | "artwork" | "journal" | "memo";
   title?: string;
   onToggle: () => Promise<{ shareToken: string | null; isPublic: boolean }>;
+  contacts?: { id: string; name: string; email: string | null; relationship: string | null }[];
 }) {
   const [loading, setLoading] = useState(false);
   const [currentIsPublic, setCurrentIsPublic] = useState(isPublic);
   const [currentToken, setCurrentToken] = useState(shareToken);
   const [copied, setCopied] = useState(false);
   const [showPanel, setShowPanel] = useState(false);
+
+  // Email contacts state
+  const [showEmailPanel, setShowEmailPanel] = useState(false);
+  const [selectedContactIds, setSelectedContactIds] = useState<Set<string>>(new Set());
+  const [emailMessage, setEmailMessage] = useState("");
+  const [emailSentCount, setEmailSentCount] = useState<number | null>(null);
+  const [emailPending, startEmailTransition] = useTransition();
+
+  const contactsWithEmail = contacts.filter((c) => c.email);
 
   const shareUrl = currentToken
     ? `${typeof window !== "undefined" ? window.location.origin : ""}/share/${shareType}/${currentToken}`
@@ -94,6 +122,45 @@ export function ShareButton({
       "_blank",
       "noopener,noreferrer,width=600,height=400"
     );
+  }
+
+  function toggleContact(id: string) {
+    setSelectedContactIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function handleSendEmails() {
+    if (!shareUrl || selectedContactIds.size === 0) return;
+    startEmailTransition(async () => {
+      try {
+        const res = await fetch("/api/emails/send-share", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contactIds: Array.from(selectedContactIds),
+            shareUrl,
+            shareType,
+            title: title ?? null,
+            message: emailMessage.trim() || null,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Failed to send");
+        setEmailSentCount(data.sent as number);
+        setEmailMessage("");
+        setSelectedContactIds(new Set());
+        setTimeout(() => {
+          setEmailSentCount(null);
+          setShowEmailPanel(false);
+        }, 4000);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Failed to send emails");
+      }
+    });
   }
 
   function handleNativeShare() {
@@ -160,6 +227,18 @@ export function ShareButton({
               Facebook
             </button>
 
+            {/* Email contacts */}
+            {contactsWithEmail.length > 0 && (
+              <button
+                type="button"
+                onClick={() => { setShowEmailPanel((o) => !o); setEmailSentCount(null); }}
+                className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${showEmailPanel ? "bg-[var(--accent)]/15 text-[var(--accent)]" : "border border-[var(--border)] text-[var(--muted)] hover:bg-[var(--surface-hover)]"}`}
+              >
+                <MailIcon className="h-4 w-4" />
+                Email contacts
+              </button>
+            )}
+
             {/* Native share (mobile — surfaces Instagram, WhatsApp, etc.) */}
             {typeof navigator !== "undefined" && "share" in navigator && (
               <button
@@ -182,6 +261,54 @@ export function ShareButton({
               {copied ? "Copied!" : "Copy link"}
             </button>
           </div>
+
+          {/* Email contacts panel */}
+          {showEmailPanel && contactsWithEmail.length > 0 && (
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--background)] p-3 space-y-3 animate-in fade-in slide-in-from-top-1 duration-150">
+              {emailSentCount !== null ? (
+                <div className="flex items-center gap-2 text-sm text-emerald-400 font-medium">
+                  <CheckIcon className="h-4 w-4" />
+                  Sent to {emailSentCount} contact{emailSentCount !== 1 ? "s" : ""}
+                </div>
+              ) : (
+                <>
+                  <p className="text-xs font-medium text-[var(--muted)]">Choose recipients</p>
+                  <div className="space-y-1.5">
+                    {contactsWithEmail.map((c) => (
+                      <label key={c.id} className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-[var(--surface)] transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={selectedContactIds.has(c.id)}
+                          onChange={() => toggleContact(c.id)}
+                          className="h-3.5 w-3.5 rounded accent-[var(--accent)]"
+                        />
+                        <span className="flex-1 text-sm text-[var(--foreground)]">{c.name}</span>
+                        {c.relationship && (
+                          <span className="text-xs text-[var(--muted)]">{c.relationship}</span>
+                        )}
+                      </label>
+                    ))}
+                  </div>
+                  <textarea
+                    value={emailMessage}
+                    onChange={(e) => setEmailMessage(e.target.value)}
+                    placeholder="Add a personal note... (optional)"
+                    rows={2}
+                    className="w-full resize-none rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 focus:border-[var(--accent)] transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSendEmails}
+                    disabled={selectedContactIds.size === 0 || emailPending}
+                    className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-foreground)] hover:opacity-90 disabled:opacity-40 transition-opacity"
+                  >
+                    <MailIcon className="h-4 w-4" />
+                    {emailPending ? "Sending…" : `Send to ${selectedContactIds.size > 0 ? selectedContactIds.size : ""} contact${selectedContactIds.size !== 1 ? "s" : ""}`}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
 
           {/* URL preview */}
           {shareUrl && (
