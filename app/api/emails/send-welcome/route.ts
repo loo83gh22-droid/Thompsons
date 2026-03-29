@@ -122,7 +122,7 @@ function buildWelcomeEmail(name: string, familyName: string, appUrl: string): st
         ${familyName}&rsquo;s Nest Is Live!
       </h1>
       <p style="margin:8px 0 0;font-size:15px;color:#8b93a8;">
-        Congratulations, ${name} &mdash; you&rsquo;re the founding Nest Keeper!
+        Congratulations, ${name}. You&rsquo;re the founding Nest Keeper!
       </p>
     </div>
 
@@ -130,13 +130,13 @@ function buildWelcomeEmail(name: string, familyName: string, appUrl: string): st
 
       <!-- Personal welcome from Rob -->
       <p style="margin:0 0 16px;font-size:15px;color:#c8cdd8;line-height:1.7;">
-        Hey ${name} &mdash; I&rsquo;m Rob, the person who built this.
+        Hey ${name}, I&rsquo;m Rob, the person who built this.
       </p>
       <p style="margin:0 0 16px;font-size:15px;color:#c8cdd8;line-height:1.7;">
-        Family Nest started because I wanted a better place to keep the stuff that actually matters &mdash; not social media, not just photos in a drawer. Something that captures <em>your</em> family&rsquo;s real story. The funny things the kids say. The recipes. The homes you&rsquo;ve lived in. The people.
+        Family Nest started because I wanted a better place to keep the stuff that actually matters. Not social media, not just photos in a drawer. Something that captures <em>your</em> family&rsquo;s real story. The funny things the kids say. The recipes. The homes you&rsquo;ve lived in. The people.
       </p>
       <p style="margin:0 0 24px;font-size:15px;color:#c8cdd8;line-height:1.7;">
-        I&rsquo;d genuinely love to know what brought you here. One honest reply helps more than you&rsquo;d think. If you have a minute, just hit reply and tell me &mdash; what made you sign up?
+        I&rsquo;d genuinely love to know what brought you here. One honest reply helps more than you&rsquo;d think. If you have a minute, just hit reply and tell me: what made you sign up?
       </p>
 
       <!-- Reply CTA -->
@@ -161,7 +161,7 @@ function buildWelcomeEmail(name: string, familyName: string, appUrl: string): st
           </td>
           <td style="padding-left:12px;color:#c8cdd8;font-size:14px;line-height:1.6;">
             <strong style="color:#f0f2f8;">Invite your people</strong><br>
-            Go to <span style="color:#D4A843;">Members</span> and add family by name or email &mdash; they&rsquo;ll get their own warm invite
+            Go to <span style="color:#D4A843;">Members</span> and add family by name or email. They&rsquo;ll get their own warm invite.
           </td>
         </tr>
         </table>
@@ -174,7 +174,7 @@ function buildWelcomeEmail(name: string, familyName: string, appUrl: string): st
           </td>
           <td style="padding-left:12px;color:#c8cdd8;font-size:14px;line-height:1.6;">
             <strong style="color:#f0f2f8;">Drop in a photo</strong><br>
-            Upload a favourite family pic &mdash; it becomes the first memory in your Nest
+            Upload a favourite family pic. It becomes the first memory in your Nest.
           </td>
         </tr>
         </table>
@@ -187,7 +187,7 @@ function buildWelcomeEmail(name: string, familyName: string, appUrl: string): st
           </td>
           <td style="padding-left:12px;color:#c8cdd8;font-size:14px;line-height:1.6;">
             <strong style="color:#f0f2f8;">Write a quick journal entry</strong><br>
-            Even one sentence &mdash; future you will love looking back at it
+            Even one sentence. Future you will love looking back at it.
           </td>
         </tr>
         </table>
@@ -207,14 +207,14 @@ function buildWelcomeEmail(name: string, familyName: string, appUrl: string): st
   <!-- Footer -->
   <tr><td style="padding:28px 20px;text-align:center;">
     <p style="margin:0 0 6px;color:#5a6278;font-size:13px;">
-      Got a feature idea? Just reply &mdash; I read every one.
+      Got a feature idea? Just reply. I read every one.
     </p>
     <p style="margin:0 0 4px;color:#5a6278;font-size:13px;">
       Welcome to the Family Nest family &#128155;
     </p>
     <p style="margin:0;color:#3d4560;font-size:11px;">
       <a href="${appUrl}/dashboard/settings" style="color:#4a5068;text-decoration:underline;">Manage notifications</a>
-      &ensp;&middot;&ensp;Family Nest &mdash; rob@familynest.io
+      &ensp;&middot;&ensp;Family Nest &middot; rob@familynest.io
     </p>
   </td></tr>
 
