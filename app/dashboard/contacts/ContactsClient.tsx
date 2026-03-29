@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { addContact, updateContact, deleteContact } from "./actions";
 
@@ -377,16 +378,24 @@ export function ContactsClient({ contacts: initialContacts }: { contacts: Contac
               Share moments with them without giving them an account.
             </p>
           </div>
-          {!showAddForm && (
-            <button
-              type="button"
-              onClick={() => setShowAddForm(true)}
-              className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-foreground)] hover:opacity-90 transition-opacity"
+          <div className="flex shrink-0 items-center gap-2 flex-wrap justify-end">
+            <Link
+              href="/dashboard/contacts/digest"
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] transition-colors"
             >
-              <PlusIcon className="h-4 w-4" />
-              Add contact
-            </button>
-          )}
+              Send a family update →
+            </Link>
+            {!showAddForm && (
+              <button
+                type="button"
+                onClick={() => setShowAddForm(true)}
+                className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-foreground)] hover:opacity-90 transition-opacity"
+              >
+                <PlusIcon className="h-4 w-4" />
+                Add contact
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

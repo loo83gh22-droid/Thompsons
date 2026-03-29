@@ -444,6 +444,14 @@ export function Nav({
                     Family Contacts
                   </Link>
                   <Link
+                    href="/dashboard/contacts/digest"
+                    role="menuitem"
+                    className="block px-4 py-3 text-left text-sm text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] focus:bg-[var(--surface-hover)]"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Send a Family Update
+                  </Link>
+                  <Link
                     href="/pricing"
                     role="menuitem"
                     className="block px-4 py-3 text-left text-sm text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] focus:bg-[var(--surface-hover)]"
@@ -636,6 +644,13 @@ export function Nav({
                 onClick={closeMobileMenu}
               >
                 Family Contacts
+              </Link>
+              <Link
+                href="/dashboard/contacts/digest"
+                className="block w-full rounded-lg px-4 py-3 text-left text-sm font-medium text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] min-h-[44px] flex items-center"
+                onClick={closeMobileMenu}
+              >
+                Send a Family Update
               </Link>
               <Link
                 href="/pricing"

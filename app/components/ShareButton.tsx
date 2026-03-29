@@ -70,7 +70,7 @@ export function ShareButton({
 }: {
   isPublic: boolean;
   shareToken: string | null;
-  shareType: "story" | "recipe" | "artwork";
+  shareType: "story" | "recipe" | "artwork" | "journal" | "memo";
   title?: string;
   onToggle: () => Promise<{ shareToken: string | null; isPublic: boolean }>;
   contacts?: { id: string; name: string; email: string | null; relationship: string | null }[];

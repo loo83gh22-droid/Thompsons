@@ -23,7 +23,7 @@ export default async function VoiceMemosPage() {
     .single();
   const planType = (familyPlan?.plan_type as "free" | "annual" | "legacy") ?? "free";
 
-  const [memosRes, membersRes, myMemberRes] = await Promise.all([
+  const [memosRes, membersRes, myMemberRes, contactsRes] = await Promise.all([
     supabase
       .from("voice_memos")
       .select(`
@@ -40,6 +40,8 @@ export default async function VoiceMemosPage() {
         transcript,
         transcription_status,
         transcribed_at,
+        is_public,
+        share_token,
         recorded_by:family_members!family_member_id(name, nickname, relationship),
         recorded_for:family_members!recorded_for_id(name, nickname, relationship)
       `)
@@ -59,11 +61,17 @@ export default async function VoiceMemosPage() {
           .eq("user_id", user.id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
+    supabase
+      .from("family_contacts")
+      .select("id, name, email, relationship")
+      .eq("family_id", activeFamilyId)
+      .order("name"),
   ]);
 
   const memos = memosRes.data ?? [];
   const members = (membersRes.data ?? []) as { id: string; name: string; nickname: string | null; relationship: string | null }[];
   const myMemberId = myMemberRes.data?.id ?? null;
+  const contacts = (contactsRes.data ?? []) as { id: string; name: string; email: string | null; relationship: string | null }[];
 
   return (
     <div>
@@ -87,7 +95,7 @@ export default async function VoiceMemosPage() {
         </div>
       </div>
 
-      <VoiceMemoList memos={memos} currentUserMemberId={myMemberId} members={members} />
+      <VoiceMemoList memos={memos} currentUserMemberId={myMemberId} members={members} contacts={contacts} />
     </div>
   );
 }

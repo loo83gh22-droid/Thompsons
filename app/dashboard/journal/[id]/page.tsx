@@ -7,6 +7,8 @@ import { JournalPhotoGallery } from "../JournalPhotoGallery";
 import { JournalPerspectives } from "../JournalPerspectives";
 import { DeleteJournalEntryButton } from "../DeleteJournalEntryButton";
 import { ShareToNestButton } from "../ShareToNestButton";
+import { ShareButton } from "@/app/components/ShareButton";
+import { toggleJournalShare } from "../share-actions";
 
 export const metadata = { title: "Journal Entry | Family Nest" };
 
@@ -26,7 +28,7 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ i
         .single()
     : { data: null };
 
-  const [entryRes, photosRes, videosRes] = await Promise.all([
+  const [entryRes, photosRes, videosRes, contactsRes] = await Promise.all([
     supabase
       .from("journal_entries")
       .select(`
@@ -39,6 +41,8 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ i
         created_at,
         author_id,
         created_by,
+        is_public,
+        share_token,
         family_members!author_id(name, nickname, relationship)
       `)
       .eq("id", id)
@@ -54,6 +58,11 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ i
       .select("id, url, duration_seconds")
       .eq("entry_id", id)
       .order("sort_order"),
+    supabase
+      .from("family_contacts")
+      .select("id, name, email, relationship")
+      .eq("family_id", activeFamilyId)
+      .order("name"),
   ]);
 
   if (!entryRes.data) notFound();
@@ -61,6 +70,7 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ i
   const entry = entryRes.data;
   const photos = photosRes.data ?? [];
   const videos = videosRes.data ?? [];
+  const contacts = contactsRes.data ?? [];
 
   const isOwner = myMember?.role === "owner";
   const isCreator = entry.created_by
@@ -125,6 +135,14 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ i
 
       <div className="mt-8 flex flex-wrap gap-2">
         <ShareToNestButton entryId={id} entryTitle={entry.title ?? "this entry"} />
+        <ShareButton
+          isPublic={entry.is_public ?? false}
+          shareToken={entry.share_token ?? null}
+          shareType="journal"
+          title={entry.title ?? undefined}
+          onToggle={() => toggleJournalShare(id)}
+          contacts={contacts}
+        />
         {canEdit && (
           <>
             <Link
