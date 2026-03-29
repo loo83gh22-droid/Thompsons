@@ -68,10 +68,10 @@ export function FounderNoteModal() {
 
         <div className="space-y-3 text-sm text-[var(--foreground)] leading-relaxed">
           <p>
-            Hey — I just wanted to say thank you, genuinely, for signing up.
+            Hey, I just wanted to say thank you, genuinely, for signing up.
           </p>
           <p>
-            Family Nest started because I wanted a better way to hold onto the stuff that matters. Not social media, not just a photo album. Something that actually captures <em>your</em> family&apos;s story — the funny quotes, the recipes, the seasons, the people.
+            Family Nest started because I wanted a better way to hold onto the stuff that matters. Not social media, not just a photo album. Something that actually captures <em>your</em> family&apos;s story. The funny quotes, the recipes, the seasons, the people.
           </p>
           <p>
             I&apos;d love to know what brought you here. One honest reply helps me build something that&apos;s actually useful. What made you sign up?

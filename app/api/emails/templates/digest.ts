@@ -69,7 +69,7 @@ export function digestEmailHtml(data: DigestData): string {
   if (upcomingBirthdays.length > 0) {
     const rows = upcomingBirthdays.map((b) => {
       const when = b.daysUntil === 0 ? "Today!" : b.daysUntil === 1 ? "Tomorrow" : `In ${b.daysUntil} days`;
-      const age = b.turningAge ? ` &mdash; turning ${b.turningAge}` : "";
+      const age = b.turningAge ? `, turning ${b.turningAge}` : "";
       return `<li style="margin:0 0 6px;font-size:14px;color:#f1f5f9;">
         <span style="font-size:16px;">🎂</span>
         <strong>${esc(b.name)}</strong>${age}
@@ -118,7 +118,7 @@ export function digestEmailHtml(data: DigestData): string {
 ${card(`
   <h1 style="margin:0 0 4px;font-size:20px;font-weight:700;color:#f8fafc;">This week in your family</h1>
   <p style="margin:0 0 6px;color:#94a3b8;font-size:13px;">${esc(weekStart)} &ndash; ${esc(weekEnd)}</p>
-  <p style="margin:0 0 0;color:#64748b;font-size:14px;">Hi ${esc(recipientName)} &mdash; here&apos;s what everyone&apos;s been up to.</p>
+  <p style="margin:0 0 0;color:#64748b;font-size:14px;">Hi ${esc(recipientName)}, here&apos;s what everyone&apos;s been up to.</p>
   <table width="100%" cellpadding="0" cellspacing="0">
     ${emptyHtml}
     ${sectionsHtml}
