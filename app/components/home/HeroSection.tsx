@@ -22,13 +22,13 @@ export function HeroSection() {
                   textWrap: "balance",
                 }}
               >
-                The good stuff deserves more than a group chat and a camera roll
+                Your kid just said something you&apos;ll forget by Thursday.
               </h1>
               <p
                 className="max-w-lg text-lg leading-relaxed"
                 style={{ color: "var(--muted)" }}
               >
-                Whether it's just the two of you or the whole crew — one private place for your photos, journals, recipes, and voice memos. No ads. No algorithms. Just yours.
+                Family Nest is a private space for the people you come home to. Journals, voice memos, letters, recipes, traditions. No ads. No algorithm. No performing for an audience.
               </p>
             </div>
 

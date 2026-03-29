@@ -459,36 +459,6 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
 
   // Planning & Events
   {
-    slug: "reunion-planner",
-    name: "Reunion Planner",
-    description: "Coordinate dates, RSVPs, and who's bringing what for your next family gathering.",
-    category: "planning",
-    icon: "\u{1F389}",
-    href: "/dashboard/tools/reunion-planner",
-    available: true,
-    navGroup: "organise",
-    highlights: [
-      "Coordinate dates and who can make it",
-      "Track who's bringing what",
-      "Plan the whole gathering in one organized place",
-    ],
-  },
-  {
-    slug: "gift-exchange",
-    name: "Gift Exchange",
-    description: "Secret Santa draws, wishlists, and budget tracking for the holidays.",
-    category: "planning",
-    icon: "\u{1F381}",
-    href: "/dashboard/tools/gift-exchange",
-    available: true,
-    navGroup: "organise",
-    highlights: [
-      "Run a Secret Santa draw right in the app",
-      "Everyone adds to their own wishlist",
-      "Set budgets and track who has who",
-    ],
-  },
-  {
     slug: "trip-planner",
     name: "Trip Planner",
     description: "Build itineraries, packing lists, and coordinate travel logistics together.",

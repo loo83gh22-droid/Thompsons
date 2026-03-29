@@ -20,9 +20,7 @@ export function FinalCTA() {
             className="mb-10 text-lg leading-relaxed"
             style={{ color: "var(--muted)" }}
           >
-            It takes 30 seconds to set up. Whether it&apos;s just the two of you or three
-            generations deep, everyone belongs. Already been invited? Just sign
-            up and you&apos;ll find your Nest waiting for you.
+            Thirty seconds to set up. Start with the people in your home. Everything else can come later. Already been invited? Sign up and you&apos;ll find your Nest waiting.
           </p>
 
           <div className="flex flex-col items-center gap-4">

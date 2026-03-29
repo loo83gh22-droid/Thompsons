@@ -3,35 +3,35 @@ import Link from "next/link";
 
 const personas = [
   {
-    icon: Users,
-    label: "For couples",
-    headline: "Your private story, not a public highlight reel",
+    icon: Heart,
+    label: "For parents",
+    headline: "They grow up faster than you think. Write it down.",
     description:
-      "Document date nights, trips, inside jokes, and the little moments that make you you. Build a shared recipe book. Seal time capsules for your anniversary. When your family grows, everything\u2019s already here.",
+      "The funny things they say at dinner. The first time they did something brave. The stuff you swore you'd remember. You won't. But your nest will.",
     cta: { text: "Start free", href: "/login?mode=signup" },
   },
   {
-    icon: Heart,
-    label: "For grandparents",
-    headline: "See your grandkids without social media",
+    icon: Users,
+    label: "For couples",
+    headline: "Your story started before the kids.",
     description:
-      "Big buttons, no confusing feeds, and a morning coffee ritual you\u2019ll look forward to. If you can check email, you can use the Nest.",
+      "Document it like it matters. Because it does. Date nights, trips, inside jokes, the apartment before the house. All of it belongs somewhere.",
     cta: { text: "Start free", href: "/login?mode=signup" },
   },
   {
     icon: Camera,
-    label: "For parents",
-    headline: "Stop being the family archivist",
+    label: "For growing families",
+    headline: "More people, more memories, one place.",
     description:
-      "Everyone contributes on their own terms. Dad posts from the fishing trip, the kids add a silly video, Grandma shares her recipes.",
+      "Everyone adds what they can, when they can. Nobody has to be the family archivist. The nest fills itself.",
     cta: { text: "Start free", href: "/login?mode=signup" },
   },
   {
     icon: Gift,
-    label: "For gift\u2011givers",
-    headline: "Give something they\u2019ll keep forever",
+    label: "For gift-givers",
+    headline: "Better than a candle. We're allowed to say that.",
     description:
-      "Set up a Nest, upload some family photos, wrap the login on a card. One-time purchase. No subscription for them to manage.",
+      "Set up a Nest, add some photos, wrap the login on a card. One-time purchase. No subscription for them to manage. The Legacy plan is built for this.",
     cta: { text: "See the gift plan", href: "/gift" },
   },
 ];
@@ -55,7 +55,7 @@ export function PersonaSection() {
               textWrap: "balance",
             }}
           >
-            Not social media. Not a photo dump. Just your family&apos;s stuff, all in one place.
+            Not social media. Not a photo dump. Just your family&apos;s stuff.
           </h2>
         </div>
 

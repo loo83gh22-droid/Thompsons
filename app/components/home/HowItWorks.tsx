@@ -6,21 +6,21 @@ const steps = [
     number: "1",
     title: "Create your Nest",
     description:
-      "Sign up in 30 seconds. Name your family space and pick a plan (free works great to start).",
+      "Takes 30 seconds. Name it, pick how it looks, and you're in. No credit card required to start.",
   },
   {
     icon: Send,
     number: "2",
-    title: "Invite your family",
+    title: "Add the people in your home",
     description:
-      "Send invites to your partner, your parents, the grandparents, or keep it just the two of you. They join with one click and can save it to their home screen. No app store needed.",
+      "Your partner, your kids. That's your nest. Extended family can get updates without needing an account — more on that in a second.",
   },
   {
     icon: Heart,
     number: "3",
-    title: "Start preserving together",
+    title: "Start writing. Seriously, just start.",
     description:
-      "Everyone adds their own memories. You don't have to do it all. When Dad posts from the fishing trip or Grandma shares a recipe, the Nest fills itself.",
+      "One journal entry. One voice memo. One sentence. Future you will be embarrassingly grateful.",
   },
 ];
 
@@ -43,7 +43,7 @@ export function HowItWorks() {
               textWrap: "balance",
             }}
           >
-            Up and running in minutes, not hours
+            Up and running before your coffee gets cold
           </h2>
         </div>
 
@@ -81,9 +81,7 @@ export function HowItWorks() {
         </div>
 
         <p className="mt-10 text-center text-sm" style={{ color: "var(--muted)" }}>
-          Just the two of you? That counts. A family of twenty? Also counts.
-          <br />
-          You can belong to multiple nests, one for each side of the family.
+          Start with your household. Expand if you want. Keep it yours either way.
         </p>
       </div>
     </section>

@@ -31,6 +31,14 @@ const faqStructuredData = {
     },
     {
       "@type": "Question",
+      name: "How do extended family stay in the loop?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Add them as contacts and send a digest. They get a beautiful email with what you choose to share. No account needed, no algorithm, no Aunt Linda commenting on everything. Your nest stays yours.",
+      },
+    },
+    {
+      "@type": "Question",
       name: "What happens if I stop paying?",
       acceptedAnswer: {
         "@type": "Answer",
@@ -39,18 +47,10 @@ const faqStructuredData = {
     },
     {
       "@type": "Question",
-      name: "Can I be in more than one family?",
+      name: "Can I be in more than one nest?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes! This is one of the most popular features for grandparents. If your son starts a Nest and your daughter starts a different one, you can be a member of both. You only need one account, no matter how many families you belong to.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "I'm a grandparent. Is this easy enough for me?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Absolutely. We designed Family Nest with grandparents in mind from day one. Big buttons, clear labels, and no confusing settings. If you can check email, you can use the Nest.",
+        text: "Yes. If you are part of two households, you can be a member of both with one account. Switch between them from the dashboard. No duplicate accounts needed.",
       },
     },
     {
@@ -111,7 +111,7 @@ const softwareStructuredData = {
   applicationCategory: "LifestyleApplication",
   operatingSystem: "Web",
   description:
-    "A private space for families to document their lives together. Journals, photos, videos, voice memos, and more. Not social media. A family heirloom.",
+    "A private space for your household. Journals, photos, voice memos, letters, and everything else that deserves better than a camera roll.",
   offers: [
     {
       "@type": "Offer",
