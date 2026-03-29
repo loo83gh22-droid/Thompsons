@@ -22,7 +22,7 @@ export function HeroSection() {
                   textWrap: "balance",
                 }}
               >
-                Your kid just said something you&apos;ll forget by Thursday.
+                Your family&apos;s story deserves better than a camera roll.
               </h1>
               <p
                 className="max-w-lg text-lg leading-relaxed"
