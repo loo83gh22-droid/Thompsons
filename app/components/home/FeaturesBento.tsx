@@ -457,7 +457,7 @@ export function FeaturesBento() {
       icon: Mic,
       title: "Voice Memos",
       description:
-        "Record grandma's stories, a toddler's first words, or that bedtime song everyone knows by heart. Some voices you never want to forget.",
+        "Mom singing bedtime songs. The kids' favourite sayings before they outgrow them. Voices you will want to hear again someday.",
       Preview: VoiceMemoPreview,
     },
     {
