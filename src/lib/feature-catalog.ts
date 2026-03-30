@@ -99,16 +99,16 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
   {
     slug: "voice-memos",
     name: "Voice Memos",
-    description: "Record voices, laughter, and stories. The sounds your family will want to hear again someday.",
+    description: "Record mom singing the bedtime song. Capture what the kids sound like right now. The sounds your family will want to hear again someday.",
     category: "memories",
     icon: "\u{1F3A4}",
     href: "/dashboard/voice-memos",
     available: true,
     navGroup: "memories",
     highlights: [
-      "Record voices, songs, and stories directly in the app",
-      "Listen back months or years later",
-      "Capture laughs, accents, and things words can't describe",
+      "Record bedtime songs, favourite sayings, and stories in the moment",
+      "Capture voices exactly as they sound right now",
+      "Laughs, accents, the things words alone can't hold",
     ],
   },
   {

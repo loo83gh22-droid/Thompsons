@@ -42,26 +42,27 @@ export function EmotionalSection() {
             style={{ color: "var(--primary-foreground)", opacity: 0.8 }}
           >
             <p>
-              I never kept a journal. Too clunky, no pictures, and the second
-              you miss a week it starts to feel like homework.
+              I&apos;m not a journaler. Never have been. Too much setup, not
+              enough payoff, and the second you fall behind it starts to feel
+              like homework.
             </p>
             <p>
-              But I wanted to remember things. My wife sings a song to our boys
-              every night before bed. My grandfather recorded himself reading
-              The Night Before Christmas every single year. My dad and I have been
-              chasing MLB stadiums together for years. My kids say things every
-              week I don&apos;t want to forget. I always wanted a map of
-              everywhere our family has ever lived, traveled, or called home.
+              But there were things I didn&apos;t want to lose. Jodi sings a
+              song to the boys every night before bed. My grandfather recorded
+              himself reading The Night Before Christmas, same voice, every
+              single year. My dad and I have been chasing MLB stadiums together
+              for as long as I can remember. My kids say things at dinner I
+              swear I&apos;ll remember. I don&apos;t. I also always wanted a
+              map of everywhere our family has lived, traveled, and called home.
             </p>
             <p>
-              None of it had a place to live. Group chats bury everything.
-              Facebook isn&apos;t private. Apple Maps connects your photos to a
-              map but your whole family can&apos;t build it together. A poster
-              on the wall is great until you want to share it.
+              None of it had one place to live. Group chats bury it.
+              Facebook isn&apos;t private. Individual apps do one thing.
+              Nothing held all of it together, for just us, without an audience.
             </p>
             <p>
-              So I started building something. First as a family gift. Then I
-              realized other families probably wanted the same thing.
+              So I built it. First for my own family. Then realized it
+              wasn&apos;t just us.
             </p>
           </div>
 
