@@ -70,7 +70,7 @@ export default async function LettersPage() {
 
   const { data: currentMember } = await supabase
     .from("family_members")
-    .select("id, name")
+    .select("id, name, role")
     .eq("family_id", activeFamilyId)
     .eq("user_id", user.id)
     .single();
@@ -83,8 +83,15 @@ export default async function LettersPage() {
 
   const letters = (rawLetters ?? []) as unknown as Letter[];
 
+  const isAdult = currentMember?.role === 'owner' || currentMember?.role === 'adult';
+
+  // Adults see all letters. Children/teens see only letters addressed to them.
   const writtenByMe = letters.filter((l) => l.from_member_id === currentMember?.id);
-  const writtenToMe = letters.filter((l) => l.to_member_id === currentMember?.id);
+  const writtenToMe = letters.filter((l) => l.to_member_id === currentMember?.id && l.from_member_id !== currentMember?.id);
+  // Adults also see all letters written to children in the household
+  const writtenToKids = isAdult
+    ? letters.filter((l) => l.from_member_id !== currentMember?.id && l.to_member_id !== currentMember?.id)
+    : [];
 
   return (
     <div className="max-w-2xl">
@@ -155,6 +162,20 @@ export default async function LettersPage() {
               <div className="space-y-3">
                 {writtenToMe.map((l) => (
                   <LetterCard key={l.id} letter={l} showTo={false} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Written to the kids — adults only */}
+          {isAdult && writtenToKids.length > 0 && (
+            <section>
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-[var(--muted)]">
+                Written to the kids
+              </h2>
+              <div className="space-y-3">
+                {writtenToKids.map((l) => (
+                  <LetterCard key={l.id} letter={l} showTo={true} />
                 ))}
               </div>
             </section>

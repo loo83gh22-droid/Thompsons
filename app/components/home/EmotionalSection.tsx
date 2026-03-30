@@ -10,9 +10,9 @@ const trustBadges = [
 const differentiators = [
   { icon: Ban, label: "We don't show ads. Ever. Not even tasteful ones." },
   { icon: EyeOff, label: "We don't sell your data. We don't 'anonymize' it and sell it. We don't even look at it. It's yours. We're serious." },
-  { icon: ShieldCheck, label: "No algorithm deciding which grandchild you see more of." },
+  { icon: ShieldCheck, label: "No algorithm. No ads. No one deciding what your family sees." },
   { icon: Infinity, label: "Permanent, not disappearing stories" },
-  { icon: Users, label: "Multi-generational. Designed to be passed down." },
+  { icon: Users, label: "Built for your household first. Share outward on your terms." },
 ];
 
 export function EmotionalSection() {

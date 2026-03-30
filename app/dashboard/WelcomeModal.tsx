@@ -148,10 +148,10 @@ export function WelcomeModal({
           <div className="p-6 sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">Step 1 of 3</p>
             <h1 id="welcome-title" className="mt-2 font-display text-2xl font-bold text-[var(--foreground)] sm:text-3xl">
-              Welcome to {familyName} Nest 👋
+              Make it feel like home.
             </h1>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              First things first — pick a look. You can always change this later in Settings.
+              Pick a look for your nest. You can always change it later.
             </p>
 
             {/* Theme grid */}
@@ -282,6 +282,14 @@ export function WelcomeModal({
             >
               Write my first memory →
             </Link>
+
+            <p className="text-center text-xs text-[var(--muted)] mt-3">
+              Or{" "}
+              <Link href="/dashboard/letters/new" onClick={handleClose} className="text-[var(--accent)] hover:underline font-medium">
+                write a letter to someone in your nest
+              </Link>
+              {" "}— the kind they&apos;ll read someday.
+            </p>
 
             <div className="mt-3 flex gap-2">
               <button
