@@ -130,7 +130,7 @@ export function MakeItYours() {
               className="text-center text-xs"
               style={{ color: "var(--muted)" }}
             >
-              + Traditions, Emergency Info, Reunion Planner, and more on the way
+              + Traditions, Emergency Info, and more on the way
             </p>
           </div>
         </div>

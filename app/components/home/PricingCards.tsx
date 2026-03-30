@@ -29,8 +29,8 @@ const plans: PlanEntry[] = [
   },
   {
     name: "The Full Nest",
-    price: "$49",
-    period: "/yr",
+    price: "$6.99",
+    period: "/month",
     description: "For families ready to go all in",
     features: [
       "Unlimited entries",

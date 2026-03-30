@@ -238,14 +238,14 @@ function TreePreview() {
 function VoiceMemoPreview() {
   const memos = [
     {
-      name: "Grandma's story",
+      name: "Gramps reads The Night Before Christmas",
       duration: "3:42",
       color: "#4d9e87",
       played: 11,
       bars: [2, 5, 8, 4, 9, 6, 3, 7, 5, 8, 4, 6, 7, 3, 8, 5, 4, 9, 6, 4],
     },
     {
-      name: "First words",
+      name: "The boys sing Happy Birthday to Mom",
       duration: "0:18",
       color: "#c47c3a",
       played: 5,
@@ -357,10 +357,10 @@ function TimeCapsulePreview() {
 
       <div style={{ marginTop: 10 }}>
         <p className="text-[12px] font-bold leading-tight" style={{ color: "#3d2800", fontFamily: "var(--font-display-serif)" }}>
-          Letter to future Emma
+          For Jamie, when the time is right
         </p>
         <p className="mt-0.5 text-[9px]" style={{ color: "#9a7040" }}>
-          from Mom · sealed with love
+          from your husband · sealed with love
         </p>
       </div>
       <div
@@ -464,7 +464,7 @@ export function FeaturesBento() {
       icon: Lock,
       title: "Time Capsules",
       description:
-        "Write a letter to your future self or your kids. Seal it, set an unlock date, and try not to peek.",
+        "Write a letter to your future self, your kids, or your partner. Seal it, set an unlock date, and try not to peek.",
       Preview: TimeCapsulePreview,
     },
     {
