@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Check, Gift, Heart, Shield, Infinity, HardDrive, Download } from "lucide-react";
 import { Navbar } from "@/app/components/home/Navbar";
 import { Footer } from "@/app/components/home/Footer";
+import { FoundingRateCountdown } from "@/app/components/home/FoundingRateCountdown";
 
 const occasions = [
   { emoji: "🌸", label: "Mother's Day" },
@@ -15,7 +16,7 @@ const occasions = [
 
 const legacyFeatures = [
   { icon: Infinity, text: "Lifetime access. Pay once, keep it forever" },
-  { icon: HardDrive, text: "50 GB storage for photos, videos, and voice memos" },
+  { icon: HardDrive, text: "10 GB storage included, add more anytime" },
   { icon: Gift, text: "Pass it down. Transfer ownership to the next generation" },
   { icon: Download, text: "Full data export. Always own your family's memories" },
   { icon: Heart, text: "Everything in The Full Nest, forever" },
@@ -58,7 +59,7 @@ export default function GiftPage() {
               style={{ backgroundColor: "rgba(61,107,94,0.1)", color: "var(--primary)" }}
             >
               <Gift className="h-4 w-4" />
-              The gift they&apos;ll keep forever
+              Mother&apos;s Day is May 10. 45 days away.
             </div>
 
             <h1
@@ -69,21 +70,32 @@ export default function GiftPage() {
                 textWrap: "balance",
               }}
             >
-              Give your family a place to keep their story
+              The best gift for mum is the one the whole family keeps.
             </h1>
 
             <p
               className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed"
               style={{ color: "var(--muted)" }}
             >
-              The Legacy plan is a one-time gift that lasts generations. Lifetime access, 50 GB of
-              storage, and a private space where grandparents, parents, and kids all come together.
-              No subscription. No renewal. Theirs forever.
+              The Legacy plan is a one-time gift your family keeps forever. Lifetime access. A private nest for journals, voice memos, photos, and everything worth holding onto. Wrap the login on a card.
             </p>
 
-            <div className="flex flex-col items-center gap-4">
+            {/* Founding rate callout */}
+            <div className="mt-8 rounded-2xl border-2 p-6 text-center" style={{ borderColor: "var(--accent)", backgroundColor: "rgba(61,107,94,0.06)" }}>
+              <p className="text-sm font-semibold uppercase tracking-widest" style={{ color: "var(--accent)" }}>Founding Family Rate</p>
+              <div className="mt-2 flex items-baseline justify-center gap-3">
+                <span className="font-display text-5xl font-bold" style={{ color: "var(--foreground)" }}>$249</span>
+                <span className="text-xl line-through" style={{ color: "var(--muted)" }}>$349</span>
+              </div>
+              <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>One time. No subscription ever. Goes to $349 after Mother&apos;s Day.</p>
+              <div className="mt-2">
+                <FoundingRateCountdown />
+              </div>
+            </div>
+
+            <div className="mt-8 flex flex-col items-center gap-4">
               <Link
-                href="/login?mode=signup"
+                href="/login?mode=signup&plan=legacy_founding"
                 className="inline-flex items-center justify-center gap-2 rounded-full px-10 py-4 text-base font-semibold shadow-lg transition-all duration-200 hover:brightness-110 hover:shadow-xl hover:-translate-y-0.5"
                 style={{ backgroundColor: "var(--accent)", color: "#fff" }}
               >
@@ -91,7 +103,7 @@ export default function GiftPage() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <p className="text-sm" style={{ color: "var(--muted)" }}>
-                $349 one-time &middot; No subscription &middot; Theirs for life
+                $249 one-time &middot; No subscription &middot; Theirs for life
               </p>
             </div>
           </div>
@@ -288,7 +300,7 @@ export default function GiftPage() {
                 ))}
               </ul>
               <Link
-                href="/login?mode=signup"
+                href="/login?mode=signup&plan=legacy_founding"
                 className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold shadow-md transition-all duration-200 hover:brightness-110 hover:shadow-lg hover:-translate-y-0.5"
                 style={{ backgroundColor: "var(--accent)", color: "#fff" }}
               >
@@ -309,7 +321,7 @@ export default function GiftPage() {
                 className="underline underline-offset-4"
                 style={{ color: "var(--primary)" }}
               >
-                The Full Nest at $79/year
+                The Full Nest at $49/year
               </Link>
               . Upgrade anytime.
             </p>
