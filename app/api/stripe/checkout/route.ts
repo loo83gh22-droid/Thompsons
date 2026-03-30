@@ -14,6 +14,7 @@ const VALID_PLANS: CheckoutPlan[] = [
   "annual",
   "annual_founding",
   "legacy",
+  "legacy_founding",
   "storage_25gb",
   "storage_75gb",
   "storage_150gb",
@@ -114,13 +115,16 @@ export async function POST(request: Request) {
         ? `https://${process.env.VERCEL_URL}`
         : "http://localhost:3000");
 
-    const isOneTime = plan === "legacy";
+    const isOneTime = plan === "legacy" || plan === "legacy_founding";
     const addonConfig = isStorageAddon(plan)
       ? STORAGE_ADDON_CONFIGS[plan]
       : null;
 
     // annual_founding maps to "annual" in metadata so the webhook treats it identically
-    const effectivePlan = plan === "annual_founding" ? "annual" : plan;
+    // legacy_founding maps to "legacy" in metadata so the webhook treats it identically
+    const effectivePlan = plan === "annual_founding" ? "annual"
+      : plan === "legacy_founding" ? "legacy"
+      : plan;
 
     // Shared metadata for all plan types
     const sharedMeta: Record<string, string> = {

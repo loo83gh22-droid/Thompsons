@@ -5,7 +5,7 @@ import { UpgradeButton } from "./UpgradeButton";
 
 const FEATURES = [
   "Everything in Free, unlimited members",
-  "20 GB storage (photos + videos)",
+  "5 GB storage included (add more anytime)",
   "2 videos per journal entry",
   "Full data export (archive download)",
   "Nest Keeper designation",
@@ -58,7 +58,7 @@ export function FullNestCard() {
       <div className="mt-5 flex items-baseline gap-1">
         {isMonthly ? (
           <>
-            <span className="font-display text-5xl font-bold text-[var(--accent)]">$9.99</span>
+            <span className="font-display text-5xl font-bold text-[var(--accent)]">$6.99</span>
             <span className="text-base text-[var(--muted)]">/month</span>
           </>
         ) : (
@@ -72,11 +72,11 @@ export function FullNestCard() {
       {/* Price context */}
       <p className="mt-1.5 text-sm font-medium text-[var(--muted)]">
         {isMonthly ? (
-          <>Annual saves 59% &mdash; just $4.08/month</>
+          <>Switch to annual and save 42%. Just $4.08/month.</>
         ) : (
           <>
             <span className="line-through opacity-60">$79/year</span>
-            {" "}founding member rate &mdash; 4¢ a day
+            {" "}founding member rate - 4¢ a day
           </>
         )}
       </p>

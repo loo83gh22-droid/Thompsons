@@ -28,6 +28,7 @@ export const stripe = new Proxy({} as Stripe, {
  * STRIPE_PRICE_ANNUAL          -> $79/year recurring price (standard)
  * STRIPE_PRICE_ANNUAL_FOUNDING -> $49/year recurring price (founding member rate)
  * STRIPE_PRICE_LEGACY          -> $349 one-time price
+ * STRIPE_PRICE_LEGACY_FOUNDING -> $249 one-time price (founding family rate, expires Mother's Day 2026)
  * STRIPE_PRICE_STORAGE_25      -> $9/year recurring (+25 GB add-on)
  * STRIPE_PRICE_STORAGE_75      -> $24/year recurring (+75 GB add-on)
  * STRIPE_PRICE_STORAGE_150     -> $49/year recurring (+150 GB add-on)
@@ -37,6 +38,8 @@ export const STRIPE_PRICES = {
   annual:          process.env.STRIPE_PRICE_ANNUAL          ?? "",
   annual_founding: process.env.STRIPE_PRICE_ANNUAL_FOUNDING ?? "",
   legacy:          process.env.STRIPE_PRICE_LEGACY          ?? "",
+  // STRIPE_PRICE_LEGACY_FOUNDING -> $249 one-time price (founding family rate, expires Mother's Day 2026)
+  legacy_founding: process.env.STRIPE_PRICE_LEGACY_FOUNDING ?? "",
   storage_25gb:    process.env.STRIPE_PRICE_STORAGE_25      ?? "",
   storage_75gb:    process.env.STRIPE_PRICE_STORAGE_75      ?? "",
   storage_150gb:   process.env.STRIPE_PRICE_STORAGE_150     ?? "",
@@ -62,4 +65,4 @@ export const STORAGE_ADDON_CONFIGS = {
 } as const;
 
 export type StorageAddonPlan = keyof typeof STORAGE_ADDON_CONFIGS;
-export type CheckoutPlan = "monthly" | "annual" | "annual_founding" | "legacy" | StorageAddonPlan;
+export type CheckoutPlan = "monthly" | "annual" | "annual_founding" | "legacy" | "legacy_founding" | StorageAddonPlan;

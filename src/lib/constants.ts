@@ -45,7 +45,7 @@ export const PLAN_LIMITS = {
     mapLocations: null,
     videosPerEntry: 2,
     maxMembers: null, // unlimited
-    storageLimitBytes: 21474836480, // 20 GB
+    storageLimitBytes: 5368709120, // 5 GB
     nestKeeperManagement: true,
     successionProtocol: false,
   },
@@ -60,7 +60,7 @@ export const PLAN_LIMITS = {
     mapLocations: null,
     videosPerEntry: 2,
     maxMembers: null, // unlimited
-    storageLimitBytes: 21474836480, // 20 GB
+    storageLimitBytes: 5368709120, // 5 GB
     /** Annual plans can designate a Nest Keeper */
     nestKeeperManagement: true,
     /** Inactivity succession protocol not available on annual */
@@ -77,7 +77,7 @@ export const PLAN_LIMITS = {
     mapLocations: null,
     videosPerEntry: 2,
     maxMembers: null, // unlimited
-    storageLimitBytes: 53687091200, // 50 GB
+    storageLimitBytes: 10737418240, // 10 GB
     /** Legacy plans can designate a Nest Keeper */
     nestKeeperManagement: true,
     /**

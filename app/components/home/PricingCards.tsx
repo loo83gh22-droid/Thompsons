@@ -1,7 +1,21 @@
 import Link from "next/link";
 import { Check, Lock } from "lucide-react";
+import { FoundingRateCountdown } from "./FoundingRateCountdown";
 
-const plans = [
+type PlanEntry = {
+  name: string;
+  price: string;
+  originalPrice?: string;
+  period: string;
+  description: string;
+  features: string[];
+  cta: string;
+  featured: boolean;
+  ctaStyle: "muted" | "accent" | "primary";
+  note: string | null;
+};
+
+const plans: PlanEntry[] = [
   {
     name: "The Nest",
     price: "Free",
@@ -10,40 +24,41 @@ const plans = [
     features: ["Unlimited journal entries", "500 MB storage", "Family tree", "Map view"],
     cta: "Get Started Free",
     featured: false,
-    ctaStyle: "muted" as "muted" | "accent" | "primary",
-    note: null as string | null,
+    ctaStyle: "muted",
+    note: null,
   },
   {
     name: "The Full Nest",
-    price: "$79",
+    price: "$49",
     period: "/yr",
     description: "For families ready to go all in",
     features: [
       "Unlimited entries",
-      "50 GB storage",
+      "5 GB storage (add more anytime)",
       "Videos & voice memos",
       "All core features",
     ],
     cta: "Start Your Family Nest",
     featured: false,
-    ctaStyle: "accent" as "muted" | "accent" | "primary",
-    note: null as string | null,
+    ctaStyle: "accent",
+    note: null,
   },
   {
     name: "The Legacy",
-    price: "$349",
+    price: "$249",
+    originalPrice: "$349",
     period: " one-time",
-    description: "The most thoughtful gift you\u2019ll give this year.",
+    description: "Founding Family rate. Goes to $349 after Mother\u2019s Day.",
     features: [
       "Lifetime access. No subscription, ever",
-      "50 GB storage",
+      "10 GB storage (add more anytime)",
       "Hand it down to the next generation",
       "Full data export",
       "Everything in Full Nest, forever",
     ],
-    cta: "Give as a Gift ($349)",
+    cta: "Get the Founding Rate ($249)",
     featured: true,
-    ctaStyle: "primary" as "muted" | "accent" | "primary",
+    ctaStyle: "primary",
     note: "Wrap the login on a card. The whole family joins free.",
   },
 ];
@@ -135,10 +150,20 @@ export function PricingCards() {
                 >
                   {plan.price}
                 </span>
+                {plan.originalPrice && (
+                  <span className="ml-2 text-xl line-through" style={{ color: "var(--muted)" }}>
+                    {plan.originalPrice}
+                  </span>
+                )}
                 {plan.period && (
                   <span className="text-sm" style={{ color: "var(--muted)" }}>
                     {plan.period}
                   </span>
+                )}
+                {plan.name === "The Legacy" && (
+                  <div className="mt-2">
+                    <FoundingRateCountdown />
+                  </div>
                 )}
               </div>
 

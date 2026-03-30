@@ -9,7 +9,7 @@ export function UpgradeButton({
   label,
   highlighted,
 }: {
-  plan: "monthly" | "annual" | "annual_founding" | "legacy";
+  plan: "monthly" | "annual" | "annual_founding" | "legacy" | "legacy_founding";
   label: string;
   highlighted: boolean;
 }) {
@@ -30,7 +30,7 @@ export function UpgradeButton({
       if (!res.ok) {
         // If not authenticated, redirect to signup with the base plan
         if (res.status === 401) {
-          const signupPlan = plan === "annual_founding" || plan === "monthly" ? "annual" : plan;
+          const signupPlan = plan === "annual_founding" || plan === "monthly" ? "annual" : plan === "legacy_founding" ? "legacy" : plan;
           window.location.href = `/login?mode=signup&plan=${signupPlan}`;
           return;
         }
