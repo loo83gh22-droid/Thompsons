@@ -28,7 +28,7 @@ ${card(`
   <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;">Hi ${esc(name)},</p>
   <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">Your Family Nest can do so much more than store photos. Here are a few features worth exploring:</p>
   <ul style="margin:0 0 20px;padding-left:20px;color:#94a3b8;font-size:15px;line-height:1.7;">
-    <li><strong style="color:#f8fafc;">Voice Memos</strong> — Record grandparents telling stories</li>
+    <li><strong style="color:#f8fafc;">Voice Memos</strong> — Record mum singing bedtime songs. Capture what the kids sound like right now.</li>
     <li><strong style="color:#f8fafc;">Recipes</strong> — Preserve family recipes with the story behind them</li>
     <li><strong style="color:#f8fafc;">Time Capsules</strong> — Write letters to future family members</li>
     <li><strong style="color:#f8fafc;">Family Map</strong> — Pin your family's important places</li>
@@ -41,11 +41,11 @@ export function day5InviteEmailHtml(name: string): string {
   return emailWrapper(`
 <tr><td style="text-align:center;padding-bottom:24px;"><span style="font-size:48px;">👋</span></td></tr>
 ${card(`
-  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Your family is waiting to join!</h1>
+  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">It's better when everyone's in here</h1>
   <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;">Hi ${esc(name)},</p>
-  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">A Family Nest is so much better when the whole family is involved. Imagine grandparents seeing photos the same day they happen, or cousins sharing memories from across the country.</p>
-  <p style="margin:0 0 20px;color:#94a3b8;font-size:15px;line-height:1.5;">Inviting family takes just 30 seconds — share a link and they're in.</p>
-  ${ctaButton("Invite Your Family", `${appUrl}/dashboard/members`)}
+  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">Your Nest is most powerful when the people you actually live with are in it. Add your partner, your kids. The things you capture together become a record you all share.</p>
+  <p style="margin:0 0 20px;color:#94a3b8;font-size:15px;line-height:1.5;">Takes about 30 seconds. Just add them by name and they get a warm invite.</p>
+  ${ctaButton("Add the people in your home", `${appUrl}/dashboard/our-family`)}
 `)}`);
 }
 
@@ -53,14 +53,13 @@ export function day14UpgradeEmailHtml(name: string): string {
   return emailWrapper(`
 <tr><td style="text-align:center;padding-bottom:24px;"><span style="font-size:48px;">🔓</span></td></tr>
 ${card(`
-  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Ready to unlock unlimited memories?</h1>
+  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Two weeks in. How's the Nest feeling?</h1>
   <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;">Hi ${esc(name)},</p>
-  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">You've been using your Family Nest for two weeks now — that's amazing. The free plan includes all features. The only limits are storage (500 MB) and members (6). If your family is growing or you want to store more photos and videos, here's what's available:</p>
+  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">The free plan gives you access to everything. The only limits are storage (500 MB) and members (6). If you're adding more photos, videos, or voices and want room to grow, here's what's available:</p>
   <ul style="margin:0 0 20px;padding-left:20px;color:#94a3b8;font-size:15px;line-height:1.7;">
-    <li><strong style="color:#f8fafc;">The Full Nest</strong> — $49/year (founding rate) or $9.99/month</li>
-    <li><strong style="color:#f8fafc;">20 GB storage</strong> for photos &amp; videos</li>
-    <li><strong style="color:#f8fafc;">Unlimited family members</strong></li>
-    <li><strong style="color:#f8fafc;">The Legacy</strong> — $349 one-time, 50 GB, lifetime access</li>
+    <li><strong style="color:#f8fafc;">Full Nest</strong> — $6.99/month, 5 GB storage, unlimited members</li>
+    <li><strong style="color:#f8fafc;">Legacy (Founding Rate)</strong> — $249 one-time, 10 GB, lifetime access. Goes to $349 after Mother's Day.</li>
+    <li><strong style="color:#f8fafc;">Storage add-ons</strong> available on any paid plan</li>
   </ul>
   ${ctaButton("See Plans &amp; Pricing", `${appUrl}/pricing`)}
 `)}`);
