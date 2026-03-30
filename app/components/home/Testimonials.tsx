@@ -1,64 +1,28 @@
 'use client';
 
-import { useState, useEffect, useCallback } from "react";
 import { Star } from "lucide-react";
 
 const testimonials = [
   {
     quote:
-      "We started our Nest on our honeymoon. Every trip, every recipe we\u2019ve tried, every dumb inside joke, it\u2019s all in one place. We sealed a time capsule for our fifth anniversary. Way better than scrolling back through 10,000 photos looking for that one night in Portugal.",
-    name: "Sarah & James M.",
-    location: "Denver, CO",
-    role: "Married 3 years",
-    scenario: "Started as Two",
+      "As a mom, it\u2019s everything I want for my kids, saved in one place.",
+    name: "Jodi T.",
+    location: "Kelowna, BC",
+    role: "Mom",
   },
   {
     quote:
-      "I used to be the only one saving photos and writing things down. Now my husband posts from the fishing trip, my mother-in-law shares her recipes, and the kids add their own stuff. I'm not the family archivist anymore.",
-    name: "Jessica W.",
-    location: "Nashville, TN",
-    role: "Mom of three",
-    scenario: "No Longer Doing It Alone",
-  },
-  {
-    quote:
-      "I set up the Nest, uploaded 20 years of our favourite family photos, invited everyone, and wrapped the login on a card. My mom cried. My wife said it was the best gift I'd ever given. It cost less than a large bouquet of flowers.",
+      "I set up the Nest, uploaded 20 years of our favourite family photos, invited everyone, and wrapped the login on a card. My mom cried. My wife said it was the best gift I\u2019d ever given. It cost less than a large bouquet of flowers.",
     name: "Daniel R.",
     location: "Portland, OR",
     role: "Dad & Nest creator",
-    scenario: "The Dad Who Nailed Christmas",
   },
   {
     quote:
-      "I open the Nest with my morning coffee. New photos from the grandkids, a voice memo from my daughter, a recipe someone finally wrote down. No passwords to remember. No confusing feeds. Just my family.",
-    name: "Margaret T.",
-    location: "Columbus, OH",
-    role: "Grandmother of 7",
-    scenario: "The Grandma Test",
-  },
-  {
-    quote:
-      "My grandmother's handwriting was fading on those recipe cards. Now her chicken soup recipe is in the Nest, with a voice memo of her explaining it. That's not just a recipe. That's her voice, saved forever.",
-    name: "Marcus H.",
-    location: "Chicago, IL",
-    role: "Son & family historian",
-    scenario: "The Recipes That Almost Disappeared",
-  },
-  {
-    quote:
-      "We tried a family group chat. Then a shared album. Then nothing stuck. The Nest is the first thing everyone actually uses. Even my dad, who still calls it 'the family website.' He checks it every morning.",
+      "We tried a family group chat. Then a shared album. Then nothing stuck. The Nest is the first thing everyone actually uses. Even my dad, who still calls it \u2018the family website.\u2019 He checks it every morning.",
     name: "Claire & Tom B.",
     location: "Austin, TX",
     role: "Parents of four",
-    scenario: "The Thing That Actually Stuck",
-  },
-  {
-    quote:
-      "My son started a Nest for his family. My daughter started one for hers. I\u2019m in both. I just switch between them. I see my grandkids on both sides, all from one account. No juggling apps or group chats.",
-    name: "Patricia L.",
-    location: "Scottsdale, AZ",
-    role: "Grandparent in two families",
-    scenario: "One Account, Two Families",
   },
 ];
 
@@ -76,23 +40,16 @@ function StarRating() {
   );
 }
 
-function TestimonialCard({
-  item,
-  animating,
-}: {
-  item: (typeof testimonials)[number];
-  animating: boolean;
-}) {
+function TestimonialCard({ item }: { item: (typeof testimonials)[number] }) {
   return (
     <div
-      className="flex flex-col rounded-2xl border p-8 transition-opacity duration-500"
+      className="flex flex-col rounded-2xl border p-8"
       style={{
         backgroundColor: "var(--card)",
         borderColor: "var(--border)",
-        opacity: animating ? 0 : 1,
       }}
     >
-      <div className="mb-4 flex items-start justify-between gap-2">
+      <div className="mb-4">
         <StarRating />
       </div>
 
@@ -132,32 +89,7 @@ function TestimonialCard({
   );
 }
 
-const VISIBLE = 3;
-const INTERVAL = 5000;
-
 export function Testimonials() {
-  const [offset, setOffset] = useState(0);
-  const [animating, setAnimating] = useState(false);
-
-  const advance = useCallback(() => {
-    setAnimating(true);
-    setTimeout(() => {
-      setOffset((prev) => (prev + VISIBLE) % testimonials.length);
-      setAnimating(false);
-    }, 500);
-  }, []);
-
-  useEffect(() => {
-    const id = setInterval(advance, INTERVAL);
-    return () => clearInterval(id);
-  }, [advance]);
-
-  // Build the 3 visible cards, wrapping around the array
-  const visible = Array.from({ length: VISIBLE }, (_, i) => {
-    const idx = (offset + i) % testimonials.length;
-    return testimonials[idx];
-  });
-
   return (
     <section className="py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -179,7 +111,7 @@ export function Testimonials() {
             Here&apos;s how families are using it
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg" style={{ color: "var(--muted)" }}>
-            From newlyweds building their first shared space to grandparents who open it with their morning coffee.
+            For the parents building it, the kids growing up in it, and the moments worth keeping.
           </p>
           <p className="mt-2 text-xs" style={{ color: "var(--muted)", opacity: 0.6 }}>
             Stories represent typical customer experiences.
@@ -187,44 +119,9 @@ export function Testimonials() {
         </div>
 
         <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((item, i) => (
-            <div key={`${offset}-${i}`} className={i === 1 ? "" : i === 0 ? "hidden sm:flex" : "hidden lg:flex"}>
-              <TestimonialCard item={item} animating={animating} />
-            </div>
+          {testimonials.map((item) => (
+            <TestimonialCard key={item.name} item={item} />
           ))}
-        </div>
-
-        {/* Dot indicators */}
-        <div className="mt-8 flex items-center justify-center gap-2">
-          {Array.from(
-            { length: Math.ceil(testimonials.length / VISIBLE) },
-            (_, i) => {
-              const groupStart = i * VISIBLE;
-              const isActive = offset === groupStart;
-              return (
-                <button
-                  key={i}
-                  onClick={() => {
-                    if (groupStart !== offset) {
-                      setAnimating(true);
-                      setTimeout(() => {
-                        setOffset(groupStart);
-                        setAnimating(false);
-                      }, 500);
-                    }
-                  }}
-                  className="h-2 rounded-full transition-all duration-300"
-                  style={{
-                    width: isActive ? 24 : 8,
-                    backgroundColor: isActive
-                      ? "var(--primary)"
-                      : "var(--border)",
-                  }}
-                  aria-label={`Show testimonials ${groupStart + 1} to ${Math.min(groupStart + VISIBLE, testimonials.length)}`}
-                />
-              );
-            }
-          )}
         </div>
       </div>
     </section>

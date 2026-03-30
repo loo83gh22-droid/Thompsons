@@ -8,8 +8,8 @@ const trustBadges = [
 ];
 
 const differentiators = [
-  { icon: Ban, label: "We don't show ads. Ever. Not even tasteful ones." },
-  { icon: EyeOff, label: "We don't sell your data. We don't 'anonymize' it and sell it. We don't even look at it. It's yours. We're serious." },
+  { icon: Ban, label: "I don't show ads. Ever. Not even tasteful ones." },
+  { icon: EyeOff, label: "I don't sell your data. I don't 'anonymize' it and sell it. I don't even look at it. It's yours." },
   { icon: ShieldCheck, label: "No algorithm. No ads. No one deciding what your family sees." },
   { icon: Infinity, label: "Permanent, not disappearing stories" },
   { icon: Users, label: "Built for your household first. Share outward on your terms." },
@@ -44,7 +44,11 @@ export function EmotionalSection() {
             <p>
               I&apos;m not a journaler. Never have been. Too much setup, not
               enough payoff, and the second you fall behind it starts to feel
-              like homework.
+              like homework. The consistency thing is what gets you. Miss a few
+              days and suddenly you&apos;re in debt to a notebook. And
+              carrying one around everywhere? That never stuck either. At least
+              before everything went digital there was some charm to the idea of
+              it. Now it just feels like one more thing to keep track of.
             </p>
             <p>
               But there were things I didn&apos;t want to lose. Jodi sings a

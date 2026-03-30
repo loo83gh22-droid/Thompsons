@@ -7,7 +7,7 @@ const faqs = [
   {
     question: "Is my family's data private?",
     answer:
-      "Extremely. We don't sell it, share it, mine it, or use it to train anything. No third-party trackers. No ad network pixels. Your family's stuff is your family's stuff. We make money from subscriptions, not from auctioning off your data to the highest bidder.",
+      "Extremely. I don't sell it, share it, mine it, or use it to train anything. No third-party trackers. No ad network pixels. Your family's stuff is your family's stuff. I make money from subscriptions, not from auctioning off your data to the highest bidder.",
   },
   {
     question: "Can I give this as a gift?",
@@ -17,7 +17,7 @@ const faqs = [
   {
     question: "Will my family actually use this?",
     answer:
-      "That\u2019s the number one concern we hear, and the answer is yes. The Nest is designed so everyone can contribute on their own terms. Dad posts a fishing photo, Grandma shares a recipe, the kids add a silly video. You don\u2019t have to be the family archivist. Once one person starts, others jump in naturally.",
+      "That\u2019s the number one thing I hear, and the answer is yes. The Nest is designed so everyone can contribute on their own terms. Your partner posts from a trip, the kids add their own stuff, you write something down after dinner. You don\u2019t have to be the family archivist. Once one person starts, others jump in naturally.",
   },
   {
     question: "Can I be in more than one family?",
@@ -27,17 +27,17 @@ const faqs = [
   {
     question: "What happens if I stop paying?",
     answer:
-      "You can downgrade to the Free plan anytime and keep your first 10 journal entries and 1 GB of photos forever. No data is ever deleted when you downgrade. If you choose the Legacy plan, you own it for life. No recurring payments, ever.",
+      "You can downgrade to the Free plan anytime and keep your first 10 journal entries and up to 500 MB of photos forever. No data is ever deleted when you downgrade. If you choose the Legacy plan, you own it for life. No recurring payments, ever.",
   },
   {
     question: "I'm a grandparent. Is this easy enough for me?",
     answer:
-      "Absolutely. We designed Family Nest with grandparents in mind from day one. Big buttons, clear labels, and no confusing settings. If you can check email, you can use the Nest. Many grandparents tell us it's the first thing they open with their morning coffee.",
+      "Absolutely. I designed Family Nest to be simple enough for anyone. Big buttons, clear labels, no confusing settings. If you can check email, you can use the Nest. Many people tell me it\u2019s the first thing they open with their morning coffee.",
   },
   {
     question: "How is this different from Google Photos or iCloud?",
     answer:
-      "Google Photos and iCloud store photos, but Family Nest preserves your family's story. You get journals, voice memos, recipes, traditions, family trees, and a timeline. All in one place. Plus, it's designed for sharing across generations, not just storing files.",
+      "Google Photos and iCloud store photos, but Family Nest preserves your family\u2019s story. You get journals, voice memos, recipes, traditions, family trees, and a timeline. All in one private place. Built for your household first, not a feed everyone can see.",
   },
   {
     question: "Who pays, me or the person who starts the Nest?",
@@ -69,7 +69,7 @@ export function HomepageFAQ() {
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            Questions? We&apos;ve got answers.
+            Questions? I&apos;ve got answers.
           </h2>
         </div>
 
