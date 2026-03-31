@@ -13,7 +13,7 @@ export default async function ContactsPage() {
 
   const { data: contacts } = await supabase
     .from("family_contacts")
-    .select("id, name, email, relationship, notes, created_at")
+    .select("id, name, email, relationship, notes, birthday, created_at")
     .eq("family_id", activeFamilyId)
     .order("name");
 
