@@ -9,6 +9,7 @@ type Contact = {
   id: string;
   name: string;
   email: string | null;
+  birthday: string | null;
   relationship: string | null;
   notes: string | null;
   created_at: string;
@@ -44,6 +45,15 @@ function EnvelopeIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <rect x="2" y="4" width="20" height="16" rx="2" />
       <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+    </svg>
+  );
+}
+
+function CalendarIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M16 2v4M8 2v4M3 10h18" />
     </svg>
   );
 }
@@ -91,6 +101,14 @@ function XIcon({ className }: { className?: string }) {
   );
 }
 
+/** Format a date string (YYYY-MM-DD) as "Month D" — no year. */
+function formatBirthday(dateStr: string): string {
+  // Parse as local date to avoid UTC offset shifting the day
+  const [, month, day] = dateStr.split("-").map(Number);
+  const d = new Date(2000, month - 1, day);
+  return d.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+}
+
 /* ─── Add / Edit Form ─── */
 
 function ContactForm({
@@ -100,7 +118,7 @@ function ContactForm({
   isPending,
 }: {
   initial?: Partial<Contact>;
-  onSave: (name: string, email: string, relationship: string, notes: string) => void;
+  onSave: (name: string, email: string, relationship: string, notes: string, birthday: string) => void;
   onCancel: () => void;
   isPending: boolean;
 }) {
@@ -108,6 +126,7 @@ function ContactForm({
   const [email, setEmail] = useState(initial?.email ?? "");
   const [relationship, setRelationship] = useState(initial?.relationship ?? "");
   const [notes, setNotes] = useState(initial?.notes ?? "");
+  const [birthday, setBirthday] = useState(initial?.birthday ?? "");
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -115,7 +134,7 @@ function ContactForm({
       toast.error("Name is required");
       return;
     }
-    onSave(name, email, relationship, notes);
+    onSave(name, email, relationship, notes, birthday);
   }
 
   const inputClass =
@@ -156,22 +175,33 @@ function ContactForm({
           </datalist>
         </div>
       </div>
-      <div>
-        <label className={labelClass}>Email</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="grandma@example.com"
-          className={inputClass}
-        />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div>
+          <label className={labelClass}>Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="grandma@example.com"
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <label className={labelClass}>Birthday</label>
+          <input
+            type="date"
+            value={birthday}
+            onChange={(e) => setBirthday(e.target.value)}
+            className={inputClass}
+          />
+        </div>
       </div>
       <div>
         <label className={labelClass}>Notes (optional)</label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Prefers photos over text. Birthday: June 12."
+          placeholder="Prefers photos over text."
           rows={2}
           className={`${inputClass} resize-none`}
         />
@@ -209,9 +239,9 @@ function ContactCard({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  function handleSave(name: string, email: string, relationship: string, notes: string) {
+  function handleSave(name: string, email: string, relationship: string, notes: string, birthday: string) {
     startTransition(async () => {
-      const result = await updateContact(contact.id, name, email, relationship, notes);
+      const result = await updateContact(contact.id, name, email, relationship, notes, birthday, contact.name);
       if (result.success) {
         toast.success("Contact updated");
         setEditing(false);
@@ -278,6 +308,12 @@ function ContactCard({
               {contact.email}
             </a>
           )}
+          {contact.birthday && (
+            <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-[var(--muted)]">
+              <CalendarIcon className="h-3.5 w-3.5 shrink-0" />
+              {formatBirthday(contact.birthday)}
+            </p>
+          )}
           {contact.notes && (
             <p className="mt-1.5 text-xs leading-relaxed text-[var(--muted)]">{contact.notes}</p>
           )}
@@ -334,18 +370,18 @@ export function ContactsClient({ contacts: initialContacts }: { contacts: Contac
   const [showAddForm, setShowAddForm] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  function handleAdd(name: string, email: string, relationship: string, notes: string) {
+  function handleAdd(name: string, email: string, relationship: string, notes: string, birthday: string) {
     startTransition(async () => {
-      const result = await addContact(name, email, relationship, notes);
+      const result = await addContact(name, email, relationship, notes, birthday);
       if (result.success) {
         toast.success("Contact added");
         setShowAddForm(false);
-        // Optimistically add a placeholder; the page will revalidate in the background
         setContacts((prev) =>
           [...prev, {
             id: crypto.randomUUID(),
             name: name.trim(),
             email: email.trim() || null,
+            birthday: birthday || null,
             relationship: relationship.trim() || null,
             notes: notes.trim() || null,
             created_at: new Date().toISOString(),
