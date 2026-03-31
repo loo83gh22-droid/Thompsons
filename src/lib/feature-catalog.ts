@@ -144,16 +144,16 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
   {
     slug: "baby-book",
     name: "Baby Book",
-    description: "A year-by-year photo book for each child. Five photos per year — watch them grow up one year at a time.",
+    description: "One favourite photo per month, a little story, and a gentle prompt. Scroll back and watch them change.",
     category: "memories",
     icon: "\u{1F476}",
     href: "/dashboard/baby-book",
     available: true,
     navGroup: "memories",
     highlights: [
-      "5 photos per year, per child",
-      "Watch them grow up one year at a time",
-      "Add birth details and a note for each year",
+      "One photo and story per month, per child",
+      "Age-matched prompts for every stage",
+      "Birth details card for the day they arrived",
     ],
   },
   {
