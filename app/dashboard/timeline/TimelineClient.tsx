@@ -269,24 +269,26 @@ export function TimelineClient({
               ))}
             </select>
           </label>
-          <label className="flex items-center gap-2 text-sm text-[var(--muted)]">
-            <span>From:</span>
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="input-base min-h-0 w-auto py-1.5 text-sm"
-            />
-          </label>
-          <label className="flex items-center gap-2 text-sm text-[var(--muted)]">
-            <span>To:</span>
-            <input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="input-base min-h-0 w-auto py-1.5 text-sm"
-            />
-          </label>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 text-sm text-[var(--muted)]">
+              <span>From:</span>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="input-base min-h-0 w-auto py-1.5 text-sm"
+              />
+            </label>
+            <label className="flex items-center gap-2 text-sm text-[var(--muted)]">
+              <span>To:</span>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="input-base min-h-0 w-auto py-1.5 text-sm"
+              />
+            </label>
+          </div>
         </div>
 
         {filtered.length === 0 ? (

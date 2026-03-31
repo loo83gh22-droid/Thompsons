@@ -16,9 +16,13 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "50MB",
     },
   },
-  // No remotePatterns needed — storage media is served through the /api/storage proxy
-  // (which enforces Supabase auth before fetching from private buckets).
-  images: {},
+  // home-mosaic photos are stored as public Supabase URLs — allow the Supabase storage host.
+  // Other media (voice memos, journal photos, etc.) still goes through /api/storage proxy.
+  images: {
+    remotePatterns: supabaseHost
+      ? [{ protocol: "https", hostname: supabaseHost }]
+      : [],
+  },
   async headers() {
     const supabaseOrigin = supabaseHost ? `https://${supabaseHost}` : "";
     const csp = [
@@ -27,8 +31,8 @@ const nextConfig: NextConfig = {
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://www.googletagmanager.com https://connect.facebook.net",
       // Tailwind and Next.js inject inline styles
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      // Images: own origin (storage proxy), Google Maps tiles, OpenStreetMap tiles, data URIs, blobs
-      `img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com https://*.tile.openstreetmap.org https://www.facebook.com`,
+      // Images: own origin (storage proxy), Supabase public storage, Google Maps tiles, OpenStreetMap tiles, data URIs, blobs
+      `img-src 'self' data: blob: ${supabaseOrigin} https://maps.googleapis.com https://maps.gstatic.com https://*.tile.openstreetmap.org https://www.facebook.com`,
       // API / WebSocket connections (Supabase for auth/db, not storage); CDN for world-atlas GeoJSON; Nominatim for location suggestions
       `connect-src 'self' ${supabaseOrigin} wss://${supabaseHost ?? ""} https://maps.googleapis.com https://*.tile.openstreetmap.org https://nominatim.openstreetmap.org https://cdn.jsdelivr.net https://www.google-analytics.com https://region1.google-analytics.com https://www.facebook.com https://connect.facebook.net`,
       // Audio / video now served via /api/storage proxy (same origin)

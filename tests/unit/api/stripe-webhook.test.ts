@@ -13,7 +13,7 @@ import { PLAN_LIMITS } from "@/src/lib/constants";
 describe("PLAN_LIMITS constants (used by webhook activatePlan)", () => {
   it("annual plan has a storage limit and allows video uploads", () => {
     expect(PLAN_LIMITS.annual.storageLimitBytes).toBeGreaterThan(0);
-    expect(PLAN_LIMITS.annual.videoUploads).toBe(true);
+    expect(PLAN_LIMITS.annual.videosPerEntry).toBeGreaterThan(0);
     expect(PLAN_LIMITS.annual.journalEntries).toBeNull(); // unlimited
   });
 
@@ -23,9 +23,9 @@ describe("PLAN_LIMITS constants (used by webhook activatePlan)", () => {
     );
   });
 
-  it("free plan has journal entry limit and no video uploads", () => {
-    expect(PLAN_LIMITS.free.journalEntries).toBe(10);
-    expect(PLAN_LIMITS.free.videoUploads).toBe(false);
+  it("free plan has capped storage and fewer videos per entry than paid plans", () => {
+    expect(PLAN_LIMITS.free.storageLimitBytes).toBeLessThan(PLAN_LIMITS.annual.storageLimitBytes);
+    expect(PLAN_LIMITS.free.videosPerEntry).toBeLessThan(PLAN_LIMITS.annual.videosPerEntry);
   });
 
   it("all plans have storageLimitBytes defined", () => {
@@ -63,8 +63,8 @@ describe("Stripe webhook security requirements", () => {
 
 describe("CRON_SECRET enforcement", () => {
   it("cron guard blocks when CRON_SECRET is set and key is wrong", () => {
-    const cronSecret = "my-secret";
-    const requestKey = "wrong-key";
+    const cronSecret: string = "my-secret";
+    const requestKey: string = "wrong-key";
 
     // Reproduces the fixed guard: !cronSecret || key !== cronSecret
     const isBlocked = !cronSecret || requestKey !== cronSecret;
