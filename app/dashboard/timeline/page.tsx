@@ -45,7 +45,7 @@ export default async function TimelinePage({
     (tlAliasRows ?? []).map((a: { target_member_id: string; label: string }) => [a.target_member_id, a.label])
   );
 
-  const [journalRes, voiceRes, timeCapsulesRes, messagesRes, storiesRes, eventsRes, recipesRes, traditionsRes] = await Promise.all([
+  const [journalRes, voiceRes, timeCapsulesRes, storiesRes, eventsRes, recipesRes, traditionsRes] = await Promise.all([
     supabase
       .from("journal_entries")
       .select("id, title, content, trip_date, created_at, author_id, family_members!author_id(id, name, relationship)")
@@ -62,12 +62,6 @@ export default async function TimelinePage({
     supabase
       .from("time_capsules")
       .select("id, title, created_at, from_family_member_id, family_members!from_family_member_id(id, name, relationship)")
-      .eq("family_id", activeFamilyId)
-      .order("created_at", { ascending: false })
-      .limit(QUERY_LIMITS.timelineItemsPerType),
-    supabase
-      .from("family_messages")
-      .select("id, title, content, created_at, sender_id, family_members!sender_id(id, name, relationship)")
       .eq("family_id", activeFamilyId)
       .order("created_at", { ascending: false })
       .limit(QUERY_LIMITS.timelineItemsPerType),
@@ -164,22 +158,6 @@ export default async function TimelinePage({
       authorMemberId: row.from_family_member_id ?? null,
       thumbnailUrl: null,
       href: `/dashboard/time-capsules/${row.id}`,
-    });
-  }
-
-  for (const row of messagesRes.data ?? []) {
-    const { name, relationship } = authorDisplay(row.family_members, aliasMap);
-    items.push({
-      id: row.id,
-      date: row.created_at?.slice(0, 10) ?? "",
-      type: "message",
-      title: row.title ?? "Message",
-      description: row.content?.slice(0, 120) ?? null,
-      authorName: name,
-      authorRelationship: relationship,
-      authorMemberId: row.sender_id ?? null,
-      thumbnailUrl: null,
-      href: "/dashboard/messages",
     });
   }
 

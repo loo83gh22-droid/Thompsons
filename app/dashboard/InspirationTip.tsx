@@ -16,7 +16,7 @@ const tips = [
   { text: "Add a pin to the Family Map for a place that means a lot to your family.", href: "/dashboard/map", cta: "Open Map" },
   { text: "Ask a family member to share their perspective on a journal entry.", href: "/dashboard/journal", cta: "View Journal" },
   { text: "Write about a tradition your family has kept alive for years.", href: "/dashboard/traditions", cta: "Add Tradition" },
-  { text: "Send a surprise pop-up message to your family for when they log in.", href: "/dashboard/messages", cta: "Send Message" },
+  { text: "Add a family tradition to the calendar so it never gets forgotten.", href: "/dashboard/events", cta: "Add Event" },
   { text: "Capture the story behind your family's favourite meal.", href: "/dashboard/recipes/new", cta: "Add Recipe" },
   { text: "Record a voice memo telling your kids something you want them to remember.", href: "/dashboard/voice-memos", cta: "Record Memo" },
   { text: "Write about a lesson you learned from a family elder.", href: "/dashboard/journal/new", cta: "Write Entry" },

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createEvent } from "./actions";
-import { EVENT_CATEGORIES } from "./constants";
+import { EVENT_CATEGORIES, ALWAYS_RECURRING_CATEGORIES } from "./constants";
 
 type Member = { id: string; name: string };
 
@@ -17,6 +17,11 @@ export function AddEventForm({ members }: { members: Member[] }) {
   const [description, setDescription] = useState("");
   const [recurringAnnual, setRecurringAnnual] = useState(false);
   const [category, setCategory] = useState("other");
+
+  function handleCategoryChange(value: string) {
+    setCategory(value);
+    if (ALWAYS_RECURRING_CATEGORIES.has(value)) setRecurringAnnual(true);
+  }
   const [inviteeIds, setInviteeIds] = useState<string[]>([]);
   const [otherLabel, setOtherLabel] = useState("");
   const titleRef = useRef<HTMLInputElement>(null);
@@ -143,7 +148,7 @@ export function AddEventForm({ members }: { members: Member[] }) {
               <select
                 id="event-category"
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => handleCategoryChange(e.target.value)}
                 className="input-base mt-1"
               >
                 {EVENT_CATEGORIES.map((c) => (

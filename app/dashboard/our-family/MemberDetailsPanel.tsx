@@ -652,10 +652,10 @@ export function MemberDetailsPanel({
             </button>
           )}
           <Link
-            href="/dashboard/messages"
+            href="/dashboard/letters/new"
             className="rounded-lg border border-[var(--border)] px-4 py-2 text-center text-sm font-medium hover:bg-[var(--surface-hover)]"
           >
-            Send Message
+            Write a Letter
           </Link>
           {viewerIsAdminOrOwner && status === "pending_invitation" && (
             <button

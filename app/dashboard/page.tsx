@@ -57,7 +57,6 @@ export default async function DashboardPage() {
       eventsRes,
       journalActivity,
       voiceActivity,
-      messagesActivity,
       storiesActivity,
       birthdayMembersRes,
       recentActivityDatesRes,
@@ -71,7 +70,6 @@ export default async function DashboardPage() {
       supabase.from("family_events").select("id, title, event_date, category").eq("family_id", activeFamilyId).gte("event_date", todayDate.toISOString().slice(0, 10)).order("event_date", { ascending: true }).limit(3),
       supabase.from("journal_entries").select("id, title, trip_date, created_at, family_members!author_id(id, name, relationship), journal_photos!entry_id(url, sort_order)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("voice_memos").select("id, title, created_at, duration_seconds, family_members!family_member_id(id, name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
-      supabase.from("family_messages").select("id, title, created_at, family_members!sender_id(id, name, relationship)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       supabase.from("family_stories").select("id, title, cover_url, created_at, family_members!author_family_member_id(id, name, relationship)").eq("family_id", activeFamilyId).eq("published", true).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       // Birthday detection: fetch members with birth dates
       supabase.from("family_members").select("id, name, birth_date").eq("family_id", activeFamilyId).not("birth_date", "is", null),
@@ -151,22 +149,6 @@ export default async function DashboardPage() {
       };
     });
 
-    const messageRows = (messagesActivity.data ?? []).map((m: { id: string; title: string; created_at: string; family_members: MemberJoin }) => {
-      const sender = one(m.family_members);
-      return {
-        type: "message" as const,
-        id: m.id,
-        memberId: sender?.id ?? null,
-        createdAt: m.created_at,
-        title: m.title,
-        thumbnailUrl: null,
-        memberName: resolveName(sender?.id ?? null, sender?.name ?? null),
-        memberRelationship: sender?.relationship ?? null,
-        durationSeconds: null,
-        href: "/dashboard/messages",
-      };
-    });
-
     const storyRows = (storiesActivity.data ?? []).map((s: { id: string; title: string; cover_url?: string | null; created_at: string; family_members: MemberJoin }) => {
       const author = one(s.family_members);
       return {
@@ -183,7 +165,7 @@ export default async function DashboardPage() {
       };
     });
 
-    const combined = [...journalRows, ...voiceRows, ...messageRows, ...storyRows].sort(
+    const combined = [...journalRows, ...voiceRows, ...storyRows].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
     activityHasMore = combined.length > QUERY_LIMITS.recentActivity;
@@ -324,11 +306,6 @@ export default async function DashboardPage() {
         return item.memberId === currentMemberId;
       }
 
-      // Message: sent by user
-      if (item.type === "message") {
-        return item.memberId === currentMemberId;
-      }
-
       // Story: authored by user
       if (item.type === "story") {
         return item.memberId === currentMemberId;
@@ -337,8 +314,7 @@ export default async function DashboardPage() {
       return false;
     });
 
-    // Build highlight candidates from filtered user-relevant activity (messages excluded)
-    const highlightCandidates: HighlightItem[] = userRelevantActivity.filter((item) => item.type !== "message").map((item) => ({
+    const highlightCandidates: HighlightItem[] = userRelevantActivity.map((item) => ({
       type: item.type,
       id: item.id,
       title: item.title ?? null,

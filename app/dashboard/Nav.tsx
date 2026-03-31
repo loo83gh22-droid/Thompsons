@@ -21,7 +21,6 @@ const coreFamilyItems: { href: string; label: string }[] = [
   { href: "/dashboard/our-family", label: "Our Family" },
   { href: "/dashboard/pets", label: "Pets" },
   { href: "/dashboard/map", label: "Family Map" },
-  { href: "/dashboard/messages", label: "Messages" },
   { href: "/dashboard/events", label: "Annual Events" },
 ];
 
