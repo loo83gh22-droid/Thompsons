@@ -2,8 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
-import { ThroughTheYears } from "./ThroughTheYears";
 import { BirthDetailsCard } from "./BirthDetailsCard";
+import { MonthGrid } from "./MonthGrid";
 
 export const metadata = { title: "Baby Book | Family Nest" };
 
@@ -26,18 +26,13 @@ export default async function MemberBabyBookPage({
 
   if (!member) notFound();
 
-  const { data: years } = await supabase
-    .from("baby_book_years")
-    .select(`
-      id,
-      year,
-      note,
-      created_at,
-      baby_book_photos(id, url, sort_order)
-    `)
+  // Fetch all existing monthly entries for this member
+  const { data: entries } = await supabase
+    .from("baby_book_months")
+    .select("id, entry_month, photo_url, photo_path, photo_size_bytes, story")
     .eq("family_id", activeFamilyId)
-    .eq("family_member_id", memberId)
-    .order("year", { ascending: true });
+    .eq("member_id", memberId)
+    .order("entry_month", { ascending: true });
 
   const { data: birthProfile } = await supabase
     .from("baby_book_profiles")
@@ -58,26 +53,23 @@ export default async function MemberBabyBookPage({
                 Baby Books
               </Link>
               {" / "}
-              <Link href={`/dashboard/members/${memberId}`} className="hover:text-[var(--foreground)]">
-                {displayName}
-              </Link>
+              <span className="text-[var(--foreground)]">{displayName}</span>
             </div>
             <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
               {displayName}&apos;s Baby Book
             </h1>
-            <p className="mt-1 text-[var(--muted)]">
-              {years?.length ?? 0} {(years?.length ?? 0) === 1 ? "year" : "years"}
-              {member.birth_date && (
-                <span> &middot; Born {new Date(member.birth_date).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}</span>
-              )}
-            </p>
+            {member.birth_date && (
+              <p className="mt-1 text-sm text-[var(--muted)]">
+                Born{" "}
+                {new Date(member.birth_date + "T12:00:00").toLocaleDateString(undefined, {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+                {" "}· {entries?.length ?? 0} {(entries?.length ?? 0) === 1 ? "month" : "months"} captured
+              </p>
+            )}
           </div>
-          <Link
-            href={`/dashboard/baby-book/${memberId}/new`}
-            className="min-h-[44px] shrink-0 rounded-full bg-[var(--primary)] px-5 py-2 font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
-          >
-            + Add year
-          </Link>
         </div>
       </div>
 
@@ -87,11 +79,11 @@ export default async function MemberBabyBookPage({
         profile={birthProfile ?? null}
       />
 
-      <ThroughTheYears
-        years={years ?? []}
+      <MonthGrid
         memberId={memberId}
         memberName={displayName}
         birthDate={member.birth_date ?? null}
+        entries={entries ?? []}
       />
     </div>
   );

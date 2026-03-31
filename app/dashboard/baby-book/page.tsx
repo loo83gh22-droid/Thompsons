@@ -62,7 +62,7 @@ export default async function BabyBookPage() {
               Baby Books
             </h1>
             <p className="mt-2 text-[var(--muted)]">
-              A year-by-year photo book for each child. Five photos per year — watch them grow.
+              One favourite photo per month. A little story. Watch them change.
             </p>
           </div>
         </div>

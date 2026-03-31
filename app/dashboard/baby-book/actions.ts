@@ -5,6 +5,124 @@ import { revalidatePath } from "next/cache";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { addStorageUsage, subtractStorageUsage } from "@/src/lib/plans";
 
+// ─── Month-based baby book actions ───────────────────────────────────────────
+
+export type MonthEntryPayload = {
+  memberId: string;
+  entryMonth: string; // YYYY-MM-01
+  story: string;
+  photoUrl?: string;
+  photoPath?: string;
+  photoSizeBytes?: number;
+};
+
+export type MonthResult = { success: true; id: string } | { success: false; error: string };
+
+export async function upsertBabyBookMonth(payload: MonthEntryPayload): Promise<MonthResult> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Not authenticated" };
+
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { success: false, error: "No active family" };
+
+    const { data: myMember } = await supabase
+      .from("family_members")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("family_id", activeFamilyId)
+      .single();
+
+    // Fetch existing entry to handle storage accounting on photo replace
+    const { data: existing } = await supabase
+      .from("baby_book_months")
+      .select("id, photo_path, photo_size_bytes")
+      .eq("member_id", payload.memberId)
+      .eq("entry_month", payload.entryMonth)
+      .eq("family_id", activeFamilyId)
+      .maybeSingle();
+
+    const upsertRow = {
+      family_id: activeFamilyId,
+      member_id: payload.memberId,
+      entry_month: payload.entryMonth,
+      story: payload.story.trim() || null,
+      ...(payload.photoUrl !== undefined && {
+        photo_url: payload.photoUrl,
+        photo_path: payload.photoPath ?? null,
+        photo_size_bytes: payload.photoSizeBytes ?? 0,
+      }),
+      created_by: myMember?.id ?? null,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data: row, error } = await supabase
+      .from("baby_book_months")
+      .upsert(upsertRow, { onConflict: "member_id,entry_month" })
+      .select("id")
+      .single();
+
+    if (error || !row) return { success: false, error: error?.message ?? "Failed to save." };
+
+    // Storage accounting: if replacing a photo, remove old one and adjust counter
+    if (payload.photoUrl !== undefined && existing?.photo_path && existing.photo_path !== payload.photoPath) {
+      await supabase.storage.from("baby-book-photos").remove([existing.photo_path]);
+      if (existing.photo_size_bytes > 0) {
+        await subtractStorageUsage(supabase, activeFamilyId, existing.photo_size_bytes);
+      }
+    }
+    if (payload.photoSizeBytes && payload.photoSizeBytes > 0) {
+      await addStorageUsage(supabase, activeFamilyId, payload.photoSizeBytes);
+    }
+
+    revalidatePath("/dashboard/baby-book");
+    revalidatePath(`/dashboard/baby-book/${payload.memberId}`);
+    return { success: true, id: row.id };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Something went wrong." };
+  }
+}
+
+export async function deleteBabyBookMonth(monthId: string, memberId: string): Promise<{ error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Not authenticated" };
+
+    const { activeFamilyId } = await getActiveFamilyId(supabase);
+    if (!activeFamilyId) return { error: "No active family" };
+
+    const { data: row } = await supabase
+      .from("baby_book_months")
+      .select("photo_path, photo_size_bytes")
+      .eq("id", monthId)
+      .eq("family_id", activeFamilyId)
+      .single();
+
+    const { error } = await supabase
+      .from("baby_book_months")
+      .delete()
+      .eq("id", monthId)
+      .eq("family_id", activeFamilyId);
+
+    if (error) return { error: error.message };
+
+    if (row?.photo_path) {
+      await supabase.storage.from("baby-book-photos").remove([row.photo_path]);
+    }
+    if (row?.photo_size_bytes && row.photo_size_bytes > 0) {
+      await subtractStorageUsage(supabase, activeFamilyId, row.photo_size_bytes);
+    }
+
+    revalidatePath("/dashboard/baby-book");
+    revalidatePath(`/dashboard/baby-book/${memberId}`);
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong." };
+  }
+}
+
 type UploadedPhotoMeta = {
   url: string;
   storagePath: string;
