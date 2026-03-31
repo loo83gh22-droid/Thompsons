@@ -5,7 +5,6 @@ import { getActiveFamilyId, getActiveFamilyName } from "@/src/lib/family";
 import { getEnabledFeatures } from "@/src/lib/features";
 import { Nav } from "@/app/dashboard/Nav";
 import { MusicPlayer } from "@/app/dashboard/MusicPlayer";
-import { UnreadMessagesFetcher } from "@/app/dashboard/UnreadMessagesFetcher";
 import { FamilyProvider } from "@/app/dashboard/FamilyContext";
 import { WelcomeModal } from "@/app/dashboard/WelcomeModal";
 import { FounderNoteModal } from "@/app/dashboard/FounderNoteModal";
@@ -289,7 +288,6 @@ export default async function DashboardLayout({
           <main id="main-content" className="mx-auto max-w-6xl min-w-0 overflow-x-hidden px-4 py-6 pb-24 sm:px-6 sm:py-8 min-[768px]:pb-8" tabIndex={-1}>{children}</main>
           {playlistId && <MusicPlayer playlistId={playlistId} />}
           <QuickCapture />
-          <UnreadMessagesFetcher />
         </div>
       </FamilyProvider>
     );
