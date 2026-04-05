@@ -6,7 +6,7 @@
  * Falls back gracefully in unsupported browsers.
  */
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface VoiceDictationProps {
   /** Called with each recognised phrase — append or replace as needed */
@@ -37,11 +37,12 @@ declare global {
 }
 
 export function VoiceDictation({ onTranscript, disabled }: VoiceDictationProps) {
-  // Initialise lazily so it runs only in the browser (avoids SSR issues)
-  const [supported] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !!(window.SpeechRecognition ?? window.webkitSpeechRecognition);
-  });
+  // Detect support after mount so server and first client render both return null,
+  // avoiding a hydration mismatch.
+  const [supported, setSupported] = useState(false);
+  useEffect(() => {
+    setSupported(!!(window.SpeechRecognition ?? window.webkitSpeechRecognition));
+  }, []);
   const [listening, setListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);

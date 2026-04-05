@@ -108,7 +108,6 @@ describe("digest email template", () => {
       ],
       upcomingBirthdays: [],
       onThisDayItem: null,
-      isPaidPlan: true,
     });
     expect(html).toContain("Smith");
     expect(html).toContain("Alice");
@@ -118,7 +117,7 @@ describe("digest email template", () => {
     expect(html).toContain("Voice Memos");
   });
 
-  it("shows upgrade teaser for free plan", () => {
+  it("shows empty state prompt when no sections have content", () => {
     const html = digestEmailHtml({
       familyName: "Family",
       recipientName: "Alice",
@@ -127,9 +126,8 @@ describe("digest email template", () => {
       sections: [],
       upcomingBirthdays: [],
       onThisDayItem: null,
-      isPaidPlan: false,
     });
-    expect(html).toContain("Upgrade to Full Nest");
+    expect(html).toContain("hasn't added anything this week yet");
   });
 
   it("shows upcoming birthdays", () => {
@@ -141,7 +139,6 @@ describe("digest email template", () => {
       sections: [],
       upcomingBirthdays: [{ name: "Emma", daysUntil: 2, turningAge: 8 }],
       onThisDayItem: null,
-      isPaidPlan: true,
     });
     expect(html).toContain("Emma");
     expect(html).toContain("turning 8");
@@ -156,7 +153,6 @@ describe("digest email template", () => {
       sections: [],
       upcomingBirthdays: [],
       onThisDayItem: { title: "Summer vacation 2019", yearsAgo: 7, href: "/dashboard/journal/42" },
-      isPaidPlan: true,
     });
     expect(html).toContain("Summer vacation 2019");
     expect(html).toContain("7 years ago");
