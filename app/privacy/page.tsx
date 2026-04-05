@@ -21,7 +21,7 @@ export default function PrivacyPage() {
           Privacy Policy
         </h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Effective date: February 17, 2026
+          Effective date: April 4, 2026
         </p>
 
         <div className="mt-8 space-y-6 text-[var(--foreground)]/90 text-sm leading-relaxed">
@@ -48,6 +48,8 @@ export default function PrivacyPage() {
               <li>To provide and operate the Family Nest service</li>
               <li>To share your content with the family members you invite</li>
               <li>To send transactional emails (welcome, password reset, notifications you enable)</li>
+              <li>To send onboarding and product emails to help you get started and get the most out of Family Nest</li>
+              <li>Occasionally, our founder may reach out personally to new or inactive users to offer help or ask for feedback</li>
               <li>To process payments via Stripe</li>
               <li>To improve the service through anonymized analytics</li>
             </ul>
@@ -120,7 +122,7 @@ export default function PrivacyPage() {
               8. Children&apos;s Privacy
             </h2>
             <p className="mt-2">
-              Family Nest is designed for families. Kid accounts are created and managed by adult family members. We do not knowingly collect data from children under 13 without parental consent.
+              Family Nest is designed for families of all ages. Kid accounts are created and managed by adult family members, which constitutes parental consent for data collection. We do not knowingly collect personal data from children under 13 outside of this parent-managed account structure.
             </p>
           </section>
 
@@ -129,13 +131,22 @@ export default function PrivacyPage() {
               9. Changes to This Policy
             </h2>
             <p className="mt-2">
-              We may update this Privacy Policy from time to time. We will notify registered users via email of any material changes. Continued use of the service after changes constitutes acceptance.
+              We may update this Privacy Policy from time to time. We will notify registered users via email of any material changes at least 30 days before they take effect. Continued use of the service after changes constitutes acceptance.
             </p>
           </section>
 
           <section>
             <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
-              10. Contact
+              10. Canadian Privacy Law (PIPEDA &amp; CASL)
+            </h2>
+            <p className="mt-2">
+              Family Nest operates under Canadian law. We comply with the Personal Information Protection and Electronic Documents Act (PIPEDA) and Canada&apos;s Anti-Spam Legislation (CASL). We only send commercial electronic messages with your consent, identify ourselves as the sender in all emails, and provide an unsubscribe mechanism in every non-transactional email. You may opt out of non-essential emails at any time via your notification settings.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
+              11. Contact
             </h2>
             <p className="mt-2">
               For privacy questions or data requests, email us at{" "}

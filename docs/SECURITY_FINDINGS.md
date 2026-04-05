@@ -6,6 +6,7 @@ Re-audit: 2026-03-12 -- all S1-S11 and C1-C5 re-verified, zero new findings
 Re-audit: 2026-03-20 -- new code audited (pricing overhaul, account deletion, onboarding, dashboard redesign), zero new findings
 Re-audit: 2026-03-26 -- new code audited (family motto, gratitude board, gift exchange, family media); 3 new findings (S12-S14) found and fixed same session
 Privacy audit: 2026-03-26 -- full exterior + interior privacy review; 1 new finding (P1) found and fixed same session
+Security audit: 2026-04-04 -- new code audited (volunteer, teams, homes, baby-book, contacts, letters); 4 new findings (S15-S16, C6, P2); S15, S16, C6 fixed same session
 
 ---
 
@@ -101,6 +102,16 @@ checking the Next.js 16 proxy equivalent. No code change needed.
 **Attack:** Any family member (including `teen`/`child`) could delete any other family member's gratitude post by calling the Server Action directly, bypassing the UI which only shows delete on the user's own posts.
 **Fix applied:** Server Action now looks up caller's `role` server-side. Owner/adult roles may delete any post; teen/child roles are restricted to their own posts via `.eq("member_id", member.id)`. Same logic enforced at the DB layer via updated RLS DELETE policy.
 
+### S15 — Missing Input Validation & Status Checks on Geocoding Calls · ✅ FIXED 2026-04-04
+**Files:** `app/dashboard/volunteer/actions.ts:72`, `app/dashboard/teams/actions.ts:350-376`, `app/dashboard/homes/actions.ts:255-271`
+**Attack:** User-supplied `city` string passed to Nominatim/Google Maps with no length limit, no character validation, and no HTTP status check before `.json()` parsing. Not true SSRF (target URL is hardcoded), but malformed input can cause silent failures (lat/lng defaults to 0,0), and no per-user rate limiting on geocoding calls means a determined user could burn Nominatim/Google quota.
+**Recommended fix:** Add max-length validation (100 chars), `res.ok` check before `.json()`, and wrap in try/catch with timeout.
+
+### S16 — `memberIds` Not Validated Against Active Family · ✅ FIXED 2026-04-04
+**File:** `app/dashboard/volunteer/actions.ts:61-64`
+**Attack:** `memberIds` array passed from client is inserted into `volunteer_entry_members` without verifying each ID belongs to `activeFamilyId`. RLS + FK constraints currently prevent cross-family data writes, but there is no explicit server-side guard. If RLS were ever misconfigured, this would allow tagging volunteer entries with member IDs from other families.
+**Recommended fix:** Before inserting, query `family_members` filtered by `family_id = activeFamilyId` and `id IN (memberIds)` — reject if count doesn't match.
+
 ---
 
 ## Client-Side Findings
@@ -119,6 +130,11 @@ All writes are UI state flags only (dismiss states, view preferences). No tokens
 
 ### C4 — `SUPABASE_SERVICE_ROLE_KEY` Client Exposure · ✅ SAFE (no action)
 Only referenced in server-only files. No client component imports `admin.ts`.
+
+### C6 — Missing `res.ok` Check Before `.json()` on Geocoding Responses · ✅ FIXED 2026-04-04
+**Files:** `app/dashboard/volunteer/actions.ts`, `app/dashboard/teams/actions.ts`, `app/dashboard/homes/actions.ts`
+**Attack:** If Nominatim returns a 429 or 500, calling `.json()` on error HTML silently fails, defaulting lat/lng to 0,0 (null island). Not a data breach, but incorrect map placement and degraded UX on rate-limited environments.
+**Recommended fix:** Add `if (!res.ok) { /* skip pin */ return; }` before all `.json()` calls on geocoding responses.
 
 ### C5 — `STRIPE_SECRET_KEY` / `RESEND_API_KEY` Client Exposure · ✅ SAFE (no action)
 All references are in Route Handlers or `"use server"` actions only.
@@ -200,6 +216,9 @@ All references are in Route Handlers or `"use server"` actions only.
 | S13 | Medium | ✅ FIXED 2026-03-26 |
 | S14 | Medium | ✅ FIXED 2026-03-26 |
 | P1 | Low | ✅ FIXED 2026-03-26 |
+| S15 | Medium | ✅ FIXED 2026-04-04 |
+| S16 | Medium | ✅ FIXED 2026-04-04 |
+| C6 | Low | ✅ FIXED 2026-04-04 |
 | S7 | Informational | No action needed |
 | C1 | Safe | No action needed |
 | C3 | Safe | No action needed |
