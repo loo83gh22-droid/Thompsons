@@ -34,7 +34,8 @@ export async function createVolunteerEntry(formData: FormData): Promise<Voluntee
     const hoursRaw = (formData.get("hours") as string)?.trim();
     const hours = hoursRaw ? parseFloat(hoursRaw) : null;
     const description = (formData.get("description") as string)?.trim() || null;
-    const city = (formData.get("city") as string)?.trim() || null;
+    const cityRaw = (formData.get("city") as string)?.trim() || null;
+    const city = cityRaw && cityRaw.length <= 100 ? cityRaw : cityRaw ? cityRaw.slice(0, 100) : null;
     const causeTagsRaw = (formData.get("cause_tags") as string)?.trim() || "";
     const cause_tags = causeTagsRaw ? causeTagsRaw.split(",").map(t => t.trim()).filter(Boolean) : null;
 
@@ -59,9 +60,17 @@ export async function createVolunteerEntry(formData: FormData): Promise<Voluntee
     if (error || !entry?.id) return { success: false, error: error?.message ?? "Failed to save." };
 
     if (memberIds.length > 0) {
-      await supabase.from("volunteer_entry_members").insert(
-        memberIds.map(mid => ({ entry_id: entry.id, member_id: mid }))
-      );
+      const { data: validMembers } = await supabase
+        .from("family_members")
+        .select("id")
+        .eq("family_id", activeFamilyId)
+        .in("id", memberIds);
+      const validIds = (validMembers ?? []).map(m => m.id);
+      if (validIds.length > 0) {
+        await supabase.from("volunteer_entry_members").insert(
+          validIds.map(mid => ({ entry_id: entry.id, member_id: mid }))
+        );
+      }
     }
 
     if (city) {
@@ -70,6 +79,7 @@ export async function createVolunteerEntry(formData: FormData): Promise<Voluntee
         let lat = 0, lng = 0, countryCode: string | null = null;
         if (apiKey) {
           const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(city)}&key=${apiKey}`);
+          if (!res.ok) throw new Error(`Google geocode HTTP ${res.status}`);
           const gd = await res.json();
           if (gd.status === "OK" && gd.results?.[0]) {
             lat = gd.results[0].geometry.location.lat; lng = gd.results[0].geometry.location.lng;
@@ -79,6 +89,7 @@ export async function createVolunteerEntry(formData: FormData): Promise<Voluntee
         }
         if (!lat || !lng) {
           const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(city)}&limit=1`, { headers: { "User-Agent": "FamilyNest/1.0" } });
+          if (!res.ok) throw new Error(`Nominatim HTTP ${res.status}`);
           const nd = await res.json();
           lat = nd[0]?.lat ? parseFloat(nd[0].lat) : 0; lng = nd[0]?.lon ? parseFloat(nd[0].lon) : 0;
           countryCode = nd[0]?.address?.country_code?.toUpperCase() ?? null;

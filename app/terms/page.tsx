@@ -21,7 +21,7 @@ export default function TermsPage() {
           Terms of Service
         </h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Effective date: February 17, 2026
+          Effective date: April 4, 2026
         </p>
 
         <div className="mt-8 space-y-6 text-[var(--foreground)]/90 text-sm leading-relaxed">
@@ -52,7 +52,7 @@ export default function TermsPage() {
               3. Accounts &amp; Eligibility
             </h2>
             <p className="mt-2">
-              You must be at least 16 years old to create an account. Kid accounts may be created by adult family members for children under 16. You are responsible for maintaining the security of your account credentials.
+              Kid accounts may be created and managed by adult family members. Whoever enters payment information must be 18 or older. You are responsible for maintaining the security of your account credentials.
             </p>
           </section>
 

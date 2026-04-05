@@ -350,6 +350,7 @@ async function _upsertMapPin(
       const geocodeRes = await fetch(
         `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(city)}&key=${apiKey}`
       );
+      if (!geocodeRes.ok) throw new Error(`Google geocode HTTP ${geocodeRes.status}`);
       const geocode = await geocodeRes.json();
       if (geocode.status === "OK" && geocode.results?.[0]) {
         const result = geocode.results[0];
@@ -368,6 +369,7 @@ async function _upsertMapPin(
         `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(city)}&limit=1`,
         { headers: { "User-Agent": "FamilyNest/1.0" } }
       );
+      if (!geocodeRes.ok) throw new Error(`Nominatim HTTP ${geocodeRes.status}`);
       const geocode = await geocodeRes.json();
       const result = geocode[0];
       lat = result?.lat ? parseFloat(result.lat) : 0;
