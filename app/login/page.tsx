@@ -34,6 +34,8 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [signUpSuccess, setSignUpSuccess] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendResult, setResendResult] = useState<"sent" | "error" | null>(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   // null = unknown, true = has existing account (show sign-in), false = new user (show create-password)
   const [inviteHasAccount, setInviteHasAccount] = useState<boolean | null>(null);
@@ -433,13 +435,36 @@ function LoginForm() {
               We just sent a beautiful confirmation email to <strong className="text-[var(--foreground)]">{email}</strong>. Click the link inside to activate your Family Nest.
             </p>
             <p className="mt-4 text-xs text-[var(--muted)]">
-              Don&apos;t see it? Check your spam folder. It&apos;s from <strong>Family Nest</strong>.
+              Don&apos;t see it? Check your spam folder. It&apos;s from <strong>hello@send.familynest.io</strong>.
             </p>
+            <button
+              type="button"
+              disabled={resendLoading || resendResult === "sent"}
+              onClick={async () => {
+                setResendLoading(true);
+                setResendResult(null);
+                try {
+                  const res = await fetch("/api/auth/resend-confirmation", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email }),
+                  });
+                  setResendResult(res.ok ? "sent" : "error");
+                } catch {
+                  setResendResult("error");
+                } finally {
+                  setResendLoading(false);
+                }
+              }}
+              className="mt-4 w-full rounded-lg border border-[var(--border)] px-4 py-2 text-sm text-[var(--muted)] hover:bg-[var(--surface-hover)] disabled:opacity-50"
+            >
+              {resendLoading ? "Sending…" : resendResult === "sent" ? "✓ Sent! Check your inbox" : resendResult === "error" ? "Failed — try again" : "Resend confirmation email"}
+            </button>
             <Link
               href="/login"
-              className="mt-6 inline-block rounded-full bg-[var(--primary)] px-6 py-2 font-medium text-[var(--primary-foreground)] hover:opacity-90"
+              className="mt-3 inline-block text-xs text-[var(--muted)] hover:underline"
             >
-              Back to sign in
+              ← Back to sign in
             </Link>
           </div>
         ) : (

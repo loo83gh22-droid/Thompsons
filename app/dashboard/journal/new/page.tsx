@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/client";
 import { useFamily } from "@/app/dashboard/FamilyContext";
@@ -27,6 +27,7 @@ function formatDateTitle(d: DateValue): string {
 
 export default function NewJournalPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { activeFamilyId, planType, currentMemberId } = useFamily();
   const maxVideos = videosPerEntryLimit(planType);
   const [members, setMembers] = useState<FamilyMember[]>([]);
@@ -39,7 +40,7 @@ export default function NewJournalPage() {
   const [prompts, setPrompts] = useState<string[]>([]);
   const [isGeneratingPrompts, setIsGeneratingPrompts] = useState(false);
   const [showOptionals, setShowOptionals] = useState(false);
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState(() => searchParams?.get("prompt") ?? "");
   const contentRef = useRef<HTMLTextAreaElement>(null);
 
   const [date, setDate] = useState<DateValue>(() => new Date());

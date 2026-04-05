@@ -259,31 +259,29 @@ export function WelcomeModal({
               Write your first memory
             </h1>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              It doesn&apos;t have to be perfect. One sentence about today — or a memory you&apos;ve been meaning to write down. That&apos;s it.
+              Pick one to start — it doesn&apos;t have to be perfect.
             </p>
 
-            {/* Prompt ideas */}
+            {/* Clickable prompt chips */}
             <div className="mt-5 space-y-2">
               {[
                 "Something funny one of the kids said this week…",
                 "A memory I never want to forget…",
                 "What we did this weekend…",
               ].map((prompt, i) => (
-                <div key={i} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm text-[var(--muted)] italic">
-                  &ldquo;{prompt}&rdquo;
-                </div>
+                <Link
+                  key={i}
+                  href={`/dashboard/journal/new?prompt=${encodeURIComponent(prompt)}`}
+                  onClick={handleClose}
+                  className="flex w-full items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm text-[var(--muted)] italic transition-colors hover:border-[var(--accent)]/50 hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]"
+                >
+                  <span>&ldquo;{prompt}&rdquo;</span>
+                  <span className="ml-3 shrink-0 text-[var(--accent)] not-italic">Start →</span>
+                </Link>
               ))}
             </div>
 
-            <Link
-              href="/dashboard/journal/new"
-              onClick={handleClose}
-              className="mt-6 flex min-h-[48px] w-full items-center justify-center rounded-full bg-[var(--accent)] px-6 py-3 text-center font-semibold text-[var(--accent-foreground)] transition-opacity hover:opacity-90"
-            >
-              Write my first memory →
-            </Link>
-
-            <p className="text-center text-xs text-[var(--muted)] mt-3">
+            <p className="text-center text-xs text-[var(--muted)] mt-4">
               Or{" "}
               <Link href="/dashboard/letters/new" onClick={handleClose} className="text-[var(--accent)] hover:underline font-medium">
                 write a letter to someone in your nest
