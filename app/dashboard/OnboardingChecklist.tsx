@@ -23,12 +23,12 @@ export function OnboardingChecklist({
   memberCount,
   journalCount,
   storyCount,
-  voiceMemoCount,
+  photoCount,
 }: {
   memberCount: number;
   journalCount: number;
   storyCount: number;
-  voiceMemoCount: number;
+  photoCount: number;
 }) {
   const [archived, setArchived] = useState(() => {
     try {
@@ -70,7 +70,7 @@ export function OnboardingChecklist({
 
   const step1Done = memberCount >= 2;
   const step2Done = journalCount >= 1;
-  const step3Done = voiceMemoCount >= 1;
+  const step3Done = photoCount >= 1;
   const allDone = step1Done && step2Done && step3Done;
 
   // Auto-archive and celebrate when all steps are complete
@@ -131,7 +131,7 @@ export function OnboardingChecklist({
     : !step2Done
     ? { icon: "📔", text: "Write something down. Anything from this week. Future you will love you for it.", href: "/dashboard/journal/new", cta: "Write it down" }
     : !step3Done
-    ? { icon: "🎙️", text: "Record a voice memo. The sound of your home right now is worth keeping.", href: "/dashboard/voice-memos", cta: "Record something" }
+    ? { icon: "📸", text: "Add a photo. Drop in a favourite from your camera roll — something from this week, this year, or years ago.", href: "/dashboard/photos", cta: "Add a photo" }
     : null;
 
   if (!nextNudge) return null;

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { postGratitude, deleteGratitude } from "./actions";
+import { toast } from "sonner";
 
 type Member = { id: string; name: string; nickname: string | null };
 type Post = { id: string; content: string; created_at: string; member_id: string; member_name: string };
@@ -50,10 +51,19 @@ export function GratitudeBoardClient({
   }
 
   function handleDelete(id: string) {
-    setPosts((p) => p.filter((x) => x.id !== id));
-    startTransition(async () => {
-      const res = await deleteGratitude(id);
-      if (!res.success) setError(res.error ?? "Failed to delete.");
+    toast("Delete this gratitude post?", {
+      action: {
+        label: "Delete",
+        onClick: () => {
+          setPosts((p) => p.filter((x) => x.id !== id));
+          startTransition(async () => {
+            const res = await deleteGratitude(id);
+            if (!res.success) setError(res.error ?? "Failed to delete.");
+          });
+        },
+      },
+      cancel: { label: "Cancel", onClick: () => {} },
+      duration: 8000,
     });
   }
 

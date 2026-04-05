@@ -31,6 +31,7 @@ export default async function DashboardPage() {
     memberCount: 0,
     journalCount: 0,
     voiceMemoCount: 0,
+    photoCount: 0,
     timeCapsuleCount: 0,
     storyCount: 0,
     lastActivityBy: null as string | null,
@@ -52,6 +53,7 @@ export default async function DashboardPage() {
       membersRes,
       journalRes,
       voiceRes,
+      photosRes,
       capsulesRes,
       storiesRes,
       eventsRes,
@@ -65,6 +67,7 @@ export default async function DashboardPage() {
       supabase.from("family_members").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("journal_entries").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("voice_memos").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
+      supabase.from("home_mosaic_photos").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("time_capsules").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
       supabase.from("family_stories").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId).eq("published", true),
       supabase.from("family_events").select("id, title, event_date, category").eq("family_id", activeFamilyId).gte("event_date", todayDate.toISOString().slice(0, 10)).order("event_date", { ascending: true }).limit(3),
@@ -103,6 +106,7 @@ export default async function DashboardPage() {
       memberCount: membersRes.count ?? 0,
       journalCount: journalRes.count ?? 0,
       voiceMemoCount: voiceRes.count ?? 0,
+      photoCount: photosRes.count ?? 0,
       timeCapsuleCount: capsulesRes.count ?? 0,
       storyCount: storiesRes.count ?? 0,
       lastActivityBy: null,
@@ -363,7 +367,7 @@ export default async function DashboardPage() {
               memberCount={stats.memberCount}
               journalCount={stats.journalCount}
               storyCount={stats.storyCount}
-              voiceMemoCount={stats.voiceMemoCount}
+              photoCount={stats.photoCount}
             />
           </div>
 

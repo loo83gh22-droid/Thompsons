@@ -4,6 +4,7 @@ import { useState, useTransition, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { registerGardenPhoto, setGardenCoverPhoto, deleteGardenPhoto, deleteGardenEntry } from "../actions";
+import { toast } from "sonner";
 import { createClient } from "@/src/lib/supabase/client";
 import { compressImage } from "@/src/lib/compressImage";
 
@@ -61,9 +62,18 @@ export function GardenDetailClient({ entryId, photos: initial, coverPath: initia
   }
 
   function handleDeletePhoto(photoId: string) {
-    startTransition(async () => {
-      const res = await deleteGardenPhoto(photoId, entryId);
-      if (res.success) setPhotos(prev => prev.filter(p => p.id !== photoId));
+    toast("Remove this photo? This cannot be undone.", {
+      action: {
+        label: "Remove",
+        onClick: () => {
+          startTransition(async () => {
+            const res = await deleteGardenPhoto(photoId, entryId);
+            if (res.success) setPhotos(prev => prev.filter(p => p.id !== photoId));
+          });
+        },
+      },
+      cancel: { label: "Cancel", onClick: () => {} },
+      duration: 8000,
     });
   }
 

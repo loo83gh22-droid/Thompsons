@@ -113,7 +113,6 @@ function MemberRow({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [confirmRemove, setConfirmRemove] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -173,16 +172,24 @@ function MemberRow({
     }
   }
 
-  async function handleRemove() {
-    if (!confirmRemove) { setConfirmRemove(true); return; }
-    setLoading(true);
-    try {
-      await deleteFamilyMember(member.id);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong.");
-      setLoading(false);
-      setConfirmRemove(false);
-    }
+  function handleRemove() {
+    toast(`Remove ${member.name} from the family? This cannot be undone.`, {
+      action: {
+        label: "Remove",
+        onClick: async () => {
+          setLoading(true);
+          try {
+            await deleteFamilyMember(member.id);
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Something went wrong.");
+          } finally {
+            setLoading(false);
+          }
+        },
+      },
+      cancel: { label: "Cancel", onClick: () => {} },
+      duration: 8000,
+    });
   }
 
   const displayPhoto = photoPreview || avatarUrl;
@@ -326,8 +333,8 @@ function MemberRow({
           </svg>
         </button>
         <button type="button" onClick={handleRemove} disabled={loading}
-          className={`rounded-lg p-1.5 transition-colors disabled:opacity-50 ${confirmRemove ? "bg-red-50 text-red-600" : "text-[var(--muted)] hover:bg-red-50 hover:text-red-500"}`}
-          title={confirmRemove ? "Click again to confirm" : "Remove"}>
+          className="rounded-lg p-1.5 transition-colors disabled:opacity-50 text-[var(--muted)] hover:bg-red-50 hover:text-red-500"
+          title="Remove">
           <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
           </svg>
@@ -365,7 +372,6 @@ function MemberCard({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [confirmRemove, setConfirmRemove] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -437,19 +443,24 @@ function MemberCard({
     }
   }
 
-  async function handleRemove() {
-    if (!confirmRemove) {
-      setConfirmRemove(true);
-      return;
-    }
-    setLoading(true);
-    try {
-      await deleteFamilyMember(member.id);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong.");
-      setLoading(false);
-      setConfirmRemove(false);
-    }
+  function handleRemove() {
+    toast(`Remove ${member.name} from the family? This cannot be undone.`, {
+      action: {
+        label: "Remove",
+        onClick: async () => {
+          setLoading(true);
+          try {
+            await deleteFamilyMember(member.id);
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Something went wrong.");
+          } finally {
+            setLoading(false);
+          }
+        },
+      },
+      cancel: { label: "Cancel", onClick: () => {} },
+      duration: 8000,
+    });
   }
 
   const displayPhoto = photoPreview || avatarUrl;
@@ -666,12 +677,8 @@ function MemberCard({
           type="button"
           onClick={handleRemove}
           disabled={loading}
-          className={`rounded-lg p-1.5 transition-colors disabled:opacity-50 ${
-            confirmRemove
-              ? "bg-red-50 text-red-600 hover:bg-red-100"
-              : "text-[var(--muted)] hover:bg-red-50 hover:text-red-500"
-          }`}
-          title={confirmRemove ? "Click again to remove" : "Remove"}
+          className="rounded-lg p-1.5 transition-colors disabled:opacity-50 text-[var(--muted)] hover:bg-red-50 hover:text-red-500"
+          title="Remove"
           aria-label="Remove member"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -798,11 +805,6 @@ function MemberCard({
         </div>
       )}
 
-      {confirmRemove && (
-        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-          Remove {member.name}? Tap trash again to confirm.
-        </p>
-      )}
     </div>
   );
 }

@@ -537,12 +537,20 @@ export async function deleteFamilyMember(id: string) {
     }
   }
 
+  // Remove birthday events created for this member
+  await supabase
+    .from("family_events")
+    .delete()
+    .eq("created_by", id)
+    .eq("category", "birthday");
+
   const { error } = await supabase.from("family_members").delete().eq("id", id);
 
   if (error) throw error;
   revalidatePath("/dashboard/members");
   revalidatePath("/dashboard/our-family");
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/events");
 }
 
 /** Change a family member's role. Only the owner can do this. */

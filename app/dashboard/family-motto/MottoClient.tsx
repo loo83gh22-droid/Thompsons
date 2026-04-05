@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { saveMotto, addValue, deleteValue, savePersonalNote } from "./actions";
+import { toast } from "sonner";
 
 type Value = { id: string; value: string; added_by_member_id: string | null };
 
@@ -51,11 +52,20 @@ export function MottoClient({ motto, values, currentMemberId, currentMemberName,
   }
 
   function handleDeleteValue(id: string) {
-    setError(null);
-    startTransition(async () => {
-      const res = await deleteValue(id);
-      if (res.success) setLocalValues((v) => v.filter((x) => x.id !== id));
-      else setError(res.error ?? "Failed to delete.");
+    toast("Remove this family value?", {
+      action: {
+        label: "Remove",
+        onClick: () => {
+          setError(null);
+          startTransition(async () => {
+            const res = await deleteValue(id);
+            if (res.success) setLocalValues((v) => v.filter((x) => x.id !== id));
+            else setError(res.error ?? "Failed to delete.");
+          });
+        },
+      },
+      cancel: { label: "Cancel", onClick: () => {} },
+      duration: 8000,
     });
   }
 
