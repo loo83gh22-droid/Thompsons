@@ -50,6 +50,14 @@ No test framework is configured.
 - **React Strict Mode** is disabled in `next.config.ts` to prevent duplicate Google Maps mounting in dev.
 - **Images:** Supabase storage remote patterns are configured in `next.config.ts` for `next/image`.
 
+## Email & Outreach
+
+**Founder email:** hello@familynest.io is configured as a Gmail send-as alias in waterloo1983hawk22@gmail.com.
+- To draft outreach emails, use Gmail's URL pre-fill format and open in Chrome MCP:
+  `https://mail.google.com/mail/u/0/?view=cm&fs=1&to=EMAIL&su=SUBJECT&body=BODY`
+- Always verify the **From** field is set to hello@familynest.io before sending.
+- Transactional emails (confirmations, invites) send via Resend from hello@send.familynest.io.
+
 ## Deployment Workflow
 
 **Production:** https://familynest.io (also accessible at thompsons.vercel.app)
