@@ -90,15 +90,24 @@ export function OneLineClient({
 
   function handleDelete() {
     if (!todayEntryId) return;
-    startTransition(async () => {
-      const result = await deleteOneLineEntry(todayEntryId);
-      if (result.error) {
-        toast.error(result.error);
-        return;
-      }
-      setContent("");
-      setSavedContent("");
-      setTodayEntryId(null);
+    toast("Delete today's entry? This cannot be undone.", {
+      action: {
+        label: "Delete",
+        onClick: () => {
+          startTransition(async () => {
+            const result = await deleteOneLineEntry(todayEntryId!);
+            if (result.error) {
+              toast.error(result.error);
+              return;
+            }
+            setContent("");
+            setSavedContent("");
+            setTodayEntryId(null);
+          });
+        },
+      },
+      cancel: { label: "Cancel", onClick: () => {} },
+      duration: 8000,
     });
   }
 

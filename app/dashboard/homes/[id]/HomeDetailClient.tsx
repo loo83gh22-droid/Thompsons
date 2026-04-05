@@ -4,6 +4,7 @@ import { useState, useTransition, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { registerHomePhoto, setHomeCoverPhoto, deleteHomePhoto, deleteHome } from "../actions";
+import { toast } from "sonner";
 import { createClient } from "@/src/lib/supabase/client";
 import { compressImage } from "@/src/lib/compressImage";
 
@@ -64,11 +65,18 @@ export function HomeDetailClient({ homeId, photos: initial, coverPath: initialCo
   }
 
   function handleDeletePhoto(photoId: string) {
-    startTransition(async () => {
-      const res = await deleteHomePhoto(photoId, homeId);
-      if (res.success) {
-        setPhotos(prev => prev.filter(p => p.id !== photoId));
-      }
+    toast("Remove this photo? This cannot be undone.", {
+      action: {
+        label: "Remove",
+        onClick: () => {
+          startTransition(async () => {
+            const res = await deleteHomePhoto(photoId, homeId);
+            if (res.success) setPhotos(prev => prev.filter(p => p.id !== photoId));
+          });
+        },
+      },
+      cancel: { label: "Cancel", onClick: () => {} },
+      duration: 8000,
     });
   }
 

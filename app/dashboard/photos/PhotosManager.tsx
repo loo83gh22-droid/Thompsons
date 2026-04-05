@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { addPhoto, removePhoto } from "./actions";
+import { toast } from "sonner";
 import { EmptyState } from "../components/EmptyState";
 
 type Photo = { id: string; url: string; sort_order: number; caption?: string | null };
@@ -50,14 +51,23 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
     }
   }
 
-  async function handleRemove(id: string) {
-    setError(null);
-    try {
-      await removePhoto(id);
-      setPhotos((p) => p.filter((x) => x.id !== id));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to remove.");
-    }
+  function handleRemove(id: string) {
+    toast("Remove this photo? This cannot be undone.", {
+      action: {
+        label: "Remove",
+        onClick: async () => {
+          setError(null);
+          try {
+            await removePhoto(id);
+            setPhotos((p) => p.filter((x) => x.id !== id));
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to remove.");
+          }
+        },
+      },
+      cancel: { label: "Cancel", onClick: () => {} },
+      duration: 8000,
+    });
   }
 
   return (

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { logSession, deleteSession } from "./actions";
+import { toast } from "sonner";
 
 type Member = { id: string; name: string; nickname: string | null; color: string | null };
 type Game = { id: string; name: string };
@@ -70,9 +71,18 @@ export function GameNightClient({ sessions: initial, games: initialGames, member
   }
 
   function handleDelete(id: string) {
-    startTransition(async () => {
-      const res = await deleteSession(id);
-      if (res.success) setSessions(sessions.filter(s => s.id !== id));
+    toast("Delete this game session? This cannot be undone.", {
+      action: {
+        label: "Delete",
+        onClick: () => {
+          startTransition(async () => {
+            const res = await deleteSession(id);
+            if (res.success) setSessions(sessions.filter(s => s.id !== id));
+          });
+        },
+      },
+      cancel: { label: "Cancel", onClick: () => {} },
+      duration: 8000,
     });
   }
 
