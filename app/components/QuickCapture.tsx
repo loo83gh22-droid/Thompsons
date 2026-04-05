@@ -34,7 +34,10 @@ export function QuickCapture() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [promptIndex] = useState(() => Math.floor(Math.random() * MOMENT_PROMPTS.length));
+  const [promptIndex, setPromptIndex] = useState(0);
+  useEffect(() => {
+    setPromptIndex(Math.floor(Math.random() * MOMENT_PROMPTS.length));
+  }, []);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
