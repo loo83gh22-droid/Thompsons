@@ -1,12 +1,12 @@
 # FamilyNest Dependency & Supply Chain Findings
 
-Last audited: 2026-03-20
+Last audited: 2026-04-05
 
 ---
 
 ## Scale Context
 
-676 audited packages. 3 vulnerabilities found at audit open — 0 remaining after fixes applied today.
+793 audited packages (up from 676 — new test deps added). **5 new vulnerabilities** found in 2026-04-05 audit (0 critical, 3 high, 2 moderate). All prior findings remain fixed.
 
 ---
 
@@ -60,17 +60,92 @@ Last audited: 2026-03-20
 
 ---
 
+### V4 — `vite` 7.0.0–7.3.1: 3 CVEs including arbitrary file read via WebSocket ✅ FIXED (2026-04-05)
+**Package:** `vite` (transitive via `vitest@^4.0.18` → devDependency)
+**Scope:** Dev only — never in production Vercel build
+**Fix available:** Yes (`npm audit fix`)
+
+| Advisory | Severity | Description |
+|---|---|---|
+| GHSA-p9ff-h696-f583 | High | Arbitrary file read via Vite dev server WebSocket — attacker can read files outside `root` if dev server is exposed |
+| GHSA-v2wj-q39q-566r | High | `server.fs.deny` bypass via URL query params — allowlist intended to restrict sensitive file access is circumventable |
+| GHSA-4w7w-66w2-5vf9 | Moderate | Path traversal in optimized deps `.map` handling — can leak source map contents |
+
+**Production risk:** None — `vite` is the Vitest dev runner, not used in Next.js production builds or Vercel deploys.
+**Dev risk:** Low — only exploitable if the Vite dev server is intentionally exposed on a network interface (default is localhost only).
+**Recommended action:** `npm audit fix` — upgrades `vite` to 7.3.2+. **Upgrade complexity: Low.**
+
+---
+
+### V5 — `@xmldom/xmldom` 0.9.0–0.9.8: XML injection via unsafe CDATA ✅ FIXED (2026-04-05)
+**Package:** `@xmldom/xmldom` (transitive — dependency chain unknown without `npm ls`)
+**Severity:** High (CVSS 7.5) — GHSA-wh4c-j3r5-mjhp
+**Fix available:** Yes (`npm audit fix`)
+
+**Description:** Unsafe CDATA serialization allows attacker-controlled markup to be injected into XML output — an XML injection / XSS-class vulnerability. An attacker who can influence serialized content could insert arbitrary XML/HTML nodes.
+
+**Production risk:** Moderate if this package reaches a production code path. `@xmldom/xmldom` is likely pulled in by a mapping/chart library (`react-organizational-chart`, `react-leaflet`, or a PDF-related tool) — needs `npm ls @xmldom/xmldom` to confirm the chain. If it's devDependency-only (e.g., via jsdom/vitest), risk is low.
+**Recommended action:** `npm audit fix` to upgrade to 0.9.9+. Then run `npm ls @xmldom/xmldom` to confirm the dependency chain. **Upgrade complexity: Low.**
+
+---
+
+### V6 — `picomatch` ≤2.3.1 and 4.0.0–4.0.3: ReDoS + method injection ✅ FIXED (2026-04-05)
+**Package:** `picomatch` (transitive — appears in both production and dev node paths)
+**Severity:** High (CVSS 7.5 for ReDoS) — GHSA-c2c7-rcm5-vvqj, GHSA-3v7f-55p6-f55p
+**Fix available:** Yes (`npm audit fix`)
+
+| Advisory | Severity | Description |
+|---|---|---|
+| GHSA-c2c7-rcm5-vvqj | High | ReDoS via extglob quantifiers — crafted glob pattern causes catastrophic backtracking, hanging Node process |
+| GHSA-3v7f-55p6-f55p | Moderate | Method injection in POSIX character classes — incorrect glob matching allows unintended file path matches |
+
+**Affected nodes:** Root `node_modules/picomatch` (may be in production path via Next.js file watching), `tinyglobby`, `vite`, `vitest`.
+**Production risk:** Low-moderate — picomatch in Next.js handles internal file watching during build/dev, not user-supplied patterns. Exploiting ReDoS requires control over glob patterns, which no user-facing endpoint provides.
+**Recommended action:** `npm audit fix`. **Upgrade complexity: Low.**
+
+---
+
+### V7 — `brace-expansion` <1.1.13 and 2.0.0–2.0.2: DoS via zero-step sequence ✅ FIXED (2026-04-05)
+**Package:** `brace-expansion` (transitive via `@typescript-eslint/typescript-estree` and root)
+**Severity:** Moderate (CVSS 6.5) — GHSA-f886-m6hf-6m8v
+**Fix available:** Yes (`npm audit fix`)
+
+**Description:** A zero-step sequence (e.g., `{0..0..0}`) causes an infinite loop, hanging the process and exhausting memory.
+**Production risk:** Low — `brace-expansion` is used internally by glob/minimatch for pattern matching. No user-facing endpoint passes raw brace patterns. Root dep may be in production via minimatch/glob in Next.js.
+**Recommended action:** `npm audit fix`. **Upgrade complexity: Low.**
+
+---
+
+### V8 — `yaml` 1.0.0–1.10.2: Stack overflow via deeply nested collections ✅ FIXED (2026-04-05)
+**Package:** `yaml` (transitive via `cosmiconfig` → config loader, likely devDependency)
+**Severity:** Moderate (CVSS 4.3) — GHSA-48c2-rrv3-qjmp
+**Fix available:** Yes (`npm audit fix`)
+
+**Description:** Parsing a YAML document with deeply nested collections causes a stack overflow (unbounded recursion). Requires attacker-supplied YAML input.
+**Production risk:** None — `cosmiconfig` reads local config files (`.eslintrc`, `postcss.config.js`, etc.) at build/dev time only, never from user input.
+**Recommended action:** `npm audit fix`. **Upgrade complexity: Low.**
+
+---
+
+### V9 — `next` 16.0.0-beta.0–16.2.2: Denial of Service via Server Components ✅ FIXED (2026-04-05)
+**Package:** `next` (direct production dependency — critical path)
+**Severity:** High — GHSA-q4gf-8mx6-v5v3
+**Scope:** Production
+
+**Description:** A crafted request can trigger unbounded work in Server Components rendering, causing denial of service. FamilyNest uses Server Components on every dashboard page.
+
+**Fix:** Upgraded `next` from `16.2.0` → `16.2.3` (exact pin preserved). Also bumped `eslint-config-next` and `@next/third-parties` to `16.2.3`.
+**Upgrade complexity:** Low — patch bump, no breaking changes.
+
+---
+
 ## Version Health Findings (H#)
 
-### H1 — `openai` 5 minor versions behind (Low, no CVE)
-**Installed:** `^6.27.0` · **Latest:** `6.32.0`
-**Gap:** 5 releases behind on the same major. No CVEs in 6.x. Used server-side only for AI suggestions.
-**Action:** `npm install openai@latest` when convenient. Low urgency.
+### H1 — `openai` behind on 6.x (Low, no CVE) ✅ FIXED (2026-04-05)
+**Upgraded:** `^6.27.0` → `^6.34.0` via `npm install openai@latest`.
 
-### H2 — `lucide-react` 14 releases behind (Low, no CVE)
-**Installed:** `^0.563.0` · **Latest:** `0.577.0`
-**Gap:** 14 icon-pack releases — purely additive new icons. No security surface.
-**Action:** `npm install lucide-react@latest` — cosmetic update to get any new icons added in future.
+### H2 — `lucide-react` behind on 0.x icon releases (Low, no CVE) ✅ FIXED (2026-04-05)
+**Upgraded:** `^0.563.0` → `^0.577.0` via `npm install lucide-react@^0` (stayed on 0.x — v1.x has breaking icon renames, held back intentionally).
 
 ---
 
@@ -123,5 +198,13 @@ Last audited: 2026-03-20
 | 1 | V1 — Next.js CSRF bypass + smuggling | `npm install next@16.2.0` | Low | ✅ 2026-03-20 |
 | 2 | V2 — flatted DoS + Prototype Pollution | `npm audit fix` | Low | ✅ 2026-03-20 |
 | 3 | V3 — undici 6 CVEs | `npm audit fix` | Low | ✅ 2026-03-20 |
-| 4 | H1 — openai 5 versions behind | `npm install openai@latest` | Low | Pending |
-| 5 | H2 — lucide-react 14 versions behind | `npm install lucide-react@latest` | Low | Pending |
+| 4 | V4 — vite 3 CVEs (arbitrary file read, path traversal) | `npm audit fix` | Low | ✅ 2026-04-05 |
+| 5 | V5 — @xmldom/xmldom XML injection | `npm audit fix` | Low | ✅ 2026-04-05 |
+| 6 | V6 — picomatch ReDoS + method injection | `npm audit fix` | Low | ✅ 2026-04-05 |
+| 7 | V7 — brace-expansion DoS | `npm audit fix` | Low | ✅ 2026-04-05 |
+| 8 | V8 — yaml stack overflow | `npm audit fix` | Low | ✅ 2026-04-05 |
+| 9 | V9 — next 16.2.2 Server Components DoS | `npm install next@16.2.3` | Low | ✅ 2026-04-05 |
+| 10 | H1 — openai behind 6.x | `npm install openai@latest` | Low | ✅ 2026-04-05 |
+| 11 | H2 — lucide-react behind 0.x | `npm install lucide-react@^0` | Low | ✅ 2026-04-05 |
+
+**0 open vulnerabilities as of 2026-04-05.**

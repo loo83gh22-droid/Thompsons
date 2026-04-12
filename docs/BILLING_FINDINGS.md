@@ -1,6 +1,6 @@
 # FamilyNest Billing & Plan Enforcement Findings
 
-Last audited: 2026-03-20
+Last audited: 2026-04-05
 
 ---
 
@@ -36,8 +36,13 @@ Last audited: 2026-03-20
 **Risk:** Uploads untracked; deleting an achievement left the file in storage with no counter decrement.
 **Fix (2026-03-05):** `addAchievement` now calls `enforceStorageLimit` + `addStorageUsage`. `removeAchievement` removes the storage object and calls `subtractStorageUsage`.
 
-### ⚠️ DEFERRED — G7: Member profile photos — client-side upload bypasses gates
-**Note:** Complex refactor (client-side direct Supabase upload → Server Action). Low severity — no data exposure, only storage accounting gap. Scheduled for a dedicated sprint.
+### ⚠️ DEFERRED — G7: Client-side uploads across multiple modules — pre-upload gate missing
+**Scope (expanded 2026-04-05):** Member profile photos, home photos, garden photos, volunteer photos, team photos, and voice memo cover photos all upload directly from the client to Supabase storage before calling a Server Action.
+**Pattern:** Upload fires → file lands in storage → Server Action calls `enforceStorageLimit` → if over limit, action throws but file is already stored (orphaned or tracked incorrectly).
+**Affected modules:** `homes/[id]/HomeDetailClient.tsx`, `garden/[id]/GardenDetailClient.tsx`, `volunteer/[id]/VolunteerDetailClient.tsx`, `teams/new/page.tsx`, `voice-memos/AddVoiceMemoForm.tsx` (photo only).
+**Risk:** UX inconsistency and potential orphaned storage objects — not a plan bypass (server-side limit is still enforced). No data exposure.
+**Fix:** Refactor each module to use a Server Action for the upload step (pattern established in stories/actions.ts `uploadStoryCover`).
+**Note:** Complex refactor. Low severity. Scheduled for a dedicated sprint.
 
 ### ✅ FIXED — G8: Sports photos — no family scoping and no storage tracking
 **File:** `app/dashboard/sports/actions.ts`
@@ -159,6 +164,24 @@ Last audited: 2026-03-20
 ### ✅ CONFIRMED CORRECT — B6: `storage_limit_bytes` default in migration
 **File:** `supabase/migrations/046_family_plans.sql`
 **Verification:** Default is `524288000` = exactly 500 MB. Correct for free plan. No action needed.
+
+---
+
+## Confirmed Correct (2026-04-05 re-audit)
+
+| Surface | Finding | Status |
+|---|---|---|
+| `plans.ts` deprecated helpers | `canUploadVideos`, `canEditMap`, `canSharePublicly` always return `true` and are `@deprecated` — actual enforcement is via `featureLimit`/`checkFeatureLimit` | ✅ Correct — intentional backward compat, not called |
+| Journal `createJournalEntry` | `checkFeatureLimit` enforced for `journalEntries` before insert | ✅ Correct |
+| Map `addTravelLocation` + `syncBirthPlacesToMap` | `checkFeatureLimit` for `mapLocations` present in both | ✅ Correct |
+| Voice memos | `checkFeatureLimit` + `enforceStorageLimit` + `addStorageUsage` + `subtractStorageUsage` all present | ✅ Correct |
+| Stories | `checkFeatureLimit` + `uploadStoryCover` Server Action with `enforceStorageLimit` | ✅ Correct |
+| Time capsules | `checkFeatureLimit` enforced; text-only, no storage operations needed | ✅ Correct |
+| Nest Keepers API | GET/POST/PUT/DELETE all check `canManageNestKeepers(plan)` and `owner` role | ✅ Correct |
+| Stripe webhook | All five events handled; `activatePlan` cross-checks `stripe_customer_id`; `deactivatePlan` resets to `free` | ✅ Correct |
+| Stripe portal | Fetches `stripe_customer_id` from DB only — no client passthrough | ✅ Correct |
+| Storage RPCs | `increment_storage_used` capped with `LEAST()`, `decrement_storage_used` floored with `GREATEST(0,...)` | ✅ Correct |
+| Photos `addPhoto` / `removePhoto` | `enforceStorageLimit` before upload; `subtractStorageUsage` + storage deletion on remove; family-scoped | ✅ Correct |
 
 ---
 

@@ -1,6 +1,7 @@
 # FamilyNest Performance Findings
 
 Last audit: 2026-03-13 | All findings fixed 2026-03-13
+Re-audit: 2026-04-05 | 2 new findings (D13, D14)
 
 ---
 
@@ -258,7 +259,92 @@ rendered. No fix required now.
 
 ---
 
+## Re-audit: 2026-04-05 — 2 new findings
+
+All D1–D12 and F1–F6 findings re-verified. Zero regressions. New code audited: homes, garden, volunteer, teams, sports, traditions, book-club, challenges, gift-exchange, one-line-a-day, our-family modules.
+
+### D13 — Missing `family_id` indexes on 3 newer tables (MEDIUM) ✅ FIXED (2026-04-05)
+
+**Files:** `supabase/migrations/20260325000001_book_club_and_challenges.sql`, `supabase/migrations/20260319000003_gift_exchange.sql`
+
+**Impact:** Three tables created after the migration-033 indexing sweep are missing `family_id` indexes:
+- `book_club_books` — queried on every book-club page load, filtered by `family_id`
+- `family_challenges` — queried on every challenges page load, filtered by `family_id`
+- `gift_exchanges` — queried on gift-exchange page load, filtered by `family_id`
+
+Without these indexes Postgres performs a sequential scan for every family-scoped query. Low impact at current scale (< 20 families) but will degrade linearly as families grow.
+
+**Fix:** Add a migration:
+```sql
+CREATE INDEX IF NOT EXISTS idx_book_club_books_family_id
+  ON public.book_club_books (family_id);
+
+CREATE INDEX IF NOT EXISTS idx_family_challenges_family_id
+  ON public.family_challenges (family_id);
+
+CREATE INDEX IF NOT EXISTS idx_gift_exchanges_family_id
+  ON public.gift_exchanges (family_id);
+```
+
+**Upgrade complexity:** Low — additive migration, no schema changes.
+
+---
+
+### D14 — New module RLS policies use inline subquery instead of `user_family_ids()` (LOW) ⚠️ OPEN
+
+**Files:** `supabase/migrations/20260307000001_bucket_list.sql`, `20260318000001_reunion_planner.sql`, `20260319000003_gift_exchange.sql`, `20260325000001_book_club_and_challenges.sql`
+
+**Pattern found:**
+```sql
+-- Inconsistent (inline subquery) — these migrations use this:
+family_id IN (SELECT family_id FROM family_members WHERE user_id = auth.uid())
+
+-- Correct pattern (stable function, result cached per statement) — earlier migrations use:
+family_id IN (SELECT public.user_family_ids())
+```
+
+**Impact:** The `user_family_ids()` function is marked `STABLE`, so Postgres evaluates it once per query and caches the result. The inline subquery may be re-evaluated per row depending on the query planner. For small families this is negligible, but the inconsistency means new tables don't benefit from the optimisation established in migration 025.
+
+**Fix:** Update these RLS policies to use `user_family_ids()` — or add a dedicated migration that aligns all new policies to the `STABLE` function pattern. Low urgency at current scale.
+
+---
+
+### Re-audit 2026-04-05 — Verified Correct
+
+| Surface | Verified |
+|---|---|
+| D1 — Journal `.limit(200)` | ✅ Still in place (line 63) |
+| D2 — Voice memos paginated | ✅ |
+| D3 — Photos paginated | ✅ |
+| D4 — Stories paginated | ✅ |
+| D5 — Composite indexes (migration 082) | ✅ |
+| D6 — award_members RLS EXISTS (migration 083) | ✅ |
+| D7 — Import batch insert | ✅ |
+| D8 — One-line-a-day split queries | ✅ `.limit(1825)` on line 38 |
+| D9 — one_line_entries index | ✅ |
+| D10 — Layout signup N+1 | ✅ |
+| D11 — Member profile two-step fetch | ✅ |
+| F1 — MosaicBackground thumbs | ✅ |
+| F2 — thumbUrl helper applied everywhere | ✅ |
+| F3 — Member avatar lazy-load | ✅ |
+| F5 — JSZip dynamic import | ✅ |
+| F6 — Map pin memoization | ✅ |
+| Homes / garden / volunteer / teams — no `.limit()` needed | ✅ Bounded datasets |
+| Traditions / book-club / challenges — select specific columns | ✅ No `select('*')` |
+| New modules — no N+1 queries | ✅ All batch with `Promise.all()` |
+| New modules — no `key={index}` anti-pattern | ✅ |
+| New modules — no raw `<img>` tags | ✅ All use `next/image` |
+| `next/dynamic` for Leaflet (map) and FamilyTreeView | ✅ Both lazy-loaded |
+| homes / garden / volunteer / teams — `family_id` indexes | ✅ Present in migration 20260327000003 |
+| Dashboard home page — 13 parallel queries, all bounded | ✅ |
+
+---
+
 ## Fix Plan
 
-All findings from the 2026-03-13 audit have been fixed. No open performance items remain.
-D12 (admin unbounded fetch) is accepted at current scale — revisit at 500+ families.
+| # | Finding | Action | Complexity | Status |
+|---|---------|--------|-----------|--------|
+| 1 | D13 — Missing family_id indexes on 3 tables | Migration `20260405000002_missing_family_id_indexes.sql` | Low | ✅ 2026-04-05 |
+| 2 | D14 — Inline RLS subqueries in new modules | Migrate to `user_family_ids()` pattern | Low | ⚠️ Open — low urgency |
+| 3 | D12 — Admin unbounded SELECT * | Add pagination at 500+ families | Low | ℹ️ Accepted at current scale |
+| 4 | F4 — Export in-memory ZIP | Accepted — 750 MB guard mitigates risk | — | ℹ️ Accepted |
