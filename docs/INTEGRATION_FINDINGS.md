@@ -1,6 +1,6 @@
 # Integration Reliability Findings
 
-Last audited: 2026-03-20
+Last audited: 2026-04-05
 
 ---
 
@@ -146,6 +146,31 @@ restriction, a leaked key (e.g. from devtools) can be abused indefinitely.
   family member emails to each other via Resend.
 
 - **Map uses Leaflet (not Google Maps)**: `app/dashboard/map/page.tsx` uses `dynamic(() => import('./MapComponent'))` with a loading fallback. Google Maps key is used only for geocoding, not map rendering.
+
+---
+
+## Re-audit: 2026-04-05 — Zero new findings
+
+All R1–R4 and S1 findings re-verified as correctly fixed. New code audited (voice memo photos, home/garden/volunteer/team photo modules, export SSRF allowlist, storage proxy bucket allowlist).
+
+| Surface | Verified |
+|---|---|
+| R1 — Upstash fail-open warning in production | ✅ |
+| R2 — Upstash runtime unreachable: try/catch + fail-open | ✅ |
+| R3 — Export 750 MB OOM guard returns 413 | ✅ |
+| R4 — Email retry windows: birthday 3–4 days, capsule covers yesterday | ✅ |
+| S1 — Google Maps referrer restrictions active in GCP | ✅ |
+| Cron secret: `Authorization: Bearer` header; 503 if unset | ✅ |
+| Stripe webhook: `constructEvent()` unconditional; no dev skip | ✅ |
+| Stripe checkout: user/family from session, not request body | ✅ |
+| RESEND_API_KEY: server-side only, no NEXT_PUBLIC_ exposure | ✅ |
+| All NEXT_PUBLIC_ vars: URLs + anon keys only, no secrets | ✅ |
+| Export individual file fetch failures: skip file, continue ZIP | ✅ |
+| Export ZIP build error: marks job `failed` in DB on exception | ✅ |
+| Upstash: HTTP REST API (correct for Vercel serverless) | ✅ |
+| Individual email sends (no bulk `to[]` arrays) | ✅ |
+| Export SSRF: Supabase-only URL allowlist with HTTPS enforcement | ✅ |
+| Storage proxy: 24-bucket allowlist; unknown buckets rejected | ✅ |
 
 ---
 

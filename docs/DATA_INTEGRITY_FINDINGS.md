@@ -3,6 +3,7 @@
 Audit conducted: 2026-03-06
 Re-audit conducted: 2026-03-12
 Re-audit conducted: 2026-03-20 — zero new findings after W23 fix
+Re-audit conducted: 2026-04-05 — zero new findings; migration 20260405000001 expansion confirmed
 
 ---
 
@@ -230,6 +231,28 @@ and decrements the counter before rethrowing.
 **Resolution:** `family_id uuid NOT NULL REFERENCES families(id) ON DELETE CASCADE` was added in
 `025_multi_tenancy.sql` (line 96), with index in `033_family_id_indexes.sql` and RLS update in
 `070_privacy_hardening.sql`. No issue exists.
+
+---
+
+## Confirmed Correct (2026-04-05 re-audit)
+
+| Area | Verification |
+|------|-------------|
+| Migration 20260405000001 — SET NULL expansion | Attribution FKs for `artwork_pieces`, `gratitude_posts`, `travel_locations`, `workouts`, `baby_book_months/profiles`, `book_club_books`, `medical_info`, `family_resumes`, `gift_exchange_wishlist_items`, `time_capsules.to_family_member_id`, `journal_perspectives`, `story_perspectives` — all now SET NULL on member delete ✅ |
+| Member deletion — content preservation | All authored content preserved with NULL author on member delete; no orphan violation risk ✅ |
+| Family deletion — full cascade | All `family_id` FKs across all tables still CASCADE; entire archive removed cleanly on family delete ✅ |
+| Join table deletes | `family_home_members`, `volunteer_entry_members`, `team_members`, `challenge_completions`, `challenge_checkins` — all CASCADE on both sides ✅ |
+| Time capsule immutability | `trg_prevent_unlock_date_change` trigger confirmed; `unlock_date` cannot be changed after creation ✅ |
+| Sealed capsule search exclusion | `.lte("unlock_date", todayStr)` present in `/api/search/route.ts` ✅ |
+| Sealed capsule export handling | Export marks sealed capsules with status + unlock date; includes contents for archival ✅ |
+| Storage proxy — fresh signing | `/api/storage/[...path]` re-signs every request with 60s TTL; URL never exposed to browser ✅ |
+| Storage proxy — bucket allowlist | 24-bucket allowlist in `ALLOWED_BUCKETS` set; unknown buckets rejected ✅ |
+| Storage proxy — range requests | `Accept-Ranges: bytes` + `Range` header forwarded for audio/video seek ✅ |
+| Export — SSRF prevention | `ALLOWED_STORAGE_HOSTS` allowlist gates all `fetchFile` calls; HTTPS-only ✅ |
+| Export — all content types present | journal, stories, recipes, traditions, voice memos, time capsules, members, map all included ✅ |
+| Export — concurrent export prevention | In-progress guard prevents duplicate export jobs per family ✅ |
+| Nest Keepers uniqueness | `UNIQUE(family_id, priority)` confirmed on `nest_keepers` table ✅ |
+| Account deletion — grace period | 30-day soft-delete with cancellation; duplicate request prevention ✅ |
 
 ---
 
