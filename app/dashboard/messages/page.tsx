@@ -2,6 +2,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { SendMessageForm } from "./SendMessageForm";
 import { EmptyState } from "@/app/dashboard/components/EmptyState";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "Messages | Family Nest" };
 
@@ -10,7 +11,7 @@ export default async function SendMessagePage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const [{ data: familyMembers }, { data: myMember }, { count: messageCount }] = await Promise.all([
     supabase

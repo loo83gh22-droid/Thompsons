@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "Letters | Family Nest" };
 
@@ -63,7 +64,7 @@ function LetterCard({ letter, showTo }: { letter: Letter; showTo: boolean }) {
 export default async function LettersPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;

@@ -5,6 +5,7 @@ import { AddMemberForm } from "../members/AddMemberForm";
 import type { MemberRole } from "@/src/lib/roles";
 import Link from "next/link";
 import { buildDerivedRelationshipMap } from "@/src/lib/deriveRelationship";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export type OurFamilyMember = {
   id: string;
@@ -42,7 +43,7 @@ export const metadata = { title: "Our Family | Family Nest" };
 export default async function OurFamilyPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   // Load current user's member record for alias lookups and role-based filtering
   const {

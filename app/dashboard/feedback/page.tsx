@@ -2,6 +2,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { FeedbackForm } from "./FeedbackForm";
 import { FeedbackList } from "./FeedbackList";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "Feedback | Family Nest" };
 
@@ -11,7 +12,7 @@ export default async function FeedbackPage() {
   if (!user) return null;
 
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   // Check if user is owner
   const { data: myMember } = await supabase

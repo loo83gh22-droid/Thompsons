@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata: Metadata = {
   title: "Our Teams | Family Nest",
@@ -30,7 +31,7 @@ type MemberRow = {
 export default async function TeamsPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: teams } = await supabase
     .from("teams")

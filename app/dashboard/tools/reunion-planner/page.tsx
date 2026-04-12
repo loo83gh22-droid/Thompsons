@@ -1,6 +1,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { ReunionListClient } from "./ReunionListClient";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "Reunion Planner | Family Nest" };
 
@@ -11,7 +12,7 @@ export default async function ReunionPlannerPage() {
   if (!user) return null;
 
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const [currentMemberRes, reunionsRes] = await Promise.all([
     supabase

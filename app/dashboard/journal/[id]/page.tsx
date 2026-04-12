@@ -9,6 +9,7 @@ import { DeleteJournalEntryButton } from "../DeleteJournalEntryButton";
 import { ShareToNestButton } from "../ShareToNestButton";
 import { ShareButton } from "@/app/components/ShareButton";
 import { toggleJournalShare } from "../share-actions";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "Journal Entry | Family Nest" };
 
@@ -16,7 +17,7 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ i
   const { id } = await params;
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: { user } } = await supabase.auth.getUser();
   const { data: myMember } = user

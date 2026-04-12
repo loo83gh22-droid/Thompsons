@@ -12,11 +12,12 @@ import { EmptyState } from "@/app/dashboard/components/EmptyState";
 import { AddedToMapBanner } from "./AddedToMapBanner";
 import { ScrollToTop } from "./ScrollToTop";
 import { JournalListClient, type JournalEntryData, type FamilyMemberInfo } from "./JournalListClient";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export default async function JournalPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: { user } } = await supabase.auth.getUser();
   const { data: myMember } = user

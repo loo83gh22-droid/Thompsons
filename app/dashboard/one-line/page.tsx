@@ -2,6 +2,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { OneLineClient } from "./OneLineClient";
 import type { Metadata } from "next";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata: Metadata = { title: "One Line A Day | Family Nest" };
 
@@ -13,7 +14,7 @@ export default async function OneLinePage() {
   if (!user) return null;
 
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   // Today in YYYY-MM-DD (server timezone)
   const todayDate = new Date();

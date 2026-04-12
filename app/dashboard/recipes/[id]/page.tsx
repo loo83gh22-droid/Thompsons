@@ -5,6 +5,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { DeleteRecipeButton } from "../DeleteRecipeButton";
 import { RecipeShareButton } from "../RecipeShareButton";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "Recipe | Family Nest" };
 
@@ -16,7 +17,7 @@ export default async function RecipePage({
   const { id } = await params;
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: recipe, error } = await supabase
     .from("recipes")

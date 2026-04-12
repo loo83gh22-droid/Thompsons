@@ -26,6 +26,7 @@ export function AddMemberForm({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailWarning, setEmailWarning] = useState<{ inviteUrl?: string } | null>(null);
   const [open, setOpen] = useState(false);
   const [isDeceased, setIsDeceased] = useState(false);
   const [deathDate, setDeathDate] = useState("");
@@ -65,6 +66,7 @@ export function AddMemberForm({
     setIsRemembered(false);
     setLinks([]);
     setError(null);
+    setEmailWarning(null);
     clearPhoto();
   }
 
@@ -138,9 +140,14 @@ export function AddMemberForm({
         }
       }
 
-      // Close modal and refresh — member was added successfully
-      closeModal();
-      router.refresh();
+      if (result?.emailFailed) {
+        // Member added but invite email failed — show warning so owner can share link manually
+        setEmailWarning({ inviteUrl: result.inviteUrl });
+        router.refresh();
+      } else {
+        closeModal();
+        router.refresh();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -194,8 +201,49 @@ export function AddMemberForm({
               </button>
             </div>
 
+            {/* Email send failure warning */}
+            {emailWarning && (
+              <div className="px-6 py-5">
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+                  <p className="font-medium text-amber-400">Member added, but the invite email failed to send.</p>
+                  <p className="mt-1 text-sm text-[var(--muted)]">
+                    Share this invite link with them directly:
+                  </p>
+                  {emailWarning.inviteUrl ? (
+                    <div className="mt-2 flex items-center gap-2">
+                      <input
+                        type="text"
+                        readOnly
+                        value={emailWarning.inviteUrl}
+                        className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs text-[var(--foreground)]"
+                        onClick={(e) => (e.target as HTMLInputElement).select()}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => navigator.clipboard.writeText(emailWarning.inviteUrl!)}
+                        className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--muted)] hover:bg-[var(--surface-hover)]"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-xs text-[var(--muted)]">
+                      Ask them to go to your family nest and log in with their email address.
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="mt-4 w-full rounded-full bg-[var(--primary)] py-2.5 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90"
+                >
+                  Got it
+                </button>
+              </div>
+            )}
+
             {/* Form body */}
-            <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+            {!emailWarning && <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
               <div>
                 <label htmlFor="am-name" className="block text-sm font-medium text-[var(--muted)]">
                   Full name <span className="text-red-400">*</span>
@@ -418,10 +466,15 @@ export function AddMemberForm({
 
               {error && (
                 <div
-                  className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                  className="rounded-lg border border-[var(--error-border,#fca5a5)] bg-[var(--error-bg,#fef2f2)] px-4 py-3 text-sm text-[var(--error,#b91c1c)]"
                   role="alert"
                 >
-                  {error}
+                  {error.includes("Upgrade to The Full Nest") ? (
+                    <>
+                      {error.replace(" Visit /pricing to upgrade.", "")}{" "}
+                      <a href="/pricing" className="underline font-medium">View upgrade options.</a>
+                    </>
+                  ) : error}
                 </div>
               )}
 
@@ -442,7 +495,7 @@ export function AddMemberForm({
                   {loading ? "Adding..." : "Add member"}
                 </button>
               </div>
-            </form>
+            </form>}
           </div>
         </div>
       )}

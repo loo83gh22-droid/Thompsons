@@ -3,13 +3,14 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import { FamilyWebClient } from "./FamilyWebClient";
 import { EmptyStateGuide } from "@/app/components/EmptyStateGuide";
 import type { FamilyMemberRow, RelationshipRow } from "./types";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "Relationships | Family Nest" };
 
 export default async function RelationshipsPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: members } = await supabase
     .from("family_members")

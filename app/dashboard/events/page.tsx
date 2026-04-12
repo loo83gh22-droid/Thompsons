@@ -6,6 +6,7 @@ import { BirthdaySync } from "./BirthdaySync";
 import { EmptyState } from "@/app/dashboard/components/EmptyState";
 import { PlanLimitBadge } from "@/app/dashboard/components/PlanLimitBadge";
 import { PLAN_LIMITS } from "@/src/lib/constants";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 type EventRow = {
   id: string;
@@ -25,7 +26,7 @@ export const metadata = { title: "Annual Events | Family Nest" };
 export default async function EventsPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: familyPlan } = await supabase
     .from("families")

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { VolunteerDetailClient } from "./VolunteerDetailClient";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata: Metadata = { title: "Volunteer Entry | Family Nest" };
 
@@ -14,7 +15,7 @@ export default async function VolunteerDetailPage({ params }: Props) {
   const { id } = await params;
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: { user } } = await supabase.auth.getUser();
 

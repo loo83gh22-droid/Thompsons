@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { DeleteLetterButton } from "./DeleteLetterButton";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 type MemberRef = { id: string; name: string; color: string | null };
 
@@ -31,7 +32,7 @@ export default async function LetterDetailPage({
   const { id } = await params;
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: raw } = await supabase
     .from("family_letters")

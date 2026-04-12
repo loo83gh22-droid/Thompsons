@@ -21,9 +21,13 @@ function LoginForm() {
   const inviteFamily = searchParams.get("family") ?? "";
   const inviteName = searchParams.get("name") ?? "";
 
+  // Auth error from callback (e.g. expired link, used token)
+  const authError = searchParams.get("error");
+
   // Opaque token approach — no PII in URL
   const inviteToken = searchParams.get("token") ?? "";
   const [tokenResolved, setTokenResolved] = useState(false);
+  const [tokenError, setTokenError] = useState<string | null>(null);
 
   const [familyName, setFamilyName] = useState(inviteFamily);
   const [name, setName] = useState(inviteName);
@@ -49,14 +53,18 @@ function LoginForm() {
       return;
     }
     fetch(`/api/invite?token=${encodeURIComponent(inviteToken)}`)
-      .then((r) => r.json())
-      .then((data) => {
+      .then(async (r) => {
+        const data = await r.json();
+        if (!r.ok) {
+          setTokenError(data.error || "Couldn't load your invite details. Check your link or try again.");
+          return;
+        }
         if (data.email) setEmail(data.email);
         if (data.name && !name) setName(data.name);
         if (data.familyName) setFamilyName(data.familyName);
         if (typeof data.hasAccount === "boolean") setInviteHasAccount(data.hasAccount);
       })
-      .catch(() => {}) // fail silently — user can fill manually
+      .catch(() => setTokenError("Couldn't load your invite details. Check your link or try again."))
       .finally(() => setTokenResolved(true));
   }, [inviteToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -148,7 +156,16 @@ function LoginForm() {
             <span className="font-display text-2xl font-semibold">Family Nest</span>
           </Link>
 
-          {signUpSuccess ? (
+          {tokenError ? (
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-5 text-center">
+              <p className="font-medium text-red-400">{tokenError}</p>
+              <p className="mt-2 text-sm text-[var(--muted)]">
+                Ask your family owner to resend the invite, or{" "}
+                <a href="/login" className="text-[var(--accent)] hover:underline">sign in</a>{" "}
+                if you already have an account.
+              </p>
+            </div>
+          ) : signUpSuccess ? (
             <div className="rounded-xl border-2 border-[var(--accent)]/40 bg-[var(--accent)]/10 px-6 py-8 text-center">
               <p className="text-4xl">🎉</p>
               <p className="mt-3 font-display text-xl font-semibold text-[var(--foreground)]">
@@ -424,6 +441,12 @@ function LoginForm() {
             ? "Set up your Nest. You can add everyone else after."
             : "Sign in to access your family site."}
         </p>
+
+        {authError === "auth" && !isSignUp && (
+          <div className="mt-6 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-400">
+            Your link has expired or has already been used. Enter your email below to request a new one.
+          </div>
+        )}
 
         {isSignUp && signUpSuccess ? (
           <div className="mt-8 rounded-xl border-2 border-[var(--accent)]/40 bg-[var(--accent)]/10 px-6 py-8 text-center">

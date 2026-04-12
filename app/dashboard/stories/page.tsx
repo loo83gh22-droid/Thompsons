@@ -5,13 +5,14 @@ import { EmptyStateGuide } from "@/app/components/EmptyStateGuide";
 import { PlanLimitBadge } from "@/app/dashboard/components/PlanLimitBadge";
 import { PLAN_LIMITS } from "@/src/lib/constants";
 import { StoriesList } from "./StoriesList";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "Family Stories | Family Nest" };
 
 export default async function StoriesPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: familyPlan } = await supabase
     .from("families")

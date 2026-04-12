@@ -1,6 +1,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { BucketListClient } from "./BucketListClient";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "Bucket List | Family Nest" };
 
@@ -11,7 +12,7 @@ export default async function BucketListPage() {
   if (!user) return null;
 
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   // Run independent queries in parallel
   const [currentMemberRes, allMembersRes, itemsRes] = await Promise.all([

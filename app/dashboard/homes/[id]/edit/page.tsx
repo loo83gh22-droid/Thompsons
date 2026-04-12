@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { EditHomeForm } from "./EditHomeForm";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata: Metadata = { title: "Edit Home | Family Nest" };
 
@@ -13,7 +14,7 @@ export default async function EditHomePage({ params }: Props) {
   const { id } = await params;
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const [homeRes, membersRes] = await Promise.all([
     supabase

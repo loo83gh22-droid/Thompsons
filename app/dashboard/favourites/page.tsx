@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { NewListButton } from "./NewListButton";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata: Metadata = {
   title: "Favourites | Family Nest",
@@ -22,7 +23,7 @@ type MemberSnippet = { list_id: string; color: string | null };
 export default async function FavouritesPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: lists } = await supabase
     .from("favourite_lists")

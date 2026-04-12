@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { StoryForm } from "../../StoryForm";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "Edit Story | Family Nest" };
 
@@ -10,7 +11,7 @@ export default async function EditStoryPage({ params }: { params: Promise<{ id: 
   const { id } = await params;
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: story } = await supabase
     .from("family_stories")

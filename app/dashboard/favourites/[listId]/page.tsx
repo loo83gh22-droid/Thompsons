@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { ListDetail } from "./ListDetail";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata: Metadata = {
   title: "Favourites | Family Nest",
@@ -15,7 +16,7 @@ export default async function ListPage({ params }: Props) {
   const { listId } = await params;
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: { user } } = await supabase.auth.getUser();
 

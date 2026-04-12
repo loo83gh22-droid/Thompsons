@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { BabyBookForm } from "../BabyBookForm";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "Add Year | Baby Book | Family Nest" };
 
@@ -14,7 +15,7 @@ export default async function NewBabyBookYearPage({
   const { memberId } = await params;
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: member } = await supabase
     .from("family_members")

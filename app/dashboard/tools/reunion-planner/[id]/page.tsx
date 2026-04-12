@@ -2,6 +2,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { notFound } from "next/navigation";
 import { ReunionDetailClient } from "./ReunionDetailClient";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -18,7 +19,7 @@ export default async function ReunionDetailPage({ params }: { params: Promise<{ 
   if (!user) return null;
 
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const [currentMemberRes, reunionRes, allMembersRes, rsvpsRes] = await Promise.all([
     supabase

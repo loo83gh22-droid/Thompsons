@@ -4,13 +4,14 @@ import { AddTraditionForm } from "./AddTraditionForm";
 import { TraditionList } from "./TraditionList";
 import { PlanLimitBadge } from "@/app/dashboard/components/PlanLimitBadge";
 import { PLAN_LIMITS } from "@/src/lib/constants";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "Family Traditions | Family Nest" };
 
 export default async function TraditionsPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: familyPlan } = await supabase
     .from("families")

@@ -8,7 +8,7 @@ The core pattern across all findings: **email delivery failures and network erro
 
 ## Critical (user completely stuck)
 
-### UX1 — `?error=auth` never displayed on the login page ⚠️ OPEN
+### UX1 — `?error=auth` never displayed on the login page ✅ FIXED (2026-04-11)
 **File:** `app/login/page.tsx` — `useSearchParams()` reads `mode`, `next`, `email`, `family`, `name`, `token` but never reads `error`
 **Trigger:** Any failed auth callback (expired confirmation link, used recovery code, invalid token) redirects to `/login?error=auth`
 **User experience:** Lands on a blank login form with zero explanation. Doesn't know if their link expired, their account doesn't exist, or the service is down.
@@ -24,14 +24,14 @@ The core pattern across all findings: **email delivery failures and network erro
 
 ---
 
-### UX3 — Invite email send failure is swallowed — owner sees success, member gets nothing ⚠️ OPEN
+### UX3 — Invite email send failure is swallowed — owner sees success, member gets nothing ✅ FIXED (2026-04-11)
 **File:** `app/dashboard/members/actions.ts` — `sendInviteEmail()` is wrapped in `try/catch` that logs to server console only
 **User experience:** Owner adds a family member, sees "Member added!" success toast, but the invite email silently failed. The invited member never receives anything. Owner has no idea and never follows up.
 **Fix:** Surface the email failure as a warning toast: "Member added, but the invite email failed to send. Copy their invite link manually: [link]" — include the invite link in the UI so the owner can share it another way.
 
 ---
 
-### UX4 — Expired invite token gives no actionable path ⚠️ OPEN
+### UX4 — Expired invite token gives no actionable path ✅ FIXED (2026-04-11)
 **File:** `app/api/invite/route.ts` line 34 — returns generic 404 `"Token not found or already used"` for all failure cases
 **User experience:** An invited member with an expired or already-used link sees a generic error with no distinction between:
 - Token typo (try again)
@@ -43,7 +43,7 @@ The core pattern across all findings: **email delivery failures and network erro
 
 ---
 
-### UX5 — Invite token fetch failure silently blanks the invite form ⚠️ OPEN
+### UX5 — Invite token fetch failure silently blanks the invite form ✅ FIXED (2026-04-11)
 **File:** `app/login/page.tsx` line 51–60 — token fetch uses `.catch(() => {})` swallowing all errors
 **User experience:** If `/api/invite` is down or the network fails, the invited user sees a blank email field with no pre-filled name or family name. They don't know if their link is broken, if they should proceed manually, or if they should try again.
 **Fix:** Replace `.catch(() => {})` with `.catch(() => setTokenError("Couldn't load your invite details. Check your link or try again."))` and show the error inline.
@@ -59,7 +59,7 @@ The core pattern across all findings: **email delivery failures and network erro
 
 ---
 
-### UX7 — 20+ dashboard pages return `null` (blank screen) when `activeFamilyId` is missing ⚠️ OPEN
+### UX7 — 20+ dashboard pages return `null` (blank screen) when `activeFamilyId` is missing ✅ FIXED (2026-04-11)
 **Files:** baby-book, stories, timeline, awards, artwork, recipes, journal, voice-memos, traditions, pets, events, homes, garden, letters, volunteer, teams, relationships, contacts, gratitude-board, favourites, trophy-case, book-club, bucket-list, family-motto, challenges, films, game-night — all do `if (!activeFamilyId) return null`
 **User experience:** In any edge case where the family context fails to resolve (race condition, stale cookie, RLS failure), the user sees a completely blank page with no message, no reload prompt, no explanation.
 **Fix:** Replace `return null` with a minimal error UI:
@@ -81,7 +81,7 @@ Or add a shared `<FamilyRequired />` component that handles this consistently ac
 
 ---
 
-### UX9 — No global error boundary on dashboard — query failures produce blank pages ⚠️ OPEN
+### UX9 — No global error boundary on dashboard — query failures produce blank pages ✅ FIXED (2026-04-11)
 **Files:** No `app/dashboard/error.tsx` found
 **User experience:** If any of the 13+ parallel queries on the dashboard home page throws (database connection issue, unexpected RLS error), the entire page crashes to Next.js's default error UI with no retry option and no friendly message.
 **Fix:** Add `app/dashboard/error.tsx` with a friendly message and a reload button. Next.js catches unhandled errors at the nearest error boundary automatically.
@@ -104,7 +104,7 @@ Or add a shared `<FamilyRequired />` component that handles this consistently ac
 
 ---
 
-### UX12 — Member limit error message references vague upgrade path ⚠️ OPEN
+### UX12 — Member limit error message references vague upgrade path ✅ FIXED (2026-04-11)
 **File:** `app/dashboard/members/actions.ts` line 221–223
 **User experience:** User tries to add a family member, hits the plan limit, and gets an error mentioning upgrading but with no direct link to the pricing/upgrade page.
 **Fix:** Include a link to `/pricing` or `/dashboard/settings?tab=billing` in the error message.
@@ -149,16 +149,16 @@ Modules that may show nothing with no content and no prompt: timeline, baby-book
 
 | # | Finding | Impact | Effort | Priority |
 |---|---------|--------|--------|----------|
-| UX1 | `?error=auth` never shown on login | Critical — every failed auth is a silent dead end | Low — add one `searchParams.get("error")` check | 🔴 This week |
-| UX3 | Invite email failure swallowed | Critical — invites silently fail, families can't grow | Medium — add warning toast + invite link fallback | 🔴 This week |
-| UX5 | Invite token fetch failure blanks form | Critical — invited users see broken invite form | Low — replace `.catch(() => {})` with error state | 🔴 This week |
-| UX4 | Generic invite token error message | High — user has no path forward | Low — add `reason` field to 404 response | 🟠 Soon |
-| UX7 | 20+ blank pages on missing familyId | High — edge case but catastrophic when hit | Medium — shared `<FamilyRequired />` component | 🟠 Soon |
-| UX9 | No dashboard error boundary | High — any DB error = blank crash | Low — add `app/dashboard/error.tsx` | 🟠 Soon |
+| UX1 | `?error=auth` never shown on login | Critical — every failed auth is a silent dead end | Low — add one `searchParams.get("error")` check | ✅ Done |
+| UX3 | Invite email failure swallowed | Critical — invites silently fail, families can't grow | Medium — add warning toast + invite link fallback | ✅ Done |
+| UX5 | Invite token fetch failure blanks form | Critical — invited users see broken invite form | Low — replace `.catch(() => {})` with error state | ✅ Done |
+| UX4 | Generic invite token error message | High — user has no path forward | Low — add `reason` field to 404 response | ✅ Done |
+| UX7 | 20+ blank pages on missing familyId | High — edge case but catastrophic when hit | Medium — shared `<FamilyRequired />` component | ✅ Done |
+| UX9 | No dashboard error boundary | High — any DB error = blank crash | Low — add `app/dashboard/error.tsx` | ✅ Done |
 | UX2 | Password reset (already fixed) | — | — | ✅ Done |
+| UX12 | Member limit vague upgrade path | Low — happens rarely | Low — add link to pricing page in error | ✅ Done |
 | UX10 | Existing user invite link-up failure | Medium — rare but leaves user in limbo | Medium — detect in layout and show recovery UI | 🟡 Next sprint |
 | UX6 | Welcome email dedup silently skips | Medium — new users miss onboarding email | Medium — retry table + cron retry | 🟡 Next sprint |
 | UX8 | Rate limit message on resend confirm | Medium — user confusion, not blocked | Low — better 429 handling on client | 🟡 Next sprint |
 | UX11 | Generic "something went wrong" | Low-medium — frustrating but user can retry | Medium — parse error codes | 🟡 Next sprint |
-| UX12 | Member limit vague upgrade path | Low — happens rarely | Low — add link to pricing page in error | 🟢 Backlog |
 | UX13 | Modules missing EmptyState | Low — confusing but not broken | Medium — add to each module | 🟢 Backlog |
