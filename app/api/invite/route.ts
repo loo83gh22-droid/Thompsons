@@ -24,31 +24,41 @@ export async function GET(request: Request) {
 
   const supabase = createAdminClient();
 
-  const { data: member } = await supabase
+  // First: check if the token exists at all (without user_id filter, so we can distinguish reasons)
+  const { data: anyMember } = await supabase
     .from("family_members")
-    .select("contact_email, name, family_id, families(name)")
+    .select("contact_email, name, family_id, user_id, families(name)")
     .eq("invite_token", token)
-    .is("user_id", null)
     .single();
 
-  if (!member || !member.contact_email) {
-    return NextResponse.json({ error: "Token not found or already used" }, { status: 404 });
+  if (!anyMember || !anyMember.contact_email) {
+    return NextResponse.json(
+      { error: "This invite link isn't valid. Ask your family owner to send a new one.", reason: "not_found" },
+      { status: 404 }
+    );
   }
 
-  const familyData = member.families as unknown as { name: string } | null;
+  if (anyMember.user_id !== null) {
+    return NextResponse.json(
+      { error: "You've already accepted this invite. Sign in to access your family.", reason: "already_used" },
+      { status: 404 }
+    );
+  }
+
+  const familyData = anyMember.families as unknown as { name: string } | null;
 
   // Check if any family_members row with this email already has a user_id (i.e. account exists)
   const { data: existingLink } = await supabase
     .from("family_members")
     .select("user_id")
-    .eq("contact_email", member.contact_email)
+    .eq("contact_email", anyMember.contact_email)
     .not("user_id", "is", null)
     .limit(1)
     .maybeSingle();
 
   return NextResponse.json({
-    email: member.contact_email,
-    name: member.name,
+    email: anyMember.contact_email,
+    name: anyMember.name,
     familyName: familyData?.name ?? "",
     hasAccount: !!existingLink?.user_id,
   });

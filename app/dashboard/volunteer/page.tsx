@@ -3,13 +3,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata: Metadata = { title: "Volunteer Log | Family Nest" };
 
 export default async function VolunteerPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: entries } = await supabase
     .from("volunteer_entries")

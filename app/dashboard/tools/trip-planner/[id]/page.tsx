@@ -2,6 +2,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { notFound } from "next/navigation";
 import { TripDetailClient } from "./TripDetailClient";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export async function generateMetadata({
   params,
@@ -33,7 +34,7 @@ export default async function TripDetailPage({
   if (!user) return null;
 
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const [memberRes, tripRes] = await Promise.all([
     supabase

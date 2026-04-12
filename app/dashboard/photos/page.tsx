@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 };
 import { getActiveFamilyId } from "@/src/lib/family";
 import { PhotosManager } from "./PhotosManager";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export default async function PhotosPage() {
   const supabase = await createClient();
@@ -15,7 +16,7 @@ export default async function PhotosPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: photos } = await supabase
     .from("home_mosaic_photos")

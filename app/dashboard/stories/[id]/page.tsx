@@ -8,6 +8,7 @@ import { StoryContent } from "../StoryContent";
 import { StoryDetailActions } from "../StoryDetailActions";
 import { StoryShareButton } from "../StoryShareButton";
 import { StoryPerspectives } from "../StoryPerspectives";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 const CATEGORY_LABELS: Record<string, string> = {
   family_history: "Family History",
@@ -37,7 +38,7 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
   const { id } = await params;
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: story } = await supabase
     .from("family_stories")

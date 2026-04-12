@@ -5,13 +5,14 @@ import { RecipeCard } from "./RecipeCard";
 import { RecipesEmptyState } from "./RecipesEmptyState";
 import { PlanLimitBadge } from "@/app/dashboard/components/PlanLimitBadge";
 import { PLAN_LIMITS } from "@/src/lib/constants";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "Family Recipes | Family Nest" };
 
 export default async function RecipesPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: familyPlan } = await supabase
     .from("families")

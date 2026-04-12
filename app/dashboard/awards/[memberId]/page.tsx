@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { AwardsGallery } from "./AwardsGallery";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "Awards Gallery | Family Nest" };
 
@@ -14,7 +15,7 @@ export default async function MemberAwardsPage({
   const { memberId } = await params;
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: member } = await supabase
     .from("family_members")

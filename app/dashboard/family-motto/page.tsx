@@ -2,13 +2,14 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { canManageMembers } from "@/src/lib/roles";
 import { MottoClient } from "./MottoClient";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "Family Motto & Values | Family Nest" };
 
 export default async function FamilyMottoPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: { user } } = await supabase.auth.getUser();
 

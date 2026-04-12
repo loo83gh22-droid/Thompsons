@@ -1,6 +1,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import EmergencyInfoClient from "./EmergencyInfoClient";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "Emergency Info | Family Nest" };
 
@@ -13,7 +14,7 @@ export default async function EmergencyInfoPage() {
   if (!user) return null;
 
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const [membersRes, contactsRes, medicalRes] = await Promise.all([
     supabase

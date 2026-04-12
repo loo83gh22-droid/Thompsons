@@ -1,6 +1,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { MlbStadiumClient } from "./MlbStadiumClient";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "MLB Stadium Tour | Family Nest" };
 
@@ -11,7 +12,7 @@ export default async function MlbStadiumTourPage() {
   if (!user) return null;
 
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   // Fetch locations, visits, photos, and members in parallel
   const [locRes, membersRes] = await Promise.all([

@@ -191,7 +191,7 @@ export async function addFamilyMember(
   deathDate: string | null = null,
   isRemembered: boolean = false,
   passedDate: string = ""
-): Promise<{ id?: string; birthdayEventAdded?: boolean }> {
+): Promise<{ id?: string; birthdayEventAdded?: boolean; emailFailed?: boolean; inviteUrl?: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
@@ -219,7 +219,7 @@ export async function addFamilyMember(
       .eq("family_id", activeFamilyId);
     if ((count ?? 0) >= limit) {
       throw new Error(
-        `Your free plan supports up to ${limit} family members. Upgrade to The Full Nest to add unlimited members.`
+        `Your free plan supports up to ${limit} family members. Upgrade to The Full Nest to add unlimited members. Visit /pricing to upgrade.`
       );
     }
   }
@@ -311,12 +311,32 @@ export async function addFamilyMember(
   // Send invite email when adding a member with an email (server-only, no public API)
   // Never send invite emails to child-role members — they can't log in.
   const trimmedEmail = email?.trim();
+  let emailFailed = false;
+  let inviteUrl: string | undefined;
+
   if (trimmedEmail && role !== "child") {
     try {
       const familyName = await getActiveFamilyName(supabase);
       await sendInviteEmail(trimmedEmail, name.trim(), familyName, member?.id);
     } catch (err) {
       console.error("[addFamilyMember] Invite email failed for", trimmedEmail, err);
+      emailFailed = true;
+      // Build a fallback invite URL the owner can share manually
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        (typeof process.env.VERCEL_URL === "string" ? `https://${process.env.VERCEL_URL}` : null);
+      if (baseUrl && member?.id) {
+        const { data: memberRow } = await supabase
+          .from("family_members")
+          .select("invite_token")
+          .eq("id", member.id)
+          .single();
+        if (memberRow?.invite_token) {
+          inviteUrl = `${baseUrl}/login?mode=invited&token=${memberRow.invite_token}`;
+        } else {
+          inviteUrl = `${baseUrl}/login?mode=invited&email=${encodeURIComponent(trimmedEmail)}`;
+        }
+      }
     }
   }
 
@@ -334,7 +354,7 @@ export async function addFamilyMember(
   revalidatePath("/dashboard/our-family");
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/map");
-  return { id: member?.id, birthdayEventAdded };
+  return { id: member?.id, birthdayEventAdded, emailFailed: emailFailed || undefined, inviteUrl };
 }
 
 export async function updateFamilyMember(

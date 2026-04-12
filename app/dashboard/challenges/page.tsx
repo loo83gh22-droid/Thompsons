@@ -1,13 +1,14 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { ChallengeBoard } from "./ChallengeBoard";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata = { title: "Family Challenges | Family Nest" };
 
 export default async function ChallengesPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const today = new Date().toISOString().split("T")[0];
 

@@ -3,6 +3,7 @@ import { getActiveFamilyId } from "@/src/lib/family";
 import { QUERY_LIMITS } from "@/src/lib/constants";
 import { TimelineClient } from "./TimelineClient";
 import type { TimelineItem } from "./types";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export type { TimelineItem } from "./types";
 
@@ -30,7 +31,7 @@ export default async function TimelinePage({
   const resolvedParams = await searchParams;
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const items: TimelineItem[] = [];
 

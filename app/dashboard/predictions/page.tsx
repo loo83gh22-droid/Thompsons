@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { PredictionsClient } from "./PredictionsClient";
+import { FamilyRequired } from "@/app/components/FamilyRequired";
 
 export const metadata: Metadata = { title: "Family Predictions | Family Nest" };
 
 export default async function PredictionsPage() {
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
-  if (!activeFamilyId) return null;
+  if (!activeFamilyId) return <FamilyRequired />;
 
   const { data: { user } } = await supabase.auth.getUser();
 
