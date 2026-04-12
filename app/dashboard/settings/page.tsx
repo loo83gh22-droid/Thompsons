@@ -437,7 +437,7 @@ export default async function SettingsPage() {
             <span className="text-[var(--muted)]">&rsaquo;</span>
           </Link>
           <Link
-            href="/forgot-password"
+            href="/set-password"
             className="flex items-center justify-between px-6 py-4 text-sm transition-colors hover:bg-[var(--surface-hover)]"
           >
             <div>
@@ -445,7 +445,7 @@ export default async function SettingsPage() {
                 Change Password
               </p>
               <p className="text-[var(--muted)]">
-                Change your password
+                Set a new password for your account
               </p>
             </div>
             <span className="text-[var(--muted)]">&rsaquo;</span>
