@@ -15,7 +15,6 @@ import { OnboardingChecklist } from "./OnboardingChecklist";
 import { FamilyHighlight, type HighlightItem } from "./FamilyHighlight";
 import { InspirationTip } from "./InspirationTip";
 import { BirthdayBanner, type BirthdayPerson } from "./BirthdayBanner";
-import { WeeklyStreak } from "./WeeklyStreak";
 import { OnThisDay, type OnThisDayItem } from "./OnThisDay";
 import { GratitudeOfTheDay } from "./GratitudeOfTheDay";
 
@@ -42,8 +41,6 @@ export default async function DashboardPage() {
   let activityHasMore = false;
   let highlight: HighlightItem | null = null;
   let upcomingBirthdays: BirthdayPerson[] = [];
-  let weekActiveDays: string[] = [];
-  let weekStreak = 0;
   let onThisDayItems: OnThisDayItem[] = [];
   let userFirstName: string | null = null;
   let gratitudeOfTheDay: { content: string; member_name: string } | null = null;
@@ -61,7 +58,6 @@ export default async function DashboardPage() {
       voiceActivity,
       storiesActivity,
       birthdayMembersRes,
-      recentActivityDatesRes,
       allJournalForOTDRes,
     ] = await Promise.all([
       supabase.from("family_members").select("id", { count: "exact", head: true }).eq("family_id", activeFamilyId),
@@ -76,8 +72,6 @@ export default async function DashboardPage() {
       supabase.from("family_stories").select("id, title, cover_url, created_at, family_members!author_family_member_id(id, name, relationship)").eq("family_id", activeFamilyId).eq("published", true).order("created_at", { ascending: false }).limit(QUERY_LIMITS.dashboardPreview),
       // Birthday detection: fetch members with birth dates
       supabase.from("family_members").select("id, name, birth_date").eq("family_id", activeFamilyId).not("birth_date", "is", null),
-      // Streak: get distinct activity dates for last 56 days (8 weeks) across all content types
-      supabase.from("journal_entries").select("created_at").eq("family_id", activeFamilyId).gte("created_at", new Date(nowMs - 56 * 86_400_000).toISOString()).order("created_at", { ascending: false }),
       // On This Day: journal entries created on today's month/day in prior years
       supabase.from("journal_entries").select("id, title, created_at, family_members!author_id(id, name)").eq("family_id", activeFamilyId).order("created_at", { ascending: false }).limit(200),
     ]);
@@ -204,47 +198,6 @@ export default async function DashboardPage() {
       })
       .filter((b) => b.daysUntil <= BIRTHDAY_WINDOW_DAYS)
       .sort((a, b) => a.daysUntil - b.daysUntil);
-
-    // ── Weekly activity streak ──────────────────────────────────────────
-    // Collect unique ISO dates (YYYY-MM-DD) with any activity in past 8 weeks
-    const allActivityDates = new Set<string>();
-    // Journal dates
-    for (const row of (recentActivityDatesRes.data ?? []) as { created_at: string }[]) {
-      allActivityDates.add(row.created_at.slice(0, 10));
-    }
-    // Also fold in activity feed items (photos, voice, messages already fetched)
-    for (const item of activityItems) {
-      allActivityDates.add(item.createdAt.slice(0, 10));
-    }
-
-    // Build current week's active days (Sun–Sat)
-    const currentSunday = new Date(todayLocal);
-    currentSunday.setDate(todayLocal.getDate() - todayLocal.getDay());
-    weekActiveDays = Array.from(allActivityDates).filter((d) => {
-      const date = new Date(d + "T12:00:00");
-      const weekEnd = new Date(currentSunday);
-      weekEnd.setDate(currentSunday.getDate() + 6);
-      return date >= currentSunday && date <= weekEnd;
-    });
-
-    // Count consecutive weeks with at least one active day (going backwards from current week)
-    weekStreak = 0;
-    const checkWeekStart = new Date(currentSunday);
-    for (let w = 0; w < 8; w++) {
-      const weekStart = new Date(checkWeekStart);
-      const weekEnd = new Date(checkWeekStart);
-      weekEnd.setDate(weekStart.getDate() + 6);
-      const hasActivity = Array.from(allActivityDates).some((d) => {
-        const date = new Date(d + "T12:00:00");
-        return date >= weekStart && date <= weekEnd;
-      });
-      if (hasActivity) {
-        weekStreak++;
-        checkWeekStart.setDate(checkWeekStart.getDate() - 7);
-      } else {
-        break; // streak broken
-      }
-    }
 
     // ── On This Day ────────────────────────────────────────────────────
     // Find content created on the same month/day in previous years
@@ -415,9 +368,6 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <div className="mt-10">
-            <WeeklyStreak activeDays={weekActiveDays} weekStreak={weekStreak} />
-          </div>
         </>
       )}
     </div>
