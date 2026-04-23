@@ -1,5 +1,7 @@
-import { Suspense } from "react";
-import { BookOpen, MapPin, GitBranch, Mic, Lock, Baby } from "lucide-react";
+"use client";
+
+import { Suspense, useState } from "react";
+import { BookOpen, MapPin, GitBranch, Mic, Lock, Baby, ChevronDown } from "lucide-react";
 import { WorldMapSVG, WorldPin } from "./WorldMapSVG";
 
 /* ── Mini UI previews for each feature card ──────────────────── */
@@ -431,27 +433,15 @@ function BabyBookPreview() {
 /* ── Component ───────────────────────────────────────────────── */
 
 export function FeaturesBento() {
-  const features = [
+  // Lead with the three features that drive emotional signup intent:
+  // daily-use (Journal), signature-emotional (Voice Memos), unique-differentiator (Time Capsules).
+  const primaryFeatures = [
     {
       icon: BookOpen,
       title: "Journal with Photos & Video",
       description:
         "Write about trips, milestones, and the everyday chaos. Attach photos and short videos of the gems, not everything.",
       Preview: JournalPreview,
-    },
-    {
-      icon: MapPin,
-      title: "Family Map",
-      description:
-        "Pin everywhere your family has been. Vacations, birthplaces, that roadside diner everyone still talks about. Watch your map fill up over the years.",
-      Preview: MapPreview,
-    },
-    {
-      icon: GitBranch,
-      title: "Family Tree",
-      description:
-        "Map your whole crew. Every member gets a profile with photos, birthdays, and their place in the family story.",
-      Preview: TreePreview,
     },
     {
       icon: Mic,
@@ -467,6 +457,23 @@ export function FeaturesBento() {
         "Write a letter to your future self, your kids, or your partner. Seal it, set an unlock date, and try not to peek.",
       Preview: TimeCapsulePreview,
     },
+  ];
+
+  const moreFeatures = [
+    {
+      icon: MapPin,
+      title: "Family Map",
+      description:
+        "Pin everywhere your family has been. Vacations, birthplaces, that roadside diner everyone still talks about. Watch your map fill up over the years.",
+      Preview: MapPreview,
+    },
+    {
+      icon: GitBranch,
+      title: "Family Tree",
+      description:
+        "Map your whole crew. Every member gets a profile with photos, birthdays, and their place in the family story.",
+      Preview: TreePreview,
+    },
     {
       icon: Baby,
       title: "Baby Book",
@@ -475,6 +482,9 @@ export function FeaturesBento() {
       Preview: BabyBookPreview,
     },
   ];
+
+  const [expanded, setExpanded] = useState(false);
+  const featuresToShow = expanded ? [...primaryFeatures, ...moreFeatures] : primaryFeatures;
 
   return (
     <section id="features" className="py-20 md:py-32">
@@ -501,7 +511,7 @@ export function FeaturesBento() {
 
         {/* Feature Cards Grid */}
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature) => (
+          {featuresToShow.map((feature) => (
             <article
               key={feature.title}
               className="group overflow-hidden rounded-2xl transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
@@ -539,6 +549,27 @@ export function FeaturesBento() {
               </div>
             </article>
           ))}
+        </div>
+
+        {/* Expand / collapse toggle */}
+        <div className="mt-10 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setExpanded((e) => !e)}
+            className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-all duration-200 hover:brightness-95 hover:-translate-y-0.5"
+            style={{
+              backgroundColor: "var(--secondary)",
+              color: "var(--foreground)",
+              border: "1px solid var(--border)",
+            }}
+            aria-expanded={expanded}
+          >
+            {expanded ? "Show fewer features" : "See more features"}
+            <ChevronDown
+              className="h-4 w-4 transition-transform"
+              style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}
+            />
+          </button>
         </div>
       </div>
     </section>

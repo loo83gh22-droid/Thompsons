@@ -8,7 +8,7 @@ const personas = [
     headline: "They grow up faster than you think. Write it down.",
     description:
       "The funny things they say at dinner. The first time they did something brave. The stuff you swore you'd remember. You won't. But your nest will.",
-    cta: { text: "Start free", href: "/login?mode=signup" },
+    cta: { text: "Start Your Family Nest", href: "/login?mode=signup" },
   },
   {
     icon: Users,
@@ -16,7 +16,7 @@ const personas = [
     headline: "Your story started before the kids.",
     description:
       "Document it like it matters. Because it does. Date nights, trips, inside jokes, the apartment before the house. All of it belongs somewhere.",
-    cta: { text: "Start free", href: "/login?mode=signup" },
+    cta: { text: "Start Your Family Nest", href: "/login?mode=signup" },
   },
   {
     icon: Camera,
@@ -24,7 +24,7 @@ const personas = [
     headline: "More people, more memories, one place.",
     description:
       "Everyone adds what they can, when they can. Nobody has to be the family archivist. The nest fills itself.",
-    cta: { text: "Start free", href: "/login?mode=signup" },
+    cta: { text: "Start Your Family Nest", href: "/login?mode=signup" },
   },
   {
     icon: Gift,

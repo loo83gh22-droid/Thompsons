@@ -30,7 +30,7 @@ export function PricingCallout() {
             className="shrink-0 rounded-full px-7 py-3 text-sm font-semibold transition-all duration-200 hover:brightness-110 hover:shadow-md"
             style={{ backgroundColor: "var(--accent)", color: "#fff" }}
           >
-            Start for free →
+            Start Your Family Nest
           </Link>
         </div>
       </div>
