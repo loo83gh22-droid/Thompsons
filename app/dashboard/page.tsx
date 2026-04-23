@@ -240,10 +240,13 @@ export default async function DashboardPage() {
     userFirstName = currentMemberData?.name?.split(" ")[0] ?? null;
 
     // Query journal entries where user has added perspective
-    const { data: userPerspectives } = await supabase
-      .from("journal_perspectives")
-      .select("journal_entry_id")
-      .eq("author_id", currentMemberId);
+    // (column on journal_perspectives is family_member_id, not author_id)
+    const { data: userPerspectives } = currentMemberId
+      ? await supabase
+          .from("journal_perspectives")
+          .select("journal_entry_id")
+          .eq("family_member_id", currentMemberId)
+      : { data: null };
     const journalIdsWithUserPerspective = new Set(
       userPerspectives?.map((p: { journal_entry_id: string }) => p.journal_entry_id) || []
     );
