@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Gift, BookOpen, MapPin, Camera, Mic, Heart, Users, Shield, ChevronDown } from "lucide-react";
+import { ArrowRight, Gift, BookOpen, MapPin, Camera, Mic, Users, Shield, ChevronDown } from "lucide-react";
 
 export function HeroSection() {
   return (
@@ -9,11 +9,6 @@ export function HeroSection() {
           {/* Text Content */}
           <div className="flex flex-col gap-8 min-w-0">
             <div className="flex flex-col gap-6">
-<div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-2" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
-                <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--primary)" }}>
-                  Family Media. Not Social Media.
-                </span>
-              </div>
               <h1
                 className="text-4xl font-bold leading-tight md:text-5xl lg:text-6xl"
                 style={{
@@ -42,7 +37,7 @@ export function HeroSection() {
                     color: "#fff",
                   }}
                 >
-                  Create Your Nest (Free)
+                  Start Your Family Nest
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
@@ -78,164 +73,167 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* Hero Product Preview — App UI mockup */}
-          <div className="relative min-w-0">
-            <div
-              className="relative overflow-hidden rounded-2xl shadow-2xl"
-              style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)" }}
-            >
-              {/* Top bar */}
+          {/* Hero Product Preview — Phone-first mockup (mobile-first product) */}
+          <div className="relative flex min-w-0 items-center justify-center">
+            <div className="relative mx-auto" style={{ width: 272 }}>
+              {/* Phone frame */}
               <div
-                className="flex items-center gap-2 px-4 py-3"
-                style={{ borderBottom: "1px solid var(--border)", backgroundColor: "var(--surface)" }}
+                className="relative overflow-hidden rounded-[44px] shadow-2xl"
+                style={{
+                  width: 272,
+                  height: 552,
+                  border: "8px solid var(--foreground)",
+                  backgroundColor: "var(--background)",
+                }}
               >
-                <div className="flex gap-1.5">
-                  <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: "var(--border)" }} />
-                  <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: "var(--border)" }} />
-                  <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: "var(--border)" }} />
-                </div>
+                {/* Status bar */}
                 <div
-                  className="mx-auto rounded-md px-12 py-1 text-[10px]"
-                  style={{ backgroundColor: "var(--background)", color: "var(--muted)" }}
+                  className="flex items-center justify-between px-6 pt-2.5 pb-1.5"
+                  style={{ backgroundColor: "var(--surface)" }}
                 >
-                  familynest.io
-                </div>
-              </div>
-
-              {/* Sidebar + Content layout */}
-              <div className="flex" style={{ minHeight: "320px" }}>
-                {/* Sidebar nav */}
-                <div
-                  className="hidden sm:flex w-44 shrink-0 flex-col gap-1 p-3"
-                  style={{ borderRight: "1px solid var(--border)", backgroundColor: "var(--surface)" }}
-                >
-                  {/* Family switcher */}
+                  <span className="text-[10px] font-semibold" style={{ color: "var(--foreground)" }}>9:41</span>
                   <div
-                    className="mb-1 flex items-center justify-between rounded-lg px-2 py-1.5"
-                    style={{ backgroundColor: "rgba(61,107,94,0.08)", border: "1px solid var(--border)" }}
-                  >
+                    className="rounded-full"
+                    style={{ width: 52, height: 10, backgroundColor: "var(--foreground)", opacity: 0.9 }}
+                  />
+                  <span className="text-[10px] font-semibold" style={{ color: "var(--foreground)" }}>100%</span>
+                </div>
+
+                {/* App header */}
+                <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                  <div className="flex items-center gap-1.5">
                     <p
-                      className="text-[10px] font-semibold uppercase tracking-wider"
-                      style={{ color: "var(--foreground)" }}
+                      className="text-[13px] font-bold"
+                      style={{ fontFamily: "var(--font-display-serif)", color: "var(--foreground)" }}
                     >
                       The Thompsons
                     </p>
                     <ChevronDown className="h-3 w-3" style={{ color: "var(--muted)" }} />
                   </div>
-                  {/* Switcher hint — other family */}
                   <div
-                    className="mb-2 flex items-center gap-1.5 rounded-lg px-2 py-1"
-                    style={{ backgroundColor: "transparent" }}
+                    className="flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold"
+                    style={{ backgroundColor: "var(--accent)", color: "#fff" }}
                   >
-                    <div
-                      className="h-1.5 w-1.5 rounded-full"
-                      style={{ backgroundColor: "var(--accent)" }}
-                    />
-                    <p className="text-[9px]" style={{ color: "var(--muted)" }}>
-                      The Garcias
-                    </p>
-                    <span
-                      className="ml-auto rounded-full px-1 py-0.5 text-[7px] font-medium"
-                      style={{ backgroundColor: "var(--accent)", color: "#fff" }}
-                    >
-                      3 new
-                    </span>
+                    +
                   </div>
+                </div>
+
+                {/* Journal title row */}
+                <div className="flex items-center justify-between px-4 pt-1 pb-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--accent)" }}>
+                    Family Journal
+                  </p>
+                  <p className="text-[10px]" style={{ color: "var(--muted)" }}>4 members</p>
+                </div>
+
+                {/* Journal entries — phone feed */}
+                <div className="flex flex-col gap-2 px-3">
                   {[
-                    { icon: BookOpen, label: "Journal", active: true },
-                    { icon: Camera, label: "Photos", active: false },
-                    { icon: MapPin, label: "Family Map", active: false },
-                    { icon: Users, label: "Family Tree", active: false },
-                    { icon: Mic, label: "Voice Memos", active: false },
-                    { icon: Heart, label: "Traditions", active: false },
-                  ].map((item) => (
+                    {
+                      title: "Beach day with the whole crew",
+                      date: "June 14",
+                      preview: "Catching our favourite sunset…",
+                      photo: "/marketing/journal-1.jpeg",
+                    },
+                    {
+                      title: "Grandma's birthday party",
+                      date: "June 8",
+                      preview: "Four generations around one table.",
+                      photo: "/marketing/journal-2.jpeg",
+                    },
+                    {
+                      title: "First day of summer break",
+                      date: "June 1",
+                      preview: "The look on their faces when…",
+                      photo: null as string | null,
+                    },
+                  ].map((entry) => (
                     <div
-                      key={item.label}
-                      className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs"
-                      style={{
-                        backgroundColor: item.active ? "rgba(61,107,94,0.1)" : "transparent",
-                        color: item.active ? "var(--primary)" : "var(--muted)",
-                        fontWeight: item.active ? 600 : 400,
-                      }}
+                      key={entry.title}
+                      className="flex gap-2.5 rounded-xl p-2"
+                      style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)" }}
                     >
-                      <item.icon className="h-3.5 w-3.5" />
-                      {item.label}
+                      {entry.photo ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={entry.photo}
+                          alt=""
+                          width={44}
+                          height={44}
+                          className="h-11 w-11 shrink-0 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div
+                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-base"
+                          style={{ backgroundColor: "var(--surface)" }}
+                        >
+                          📔
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-semibold truncate" style={{ color: "var(--foreground)" }}>
+                          {entry.title}
+                        </p>
+                        <p className="text-[9px]" style={{ color: "var(--accent)" }}>
+                          {entry.date}
+                        </p>
+                        <p className="text-[9px] truncate mt-0.5" style={{ color: "var(--muted)" }}>
+                          {entry.preview}
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Main content area — journal entries */}
-                <div className="min-w-0 flex-1 p-4 pr-5">
-                  <div className="mb-3 flex items-center justify-between gap-2">
-                    <p
-                      className="min-w-0 truncate text-sm font-semibold"
-                      style={{ color: "var(--foreground)", fontFamily: "var(--font-display-serif)" }}
-                    >
-                      Family Journal
-                    </p>
-                    <span
-                      className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium"
-                      style={{ backgroundColor: "var(--accent)", color: "#fff" }}
-                    >
-                      + New
-                    </span>
+                {/* Bottom nav bar */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 flex items-center justify-around px-2 pt-2 pb-3"
+                  style={{ borderTop: "1px solid var(--border)", backgroundColor: "var(--background)" }}
+                >
+                  <div className="flex flex-col items-center gap-0.5">
+                    <BookOpen className="h-4 w-4" style={{ color: "var(--accent)" }} />
+                    <span className="text-[7px] font-medium" style={{ color: "var(--accent)" }}>Journal</span>
                   </div>
-
-                  {/* Mock journal entries */}
-                  <div className="flex flex-col gap-2.5">
-                    {[
-                      {
-                        title: "Beach day with the whole crew",
-                        date: "June 14",
-                        preview: "Catching our favourite sunset...",
-                        photo: "/marketing/journal-1.jpeg",
-                      },
-                      {
-                        title: "Grandma's birthday party",
-                        date: "June 8",
-                        preview: "Four generations around one table. Made her famous...",
-                        photo: "/marketing/journal-2.jpeg",
-                      },
-                      {
-                        title: "First day of summer break",
-                        date: "June 1",
-                        preview: "The look on their faces when we told them about the trip...",
-                        photo: null as string | null,
-                      },
-                    ].map((entry) => (
-                      <div
-                        key={entry.title}
-                        className="flex gap-3 rounded-xl p-2.5"
-                        style={{ backgroundColor: "var(--background)", border: "1px solid var(--border)" }}
-                      >
-                        {entry.photo && (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img
-                            src={entry.photo}
-                            alt=""
-                            width={56}
-                            height={56}
-                            className="h-14 w-14 shrink-0 rounded-lg object-cover"
-                          />
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-semibold truncate" style={{ color: "var(--foreground)" }}>
-                            {entry.title}
-                          </p>
-                          <p className="text-[10px]" style={{ color: "var(--accent)" }}>
-                            {entry.date}
-                          </p>
-                          <p className="text-[10px] truncate mt-0.5" style={{ color: "var(--muted)" }}>
-                            {entry.preview}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="flex flex-col items-center gap-0.5">
+                    <Camera className="h-4 w-4" style={{ color: "var(--muted)" }} />
+                    <span className="text-[7px]" style={{ color: "var(--muted)" }}>Photos</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-0.5">
+                    <MapPin className="h-4 w-4" style={{ color: "var(--muted)" }} />
+                    <span className="text-[7px]" style={{ color: "var(--muted)" }}>Map</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-0.5">
+                    <Users className="h-4 w-4" style={{ color: "var(--muted)" }} />
+                    <span className="text-[7px]" style={{ color: "var(--muted)" }}>Family</span>
                   </div>
                 </div>
               </div>
-            </div>
 
+              {/* Floating badge — "Works on any device" */}
+              <div
+                className="absolute -right-3 top-20 rotate-3 rounded-xl px-3 py-2 shadow-lg"
+                style={{ backgroundColor: "var(--primary)", color: "var(--primary-foreground)" }}
+              >
+                <p className="text-[10px] font-medium opacity-80">Works on</p>
+                <p className="text-[12px] font-bold">any device</p>
+              </div>
+
+              {/* Floating voice-memo hint — bottom left, quiet hint of more features */}
+              <div
+                className="absolute -left-4 bottom-24 -rotate-2 flex items-center gap-2 rounded-full px-3 py-1.5 shadow-lg"
+                style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)" }}
+              >
+                <div
+                  className="flex h-5 w-5 items-center justify-center rounded-full"
+                  style={{ backgroundColor: "var(--accent)" }}
+                >
+                  <Mic className="h-2.5 w-2.5 text-white" />
+                </div>
+                <p className="text-[10px] font-medium" style={{ color: "var(--foreground)" }}>
+                  Voice memo · 0:18
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

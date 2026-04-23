@@ -22,7 +22,7 @@ const plans: PlanEntry[] = [
     period: "",
     description: "Unlimited journal entries, 500 MB storage. No credit card needed.",
     features: ["Unlimited journal entries", "500 MB storage", "Family tree", "Map view"],
-    cta: "Get Started Free",
+    cta: "Start Your Family Nest",
     featured: false,
     ctaStyle: "muted",
     note: null,
