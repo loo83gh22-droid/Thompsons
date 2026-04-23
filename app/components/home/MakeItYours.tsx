@@ -8,7 +8,6 @@ const memoryFeatures = [
   { icon: "\u{1F3A8}", name: "Artwork", active: false },
   { icon: "\u{1F476}", name: "Baby Book", active: true },
   { icon: "\u{1F3C6}", name: "Trophy Case", active: true },
-  { icon: "\u{270D}\u{FE0F}", name: "One Line A Day", active: false },
 ];
 
 const activityFeatures = [

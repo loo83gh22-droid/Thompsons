@@ -166,7 +166,6 @@ export default async function DashboardLayout({
             { family_id: newFamily.id, feature_slug: "stories" },
             { family_id: newFamily.id, feature_slug: "recipes" },
             { family_id: newFamily.id, feature_slug: "voice-memos" },
-            { family_id: newFamily.id, feature_slug: "one-line" },
             { family_id: newFamily.id, feature_slug: "artwork" },
             { family_id: newFamily.id, feature_slug: "trophy-case" },
             { family_id: newFamily.id, feature_slug: "time-capsules" },

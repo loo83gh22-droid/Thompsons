@@ -112,21 +112,6 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     ],
   },
   {
-    slug: "one-line",
-    name: "One Line A Day",
-    description: "A single sentence each day. Simple, consistent, and surprisingly powerful over time.",
-    category: "memories",
-    icon: "\u{270D}\u{FE0F}",
-    href: "/dashboard/one-line",
-    available: true,
-    navGroup: "memories",
-    highlights: [
-      "One sentence per day, per person",
-      "Look back across months and years",
-      "Takes 10 seconds — the consistency is the magic",
-    ],
-  },
-  {
     slug: "artwork",
     name: "Artwork",
     description: "Photograph and preserve your kids' drawings, paintings, and crafts before they get lost.",

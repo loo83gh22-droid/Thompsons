@@ -24,11 +24,12 @@ const coreFamilyItems: { href: string; label: string }[] = [
   { href: "/dashboard/events", label: "Annual Events" },
 ];
 
-// Core memories items — always shown in the Memories dropdown
+// Core memories items — always shown in the Memories dropdown.
+// Keep this tight: Timeline (the view) + Journal (the hub).
+// Everything else is opt-in via the Feature Catalog.
 const coreMemoriesItems: { href: string; label: string }[] = [
   { href: "/dashboard/timeline", label: "Timeline" },
   { href: "/dashboard/journal", label: "Journal" },
-  { href: "/dashboard/letters", label: "Letters" },
 ];
 
 type AddOn = { name: string; href: string };
