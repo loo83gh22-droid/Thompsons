@@ -156,13 +156,14 @@ export function PhotosManager({ initialPhotos }: { initialPhotos: Photo[] }) {
           {photos.map((photo) => (
             <div
               key={photo.id}
-              className="group relative aspect-square overflow-hidden rounded-lg border border-[var(--border)]"
+              className="group relative aspect-square overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)]"
             >
               <Image
                 src={photo.url}
                 alt={photo.caption ?? "Family photo"}
                 fill
                 unoptimized
+                loading="lazy"
                 className="object-cover"
                 sizes="150px"
               />

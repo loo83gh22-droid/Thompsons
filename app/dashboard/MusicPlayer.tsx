@@ -16,11 +16,11 @@ export function MusicPlayer({ playlistId }: { playlistId?: string | null }) {
         className={`fixed left-0 top-1/2 z-50 flex -translate-y-1/2 flex-col items-center gap-1 rounded-r-lg border border-l-0 border-[var(--border)] bg-[var(--surface)] px-2 py-4 shadow-lg transition-all hover:bg-[var(--surface-hover)] ${
           expanded ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
-        title="Open music player"
+        title="Open family playlist"
       >
         <Music2 className="h-6 w-6 text-[var(--accent)]" />
         <span className="text-[10px] font-medium text-[var(--muted)]">
-          Music
+          Playlist
         </span>
       </button>
 
@@ -33,7 +33,7 @@ export function MusicPlayer({ playlistId }: { playlistId?: string | null }) {
       >
         <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
           <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
-            Music
+            Family Playlist
           </h2>
           <button
             onClick={() => setExpanded(false)}

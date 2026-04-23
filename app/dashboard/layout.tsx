@@ -11,7 +11,6 @@ import { FounderNoteModal } from "@/app/dashboard/FounderNoteModal";
 import { AgeTransitionBanner } from "@/app/dashboard/AgeTransitionBanner";
 import { BirthdayPrompt } from "@/app/dashboard/BirthdayPrompt";
 import { FeedbackPromptModal } from "@/app/dashboard/FeedbackPromptModal";
-import { QuickEntryWidget } from "@/app/dashboard/QuickEntryWidget";
 import { PWAInstallBanner } from "@/app/dashboard/PWAInstallBanner";
 import { MobileBottomNav } from "@/app/components/MobileBottomNav";
 import { WhatsNewBanner } from "@/app/dashboard/WhatsNewBanner";
@@ -263,10 +262,6 @@ export default async function DashboardLayout({
         <FounderNoteModal />
         <BirthdayPrompt />
         <FeedbackPromptModal />
-        {/* Quick entry widget: desktop only — mobile uses MobileBottomNav FAB instead */}
-        <div className="hidden min-[768px]:block">
-          <QuickEntryWidget />
-        </div>
         <MobileBottomNav />
         <div className="min-h-screen">
           <Nav
