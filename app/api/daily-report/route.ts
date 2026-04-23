@@ -9,6 +9,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { Redis } from "@upstash/redis";
 import { NextResponse } from "next/server";
 import { adminReportEmailHtml, AdminReportStats } from "@/app/api/emails/templates/admin-report";
 
@@ -329,6 +330,21 @@ export async function GET(request: Request) {
       { error: "Email send failed", details: String(err) },
       { status: 500 }
     );
+  }
+
+  // Keep Upstash familynest-ratelimit DB active — low rate-limiter traffic
+  // would otherwise trigger Upstash's free-tier inactive-DB archival.
+  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (upstashUrl && upstashToken) {
+    try {
+      const redis = new Redis({ url: upstashUrl, token: upstashToken });
+      await redis.set("keepalive:daily-report", new Date().toISOString(), {
+        ex: 60 * 60 * 24 * 45,
+      });
+    } catch (err) {
+      console.error("Upstash keepalive ping failed:", err);
+    }
   }
 
   return NextResponse.json({
