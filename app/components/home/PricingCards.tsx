@@ -31,7 +31,7 @@ const plans: PlanEntry[] = [
     name: "The Full Nest",
     price: "$6.99",
     period: "/month",
-    description: "For families ready to go all in",
+    description: "A monthly Nest for families who want the whole toolkit without the lifetime commitment.",
     features: [
       "Unlimited entries",
       "5 GB storage (add more anytime)",

@@ -11,13 +11,14 @@ import { LogoMark } from "@/app/components/LogoMark";
 import { GlobalSearch } from "./GlobalSearch";
 
 type Family = { id: string; name: string };
+type NavItem = { href: string; label: string };
 
-const navItemsBeforeDropdowns: { href: string; label: string }[] = [
+const navItemsBeforeDropdowns: NavItem[] = [
   { href: "/dashboard", label: "Home" },
 ];
 
 // Core family items — always shown in the Family dropdown
-const coreFamilyItems: { href: string; label: string }[] = [
+const coreFamilyItems: NavItem[] = [
   { href: "/dashboard/our-family", label: "Our Family" },
   { href: "/dashboard/pets", label: "Pets" },
   { href: "/dashboard/map", label: "Family Map" },
@@ -27,10 +28,69 @@ const coreFamilyItems: { href: string; label: string }[] = [
 // Core memories items — always shown in the Memories dropdown.
 // Keep this tight: Timeline (the view) + Journal (the hub).
 // Everything else is opt-in via the Feature Catalog.
-const coreMemoriesItems: { href: string; label: string }[] = [
+const coreMemoriesItems: NavItem[] = [
   { href: "/dashboard/timeline", label: "Timeline" },
   { href: "/dashboard/journal", label: "Journal" },
 ];
+
+// ── Dropdown sub-sections ─────────────────────────────────────────────
+// Groups items within each dropdown so power-user families with many
+// features enabled can still scan quickly. When a dropdown only has one
+// section populated, the header is hidden (no visual noise for small
+// families).
+const NAV_SECTIONS: Record<string, string> = {
+  // FAMILY
+  "/dashboard/our-family": "People & Home",
+  "/dashboard/pets": "People & Home",
+  "/dashboard/map": "People & Home",
+  "/dashboard/events": "Values & Rituals",
+  "/dashboard/traditions": "Values & Rituals",
+  "/dashboard/family-motto": "Values & Rituals",
+  "/dashboard/gratitude-board": "Values & Rituals",
+  "/dashboard/favourites": "Values & Rituals",
+
+  // MEMORIES
+  "/dashboard/timeline": "Writing & Capture",
+  "/dashboard/journal": "Writing & Capture",
+  "/dashboard/letters": "Writing & Capture",
+  "/dashboard/stories": "Writing & Capture",
+  "/dashboard/voice-memos": "Writing & Capture",
+  "/dashboard/artwork": "Writing & Capture",
+  "/dashboard/recipes": "Writing & Capture",
+  "/dashboard/baby-book": "For the Future",
+  "/dashboard/trophy-case": "For the Future",
+  "/dashboard/time-capsules": "For the Future",
+
+  // ACTIVITIES
+  "/dashboard/challenges": "Challenges & Goals",
+  "/dashboard/bucket-list": "Challenges & Goals",
+  "/dashboard/book-club": "Challenges & Goals",
+  "/dashboard/game-night": "Challenges & Goals",
+  "/dashboard/family-trivia": "Challenges & Goals",
+  "/dashboard/tools/trip-planner": "Adventures",
+  "/dashboard/tools/mlb-stadium-tour": "Adventures",
+  "/dashboard/tools/fishing-map": "Adventures",
+  "/dashboard/tools/national-parks": "Adventures",
+  "/dashboard/homes": "Adventures",
+};
+
+const FAMILY_SECTIONS = ["People & Home", "Values & Rituals", "More"] as const;
+const MEMORIES_SECTIONS = ["Writing & Capture", "For the Future", "More"] as const;
+const ACTIVITIES_SECTIONS = ["Challenges & Goals", "Adventures", "More"] as const;
+
+function groupItemsBySection(
+  items: NavItem[],
+  sectionOrder: readonly string[]
+): Array<[string, NavItem[]]> {
+  const grouped = new Map<string, NavItem[]>();
+  for (const s of sectionOrder) grouped.set(s, []);
+  for (const item of items) {
+    const section = NAV_SECTIONS[item.href] || "More";
+    if (!grouped.has(section)) grouped.set(section, []);
+    grouped.get(section)!.push(item);
+  }
+  return Array.from(grouped.entries()).filter(([, arr]) => arr.length > 0);
+}
 
 type AddOn = { name: string; href: string };
 
@@ -42,7 +102,7 @@ export function Nav({
   enabledMemoryAddOns = [],
   enabledFamilyAddOns = [],
   enabledActivitiesAddOns = [],
-  enabledExtrasAddOns = [],
+  hasEmergencyInfo = false,
 }: {
   user: User;
   familyName?: string;
@@ -51,7 +111,7 @@ export function Nav({
   enabledMemoryAddOns?: AddOn[];
   enabledFamilyAddOns?: AddOn[];
   enabledActivitiesAddOns?: AddOn[];
-  enabledExtrasAddOns?: AddOn[];
+  hasEmergencyInfo?: boolean;
 }) {
   // Build memories dropdown from core + enabled memory add-ons
   const memoriesItems: { href: string; label: string }[] = [
@@ -70,28 +130,25 @@ export function Nav({
     ...enabledActivitiesAddOns.map((a) => ({ href: a.href, label: a.name })),
   ];
 
-  // Extras: planning + essentials add-ons — Feature Catalog always included
-  const extrasItems: { href: string; label: string }[] = [
-    ...enabledExtrasAddOns.map((a) => ({ href: a.href, label: a.name })),
-    { href: "/dashboard/tools", label: "Feature Catalog" },
-  ];
+  // Pre-group each dropdown for section-header rendering.
+  const groupedFamily = groupItemsBySection(familyItems, FAMILY_SECTIONS);
+  const groupedMemories = groupItemsBySection(memoriesItems, MEMORIES_SECTIONS);
+  const groupedActivities = groupItemsBySection(activitiesItems, ACTIVITIES_SECTIONS);
+
   const pathname = usePathname();
   const router = useRouter();
   const [familyOpen, setFamilyOpen] = useState(false);
   const [memoriesOpen, setMemoriesOpen] = useState(false);
   const [activitiesOpen, setActivitiesOpen] = useState(false);
-  const [extrasOpen, setExtrasOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [familyMenuOpen, setFamilyMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileFamilyOpen, setMobileFamilyOpen] = useState(false);
   const [mobileMemoriesOpen, setMobileMemoriesOpen] = useState(false);
   const [mobileActivitiesOpen, setMobileActivitiesOpen] = useState(false);
-  const [mobileExtrasOpen, setMobileExtrasOpen] = useState(false);
   const familyRef = useRef<HTMLDivElement>(null);
   const memoriesRef = useRef<HTMLDivElement>(null);
   const activitiesRef = useRef<HTMLDivElement>(null);
-  const extrasRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const familySwitcherRef = useRef<HTMLDivElement>(null);
 
@@ -111,9 +168,6 @@ export function Nav({
   const isActivitiesActive = activitiesItems.some(
     (item) => pathname === item.href || pathname.startsWith(item.href + "/")
   );
-  const isExtrasActive = extrasItems.some(
-    (item) => pathname === item.href || pathname.startsWith(item.href + "/")
-  );
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -121,7 +175,6 @@ export function Nav({
       if (familyRef.current && !familyRef.current.contains(target)) setFamilyOpen(false);
       if (memoriesRef.current && !memoriesRef.current.contains(target)) setMemoriesOpen(false);
       if (activitiesRef.current && !activitiesRef.current.contains(target)) setActivitiesOpen(false);
-      if (extrasRef.current && !extrasRef.current.contains(target)) setExtrasOpen(false);
       if (menuRef.current && !menuRef.current.contains(target)) setMenuOpen(false);
       if (familySwitcherRef.current && !familySwitcherRef.current.contains(target)) setFamilyMenuOpen(false);
     }
@@ -140,11 +193,9 @@ export function Nav({
     setFamilyOpen(false);
     setMemoriesOpen(false);
     setActivitiesOpen(false);
-    setExtrasOpen(false);
     setMobileFamilyOpen(false);
     setMobileMemoriesOpen(false);
     setMobileActivitiesOpen(false);
-    setMobileExtrasOpen(false);
   }
 
   useEffect(() => {
@@ -256,23 +307,32 @@ export function Nav({
               </button>
               {familyOpen && (
                 <div
-                  className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]"
+                  className="absolute left-0 top-full z-50 mt-1 min-w-[200px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]"
                   role="menu"
                 >
-                  {familyItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setFamilyOpen(false)}
-                      role="menuitem"
-                      className={`block px-4 py-3 text-sm transition-colors hover:bg-[var(--surface-hover)] focus:bg-[var(--surface-hover)] ${
-                        pathname === item.href || pathname.startsWith(item.href + "/")
-                          ? "text-[var(--accent)]"
-                          : "text-[var(--foreground)]"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
+                  {groupedFamily.map(([section, items], idx) => (
+                    <div key={section}>
+                      {groupedFamily.length > 1 && (
+                        <div className={`px-4 ${idx === 0 ? "pt-2" : "pt-3"} pb-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]/70`}>
+                          {section}
+                        </div>
+                      )}
+                      {items.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setFamilyOpen(false)}
+                          role="menuitem"
+                          className={`block px-4 py-2.5 text-sm transition-colors hover:bg-[var(--surface-hover)] focus:bg-[var(--surface-hover)] ${
+                            pathname === item.href || pathname.startsWith(item.href + "/")
+                              ? "text-[var(--accent)]"
+                              : "text-[var(--foreground)]"
+                          }`}
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
                   ))}
                 </div>
               )}
@@ -291,23 +351,32 @@ export function Nav({
               </button>
               {memoriesOpen && (
                 <div
-                  className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]"
+                  className="absolute left-0 top-full z-50 mt-1 min-w-[200px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]"
                   role="menu"
                 >
-                  {memoriesItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setMemoriesOpen(false)}
-                      role="menuitem"
-                      className={`block px-4 py-3 text-sm transition-colors hover:bg-[var(--surface-hover)] focus:bg-[var(--surface-hover)] ${
-                        pathname === item.href || pathname.startsWith(item.href + "/")
-                          ? "text-[var(--accent)]"
-                          : "text-[var(--foreground)]"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
+                  {groupedMemories.map(([section, items], idx) => (
+                    <div key={section}>
+                      {groupedMemories.length > 1 && (
+                        <div className={`px-4 ${idx === 0 ? "pt-2" : "pt-3"} pb-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]/70`}>
+                          {section}
+                        </div>
+                      )}
+                      {items.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setMemoriesOpen(false)}
+                          role="menuitem"
+                          className={`block px-4 py-2.5 text-sm transition-colors hover:bg-[var(--surface-hover)] focus:bg-[var(--surface-hover)] ${
+                            pathname === item.href || pathname.startsWith(item.href + "/")
+                              ? "text-[var(--accent)]"
+                              : "text-[var(--foreground)]"
+                          }`}
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
                   ))}
                 </div>
               )}
@@ -327,65 +396,37 @@ export function Nav({
                 </button>
                 {activitiesOpen && (
                   <div
-                    className="absolute left-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]"
+                    className="absolute left-0 top-full z-50 mt-1 min-w-[200px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]"
                     role="menu"
                   >
-                    {activitiesItems.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setActivitiesOpen(false)}
-                        role="menuitem"
-                        className={`block px-4 py-3 text-sm transition-colors hover:bg-[var(--surface-hover)] focus:bg-[var(--surface-hover)] ${
-                          pathname === item.href || pathname.startsWith(item.href + "/")
-                            ? "text-[var(--accent)]"
-                            : "text-[var(--foreground)]"
-                        }`}
-                      >
-                        {item.label}
-                      </Link>
+                    {groupedActivities.map(([section, items], idx) => (
+                      <div key={section}>
+                        {groupedActivities.length > 1 && (
+                          <div className={`px-4 ${idx === 0 ? "pt-2" : "pt-3"} pb-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]/70`}>
+                            {section}
+                          </div>
+                        )}
+                        {items.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setActivitiesOpen(false)}
+                            role="menuitem"
+                            className={`block px-4 py-2.5 text-sm transition-colors hover:bg-[var(--surface-hover)] focus:bg-[var(--surface-hover)] ${
+                              pathname === item.href || pathname.startsWith(item.href + "/")
+                                ? "text-[var(--accent)]"
+                                : "text-[var(--foreground)]"
+                            }`}
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
                     ))}
                   </div>
                 )}
               </div>
             )}
-            <div className="relative" ref={extrasRef}>
-              <button
-                type="button"
-                onClick={() => setExtrasOpen((o) => !o)}
-                className={dropdownButtonClass(extrasOpen, isExtrasActive)}
-                aria-haspopup="true"
-                aria-expanded={extrasOpen}
-                aria-label={extrasOpen ? "Close Extras menu" : "Open Extras menu"}
-              >
-                Extras
-                <span className={`transition-transform ${extrasOpen ? "rotate-180" : ""}`}>▼</span>
-              </button>
-              {extrasOpen && (
-                <div
-                  className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]"
-                  role="menu"
-                >
-                  {extrasItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setExtrasOpen(false)}
-                      role="menuitem"
-                      className={`block px-4 py-3 text-sm transition-colors hover:bg-[var(--surface-hover)] focus:bg-[var(--surface-hover)] ${
-                        pathname === item.href || pathname.startsWith(item.href + "/")
-                          ? "text-[var(--accent)]"
-                          : item.label === "Feature Catalog"
-                            ? "text-[var(--muted)] font-medium"
-                            : "text-[var(--foreground)]"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
           </nav>
 
           {/* Right side: Hamburger (mobile only, opens drawer) + Account menu (desktop only) */}
@@ -452,6 +493,24 @@ export function Nav({
                   >
                     Send a Family Update
                   </Link>
+                  <Link
+                    href="/dashboard/tools"
+                    role="menuitem"
+                    className="block px-4 py-3 text-left text-sm text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] focus:bg-[var(--surface-hover)]"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Feature Catalog
+                  </Link>
+                  {hasEmergencyInfo && (
+                    <Link
+                      href="/dashboard/tools/emergency-info"
+                      role="menuitem"
+                      className="block px-4 py-3 text-left text-sm text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] focus:bg-[var(--surface-hover)]"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Emergency Info
+                    </Link>
+                  )}
                   <Link
                     href="/pricing"
                     role="menuitem"
@@ -554,10 +613,19 @@ export function Nav({
               </button>
               {mobileFamilyOpen && (
                 <div className="pl-2 pt-1 space-y-0.5">
-                  {familyItems.map((item) => (
-                    <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={`block rounded-lg px-4 py-2.5 text-sm min-h-[44px] flex items-center ${pathname === item.href || pathname.startsWith(item.href + "/") ? "text-[var(--accent)]" : "text-[var(--foreground)]"} hover:bg-[var(--surface)] hover:text-[var(--foreground)]`}>
-                      {item.label}
-                    </Link>
+                  {groupedFamily.map(([section, items]) => (
+                    <div key={section}>
+                      {groupedFamily.length > 1 && (
+                        <div className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]/70">
+                          {section}
+                        </div>
+                      )}
+                      {items.map((item) => (
+                        <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={`block rounded-lg px-4 py-2.5 text-sm min-h-[44px] flex items-center ${pathname === item.href || pathname.startsWith(item.href + "/") ? "text-[var(--accent)]" : "text-[var(--foreground)]"} hover:bg-[var(--surface)] hover:text-[var(--foreground)]`}>
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
                   ))}
                 </div>
               )}
@@ -574,10 +642,19 @@ export function Nav({
               </button>
               {mobileMemoriesOpen && (
                 <div className="pl-2 pt-1 space-y-0.5">
-                  {memoriesItems.map((item) => (
-                    <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={`block rounded-lg px-4 py-2.5 text-sm min-h-[44px] flex items-center ${pathname === item.href || pathname.startsWith(item.href + "/") ? "text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}>
-                      {item.label}
-                    </Link>
+                  {groupedMemories.map(([section, items]) => (
+                    <div key={section}>
+                      {groupedMemories.length > 1 && (
+                        <div className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]/70">
+                          {section}
+                        </div>
+                      )}
+                      {items.map((item) => (
+                        <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={`block rounded-lg px-4 py-2.5 text-sm min-h-[44px] flex items-center ${pathname === item.href || pathname.startsWith(item.href + "/") ? "text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}>
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
                   ))}
                 </div>
               )}
@@ -595,35 +672,24 @@ export function Nav({
                 </button>
                 {mobileActivitiesOpen && (
                   <div className="pl-2 pt-1 space-y-0.5">
-                    {activitiesItems.map((item) => (
-                      <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={`block rounded-lg px-4 py-2.5 text-sm min-h-[44px] flex items-center ${pathname === item.href || pathname.startsWith(item.href + "/") ? "text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}>
-                        {item.label}
-                      </Link>
+                    {groupedActivities.map(([section, items]) => (
+                      <div key={section}>
+                        {groupedActivities.length > 1 && (
+                          <div className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]/70">
+                            {section}
+                          </div>
+                        )}
+                        {items.map((item) => (
+                          <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={`block rounded-lg px-4 py-2.5 text-sm min-h-[44px] flex items-center ${pathname === item.href || pathname.startsWith(item.href + "/") ? "text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}>
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
                     ))}
                   </div>
                 )}
               </div>
             )}
-            <div className="border-t border-[var(--border)] pt-2 mt-2">
-              <button
-                type="button"
-                onClick={() => setMobileExtrasOpen((o) => !o)}
-                className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors min-h-[44px] ${mobileExtrasOpen || isExtrasActive ? "bg-[var(--surface)] text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}
-                aria-expanded={mobileExtrasOpen}
-              >
-                Extras
-                <span className={`block transition-transform ${mobileExtrasOpen ? "rotate-180" : ""}`}>▼</span>
-              </button>
-              {mobileExtrasOpen && (
-                <div className="pl-2 pt-1 space-y-0.5">
-                  {extrasItems.map((item) => (
-                    <Link key={item.href} href={item.href} onClick={closeMobileMenu} className={`block rounded-lg px-4 py-2.5 text-sm min-h-[44px] flex items-center ${pathname === item.href || pathname.startsWith(item.href + "/") ? "text-[var(--accent)]" : item.label === "Feature Catalog" ? "text-[var(--muted)] font-medium" : "text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"}`}>
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
             <div className="mt-auto border-t border-[var(--border)] pt-4 space-y-1">
               <Link
                 href="/dashboard/settings"
@@ -653,6 +719,22 @@ export function Nav({
               >
                 Send a Family Update
               </Link>
+              <Link
+                href="/dashboard/tools"
+                className="block w-full rounded-lg px-4 py-3 text-left text-sm font-medium text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] min-h-[44px] flex items-center"
+                onClick={closeMobileMenu}
+              >
+                Feature Catalog
+              </Link>
+              {hasEmergencyInfo && (
+                <Link
+                  href="/dashboard/tools/emergency-info"
+                  className="block w-full rounded-lg px-4 py-3 text-left text-sm font-medium text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] min-h-[44px] flex items-center"
+                  onClick={closeMobileMenu}
+                >
+                  Emergency Info
+                </Link>
+              )}
               <Link
                 href="/pricing"
                 className="block w-full rounded-lg px-4 py-3 text-left text-sm font-medium text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] min-h-[44px] flex items-center"

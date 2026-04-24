@@ -164,7 +164,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{1F4E6}",
     href: "/dashboard/time-capsules",
     available: true,
-    navGroup: "family",
+    navGroup: "memories",
     highlights: [
       "Write letters to your future self or your family",
       "Lock it until a date you choose",
@@ -243,7 +243,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{1F4DA}",
     href: "/dashboard/book-club",
     available: true,
-    navGroup: "family",
+    navGroup: "activities",
     highlights: [
       "Track what everyone is reading right now",
       "Rate and review finished books",
@@ -451,7 +451,7 @@ export const FEATURE_CATALOG: CatalogFeature[] = [
     icon: "\u{2708}\u{FE0F}",
     href: "/dashboard/tools/trip-planner",
     available: true,
-    navGroup: "organise",
+    navGroup: "activities",
     highlights: [
       "Build itineraries together before you go",
       "Collaborative packing lists",

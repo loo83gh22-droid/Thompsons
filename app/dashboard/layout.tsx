@@ -204,10 +204,10 @@ export default async function DashboardLayout({
     let playlistId: string | null = null;
     let welcomeMemberCount = 0;
     let welcomeJournalCount = 0;
-    let enabledMemoryAddOns: { name: string; href: string }[] = [];
-    let enabledFamilyAddOns: { name: string; href: string }[] = [];
-    let enabledActivitiesAddOns: { name: string; href: string }[] = [];
-    let enabledExtrasAddOns: { name: string; href: string }[] = [];
+    const enabledMemoryAddOns: { name: string; href: string }[] = [];
+    const enabledFamilyAddOns: { name: string; href: string }[] = [];
+    const enabledActivitiesAddOns: { name: string; href: string }[] = [];
+    let hasEmergencyInfo = false;
 
     if (activeFamilyId) {
       // Run all independent queries in parallel to avoid waterfall
@@ -233,7 +233,10 @@ export default async function DashboardLayout({
         if (f.navGroup === "memories") enabledMemoryAddOns.push(item);
         else if (f.navGroup === "family") enabledFamilyAddOns.push(item);
         else if (f.navGroup === "activities") enabledActivitiesAddOns.push(item);
-        else if (f.navGroup === "organise") enabledExtrasAddOns.push(item);
+        // "organise" is the legacy bucket for what used to be the Extras
+        // dropdown. Emergency Info is the only "organise" feature still
+        // nav-visible; it now lives in the avatar menu.
+        else if (f.slug === "emergency-info") hasEmergencyInfo = true;
       }
 
       if (myMemberRes.data) {
@@ -271,7 +274,7 @@ export default async function DashboardLayout({
             enabledMemoryAddOns={enabledMemoryAddOns}
             enabledFamilyAddOns={enabledFamilyAddOns}
             enabledActivitiesAddOns={enabledActivitiesAddOns}
-            enabledExtrasAddOns={enabledExtrasAddOns}
+            hasEmergencyInfo={hasEmergencyInfo}
           />
           <PWAInstallBanner />
           <WhatsNewBanner />
