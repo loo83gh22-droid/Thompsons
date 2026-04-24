@@ -141,7 +141,7 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ i
           shareToken={entry.share_token ?? null}
           shareType="journal"
           title={entry.title ?? undefined}
-          onToggle={() => toggleJournalShare(id)}
+          onToggle={toggleJournalShare.bind(null, id)}
           contacts={contacts}
         />
         {canEdit && (
