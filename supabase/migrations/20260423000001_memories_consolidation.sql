@@ -15,7 +15,11 @@
 delete from family_enabled_features
 where feature_slug = 'one-line';
 
--- 2. Backfill "letters" for all existing families so their nav doesn't lose it.
+-- 2. Backfill "family-letters" for all existing families so their nav
+--    doesn't lose Letters. (The catalog slug is "family-letters", not
+--    "letters" — an earlier version of this migration used the wrong
+--    slug; a follow-up migration renamed it. The form below is the
+--    canonical version.)
 insert into family_enabled_features (family_id, feature_slug)
-select id, 'letters' from families
+select id, 'family-letters' from families
 on conflict (family_id, feature_slug) do nothing;
