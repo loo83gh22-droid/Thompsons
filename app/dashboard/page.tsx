@@ -12,11 +12,8 @@ import { DashboardStats } from "./DashboardStats";
 import { UpcomingEvents } from "./UpcomingEvents";
 import { ActivityFeed, type ActivityItem } from "./ActivityFeed";
 import { OnboardingChecklist } from "./OnboardingChecklist";
-import { FamilyHighlight, type HighlightItem } from "./FamilyHighlight";
-import { InspirationTip } from "./InspirationTip";
+import { SerendipityCard, type HighlightItem, type OnThisDayItem } from "./SerendipityCard";
 import { BirthdayBanner, type BirthdayPerson } from "./BirthdayBanner";
-import { OnThisDay, type OnThisDayItem } from "./OnThisDay";
-import { GratitudeOfTheDay } from "./GratitudeOfTheDay";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -349,17 +346,13 @@ export default async function DashboardPage() {
             </div>
           </section>
 
-          <div className="mt-12 grid grid-cols-1 gap-6 min-[768px]:grid-cols-2">
-            <FamilyHighlight item={highlight} />
-            <InspirationTip />
-            {gratitudeOfTheDay && (
-              <GratitudeOfTheDay post={gratitudeOfTheDay} />
-            )}
-            {onThisDayItems.length > 0 && (
-              <div className="min-[768px]:col-span-2">
-                <OnThisDay items={onThisDayItems} />
-              </div>
-            )}
+          <div className="mt-10">
+            <SerendipityCard
+              highlight={highlight}
+              onThisDayItems={onThisDayItems}
+              gratitudeOfTheDay={gratitudeOfTheDay}
+              daySeed={Math.floor(nowMs / 86_400_000)}
+            />
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-6 min-[900px]:grid-cols-3">
