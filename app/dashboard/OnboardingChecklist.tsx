@@ -125,13 +125,18 @@ export function OnboardingChecklist({
     }
   }
 
-  // Determine the single nudge to show
-  const nextNudge = !step1Done
-    ? { icon: "👨‍👩‍👧", text: "Add the people in your home. It's more fun when everyone's here.", href: "/dashboard/our-family", cta: "Add them now" }
-    : !step2Done
-    ? { icon: "📔", text: "Write something down. Anything from this week. Future you will love you for it.", href: "/dashboard/journal/new", cta: "Write it down" }
+  // Determine the single nudge to show.
+  // Order matters: lead with capture (journal) so the user gets a
+  // real moment of value before being asked to invite anyone. Once
+  // they've written something, photos are a natural next step. Adding
+  // the people in your home comes last — by then there's actually a
+  // Nest worth sharing.
+  const nextNudge = !step2Done
+    ? { icon: "📔", text: "Just one sentence about today is enough. It becomes a memory you'll come back to.", href: "/dashboard/journal/new", cta: "Write something" }
     : !step3Done
-    ? { icon: "📸", text: "Add a photo. Drop in a favourite from your camera roll — something from this week, this year, or years ago.", href: "/dashboard/photos", cta: "Add a photo" }
+    ? { icon: "📸", text: "Drop in a favourite from your camera roll — something from this week, this year, or years ago.", href: "/dashboard/photos", cta: "Add a photo" }
+    : !step1Done
+    ? { icon: "👨‍👩‍👧", text: "Now that there's something here, invite the people you come home to.", href: "/dashboard/our-family", cta: "Add the family" }
     : null;
 
   if (!nextNudge) return null;
