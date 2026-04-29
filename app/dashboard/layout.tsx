@@ -160,20 +160,20 @@ export default async function DashboardLayout({
             family_id: newFamily.id,
             family_name: familyName,
           }),
-          // Seed default features for new families
+          // Seed defaults for new (nuclear) families: keep this lean.
+          // Anything else is one tap away in the Feature Catalog.
+          //   - voice-memos: the most emotional, distinctive capture
+          //     format — bedtime songs, kids' sayings.
+          //   - family-letters: parent-to-kid letters, one of the
+          //     headline emotional features in marketing.
+          //   - traditions: lightweight ritual tracker, broadly useful.
+          // Everything else (stories, recipes, artwork, trophy-case,
+          // time-capsules, favourites, bucket-list, reunion-planner,
+          // book-club, family-challenges, etc.) is opt-in.
           supabase.from("family_enabled_features").insert([
-            // Memory features (on by default)
-            { family_id: newFamily.id, feature_slug: "stories" },
-            { family_id: newFamily.id, feature_slug: "recipes" },
             { family_id: newFamily.id, feature_slug: "voice-memos" },
-            { family_id: newFamily.id, feature_slug: "artwork" },
-            { family_id: newFamily.id, feature_slug: "trophy-case" },
-            { family_id: newFamily.id, feature_slug: "time-capsules" },
-            // Add-on features (on by default)
-            { family_id: newFamily.id, feature_slug: "favourites" },
+            { family_id: newFamily.id, feature_slug: "family-letters" },
             { family_id: newFamily.id, feature_slug: "traditions" },
-            { family_id: newFamily.id, feature_slug: "bucket-list" },
-            { family_id: newFamily.id, feature_slug: "reunion-planner" },
           ]),
         ]);
         myMembers = [created];
