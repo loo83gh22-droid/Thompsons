@@ -40,17 +40,20 @@ type Moment =
   | { kind: "gratitude"; post: Gratitude }
   | { kind: "inspiration"; tip: { text: string; href: string; cta: string } };
 
+// Tips lean into permission and lightness, not assignments. Tone matters
+// for a busy parent — "do this five things" is the wrong vibe; "one
+// sentence counts" is right.
 const INSPIRATION_TIPS: Array<{ text: string; href: string; cta: string }> = [
-  { text: "Ask a grandparent about their childhood recipe and add it to Recipes.", href: "/dashboard/recipes/new", cta: "Add Recipe" },
-  { text: "Record a voice memo of your family's favourite inside joke.", href: "/dashboard/voice-memos", cta: "Record Memo" },
-  { text: "Write about your favourite holiday tradition in the Journal.", href: "/dashboard/journal/new", cta: "Write Entry" },
-  { text: "Upload a photo from your most recent family gathering.", href: "/dashboard/photos", cta: "Upload Photo" },
-  { text: "What advice would you give your future self? Write a Time Capsule.", href: "/dashboard/time-capsules/new", cta: "Create Capsule" },
-  { text: "Tell the story of how your parents met in Stories.", href: "/dashboard/stories/new", cta: "Write Story" },
-  { text: "Record a lullaby or bedtime song as a voice memo.", href: "/dashboard/voice-memos", cta: "Record Memo" },
-  { text: "Write a journal entry about your favourite childhood memory.", href: "/dashboard/journal/new", cta: "Write Entry" },
-  { text: "Add a pin to the Family Map for a place that means a lot to your family.", href: "/dashboard/map", cta: "Open Map" },
-  { text: "Capture the story behind your family's favourite meal.", href: "/dashboard/recipes/new", cta: "Add Recipe" },
+  { text: "Just one sentence about today counts. It becomes a memory.", href: "/dashboard/journal/new", cta: "Write a line" },
+  { text: "Pick a photo from this week. Drop it in. That's it.", href: "/dashboard/photos", cta: "Add a photo" },
+  { text: "Hit record. Say something you'd want them to hear someday.", href: "/dashboard/voice-memos", cta: "Record a memo" },
+  { text: "What's a thing one of your kids said this week that made you laugh?", href: "/dashboard/journal/new", cta: "Write it down" },
+  { text: "A letter to your kid, sealed for later. Even three lines is plenty.", href: "/dashboard/time-capsules/new", cta: "Open a capsule" },
+  { text: "Drop a pin on a place that means something — a beach, a cabin, the diner.", href: "/dashboard/map", cta: "Open the map" },
+  { text: "The bedtime song. Record it tonight. Future you, future them — both grateful.", href: "/dashboard/voice-memos", cta: "Record a memo" },
+  { text: "One small win from this week. Five seconds to write, decades to keep.", href: "/dashboard/journal/new", cta: "Write a line" },
+  { text: "A favourite — a song, a book, a meal right now. Snapshot of who you are this season.", href: "/dashboard/favourites", cta: "Add a favourite" },
+  { text: "What's one tradition you don't want to forget? Write the why behind it.", href: "/dashboard/traditions", cta: "Capture it" },
 ];
 
 export function SerendipityCard({
