@@ -470,6 +470,14 @@ export function Nav({
                     Account Settings
                   </Link>
                   <Link
+                    href="/dashboard/settings#theme"
+                    role="menuitem"
+                    className="block px-4 py-3 text-left text-sm text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] focus:bg-[var(--surface-hover)]"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    🎨 Pick a theme
+                  </Link>
+                  <Link
                     href="/dashboard/settings/nest-keepers"
                     role="menuitem"
                     className="block px-4 py-3 text-left text-sm text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] focus:bg-[var(--surface-hover)]"
@@ -697,6 +705,13 @@ export function Nav({
                 onClick={closeMobileMenu}
               >
                 Account Settings
+              </Link>
+              <Link
+                href="/dashboard/settings#theme"
+                className="block w-full rounded-lg px-4 py-3 text-left text-sm font-medium text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] min-h-[44px] flex items-center"
+                onClick={closeMobileMenu}
+              >
+                🎨 Pick a theme
               </Link>
               <Link
                 href="/dashboard/settings/nest-keepers"

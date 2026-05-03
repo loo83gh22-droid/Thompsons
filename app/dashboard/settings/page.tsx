@@ -225,7 +225,10 @@ export default async function SettingsPage() {
       </section>
 
       {/* Theme */}
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+      <section
+        id="theme"
+        className="scroll-mt-20 rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden"
+      >
         <div className="border-b border-[var(--border)] px-6 py-4">
           <h2 className="font-display text-xl font-semibold">Theme</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">Change the look and feel of your Nest.</p>
