@@ -64,17 +64,11 @@ export function WelcomeModal({
     setOpen(true);
   }, [step1Done, step2Done]);
 
-  useEffect(() => {
-    try {
-      if (typeof window === "undefined") return;
-      if (allDone) return;
-      const completed = localStorage.getItem(COMPLETED_KEY);
-      if (!completed) openModal();
-    } catch {
-      setOpen(true);
-    }
-  }, [openModal, allDone]);
-
+  // The modal is no longer auto-opened on first dashboard load — it
+  // was blocking new parents who just want to write their first
+  // memory. Theme is now discoverable in the avatar menu and via
+  // Account Settings; the modal is still available on demand via the
+  // "Resume Welcome Tour" link in OnboardingChecklist.
   useEffect(() => {
     function handleReopen() { openModal(); }
     window.addEventListener("reopen-welcome-tour", handleReopen);
