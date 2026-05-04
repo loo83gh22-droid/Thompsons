@@ -135,26 +135,32 @@ export function ActivityFeed({
     return (
       <section className="rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)]/50 px-6 py-12 text-center">
         <span className="text-5xl inline-block" role="img" aria-hidden="true">
-          📸
+          📔
         </span>
         <h2 className="mt-4 font-display text-xl font-semibold text-[var(--foreground)]">
-          Your family&apos;s first memory is waiting
+          Your family&apos;s story starts here
         </h2>
         <p className="mt-2 max-w-sm mx-auto text-sm text-[var(--muted)]">
-          Add a photo, write a journal entry, or record a voice memo. Whatever feels right.
+          Just one sentence about today is enough. The first one is the hardest — after that, the rest fills in on its own.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link
             href="/dashboard/journal/new"
             className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-[var(--primary-foreground)] transition-colors hover:opacity-90"
           >
-            📔 Write an entry
+            📔 Write a line
           </Link>
           <Link
             href="/dashboard/photos"
             className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-5 py-2.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-hover)]"
           >
             📷 Add a photo
+          </Link>
+          <Link
+            href="/dashboard/voice-memos"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-5 py-2.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-hover)]"
+          >
+            🎙️ Record a memo
           </Link>
         </div>
       </section>
