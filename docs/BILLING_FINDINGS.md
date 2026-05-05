@@ -1,6 +1,6 @@
 # FamilyNest Billing & Plan Enforcement Findings
 
-Last audited: 2026-04-05
+Last audited: 2026-05-05 (re-audit covering changes since 2026-04-05 — no new findings; full report at `docs/BILLING_AUDIT_2026-05-05.md`)
 
 ---
 
@@ -164,6 +164,21 @@ Last audited: 2026-04-05
 ### ✅ CONFIRMED CORRECT — B6: `storage_limit_bytes` default in migration
 **File:** `supabase/migrations/046_family_plans.sql`
 **Verification:** Default is `524288000` = exactly 500 MB. Correct for free plan. No action needed.
+
+---
+
+## Confirmed Correct (2026-05-05 re-audit)
+
+Re-audited all billing-critical surfaces against changes since 2026-04-05. **No new findings, no regressions.** Only two files in the diff touched billing-adjacent code:
+
+| Surface | Finding | Status |
+|---|---|---|
+| `app/dashboard/members/actions.ts` | `deleteFamilyMember` now removes member avatar from storage and calls `subtractStorageUsage`. `addFamilyMember` member-limit enforcement (lines 212–225) intact. | ✅ Correct — improvement |
+| `src/lib/feature-catalog.ts` | `navGroup` re-categorization (Time Capsules → memories, Book Club → activities, Trip Planner → activities). Pure UI/nav metadata, zero billing impact. | ✅ Correct — no billing surface touched |
+
+All other surfaces unchanged since 2026-04-05 audit. G7 (deferred client-side upload pre-gating in homes/garden/volunteer/teams modules) remains the only open item — no new exposure introduced.
+
+Full surface-by-surface report: `docs/BILLING_AUDIT_2026-05-05.md`
 
 ---
 
