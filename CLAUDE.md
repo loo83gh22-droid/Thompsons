@@ -24,7 +24,7 @@ No test framework is configured.
 - `app/api/` — API routes: search, export (ZIP via JSZip), notifications (Vercel cron), invite emails (Resend).
 - `app/components/` — Shared components: `RoleGate`, `PhotoUpload`, `DatePicker`, `ShareButton`.
 - `src/lib/` — Utilities: Supabase clients, role helpers, plan logic, date formatting, EXIF extraction, location clustering.
-- `supabase/migrations/` — 54 SQL migration files. CI auto-pushes on merge to `main`.
+- `supabase/migrations/` — 120+ SQL migration files. **CI does NOT auto-push** — see Database Migrations section below for the actual workflow.
 - `middleware.ts` — Refreshes Supabase auth session, protects `/dashboard/*` routes (redirects to `/login`).
 
 ## Key Patterns
@@ -106,16 +106,33 @@ Vercel auto-deploys from `main` branch. Both domains serve the same deployment.
 
 ### Database Migrations:
 
-**Apply migrations at PR approval time, not at branch creation** — unless the migration is purely additive (new table, new nullable column) in which case it's safe to apply early.
+**⚠️ CI does NOT auto-apply migrations.** The workflow at `.github/workflows/supabase-migrations.yml` is intentionally disabled — see comments at the top of that file. Past attempts to run `supabase db push` from CI failed because MCP-applied migrations create version mismatches with local files.
 
-- Use the Supabase MCP `apply_migration` tool
-- Project ID: `tstbngohenxrbqroejth`
-- Always note in the PR description which migrations are included and whether they are additive-safe or must wait for merge
+**The current canonical workflow:**
 
-**Fallback (if MCP is unavailable):**
+For every PR that adds files in `supabase/migrations/`:
+
+1. **Before merging the PR**, apply the migration via Supabase MCP `apply_migration` tool
+   - Project ID: `tstbngohenxrbqroejth`
+   - Pass the SQL contents (not the file path)
+2. **Verify** with the MCP `list_migrations` tool — confirm the new migration appears in the list
+3. **Then merge the PR**
+
+**For destructive migrations** (DROP, DELETE on populated tables, ALTER that loses data): apply at PR approval time AFTER the user has confirmed the design. Never auto-apply destructive operations.
+
+**For additive-safe migrations** (CREATE TABLE, ADD COLUMN nullable, INSERT … ON CONFLICT DO NOTHING, idempotent UPDATE): safe to apply at branch-creation time so local dev hits the new schema.
+
+**In every PR description, list the migration files included** and flag whether each is additive-safe or destructive.
+
+**Pre-merge sanity check:**
 ```bash
-npm run db:push
+./scripts/check-pending-migrations.sh
 ```
+Lists local files in `supabase/migrations/` and reminds you to verify each is applied via MCP before merge.
+
+**Note:** Recent migrations applied via MCP show up in the DB with timestamps assigned by Supabase, not the filename version. This is fine — the MCP tracks them by name. Don't try to "fix" the drift by running `supabase migration repair` without a clear plan; it can double-apply and break prod.
+
+**Fallback (if MCP is unavailable):** `npm run db:push` — but this hits the version-mismatch issue and may fail; prefer MCP.
 
 ## Local Verification Workflow (Windows)
 
