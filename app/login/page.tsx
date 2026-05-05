@@ -16,6 +16,14 @@ function LoginForm() {
   const isInvited = mode === "invited";
   const next = searchParams.get("next") ?? "/dashboard";
 
+  // Gift flow signal: when buyers land here from /gift, the link sets
+  // ?plan=legacy_founding (or =legacy). Use that to nudge the buyer to
+  // pick credentials they'd actually be comfortable writing on a card
+  // — picking a memorable password and an email the recipient already
+  // uses, instead of the buyer's own personal credentials.
+  const plan = searchParams.get("plan");
+  const isGiftSetup = isSignUp && (plan === "legacy_founding" || plan === "legacy");
+
   // Pre-fill from invite link params (legacy URL param approach — kept for backward compat)
   const inviteEmail = searchParams.get("email") ?? "";
   const inviteFamily = searchParams.get("family") ?? "";
@@ -492,6 +500,20 @@ function LoginForm() {
           </div>
         ) : (
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+          {isGiftSetup && (
+            <div
+              className="rounded-xl border border-[var(--accent)]/30 bg-[var(--accent)]/5 px-4 py-4"
+              role="note"
+              aria-label="Gift setup tip"
+            >
+              <p className="font-display text-base font-semibold text-[var(--foreground)]">
+                🎁 Setting this up as a gift?
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
+                Use credentials you&apos;d feel good writing on a card — a memorable password, and ideally an email the recipient already uses. They&apos;ll log in with these, so the credentials should feel like theirs from day one.
+              </p>
+            </div>
+          )}
           {isSignUp && (
             <>
               <div>

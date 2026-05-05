@@ -17,7 +17,6 @@ const occasions = [
 const legacyFeatures = [
   { icon: Infinity, text: "Lifetime access. Pay once, keep it forever" },
   { icon: HardDrive, text: "10 GB storage included, add more anytime" },
-  { icon: Gift, text: "Pass it down. Transfer ownership to the next generation" },
   { icon: Download, text: "Full data export. Always own your family's memories" },
   { icon: Heart, text: "Everything in The Full Nest, forever" },
   { icon: Shield, text: "Bank-level encryption, private by default" },
@@ -37,7 +36,7 @@ const steps = [
   {
     number: "3",
     title: "Wrap the login on a card",
-    description: "Write the email and password on a card. Many families add a printed photo as the cover. That's it.",
+    description: "Write the email and password on a card — pick a memorable password and an email the recipient already uses, so the credentials feel like theirs from day one. Many families add a printed photo as the cover.",
   },
   {
     number: "4",
