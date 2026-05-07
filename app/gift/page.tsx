@@ -94,7 +94,7 @@ export default function GiftPage() {
 
             <div className="mt-8 flex flex-col items-center gap-4">
               <Link
-                href="/login?mode=signup&plan=legacy_founding"
+                href="/gift/buy"
                 className="inline-flex items-center justify-center gap-2 rounded-full px-10 py-4 text-base font-semibold shadow-lg transition-all duration-200 hover:brightness-110 hover:shadow-xl hover:-translate-y-0.5"
                 style={{ backgroundColor: "var(--accent)", color: "#fff" }}
               >
@@ -299,7 +299,7 @@ export default function GiftPage() {
                 ))}
               </ul>
               <Link
-                href="/login?mode=signup&plan=legacy_founding"
+                href="/gift/buy"
                 className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold shadow-md transition-all duration-200 hover:brightness-110 hover:shadow-lg hover:-translate-y-0.5"
                 style={{ backgroundColor: "var(--accent)", color: "#fff" }}
               >
