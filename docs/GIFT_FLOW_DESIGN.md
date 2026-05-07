@@ -260,19 +260,31 @@ At end of Phase D: full end-to-end gift flow works. Buyer pays → recipient red
 
 ---
 
-## 6 — Open questions for review
+## 6 — Decisions (locked 2026-05-06)
 
-1. **Plan choice:** Always Legacy? Or should the gift form let the buyer pick Legacy / Annual / Monthly? *Recommendation: Legacy only for v1 — Annual gifts get weird at renewal time, and Monthly gifts as one-time payments don't fit Stripe's subscription model cleanly.*
+All six open questions resolved by @keepitgreen — recommendations stand.
 
-2. **Pricing during Founding rate window:** Currently Legacy is $249 (founding) → $349 after Mother's Day. Does the gift flow honor the founding rate? *Recommendation: yes — same price as direct purchase.*
+| # | Decision | Implementation impact |
+|---|---|---|
+| 1 | **Legacy only.** No Annual or Monthly gifts in v1. | `pending_gifts.plan` constraint stays `'legacy' \| 'legacy_founding'`. Buyer form has no plan picker. |
+| 2 | **Founding rate honored.** Gifts during the founding window get the $249 price; reverts to $349 after. | Use same `STRIPE_PRICES.legacy_founding` / `STRIPE_PRICES.legacy` selection logic the existing checkout uses. |
+| 3 | **No token expiry in v1.** Gifts stay `pending` indefinitely. Reminder emails + 90-day expiry deferred. | `expires_at` column exists in schema as a future-proofing safety net but isn't checked in v1 code. |
+| 4 | **Existing-user redemption upgrades the family where they have `role = 'owner'`.** Multi-family owners get a picker. | Recipient's primary owner family is auto-detected at claim time. |
+| 5 | **Buyer email not verified.** Stripe receipt is the canonical confirmation. | `/gift/buy` form accepts buyer email as-is, no double-opt-in step. |
+| 6 | **Refunds: manual via Stripe dashboard for v1**, plus a clear refund policy on the buyer form. | See §7 below. |
 
-3. **Token expiry:** v1 ships with no expiry (gifts pending forever). Reminder emails / 90-day expiry are deferred to a later iteration. *Confirm OK.*
+## 7 — Refund policy (v1)
 
-4. **Existing-user redemption:** When recipient already has an account, do we always upgrade their *primary* family (the one they own)? What if they own multiple? *Recommendation: upgrade the family where they have `role = 'owner'`. If they own multiple, prompt them to pick.*
+Surfaced clearly on the `/gift/buy` form, just above the payment button:
 
-5. **Email deliverability:** Using existing Resend infrastructure (`hello@send.familynest.io`). Buyer email is captured but not verified — if a buyer mistypes their address they won't get the confirmation copy. Should we require email verification for the buyer? *Recommendation: no — adds friction. Buyer's Stripe receipt is the canonical confirmation.*
+> *"Gifts are refundable any time before the recipient redeems them. After redemption, all sales are final."*
 
-6. **Refunds:** Manual via Stripe dashboard for v1. Should the buyer be able to self-cancel an unredeemed gift? *Recommendation: not v1. Manual support handles edge cases.*
+**Operationally:**
+- Pre-redemption refund request → support flips `pending_gifts.status` to `'refunded'` + processes refund via Stripe dashboard. No self-serve UI in v1.
+- Post-redemption refund request → declined politely with reference to the policy. Edge cases handled by hand.
+- Chargebacks (bank-initiated disputes) → standard Stripe dispute flow; we don't fight policy-only chargebacks since the chargeback fee ($15) plus original processing fee almost always exceeds the refund.
+
+**What this changes in code:** one line of copy on the buyer form. The data model already supports `'refunded'` status. No automation needed for v1.
 
 ---
 
