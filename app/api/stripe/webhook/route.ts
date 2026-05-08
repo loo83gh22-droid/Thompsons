@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { stripe } from "@/src/lib/stripe";
 import { createClient } from "@supabase/supabase-js";
 import { PLAN_LIMITS } from "@/src/lib/constants";
 import { Resend } from "resend";
 import { esc, emailWrapper, card, ctaButton, appUrl } from "@/app/api/emails/templates/shared";
+import { buildGiftRecipientEmail } from "@/app/api/emails/templates/gift-recipient";
+import { buildGiftBuyerConfirmationEmail } from "@/app/api/emails/templates/gift-buyer-confirmation";
 import type Stripe from "stripe";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -270,6 +273,142 @@ async function sendUpgradeEmail(familyId: string, plan: "monthly" | "annual" | "
   }).catch((err) => console.error("[stripe-webhook] upgrade email error:", err));
 }
 
+// ── Gift purchase handler ─────────────────────────────────────────────────────
+//
+// Triggered when checkout.session.completed fires for a session whose
+// metadata has gift === "true". We:
+//   1. Insert a pending_gifts row (idempotent on stripe_session_id —
+//      the unique constraint silently rejects duplicates from Stripe
+//      webhook retries)
+//   2. Send the recipient an email with a redemption link
+//   3. Send the buyer a confirmation with a copy of the link
+//
+// Email send failures are logged but do NOT throw — Stripe retries
+// the webhook on 5xx, and we don't want to re-insert the gift if only
+// the email failed.
+async function handleGiftPurchase(session: Stripe.Checkout.Session) {
+  const meta = session.metadata ?? {};
+
+  const buyerEmail = meta.buyer_email?.trim();
+  const buyerName = meta.buyer_name?.trim();
+  const recipientEmail = meta.recipient_email?.trim();
+  const recipientName = meta.recipient_name?.trim();
+  const giftMessage = meta.gift_message?.trim() ?? "";
+  const plan = meta.plan === "legacy" || meta.plan === "legacy_founding" ? meta.plan : "legacy";
+
+  if (!buyerEmail || !buyerName || !recipientEmail || !recipientName) {
+    console.error("[stripe-webhook] Gift purchase missing required metadata:", {
+      sessionId: session.id,
+      hasBuyerEmail: !!buyerEmail,
+      hasBuyerName: !!buyerName,
+      hasRecipientEmail: !!recipientEmail,
+      hasRecipientName: !!recipientName,
+    });
+    return; // Gracefully drop — don't retry, the session is malformed
+  }
+
+  // Stripe one-time payments don't always populate amount_total in cents
+  // until the payment_intent settles. Fall back to amount_subtotal or 0.
+  const amountCents = session.amount_total ?? session.amount_subtotal ?? 0;
+  const amountUsd = amountCents / 100;
+
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+  // Generate a 64-char hex token. Long enough that brute-force is
+  // infeasible; short enough to fit in a URL without breaking it.
+  const redemptionToken = crypto.randomBytes(32).toString("hex");
+
+  // Idempotent insert — the unique constraint on stripe_session_id
+  // silently rejects retries.
+  const { data: insertedRows, error: insertErr } = await supabase
+    .from("pending_gifts")
+    .insert({
+      redemption_token: redemptionToken,
+      buyer_email: buyerEmail,
+      buyer_name: buyerName,
+      recipient_email: recipientEmail,
+      recipient_name: recipientName,
+      gift_message: giftMessage || null,
+      plan,
+      stripe_session_id: session.id,
+      stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
+      amount_paid_usd: amountUsd,
+    })
+    .select("redemption_token")
+    .single();
+
+  let activeToken = redemptionToken;
+
+  if (insertErr) {
+    // If the conflict is on stripe_session_id (Stripe retry), look up
+    // the existing row's token so we still send the right email.
+    if ((insertErr as { code?: string }).code === "23505") {
+      const { data: existing } = await supabase
+        .from("pending_gifts")
+        .select("redemption_token")
+        .eq("stripe_session_id", session.id)
+        .single();
+      if (existing?.redemption_token) {
+        activeToken = existing.redemption_token;
+        console.log(
+          `[stripe-webhook] Gift duplicate webhook event for session ${session.id} — using existing token, skipping emails.`
+        );
+        return; // Don't re-send emails on retry
+      }
+    }
+    console.error("[stripe-webhook] Failed to insert pending_gifts row:", insertErr);
+    return;
+  }
+
+  if (insertedRows?.redemption_token) {
+    activeToken = insertedRows.redemption_token;
+  }
+
+  // Send the recipient email
+  if (resend) {
+    try {
+      const { subject, html } = buildGiftRecipientEmail({
+        recipientName,
+        buyerName,
+        giftMessage,
+        redemptionToken: activeToken,
+      });
+      await resend.emails.send({
+        from: fromEmail,
+        to: recipientEmail,
+        subject,
+        html,
+      });
+    } catch (err) {
+      console.error("[stripe-webhook] Gift recipient email failed:", err);
+    }
+
+    // Send the buyer confirmation email
+    try {
+      const { subject, html } = buildGiftBuyerConfirmationEmail({
+        buyerName,
+        recipientName,
+        recipientEmail,
+        redemptionToken: activeToken,
+        amountPaidUsd: amountUsd,
+      });
+      await resend.emails.send({
+        from: fromEmail,
+        to: buyerEmail,
+        subject,
+        html,
+      });
+    } catch (err) {
+      console.error("[stripe-webhook] Gift buyer confirmation email failed:", err);
+    }
+  } else {
+    console.warn(
+      "[stripe-webhook] RESEND_API_KEY not set — gift emails not sent for session",
+      session.id
+    );
+  }
+}
+
 // ── Webhook handler ───────────────────────────────────────────────────────────
 
 export async function POST(request: Request) {
@@ -293,6 +432,18 @@ export async function POST(request: Request) {
       // ── One-time payment completed (Legacy plan only) ──────────────────────
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+
+        // ── Gift purchase branch ────────────────────────────────────────
+        // Distinct from the self-purchase flow below: gift purchases
+        // don't activate the buyer's plan. They create a pending_gifts
+        // row and email the recipient + buyer. Plan activation happens
+        // at redemption time (Phase D) on a NEW family the recipient
+        // creates.
+        if (session.metadata?.gift === "true") {
+          await handleGiftPurchase(session);
+          break;
+        }
+
         const familyId = session.metadata?.family_id;
         const plan = session.metadata?.plan;
 
