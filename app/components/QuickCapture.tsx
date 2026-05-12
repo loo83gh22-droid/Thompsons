@@ -104,7 +104,7 @@ export function QuickCapture() {
 
     try {
       const formData = new FormData();
-      formData.set("family_member_id", memberId);
+      formData.set("member_ids", memberId);
       formData.set("title", moment.trim().slice(0, 80));
       formData.set("content", moment.trim());
       formData.set("trip_date", new Date().toISOString().split("T")[0]);
