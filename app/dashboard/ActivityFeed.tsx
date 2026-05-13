@@ -60,7 +60,7 @@ const ACTION_LABELS: Record<ActivityItem["type"], string> = {
   story: "shared a story",
 };
 
-function ActivityCard({ item }: { item: ActivityItem }) {
+function ActivityCard({ item, priority }: { item: ActivityItem; priority?: boolean }) {
   const memberLabel = item.memberName ?? "Someone";
 
   if (item.thumbnailUrl) {
@@ -75,6 +75,8 @@ function ActivityCard({ item }: { item: ActivityItem }) {
             alt={item.title || `Photo by ${memberLabel}`}
             fill
             unoptimized
+            priority={priority}
+            loading={priority ? "eager" : "lazy"}
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
           />
@@ -170,8 +172,8 @@ export function ActivityFeed({
   return (
     <section className="space-y-4">
       <div className="grid grid-cols-1 gap-3 min-[768px]:grid-cols-2 min-[1024px]:grid-cols-3">
-        {items.map((item) => (
-          <ActivityCard key={`${item.type}-${item.id}`} item={item} />
+        {items.map((item, index) => (
+          <ActivityCard key={`${item.type}-${item.id}`} item={item} priority={index === 0 && !!item.thumbnailUrl} />
         ))}
       </div>
       {hasMore && (
