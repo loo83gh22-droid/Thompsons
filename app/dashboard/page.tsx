@@ -14,8 +14,15 @@ import { ActivityFeed, type ActivityItem } from "./ActivityFeed";
 import { OnboardingChecklist } from "./OnboardingChecklist";
 import { SerendipityCard, type HighlightItem, type OnThisDayItem } from "./SerendipityCard";
 import { BirthdayBanner, type BirthdayPerson } from "./BirthdayBanner";
+import { GiftWelcomeBanner } from "./GiftWelcomeBanner";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ welcome?: string }>;
+}) {
+  const params = await searchParams;
+  const showGiftWelcome = params.welcome === "gift";
   const supabase = await createClient();
   const { activeFamilyId } = await getActiveFamilyId(supabase);
   const { data: { user: currentUser } } = await supabase.auth.getUser();
@@ -305,6 +312,12 @@ export default async function DashboardPage() {
   return (
     <div className="min-w-0 w-full overflow-x-hidden">
       <PersonalGreeting firstName={userFirstName} />
+
+      {showGiftWelcome && (
+        <div className="mt-6">
+          <GiftWelcomeBanner />
+        </div>
+      )}
 
       {activeFamilyId && (
         <>
