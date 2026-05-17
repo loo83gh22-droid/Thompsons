@@ -2,19 +2,27 @@
 
 **Purpose:** A single doc the next session (or future-you) can read cold and pick up without re-reading the chat. Updated at the end of each major work session.
 
+> **Who's working here:** Rob Thompson (see `memory/project_owner_identity.md`). Founder outreach signs as **Rob**, never invent a name. Login email is `keepitgreen@live.ca`, not the Gmail send-as alias listed in CLAUDE.md.
+
 ---
 
 ## TL;DR — Where things stand
 
-The big shift this session was a multi-week run from **"site quality review → simplify → ship the gift purchase flow"**, plus an audience pivot from extended-family / grandparent-gifter to tight-knit nuclear families.
+This session covered two distinct phases of work:
+
+1. **Yesterday's run:** site quality review → simplification PRs → buyer-pays gift purchase flow → audience pivot to tight-knit nuclear families → build-timeline PDF.
+2. **Today's run:** the first real activation-funnel work. Looked at the 2 new signups this week, confirmed both bounced without coming back, traced root causes, shipped three PRs to fix the activation pipeline end-to-end.
 
 **The headline:**
-- Landing page + dashboard meaningfully simpler than at the start of the session
-- A real buyer-to-recipient gift purchase flow is **shipped and live** (replacing the old "wrap a login on a card" workaround)
+- Landing page + dashboard meaningfully simpler than at the start of yesterday
+- Buyer-to-recipient gift purchase flow **shipped and live** (replacing the old "wrap a login on a card" workaround)
 - Billing/plan enforcement re-audited clean
 - Migration workflow honest with reality (CI doesn't auto-apply — documented + guard script added)
+- **Activation funnel now instrumented + interventions in flight** — `activation_funnel` SQL view shipped, dashboard activation states added, broken drip-email cron fixed, Day-0 welcome added
 
-**The one thing waiting on the human:** a real-money production test of the gift flow (buyer pays $249 → recipient gets email → recipient redeems → buyer refunds self). Walkthrough lives in the chat history; not yet completed as of this writing.
+**The two things waiting on the human:**
+1. **Merge today's PRs in order:** #137 → #138 → #139. After #138 lands, manually trigger the cron via curl to backfill the 2 missed signups' drip emails.
+2. **Real-money production test of the gift flow** (still outstanding from yesterday). Walkthrough below in §Outstanding.
 
 ---
 
@@ -72,6 +80,53 @@ End-to-end shipped. Replaces the old "buy Legacy yourself and hand over your own
 - **PR 131 (Phase D)** — Recipient redemption. `/gift/claim/[token]` page handles new-user (password form), existing-user (sign-in redirect), already-redeemed, and invalid-token states. `/api/gift/claim` creates auth user with `email_confirm=true`, creates family with Legacy plan, marks gift redeemed, sends buyer "they opened your gift" email.
 
 Out-of-band: a `GiftWelcomeBanner` component was added to `app/dashboard/GiftWelcomeBanner.tsx` and wired into `dashboard/page.tsx` to fire when the recipient lands at `/dashboard?welcome=gift`. (Part of what was originally Phase E polish.)
+
+### 6. Build timeline + handoff infrastructure (PRs 135, 136)
+
+- **PR 135** — First version of `docs/SESSION_HANDOFF.md` (this file) + a session-only PDF timeline.
+- **PR 136** — Replaced the session-only PDF with `docs/FamilyNest_Build_Timeline.pdf` covering the entire build (Feb 5 – May 15, 132 PRs, 5 thematic phases). Markdown sibling `docs/TIMELINE.md` is now the source of truth, PDF is a snapshot.
+
+### 7. Activation funnel sprint — TODAY (PRs 137, 138, 139 — all OPEN as of writing)
+
+Triggered by Rob's question: *"have they been active at all?"* about the 2 new signups this week. SQL check confirmed both bounced after <60s and never returned. Root-cause hunt + three fixes shipped in parallel branches:
+
+- **PR 137 — Activation funnel UI**
+  - `app/dashboard/StarterProgress.tsx` — 3-step progress bar above OnboardingChecklist
+  - `app/dashboard/FirstWinPrompt.tsx` — one-shot celebratory invite modal after first entry (2-field, calls new `quickInvite` action). 1-year dismissal cookie.
+  - `app/dashboard/page.tsx` — day-1 lockdown (hides SerendipityCard / DashboardStats / UpcomingEvents when memberCount<=1 AND no entries)
+  - `app/dashboard/members/actions.ts` — new `quickInvite(name, email)` slim wrapper around `addFamilyMember`
+  - `supabase/migrations/20260515000001_activation_funnel_view.sql` — `public.activation_funnel` view (additive-safe, **applied via MCP**)
+  - `scripts/funnel-snapshot.sql` — 3 ready-to-paste KPI queries
+
+- **PR 138 — Lifecycle email cron windowing fix**
+  - Found and fixed a fatal bug: every drip (Day 1/3/5/14/30) used a 2-hour eligibility window. The cron runs once daily at 14:00 UTC, so families created outside the 13:00-15:00 UTC slice were never picked up. Zero drip emails had ever fired for any user this week.
+  - Widened all 5 windows to multi-day ranges (Day 1: 1-4d, Day 3: 3-7d, Day 5: 5-10d, Day 14: 14-21d, Day 30: 30-45d). `email_campaigns` dedup still prevents double-sends.
+  - **Day 1 copy rewritten** to write-first (`"Your first line takes 30 seconds"` with fill-in-the-blank prompt) — matches PR 122 onboarding pivot.
+  - **Day 14 copy refreshed** — dropped stale "founding rate goes to $349 after Mother's Day" (deadline passed).
+  - Day 1 activation check broadened from `0 photos` → `0 journal + 0 photos + 0 voice memos`.
+  - Day 14 now skips paid plans.
+  - `.single()` → `.maybeSingle()` on dedup checks to clear noisy logs.
+
+- **PR 139 — Day-0 welcome email**
+  - New `day0WelcomeEmailHtml` template in `app/api/emails/templates/drip.ts`
+  - New `day0_welcome` campaign type wired into `/api/notifications`
+  - Fires within first ~24h of signup, before Day 1 nudge. Lands hello@send.familynest.io in inbox + sets expectations for the lifecycle sequence.
+
+**Funnel baseline at moment of PR 137 ship** (across 19 families ever):
+| | |
+|---|---|
+| confirmed | 68% |
+| **activated** | **26%** ← number to move |
+| invited someone | 26% |
+| returned day 2+ | 16% |
+| returned day 7+ | 11% |
+
+### 8. Docs housekeeping — TODAY
+
+- `docs/TIMELINE.md` created (markdown source of truth, PDF is the snapshot)
+- `docs/TODO.md` refreshed from 2-month-stale to honest current state
+- This `SESSION_HANDOFF.md` updated to include today's work
+- `memory/project_owner_identity.md` created to lock in Rob's identity so future sessions don't invent a founder name
 
 ---
 
@@ -138,4 +193,6 @@ The gift flow is technically ready but not actively marketed yet. Mother's Day 2
 
 ## When you start the next session
 
-Open with: *"Did the real-money gift flow test happen? If yes — what worked, what didn't? If no — let me know if you want to walk through it, OR pick from the parked backlog above."*
+Open with: *"Two questions to set today's direction: (1) Did PRs #137, #138, #139 (the activation funnel sprint) merge — and if so, did the cron get manually re-triggered to backfill the missed drip emails? (2) Did the real-money gift-flow test happen? If both are settled, pick something from `docs/TODO.md` Backlog."*
+
+Then run `scripts/funnel-snapshot.sql` via Supabase MCP to see if activation/return numbers have moved from baseline (26% / 16%).
