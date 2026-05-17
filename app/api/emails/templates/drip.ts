@@ -5,18 +5,14 @@ import { appUrl, card, ctaButton, emailWrapper, esc } from "./shared";
 
 export function day1ActivationEmailHtml(name: string): string {
   return emailWrapper(`
-<tr><td style="text-align:center;padding-bottom:24px;"><span style="font-size:48px;">📷</span></td></tr>
+<tr><td style="text-align:center;padding-bottom:24px;"><span style="font-size:48px;">📔</span></td></tr>
 ${card(`
-  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Your family's story starts with one photo</h1>
+  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Your first line takes 30 seconds</h1>
   <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;">Hi ${esc(name)},</p>
-  <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;line-height:1.5;">Yesterday you created your Family Nest. We noticed you haven't uploaded your first photo yet!</p>
-  <p style="margin:0 0 4px;color:#94a3b8;font-size:15px;"><strong style="color:#f8fafc;">Here's why your first photo matters:</strong></p>
-  <ul style="margin:8px 0 20px;padding-left:20px;color:#94a3b8;font-size:15px;line-height:1.7;">
-    <li>It kicks off your family timeline</li>
-    <li>It becomes searchable and shareable</li>
-    <li>It inspires others in your family to contribute</li>
-  </ul>
-  ${ctaButton("Upload Your First Photo Now", `${appUrl}/dashboard/photos`)}
+  <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;line-height:1.5;">You started your Family Nest yesterday — nice. The hardest part is the first sentence, so here's one to start with:</p>
+  <p style="margin:0 0 12px;color:#f8fafc;font-size:16px;font-style:italic;line-height:1.5;padding:14px 16px;background:rgba(212,168,67,0.08);border-left:3px solid #D4A843;border-radius:6px;">"Today they said something that made me laugh — ___."</p>
+  <p style="margin:0 0 20px;color:#94a3b8;font-size:15px;line-height:1.5;">Fill in the blank, hit save, you're done. That's the whole thing. From there it just keeps building.</p>
+  ${ctaButton("Write one line", `${appUrl}/dashboard/journal/new`)}
 `)}`);
 }
 
@@ -55,12 +51,13 @@ export function day14UpgradeEmailHtml(name: string): string {
 ${card(`
   <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Two weeks in. How's the Nest feeling?</h1>
   <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;">Hi ${esc(name)},</p>
-  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">The free plan gives you access to everything. The only limits are storage (500 MB) and members (6). If you're adding more photos, videos, or voices and want room to grow, here's what's available:</p>
+  <p style="margin:0 0 16px;color:#94a3b8;font-size:15px;line-height:1.5;">You've been at it for a couple weeks — and the free plan gives you all the features. The only ceilings are storage (500 MB) and 6 members. If you're approaching either, here's the room-to-grow menu:</p>
   <ul style="margin:0 0 20px;padding-left:20px;color:#94a3b8;font-size:15px;line-height:1.7;">
     <li><strong style="color:#f8fafc;">Full Nest</strong> — $6.99/month, 5 GB storage, unlimited members</li>
-    <li><strong style="color:#f8fafc;">Legacy (Founding Rate)</strong> — $249 one-time, 10 GB, lifetime access. Goes to $349 after Mother's Day.</li>
-    <li><strong style="color:#f8fafc;">Storage add-ons</strong> available on any paid plan</li>
+    <li><strong style="color:#f8fafc;">Legacy</strong> — $349 one-time, 10 GB, lifetime access. No subscription.</li>
+    <li><strong style="color:#f8fafc;">Storage add-ons</strong> on any paid plan</li>
   </ul>
+  <p style="margin:0 0 20px;color:#94a3b8;font-size:14px;line-height:1.5;font-style:italic;">No rush — your free plan keeps working as long as you stay under the limits.</p>
   ${ctaButton("See Plans &amp; Pricing", `${appUrl}/pricing`)}
 `)}`);
 }

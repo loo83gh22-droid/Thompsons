@@ -320,25 +320,41 @@ export async function GET(request: Request) {
   }
 
   // ── 4. Activation Drip Campaigns ──
+  //
+  // Windowing notes — each drip looks at families created within a
+  // multi-day window (not a 2-hour slice) so a missed cron run still
+  // delivers the email the next day. Deduplication is enforced by the
+  // `email_campaigns` table — once a campaign type is logged for a
+  // family_member_id, we never send it again. This means:
+  //   - The lower bound (`now() - N days`) is when the campaign first
+  //     becomes eligible.
+  //   - The upper bound (`now() - M days`) prevents us from blasting
+  //     stale drips to families that signed up long before this
+  //     codepath worked correctly.
 
-  // Day 1: Activation Nudge for users with 0 photos
+  // Day 1: Write-first nudge for families with zero entries.
   try {
-    const oneDayAgo = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
-    const oneDayAgoEnd = new Date(Date.now() - 23 * 60 * 60 * 1000).toISOString();
+    const lowerBound = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString();
+    const upperBound = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
     const { data: newFamilies } = await supabase
       .from("families")
       .select("id, name, family_members!inner(id, name, contact_email, user_id)")
-      .gte("created_at", oneDayAgo)
-      .lte("created_at", oneDayAgoEnd);
+      .gte("created_at", lowerBound)
+      .lte("created_at", upperBound);
 
     for (const family of (newFamilies ?? []) as FamilyWithMembers[]) {
-      const { count: photoCount } = await supabase
-        .from("journal_photos")
-        .select("*", { count: "exact", head: true })
-        .eq("family_id", family.id);
-
-      if (photoCount !== 0) continue;
+      // "Activated" = any kind of entry, not just photos. After the
+      // write-first onboarding pivot (PR 122), journal entries are
+      // the most common first action — checking only photos was
+      // sending unnecessary emails to users who already engaged.
+      const [{ count: journalCount }, { count: photoCount }, { count: voiceCount }] = await Promise.all([
+        supabase.from("journal_entries").select("id", { count: "exact", head: true }).eq("family_id", family.id),
+        supabase.from("home_mosaic_photos").select("id", { count: "exact", head: true }).eq("family_id", family.id),
+        supabase.from("voice_memos").select("id", { count: "exact", head: true }).eq("family_id", family.id),
+      ]);
+      const totalEntries = (journalCount ?? 0) + (photoCount ?? 0) + (voiceCount ?? 0);
+      if (totalEntries > 0) continue;
 
       const owner = family.family_members.find((m) => m.user_id);
       if (!owner?.contact_email) continue;
@@ -348,14 +364,14 @@ export async function GET(request: Request) {
         .select("id")
         .eq("family_member_id", owner.id)
         .eq("campaign_type", "day1_nudge")
-        .single();
+        .maybeSingle();
       if (existingCampaign) continue;
 
       try {
         await resend.emails.send({
           from: fromEmail,
           to: owner.contact_email,
-          subject: "Your family's story starts with one photo 📷",
+          subject: "Your first line takes 30 seconds",
           html: day1ActivationEmailHtml(owner.name),
         });
         await supabase.from("email_campaigns").insert({
@@ -373,14 +389,14 @@ export async function GET(request: Request) {
 
   // Day 3: Feature Discovery
   try {
-    const threeDaysAgo = new Date(Date.now() - 73 * 60 * 60 * 1000).toISOString();
-    const threeDaysAgoEnd = new Date(Date.now() - 71 * 60 * 60 * 1000).toISOString();
+    const lowerBound = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const upperBound = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
 
     const { data: day3Families } = await supabase
       .from("families")
       .select("id, name, family_members!inner(id, name, contact_email, user_id)")
-      .gte("created_at", threeDaysAgo)
-      .lte("created_at", threeDaysAgoEnd);
+      .gte("created_at", lowerBound)
+      .lte("created_at", upperBound);
 
     for (const family of (day3Families ?? []) as FamilyWithMembers[]) {
       const owner = family.family_members.find((m) => m.user_id);
@@ -391,7 +407,7 @@ export async function GET(request: Request) {
         .select("id")
         .eq("family_member_id", owner.id)
         .eq("campaign_type", "day3_discovery")
-        .single();
+        .maybeSingle();
       if (existing) continue;
 
       try {
@@ -416,14 +432,14 @@ export async function GET(request: Request) {
 
   // Day 5: Invite Encouragement for single-member families
   try {
-    const fiveDaysAgo = new Date(Date.now() - 121 * 60 * 60 * 1000).toISOString();
-    const fiveDaysAgoEnd = new Date(Date.now() - 119 * 60 * 60 * 1000).toISOString();
+    const lowerBound = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
+    const upperBound = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
 
     const { data: day5Families } = await supabase
       .from("families")
       .select("id, name, family_members(id, name, contact_email, user_id)")
-      .gte("created_at", fiveDaysAgo)
-      .lte("created_at", fiveDaysAgoEnd);
+      .gte("created_at", lowerBound)
+      .lte("created_at", upperBound);
 
     for (const family of (day5Families ?? []) as FamilyWithMembers[]) {
       if (family.family_members.length > 1) continue; // already has invitees
@@ -435,7 +451,7 @@ export async function GET(request: Request) {
         .select("id")
         .eq("family_member_id", owner.id)
         .eq("campaign_type", "day5_invite")
-        .single();
+        .maybeSingle();
       if (existing) continue;
 
       try {
@@ -460,16 +476,20 @@ export async function GET(request: Request) {
 
   // Day 14: Upgrade Consideration for active Free-tier users
   try {
-    const fourteenDaysAgo = new Date(Date.now() - 337 * 60 * 60 * 1000).toISOString();
-    const fourteenDaysAgoEnd = new Date(Date.now() - 335 * 60 * 60 * 1000).toISOString();
+    const lowerBound = new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString();
+    const upperBound = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
 
     const { data: day14Families } = await supabase
       .from("families")
-      .select("id, name, family_members!inner(id, name, contact_email, user_id)")
-      .gte("created_at", fourteenDaysAgo)
-      .lte("created_at", fourteenDaysAgoEnd);
+      .select("id, name, plan_type, family_members!inner(id, name, contact_email, user_id)")
+      .gte("created_at", lowerBound)
+      .lte("created_at", upperBound);
 
-    for (const family of (day14Families ?? []) as FamilyWithMembers[]) {
+    for (const family of (day14Families ?? []) as FamilyWithMembers[] & { plan_type?: string }[]) {
+      // Skip families that already upgraded — no need to push them on
+      // pricing when they're already on a paid tier.
+      if ((family as { plan_type?: string }).plan_type && (family as { plan_type?: string }).plan_type !== "free") continue;
+
       const owner = family.family_members.find((m) => m.user_id);
       if (!owner?.contact_email) continue;
 
@@ -478,7 +498,7 @@ export async function GET(request: Request) {
         .select("id")
         .eq("family_member_id", owner.id)
         .eq("campaign_type", "day14_upgrade")
-        .single();
+        .maybeSingle();
       if (existing) continue;
 
       const { count: journalCount } = await supabase
@@ -509,14 +529,14 @@ export async function GET(request: Request) {
 
   // Day 30: Re-engagement for dormant users
   try {
-    const thirtyDaysAgo = new Date(Date.now() - 721 * 60 * 60 * 1000).toISOString();
-    const thirtyDaysAgoEnd = new Date(Date.now() - 719 * 60 * 60 * 1000).toISOString();
+    const lowerBound = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
+    const upperBound = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
     const { data: day30Families } = await supabase
       .from("families")
       .select("id, name, family_members!inner(id, name, contact_email, user_id)")
-      .gte("created_at", thirtyDaysAgo)
-      .lte("created_at", thirtyDaysAgoEnd);
+      .gte("created_at", lowerBound)
+      .lte("created_at", upperBound);
 
     for (const family of (day30Families ?? []) as FamilyWithMembers[]) {
       const owner = family.family_members.find((m) => m.user_id);
@@ -527,7 +547,7 @@ export async function GET(request: Request) {
         .select("id")
         .eq("family_member_id", owner.id)
         .eq("campaign_type", "day30_reengagement")
-        .single();
+        .maybeSingle();
       if (existing) continue;
 
       try {
