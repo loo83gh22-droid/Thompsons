@@ -357,6 +357,46 @@ export async function addFamilyMember(
   return { id: member?.id, birthdayEventAdded, emailFailed: emailFailed || undefined, inviteUrl };
 }
 
+/**
+ * quickInvite — thin wrapper around addFamilyMember used by the
+ * dashboard's FirstWinPrompt. Sends an invite with just a name and
+ * email, using "Family" as the relationship placeholder. The
+ * recipient (or the owner) can fill in details later from the
+ * /dashboard/our-family page. Designed for the moment right after a
+ * user posts their first entry — the highest-intent invite window
+ * we have. Keeps friction to two fields.
+ */
+export async function quickInvite(
+  name: string,
+  email: string
+): Promise<{ ok: boolean; error?: string; emailFailed?: boolean }> {
+  const trimmedName = name.trim();
+  const trimmedEmail = email.trim();
+  if (!trimmedName) return { ok: false, error: "Please add a name." };
+  if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+    return { ok: false, error: "Please enter a valid email." };
+  }
+  try {
+    const result = await addFamilyMember(
+      trimmedName,
+      "Family",
+      trimmedEmail,
+      "",
+      "",
+      null,
+      null,
+      false,
+      null,
+      false,
+      ""
+    );
+    return { ok: true, emailFailed: result.emailFailed };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Couldn't send invite.";
+    return { ok: false, error: msg };
+  }
+}
+
 export async function updateFamilyMember(
   id: string,
   name: string,

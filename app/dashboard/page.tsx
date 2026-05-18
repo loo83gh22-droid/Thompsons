@@ -15,6 +15,8 @@ import { OnboardingChecklist } from "./OnboardingChecklist";
 import { SerendipityCard, type HighlightItem, type OnThisDayItem } from "./SerendipityCard";
 import { BirthdayBanner, type BirthdayPerson } from "./BirthdayBanner";
 import { GiftWelcomeBanner } from "./GiftWelcomeBanner";
+import { StarterProgress } from "./StarterProgress";
+import { FirstWinPrompt } from "./FirstWinPrompt";
 
 export default async function DashboardPage({
   searchParams,
@@ -309,6 +311,18 @@ export default async function DashboardPage({
     }
   }
 
+  // Activation state ─────────────────────────────────────────────────
+  // hasAnyEntry  → user has posted at least one piece of content.
+  //                Triggers the FirstWinPrompt (one-shot invite nudge).
+  // isStillEmpty → brand-new family with zero content and only the
+  //                owner as a member. Strip the dashboard down to the
+  //                onboarding nudge so they don't see a wall of empty
+  //                cards on day 1. The moment they post anything (or
+  //                invite someone), the full dashboard appears.
+  const hasAnyEntry =
+    stats.journalCount + stats.voiceMemoCount + stats.photoCount + stats.storyCount > 0;
+  const isStillEmpty = !hasAnyEntry && stats.memberCount <= 1;
+
   return (
     <div className="min-w-0 w-full overflow-x-hidden">
       <PersonalGreeting firstName={userFirstName} />
@@ -329,6 +343,15 @@ export default async function DashboardPage({
           )}
 
           <div className="mt-6">
+            <StarterProgress
+              journalCount={stats.journalCount}
+              photoCount={stats.photoCount}
+              voiceMemoCount={stats.voiceMemoCount}
+              memberCount={stats.memberCount}
+            />
+          </div>
+
+          <div className="mt-4">
             <OnboardingChecklist
               memberCount={stats.memberCount}
               journalCount={stats.journalCount}
@@ -336,6 +359,14 @@ export default async function DashboardPage({
               photoCount={stats.photoCount}
             />
           </div>
+
+          {/* First-win celebration: fires once after the user posts their
+              first entry but hasn't invited anyone yet. */}
+          <FirstWinPrompt
+            hasFirstEntry={hasAnyEntry}
+            memberCount={stats.memberCount}
+            ownerFirstName={userFirstName}
+          />
 
           <section className="mt-8" aria-labelledby="activity-heading">
             <div className="flex flex-col gap-2 min-[768px]:flex-row min-[768px]:items-center min-[768px]:justify-between">
@@ -359,23 +390,31 @@ export default async function DashboardPage({
             </div>
           </section>
 
-          <div className="mt-10">
-            <SerendipityCard
-              highlight={highlight}
-              onThisDayItems={onThisDayItems}
-              gratitudeOfTheDay={gratitudeOfTheDay}
-              daySeed={Math.floor(nowMs / 86_400_000)}
-            />
-          </div>
+          {/* Below-the-fold widgets — hidden on a brand-new empty Nest so
+              the day-1 dashboard stays focused on the starter nudge.
+              The moment the user posts anything or invites a member,
+              these reappear. */}
+          {!isStillEmpty && (
+            <>
+              <div className="mt-10">
+                <SerendipityCard
+                  highlight={highlight}
+                  onThisDayItems={onThisDayItems}
+                  gratitudeOfTheDay={gratitudeOfTheDay}
+                  daySeed={Math.floor(nowMs / 86_400_000)}
+                />
+              </div>
 
-          <div className="mt-10 grid grid-cols-1 gap-6 min-[900px]:grid-cols-3">
-            <div className="min-[900px]:col-span-2">
-              <DashboardStats stats={stats} />
-            </div>
-            <div>
-              <UpcomingEvents events={upcomingEvents} />
-            </div>
-          </div>
+              <div className="mt-10 grid grid-cols-1 gap-6 min-[900px]:grid-cols-3">
+                <div className="min-[900px]:col-span-2">
+                  <DashboardStats stats={stats} />
+                </div>
+                <div>
+                  <UpcomingEvents events={upcomingEvents} />
+                </div>
+              </div>
+            </>
+          )}
 
         </>
       )}
