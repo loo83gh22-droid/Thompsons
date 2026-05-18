@@ -16,6 +16,7 @@ import { birthdayEmailHtml } from "@/app/api/emails/templates/birthday";
 import { capsuleEmailHtml } from "@/app/api/emails/templates/capsule";
 import { digestEmailHtml, type DigestSection } from "@/app/api/emails/templates/digest";
 import {
+  day0WelcomeEmailHtml,
   day1ActivationEmailHtml,
   day3DiscoveryEmailHtml,
   day5InviteEmailHtml,
@@ -82,6 +83,7 @@ export async function GET(request: Request) {
     capsuleUnlocks: 0,
     scheduledMessages: 0,
     weeklyDigests: 0,
+    day0Welcomes: 0,
     day1Nudges: 0,
     day3Discovery: 0,
     day5Invites: 0,
@@ -331,6 +333,54 @@ export async function GET(request: Request) {
   //   - The upper bound (`now() - M days`) prevents us from blasting
   //     stale drips to families that signed up long before this
   //     codepath worked correctly.
+
+  // Day 0: Welcome email — fires within the first ~24h of signup. Sets
+  // expectations for the rest of the lifecycle emails and lands the
+  // hello@send.familynest.io sender address in the recipient's inbox
+  // before the Day-1 nudge so it's less likely to be marked as spam.
+  try {
+    // Only catch families created in the past 2 days. Older families
+    // shouldn't get a "welcome" email weeks after the fact.
+    const day0LowerBound = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+
+    const { data: day0NewFamilies } = await supabase
+      .from("families")
+      .select("id, name, family_members!inner(id, name, contact_email, user_id, role)")
+      .gte("created_at", day0LowerBound);
+
+    type Day0Family = { id: string; name: string; family_members: (DripMember & { role: string })[] };
+
+    for (const family of (day0NewFamilies ?? []) as Day0Family[]) {
+      const owner = family.family_members.find((m) => m.user_id && m.role === "owner");
+      if (!owner?.contact_email) continue;
+
+      const { data: day0Existing } = await supabase
+        .from("email_campaigns")
+        .select("id")
+        .eq("family_member_id", owner.id)
+        .eq("campaign_type", "day0_welcome")
+        .maybeSingle();
+      if (day0Existing) continue;
+
+      try {
+        await resend.emails.send({
+          from: fromEmail,
+          to: owner.contact_email,
+          subject: "Welcome to Family Nest",
+          html: day0WelcomeEmailHtml(owner.name, family.name),
+        });
+        await supabase.from("email_campaigns").insert({
+          family_member_id: owner.id,
+          campaign_type: "day0_welcome",
+        });
+        results.day0Welcomes++;
+      } catch (err) {
+        results.errors.push(`Day 0 welcome email to ${owner.contact_email}: ${err}`);
+      }
+    }
+  } catch (err) {
+    results.errors.push(`Day 0 campaign: ${err}`);
+  }
 
   // Day 1: Write-first nudge for families with zero entries.
   try {

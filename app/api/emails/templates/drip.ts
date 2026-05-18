@@ -1,7 +1,32 @@
 /**
- * Activation drip campaign email templates (Day 1, 3, 5, 14, 30).
+ * Activation drip campaign email templates (Day 0, 1, 3, 5, 14, 30).
  */
 import { appUrl, card, ctaButton, emailWrapper, esc } from "./shared";
+
+/**
+ * Day 0 — fires within the first 24h of signup. The goal is twofold:
+ *
+ *   1. Confirm the email channel works and land hello@familynest.io
+ *      in the recipient's address book before Day 1 nudge arrives.
+ *   2. Set expectations for the rest of the lifecycle emails so they
+ *      don't feel like out-of-nowhere spam.
+ *
+ * Keeps the CTA single — write your first line. Anything more is too
+ * many choices when they've just signed up.
+ */
+export function day0WelcomeEmailHtml(name: string, familyName: string): string {
+  return emailWrapper(`
+<tr><td style="text-align:center;padding-bottom:24px;"><span style="font-size:48px;">🪺</span></td></tr>
+${card(`
+  <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">Welcome to Family Nest, ${esc(name)}</h1>
+  <p style="margin:0 0 12px;color:#94a3b8;font-size:15px;line-height:1.5;">${esc(familyName)} is set up and ready. From here it's about quietly capturing the small stuff — a thing the kids said, a photo from this morning, a song you'd want them to remember.</p>
+  <p style="margin:0 0 20px;color:#94a3b8;font-size:15px;line-height:1.5;">The first entry is the hardest. Once it's in, the rest comes naturally.</p>
+  ${ctaButton("Write your first line", `${appUrl}/dashboard/journal/new`)}
+  <p style="margin:24px 0 0;color:#64748b;font-size:13px;line-height:1.6;">
+    <strong style="color:#94a3b8;">One housekeeping note:</strong> We'll send the occasional gentle nudge from this address (hello@send.familynest.io) — never marketing, never spam. You can turn off any time in <a href="${appUrl}/dashboard/settings" style="color:#D4A843;">Settings</a>.
+  </p>
+`)}`);
+}
 
 export function day1ActivationEmailHtml(name: string): string {
   return emailWrapper(`
