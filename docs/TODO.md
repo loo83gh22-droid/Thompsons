@@ -2,29 +2,29 @@
 
 > **Living document.** Update at the end of each session.
 > Site is **live in production** at https://familynest.io with paying users.
-> Last updated: 2026-05-15
+> Last updated: 2026-05-18
 
 ---
 
 ## 🔥 Right now (this week)
 
+### Trigger the cron to backfill missed lifecycle emails
+- [ ] **Run this once** after Vercel finishes deploying PRs 137-140:
+  ```
+  curl -H "Authorization: Bearer $CRON_SECRET" https://familynest.io/api/notifications
+  ```
+  - `CRON_SECRET` is in Vercel env vars
+  - Response should show non-zero counts for `day0Welcomes`, `day1Nudges`, and possibly `day3Discovery` (depending on signup timing of djlesieur)
+  - If you skip this, the daily cron at 14:00 UTC will catch them up tomorrow on its own
+- [ ] Verify the email lands in **kmankiran7@gmail.com** (Day 0 + Day 1 should both land within a day) — confirm it's not in spam, looks on-brand
+
 ### Manual founder reach-out (Rob — 2 emails, drafts in chat)
 - [ ] Email **djlesieur@gmail.com** ("The Shark Beight Family", signed up May 11, never returned)
 - [ ] Email **kmankiran7@gmail.com** ("Grewals", signed up May 14, wrote 1 entry, never returned)
-- Both drafts use the canonical founder voice — see latest session for copy
+- Both drafts use the canonical founder voice — sign as **Rob**
 - Open in Gmail with From set to `hello@familynest.io`
 
-### PRs awaiting your review
-- [ ] **PR #137** — Activation funnel UI (StarterProgress + FirstWinPrompt + day-1 lockdown + KPI view)
-- [ ] **PR #138** — Lifecycle email cron windowing fix + Day 1 / Day 14 copy refresh
-- [ ] **PR #139** — Day-0 welcome email
-
-Suggested merge order: 137 → 138 → 139. After 138 merges, manually trigger the cron to backfill the 2 missed signups:
-```
-curl -H "Authorization: Bearer $CRON_SECRET" https://familynest.io/api/notifications
-```
-
-### 🚨 Still outstanding from yesterday's handoff
+### 🚨 Still outstanding from earlier
 - [ ] **Real-money production gift-flow test** (top of `docs/SESSION_HANDOFF.md`)
   - Buy a $249 gift to a non-primary email
   - Verify 3 emails arrive (Stripe + buyer + recipient)
@@ -81,7 +81,8 @@ See `docs/TIMELINE.md` Phase 5 for the full list. Highlights:
 - **Migration workflow honesty** — CI guard script + CLAUDE.md update (PR #126)
 - **Billing re-audit** zero new findings (PR #127)
 - **Build timeline + handoff docs** (PRs #135-136)
-- **Activation funnel sprint in flight** (PRs #137-139)
+- **Activation funnel sprint** — instrumentation + UI + email pipeline fix (PRs #137-139, merged 2026-05-18)
+- **Docs housekeeping** — living TIMELINE.md, fresh TODO.md, updated SESSION_HANDOFF.md (PR #140, merged 2026-05-18)
 
 ---
 

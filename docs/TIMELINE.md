@@ -4,7 +4,7 @@
 > The PDF version (`FamilyNest_Build_Timeline.pdf`) is a snapshot regenerated from this
 > at milestones via `python scripts/build_timeline_pdf.py`.
 >
-> **Last updated:** 2026-05-15
+> **Last updated:** 2026-05-18
 
 ---
 
@@ -17,8 +17,8 @@ From an empty Next.js scaffold on Feb 5 to a fully shipping production app with 
 | | |
 |---|---|
 | First commit | 2026-02-05 |
-| Most recent merge | 2026-05-15 |
-| Merged PRs | 132 (as of PR 136) |
+| Most recent merge | 2026-05-18 |
+| Merged PRs | 136 (as of PR 140) |
 | Total commits | ~700 |
 | Production URL | https://familynest.io |
 | Repo | https://github.com/loo83gh22-droid/Thompsons |
@@ -102,12 +102,15 @@ Site-wide quality review → simplification PRs → gift purchase flow → activ
 - **#135** — Session handoff doc + first PDF timeline
 - **#136** — Whole-build PDF timeline (Feb 5 – May 15)
 
-### Activation funnel sprint (PRs 137-139) — open as of writing
+### Activation funnel sprint (PRs 137-139) — merged 2026-05-18
 - **#137** — Activation funnel UI: StarterProgress + FirstWinPrompt + day-1 dashboard lockdown + `activation_funnel` SQL view
 - **#138** — Fix silent windowing bug in lifecycle email cron + refresh Day 1 / Day 14 copy
-- **#139** — Add Day-0 welcome email to cron
+- **#139** — Add Day-0 welcome email to cron (rebased over #138 to resolve conflict in `notifications/route.ts`)
 
-**Inflection point this phase:** the activation funnel work (PRs 137-139) is the first time we've actually instrumented and intervened on the signup→activation flow. Baseline measured at 26% activation / 16% return-day-2-plus across 19 families ever. Whether the interventions move those numbers is the next thing to measure.
+### Docs housekeeping (PR 140) — merged 2026-05-18
+- **#140** — Created living `TIMELINE.md` (this file), refreshed 2-month-stale `TODO.md`, folded today's activation sprint into `SESSION_HANDOFF.md`, locked Rob's identity in `memory/project_owner_identity.md`
+
+**Inflection point this phase:** the activation funnel work (PRs 137-139) is the first time we've actually instrumented and intervened on the signup→activation flow. Baseline measured at 26% activation / 16% return-day-2-plus across 19 families ever. Whether the interventions move those numbers is the next thing to measure. Re-run `scripts/funnel-snapshot.sql` weekly via Supabase MCP to track.
 
 ---
 
