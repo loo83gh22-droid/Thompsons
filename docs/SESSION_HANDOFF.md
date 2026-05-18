@@ -1,4 +1,4 @@
-# Session Handoff — 2026-05-15
+# Session Handoff — 2026-05-18
 
 **Purpose:** A single doc the next session (or future-you) can read cold and pick up without re-reading the chat. Updated at the end of each major work session.
 
@@ -21,8 +21,10 @@ This session covered two distinct phases of work:
 - **Activation funnel now instrumented + interventions in flight** — `activation_funnel` SQL view shipped, dashboard activation states added, broken drip-email cron fixed, Day-0 welcome added
 
 **The two things waiting on the human:**
-1. **Merge today's PRs in order:** #137 → #138 → #139. After #138 lands, manually trigger the cron via curl to backfill the 2 missed signups' drip emails.
+1. **Trigger the cron once** via `curl -H "Authorization: Bearer $CRON_SECRET" https://familynest.io/api/notifications` to backfill the 2 missed signups' Day-0/1 drip emails. If skipped, the daily cron picks them up at 14:00 UTC the next day.
 2. **Real-money production test of the gift flow** (still outstanding from yesterday). Walkthrough below in §Outstanding.
+
+PRs 137-140 are all merged and deployed as of this writing — see §7 and §8 below for what landed.
 
 ---
 
@@ -86,7 +88,7 @@ Out-of-band: a `GiftWelcomeBanner` component was added to `app/dashboard/GiftWel
 - **PR 135** — First version of `docs/SESSION_HANDOFF.md` (this file) + a session-only PDF timeline.
 - **PR 136** — Replaced the session-only PDF with `docs/FamilyNest_Build_Timeline.pdf` covering the entire build (Feb 5 – May 15, 132 PRs, 5 thematic phases). Markdown sibling `docs/TIMELINE.md` is now the source of truth, PDF is a snapshot.
 
-### 7. Activation funnel sprint — TODAY (PRs 137, 138, 139 — all OPEN as of writing)
+### 7. Activation funnel sprint (PRs 137, 138, 139 — all MERGED 2026-05-18)
 
 Triggered by Rob's question: *"have they been active at all?"* about the 2 new signups this week. SQL check confirmed both bounced after <60s and never returned. Root-cause hunt + three fixes shipped in parallel branches:
 
@@ -121,12 +123,16 @@ Triggered by Rob's question: *"have they been active at all?"* about the 2 new s
 | returned day 2+ | 16% |
 | returned day 7+ | 11% |
 
-### 8. Docs housekeeping — TODAY
+### 8. Docs housekeeping (PR 140 — MERGED 2026-05-18)
 
 - `docs/TIMELINE.md` created (markdown source of truth, PDF is the snapshot)
 - `docs/TODO.md` refreshed from 2-month-stale to honest current state
 - This `SESSION_HANDOFF.md` updated to include today's work
 - `memory/project_owner_identity.md` created to lock in Rob's identity so future sessions don't invent a founder name
+
+### 9. Conflict resolution mid-merge
+
+When merging the four PRs in order, PR 139 (Day-0 welcome) conflicted with PR 138 (lifecycle windowing fix) because both touched `app/api/notifications/route.ts` and `app/api/emails/templates/drip.ts`. Resolved by rebasing PR 139 onto post-#138 main, keeping the Day-0 block ahead of Day-1, and preserving PR 138's "Write-first nudge" header. Force-pushed to the feature branch (lease-checked) and merged. No data loss, no main rewrite.
 
 ---
 
@@ -193,6 +199,13 @@ The gift flow is technically ready but not actively marketed yet. Mother's Day 2
 
 ## When you start the next session
 
-Open with: *"Two questions to set today's direction: (1) Did PRs #137, #138, #139 (the activation funnel sprint) merge — and if so, did the cron get manually re-triggered to backfill the missed drip emails? (2) Did the real-money gift-flow test happen? If both are settled, pick something from `docs/TODO.md` Backlog."*
+Open with: *"Two quick checks: (1) Did the cron get manually re-triggered after the PR 138 merge? Confirm by querying `email_campaigns` for recent `day0_welcome` / `day1_nudge` rows. (2) Did the real-money gift-flow test happen? If both are settled, run `scripts/funnel-snapshot.sql` via Supabase MCP and compare against the 26% / 16% baseline, then pick something from `docs/TODO.md` Backlog."*
 
-Then run `scripts/funnel-snapshot.sql` via Supabase MCP to see if activation/return numbers have moved from baseline (26% / 16%).
+Quick SQL to check the cron backfill landed:
+```sql
+SELECT campaign_type, count(*), max(sent_at)
+FROM email_campaigns
+WHERE sent_at > now() - interval '3 days'
+GROUP BY campaign_type
+ORDER BY campaign_type;
+```
