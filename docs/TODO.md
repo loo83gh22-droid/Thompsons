@@ -1,210 +1,98 @@
-# Family Nest — Master TODO
+# FamilyNest — Master TODO
 
-> **Living document.** Update this every session. Check items off as they're completed.
-> Last updated: 2026-03-20
+> **Living document.** Update at the end of each session.
+> Site is **live in production** at https://familynest.io with paying users.
+> Last updated: 2026-05-15
 
 ---
 
-## BLOCKING: DECIDE BEFORE LAUNCH
+## 🔥 Right now (this week)
 
-### Stripe Setup (can't charge without this)
+### Manual founder reach-out (Rob — 2 emails, drafts in chat)
+- [ ] Email **djlesieur@gmail.com** ("The Shark Beight Family", signed up May 11, never returned)
+- [ ] Email **kmankiran7@gmail.com** ("Grewals", signed up May 14, wrote 1 entry, never returned)
+- Both drafts use the canonical founder voice — see latest session for copy
+- Open in Gmail with From set to `hello@familynest.io`
 
-- [ ] Create Stripe account (or configure existing one)
-- [ ] Create product **"The Full Nest — Monthly"** with recurring price ($9.99/mo) → copy Price ID → set as `STRIPE_PRICE_MONTHLY`
-- [ ] Create product **"The Full Nest — Annual (Founding)"** with recurring price ($49/yr) → copy Price ID → set as `STRIPE_PRICE_ANNUAL_FOUNDING`
-- [ ] Create product **"The Full Nest — Annual"** with recurring price ($79/yr) → copy Price ID → set as `STRIPE_PRICE_ANNUAL`
-- [ ] Create product **"The Legacy"** with one-time price ($349) → copy Price ID → set as `STRIPE_PRICE_LEGACY`
-- [ ] Create storage add-on products: $9/yr (+25 GB), $24/yr (+75 GB), $49/yr (+150 GB) → set `STRIPE_PRICE_STORAGE_25/75/150`
-- [ ] Add webhook endpoint in Stripe Dashboard: `https://familynest.io/api/stripe/webhook`
-- [ ] Subscribe to events: `checkout.session.completed`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.deleted`, `customer.subscription.updated`
-- [ ] Copy webhook signing secret → set as `STRIPE_WEBHOOK_SECRET`
+### PRs awaiting your review
+- [ ] **PR #137** — Activation funnel UI (StarterProgress + FirstWinPrompt + day-1 lockdown + KPI view)
+- [ ] **PR #138** — Lifecycle email cron windowing fix + Day 1 / Day 14 copy refresh
+- [ ] **PR #139** — Day-0 welcome email
 
-### Vercel Environment Variables (set all of these)
-
+Suggested merge order: 137 → 138 → 139. After 138 merges, manually trigger the cron to backfill the 2 missed signups:
 ```
-STRIPE_SECRET_KEY=sk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PRICE_MONTHLY=price_...
-STRIPE_PRICE_ANNUAL=price_...
-STRIPE_PRICE_ANNUAL_FOUNDING=price_...
-STRIPE_PRICE_LEGACY=price_...
-STRIPE_PRICE_STORAGE_25=price_...
-STRIPE_PRICE_STORAGE_75=price_...
-STRIPE_PRICE_STORAGE_150=price_...
-SUPABASE_SERVICE_ROLE_KEY=...      (may already be set)
-CRON_SECRET=<random string>        (may already be set)
-RESEND_API_KEY=...                 (may already be set)
-RESEND_FROM_EMAIL=Family Nest <hello@familynest.io>
-NEXT_PUBLIC_APP_URL=https://familynest.io
-NEXT_PUBLIC_FEEDBACK_EMAIL=support@familynest.io
-OPENAI_API_KEY=...
-UPSTASH_REDIS_REST_URL=...
-UPSTASH_REDIS_REST_TOKEN=...
+curl -H "Authorization: Bearer $CRON_SECRET" https://familynest.io/api/notifications
 ```
 
----
-
-## BLOCKING: DOMAIN & DNS
-
-- [x] ~~Purchase domain~~ — familynest.io is live
-- [x] ~~Point DNS to Vercel~~ — configured
-- [x] ~~Configure custom domain in Vercel project settings~~ — done
-- [x] ~~Verify SSL certificate is active~~ — active
-- [ ] Update `NEXT_PUBLIC_APP_URL` env var to `https://familynest.io`
-- [ ] Update `metadataBase` in `app/layout.tsx` if still pointing to placeholder domain
-- [ ] Update Resend verified sender domain to `@familynest.io`
+### 🚨 Still outstanding from yesterday's handoff
+- [ ] **Real-money production gift-flow test** (top of `docs/SESSION_HANDOFF.md`)
+  - Buy a $249 gift to a non-primary email
+  - Verify 3 emails arrive (Stripe + buyer + recipient)
+  - Redeem as recipient, verify buyer "they opened it" email
+  - Refund via Stripe dashboard
+  - Clean up the test gift's auth user + family + `pending_gifts` row via SQL
 
 ---
 
-## HOMEPAGE & MOSAIC
+## 🟡 Next pickup (when "right now" is clear)
 
-- [ ] Add real family photos to mosaic folder on Desktop
-- [ ] Wire photos into FamilyMosaic component
-- [ ] Verify mosaic looks good on mobile, tablet, desktop
-- [ ] Review all landing page copy with real photos in context
+### Measure whether activation work moved the needle
+- [ ] Re-run `scripts/funnel-snapshot.sql` weekly via Supabase MCP
+- [ ] Baseline (as of PR 137 ship): 26% activation, 26% invite, 16% return d2+, 11% return d7+
+- [ ] If no improvement after 2 weeks, revisit the FirstWinPrompt trigger logic and Day 0 copy
 
----
+### Phase E polish (gift flow)
+- [x] ~~`GiftWelcomeBanner` on dashboard for `?welcome=gift`~~ (shipped PR #133)
+- [ ] Printable gift card view (`/gift/sent?print=1` with print CSS)
+- [ ] Buyer "view your sent gifts" page (low priority)
 
-## CODE TASKS
-
-### High Priority
-- [ ] **Vercel Cron configuration** — Verify `vercel.json` has the cron schedule for `/api/notifications` at 14:00 UTC and `/api/daily-report`
-
-### Medium Priority
-- [ ] **Stripe customer portal styling** — Configure branding in Stripe Dashboard to match app theme
-- [ ] **PWA manifest** — `manifest.ts` for mobile "Add to Home Screen" install
-- [ ] **Error monitoring** — Sentry integration (currently only Vercel Analytics + Speed Insights)
-- [ ] **Day 14 upgrade email** — `app/api/emails/templates/drip.ts` — verify price references match current pricing ($79/yr annual, $9.99/mo monthly, $49/yr founding)
-
-### Low Priority / Post-Launch
-- [ ] Dynamic OG images per page (`opengraph-image.tsx`)
-- [ ] Referral program (invite a family, get X)
-- [ ] Invoice/receipt emails after payment
-- [ ] G7 (Deferred) — Member profile photos: client-side upload bypasses storage gates; complex refactor needed
+### Marketing / launch readiness
+- [ ] Mother's Day 2026 founding rate window already expired May 10 — gifts now default to $349
+- [ ] No campaign was pushed for the founding window — consider a soft launch push for the gift flow now that it's actually live
 
 ---
 
-## MANUAL TESTING BEFORE LAUNCH
+## 📋 Backlog (in priority order)
 
-> Do these yourself on phone + desktop once all blocking items above are done.
-
-- [ ] Sign up as new user → lands on dashboard → welcome email received
-- [ ] Upload photo → appears in gallery
-- [ ] Create journal entry → appears in timeline
-- [ ] Record voice memo → playback works → transcribe works
-- [ ] Add recipe via URL → auto-fills form
-- [ ] Get writing prompts → click to insert → save journal
-- [ ] Create time capsule with future unlock date
-- [ ] Invite a family member → they sign up → see shared content
-- [ ] Visit pricing → click Monthly → Stripe checkout loads → complete test payment → Settings shows "Monthly" plan with $9.99/month badge
-- [ ] Visit pricing → click Annual (Founding) → Stripe checkout loads → complete test payment → Settings shows "Full Nest" with $49/year badge
-- [ ] Visit pricing → click Legacy → Stripe checkout loads → complete test payment → Annual sub cancelled automatically
-- [ ] Settings → Manage Billing → Stripe portal loads
-- [ ] Settings → toggle email notifications off → verify no emails sent
-- [ ] Downgrade/cancel → plan reverts to free
-- [ ] Account deletion → request deletion → cancel it → verify grace period flow
-- [ ] Visit /nonexistent-page → 404 page shows
-- [ ] Check /robots.txt and /sitemap.xml load correctly
-- [ ] Test on iPhone Safari, Android Chrome, Desktop Chrome/Firefox
-- [ ] Check page speed: Lighthouse score > 90 on homepage
+1. **Onboarding flow audit follow-up** — PRs 122/123 covered the basics. Today's PR 137 added activation UI. Still room to tighten the first-60-seconds experience.
+2. **Performance pass** — `/speed-review` skill exists, never run. Cold compile ~22s locally; production response time unknown.
+3. **`/blog` and `/contact` page audits** — never looked at either. Might be stale or off-brand for the nuclear-family pivot.
+4. **Stripe customer portal styling** — configure branding in Stripe Dashboard to match app theme
+5. **PWA manifest** (`manifest.ts`) for mobile "Add to Home Screen"
+6. **Error monitoring** — Sentry integration (currently only Vercel Analytics + Speed Insights)
+7. **Dynamic OG images per page** (`opengraph-image.tsx`)
+8. **Referral program** — invite a family, get X
+9. **Re-enable CI migration workflow** — 4-6h reconciliation project. Not worth it unless manual MCP applies start hurting.
 
 ---
 
-## LAUNCH DAY
+## 🔻 Long-standing low priority
 
-- [ ] Switch Stripe from test mode to live mode
-- [ ] Update all STRIPE_* env vars to live keys
-- [ ] Update UPSTASH_* env vars (Upstash free tier — create account at upstash.com)
-- [ ] Verify webhook endpoint works with live mode
-- [ ] Test one real $1 payment and refund it
-- [ ] Announce to family / beta testers
-- [ ] Monitor Vercel Analytics for errors
-- [ ] Check Supabase dashboard for any RLS issues
+- **G7** — client-side upload pre-gating missing in 5 modules (homes, garden, volunteer, teams, voice-memo cover photos). Tracked in `docs/BILLING_FINDINGS.md`. Low severity; scheduled for a dedicated sprint.
 
 ---
 
-## POST-LAUNCH (Phase 7+)
+## ✅ Recently shipped (last 30 days)
 
-- [ ] Monitor retention and conversion metrics
-- [ ] Set up Stripe revenue dashboard
-- [ ] A/B test pricing page copy
-- [ ] Consider Product Hunt launch
-- [ ] Blog / content marketing
-- [ ] Social proof: collect real testimonials to replace placeholders
-- [ ] Facebook ad Campaign 2 ("The Smirk") — launch once Rob films his video
+See `docs/TIMELINE.md` Phase 5 for the full list. Highlights:
+
+- **Buyer-pays gift purchase flow** end-to-end (PRs #128-131)
+- **Simplification sprint** — dashboard, nav, onboarding (PRs #113-125)
+- **Migration workflow honesty** — CI guard script + CLAUDE.md update (PR #126)
+- **Billing re-audit** zero new findings (PR #127)
+- **Build timeline + handoff docs** (PRs #135-136)
+- **Activation funnel sprint in flight** (PRs #137-139)
 
 ---
 
-## COMPLETED
+## 📁 Where things live
 
-### Phase 1: Core App ✅
-- All 23 dashboard features built
-- Supabase schema, RLS, storage
-- Auth flow (signup, login, forgot password)
-- Role-based access & plan gating
-- Vercel deployment pipeline
-
-### Phase 2: Landing Page CRO ✅
-- Testimonials, FAQ, HeroSection, EmotionalSection
-- Price breakdowns on pricing cards
-- Landing page conversion funnel order
-- Google Fonts via next/font
-- JSON-LD FAQ schema on pricing page
-- Canonical URLs on pricing, terms, privacy pages
-- metadataBase set in root layout
-
-### Phase 3: Email Automation ✅
-- Welcome email on signup
-- Drip campaigns: Day 1, 3, 5, 14, 30
-- Birthday reminders (3 days before)
-- Time capsule unlock notifications
-- Weekly digest (Sundays)
-- Email notification opt-out toggle in Settings
-
-### Phase 4: AI Features ✅
-- Voice memo transcription (Whisper)
-- Recipe URL parsing (GPT-4o-mini)
-- Journal writing prompts (GPT-4o-mini)
-- Rate limiting (10 AI calls/family/day)
-
-### Phase 5: Testing & QA ✅
-- 170+ test case checklist created
-- 137 automated unit tests (roles, plans, email templates, security logic)
-- Build passes clean (46/46 pages)
-
-### Phase 6: Launch Preparation ✅ (code done, Stripe config pending)
-- Stripe checkout, webhook, billing portal
-- Monthly plan ($9.99/mo) + Founding rate ($49/yr) + Annual ($79/yr) + Legacy ($349 one-time)
-- Free plan: unlimited features — storage (500 MB) and members (6) are the only caps
-- Annual plan: 20 GB storage; Legacy: 50 GB storage
-- Storage add-ons: +25 GB ($9/yr), +75 GB ($24/yr), +150 GB ($49/yr)
-- Stripe Annual → Legacy upgrade path (auto-cancels old subscription)
-- UpgradeButton + ManageBilling components
-- Payment success + cancelled UI feedback
-- Rate limiting on all key endpoints (Upstash Redis)
-- CRON_SECRET security on cron endpoints
-- Email templates extracted to `app/api/emails/templates/`
-- 404 page, robots.ts, sitemap.ts
-- Security headers (HSTS, X-Frame-Options, CSP, etc.)
-- Email unsubscribe links (CAN-SPAM)
-- Vercel Analytics + Speed Insights
-- Privacy Policy, Terms of Service
-- DB migrations: Stripe columns, email_notifications flag, pricing overhaul
-
-### Phase 6b: Dashboard & UX Polish ✅
-- Dashboard themes (ThemePicker)
-- Stats redesign + plan badges (PlanLimitBadge with null=unlimited support)
-- Account deletion self-serve (30-day grace period, cancellable)
-- Mobile nav improvements
-- Empty states across all feature modules
-- Onboarding flow improvements
-- Landing page refresh
-
-### Security & Billing Hardening ✅ (2026-03-05 through 2026-03-20)
-- All S1–S11 security findings resolved (see docs/SECURITY_FINDINGS.md)
-- All G1–G19, B1–B7 billing findings resolved (see docs/BILLING_FINDINGS.md)
-- Re-audited 2026-03-12 and 2026-03-20 — zero new findings after fixes
-
-### Facebook Ad Campaign ✅ (active, running)
-- Campaign 1 "The Heart" live — Rick voicemail story, $5 CAD/day
-- Campaign 2 "The Smirk" copy written — waiting on Rob's video to launch
+| What | Where |
+|---|---|
+| Build history | `docs/TIMELINE.md` + `docs/FamilyNest_Build_Timeline.pdf` |
+| Session cold-start | `docs/SESSION_HANDOFF.md` |
+| Gift flow architecture | `docs/GIFT_FLOW_DESIGN.md` |
+| Billing audit log | `docs/BILLING_FINDINGS.md` + `docs/BILLING_AUDIT_2026-05-05.md` |
+| KPI funnel snapshot SQL | `scripts/funnel-snapshot.sql` |
+| Migration pre-merge guard | `scripts/check-pending-migrations.sh` |
+| Memory files (cross-session) | `memory/MEMORY.md` + linked files |
