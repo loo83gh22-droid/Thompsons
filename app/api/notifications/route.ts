@@ -24,6 +24,7 @@ import {
   day30ReengagementEmailHtml,
 } from "@/app/api/emails/templates/drip";
 import { esc, emailWrapper, card, ctaButton, appUrl } from "@/app/api/emails/templates/shared";
+import { isOutreachSuppressed } from "@/src/lib/outreachSuppression";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -408,6 +409,7 @@ export async function GET(request: Request) {
 
       const owner = family.family_members.find((m) => m.user_id);
       if (!owner?.contact_email) continue;
+      if (isOutreachSuppressed(owner.contact_email)) continue;
 
       const { data: existingCampaign } = await supabase
         .from("email_campaigns")
@@ -451,6 +453,7 @@ export async function GET(request: Request) {
     for (const family of (day3Families ?? []) as FamilyWithMembers[]) {
       const owner = family.family_members.find((m) => m.user_id);
       if (!owner?.contact_email) continue;
+      if (isOutreachSuppressed(owner.contact_email)) continue;
 
       const { data: existing } = await supabase
         .from("email_campaigns")
@@ -495,6 +498,7 @@ export async function GET(request: Request) {
       if (family.family_members.length > 1) continue; // already has invitees
       const owner = family.family_members.find((m) => m.user_id);
       if (!owner?.contact_email) continue;
+      if (isOutreachSuppressed(owner.contact_email)) continue;
 
       const { data: existing } = await supabase
         .from("email_campaigns")
@@ -542,6 +546,7 @@ export async function GET(request: Request) {
 
       const owner = family.family_members.find((m) => m.user_id);
       if (!owner?.contact_email) continue;
+      if (isOutreachSuppressed(owner.contact_email)) continue;
 
       const { data: existing } = await supabase
         .from("email_campaigns")
@@ -591,6 +596,7 @@ export async function GET(request: Request) {
     for (const family of (day30Families ?? []) as FamilyWithMembers[]) {
       const owner = family.family_members.find((m) => m.user_id);
       if (!owner?.contact_email) continue;
+      if (isOutreachSuppressed(owner.contact_email)) continue;
 
       const { data: existing } = await supabase
         .from("email_campaigns")
@@ -797,6 +803,7 @@ export async function GET(request: Request) {
 
         for (const m of members ?? []) {
           if (!m.contact_email) continue;
+          if (isOutreachSuppressed(m.contact_email)) continue;
 
           // Dedup: skip if we already sent this week's digest to this member
           const { data: alreadySent } = await supabase
