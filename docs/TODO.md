@@ -50,6 +50,20 @@
 - [ ] Mother's Day 2026 founding rate window already expired May 10 — gifts now default to $349
 - [ ] No campaign was pushed for the founding window — consider a soft launch push for the gift flow now that it's actually live
 
+### 💵 Assess site economics (deferred from env-var review)
+- [ ] **Unit economics review** — sit down and total up monthly run-rate cost vs. revenue
+  - Vercel hosting tier
+  - Supabase (DB + auth + storage), including egress
+  - Resend (per-email pricing, current volume)
+  - Stripe fees (% per transaction)
+  - OpenAI (Whisper + GPT-4o-mini) — capped at ~$9/family/month worst case via 10-call/day rate limit. Realistic ~$1.50-$3/active family/month.
+  - Upstash Redis (rate limiting tier)
+  - Domain + email forwarding
+- [ ] **Per-paying-customer LTV math** — what does a $349 Legacy buyer actually cost us over their lifetime? What about a $6.99/mo Full Nest sub?
+- [ ] **Break-even threshold** — how many paying customers do we need before the site pays for itself?
+- [ ] **Cost-cap protections** — billing alerts on OpenAI, Vercel, Supabase. None set up yet.
+- [ ] If exposure looks scary at scale: tighten Whisper (per-call audio length cap), or move transcription behind paid plans only.
+
 ---
 
 ## 📋 Backlog (in priority order)
