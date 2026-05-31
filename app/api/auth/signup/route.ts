@@ -96,13 +96,30 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Notify admin of new signup — skip for invited users (they're joining an existing family)
-      if (!isInvited && process.env.ADMIN_NOTIFICATION_EMAIL) resend.emails.send({
-        from: fromEmail,
-        to: process.env.ADMIN_NOTIFICATION_EMAIL,
-        subject: `🏠 New Family Nest signup: ${safeFamilyName}`,
-        html: buildAdminNotificationEmail(safeName, safeFamilyName, email.trim()),
-      }).catch((err: unknown) => console.error("Admin notification failed:", err));
+      // Notify admin of new signup — skip for invited users (they're joining an existing family).
+      //
+      // IMPORTANT: this must be awaited. Earlier versions fired this as
+      // fire-and-forget (`resend.emails.send(...).catch(...)`) which is a
+      // known Vercel serverless footgun — once `NextResponse.json` returns
+      // below, the function container can be killed mid-flight before the
+      // background fetch to Resend completes. Result: missed admin
+      // notifications for ~2 of the last 3 signups (Butler + Liske-Doorandish
+      // never alerted Rob; only the Grewals' got through). Awaiting adds
+      // ~200ms to the signup response — well worth the reliability.
+      //
+      // The try/catch ensures a Resend hiccup can't fail the signup itself.
+      if (!isInvited && process.env.ADMIN_NOTIFICATION_EMAIL) {
+        try {
+          await resend.emails.send({
+            from: fromEmail,
+            to: process.env.ADMIN_NOTIFICATION_EMAIL,
+            subject: `🏠 New Family Nest signup: ${safeFamilyName}`,
+            html: buildAdminNotificationEmail(safeName, safeFamilyName, email.trim()),
+          });
+        } catch (err) {
+          console.error("Admin notification failed:", err);
+        }
+      }
 
     } else {
       console.warn("RESEND_API_KEY not configured — confirmation email not sent");
