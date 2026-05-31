@@ -42,6 +42,8 @@ These should NOT be re-litigated unless the user explicitly reopens them.
 
 5. **Migration workflow:** CI is *intentionally disabled* — apply via Supabase MCP `apply_migration` before merging any PR with new SQL files. Don't try to "fix" the disabled workflow without a clear plan; reconciliation is a 4–6 hour project with real risk.
 
+6. **djlesieur@gmail.com is suppressed from outreach** (2026-05-28). Signed up under "The Shark Beight Family" on 2026-05-11. Rob's read: the signup was for competitive research (runs familyjournal.ai, adjacent product), not genuine product use. Decision: do not delete the account (already saw everything; symbolic), do not founder-touch them, exclude from all lifecycle drip + digest + future promo blasts. Lives in `src/lib/outreachSuppression.ts`. Audit trail in source via inline comment.
+
 ---
 
 ## What shipped this session
