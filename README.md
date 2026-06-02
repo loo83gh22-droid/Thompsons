@@ -62,6 +62,14 @@ vercel link              # one-time, choose the family-site project
 vercel env pull .env.local
 ```
 
+To regenerate the `.docx` export of any doc (e.g., for upload to Google Drive):
+
+```bash
+python scripts/md_to_docx.py docs/DISASTER_RECOVERY.md docs/DISASTER_RECOVERY.docx
+```
+
+Requires `python-docx` (`pip install python-docx`). `.docx` outputs are gitignored.
+
 ---
 
 ## 🚢 Deployment

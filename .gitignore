@@ -42,3 +42,6 @@ supabase/.temp/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Generated docx exports of markdown docs (regenerated on demand via scripts/md_to_docx.py)
+docs/*.docx
