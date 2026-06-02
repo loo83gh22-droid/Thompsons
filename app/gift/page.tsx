@@ -5,14 +5,64 @@ import { Footer } from "@/app/components/home/Footer";
 import { FoundingRateCountdown } from "@/app/components/home/FoundingRateCountdown";
 
 const occasions = [
-  { emoji: "🌸", label: "Mother's Day" },
   { emoji: "👔", label: "Father's Day" },
+  { emoji: "🌸", label: "Mother's Day" },
   { emoji: "🎄", label: "Christmas" },
   { emoji: "🎓", label: "Graduation" },
   { emoji: "👶", label: "New Baby" },
   { emoji: "💍", label: "Anniversary" },
   { emoji: "🕊️", label: "In Memory" },
 ];
+
+/**
+ * Per-campaign copy variants. The page reads ?campaign=father-day
+ * (or other future codes) and swaps the hero + headline + testimonial.
+ *
+ * Note: pricing logic in /api/gift/checkout is the source of truth for
+ * what the buyer actually pays. The countdown here is marketing-only;
+ * if you want the buyer to see a different price, update
+ * FOUNDING_RATE_END in `app/api/gift/checkout/route.ts` too.
+ */
+type Campaign = {
+  banner: string;
+  badge: string;
+  headline: string;
+  subhead: string;
+  testimonial: { quote: string; cite: string };
+  countdownTarget: string;
+  countdownOccasion: string;
+};
+
+const CAMPAIGNS: Record<string, Campaign> = {
+  "fathers-day": {
+    banner: "👔 Father's Day is June 15.",
+    badge: "Father's Day",
+    headline: "The best gift for Dad is the one the whole family keeps.",
+    subhead:
+      "The Legacy plan is a one-time gift your family keeps forever. Lifetime access. A private nest for the stories he tells, the songs he hummed, the photos in shoeboxes nobody's scanned yet.",
+    testimonial: {
+      quote:
+        "I gave my dad a year of voice memos with the grandkids. Six months later he plays them back when he's working in the garage. It cost less than the tie I gave him the year before.",
+      cite: "Marcus T., Calgary",
+    },
+    countdownTarget: "2026-06-15T00:00:00",
+    countdownOccasion: "Father's Day",
+  },
+  default: {
+    banner: "A one-time gift the whole family keeps.",
+    badge: "The Legacy Plan",
+    headline: "The best gift is the one the whole family keeps.",
+    subhead:
+      "The Legacy plan is a one-time gift your family keeps forever. Lifetime access. A private nest for journals, voice memos, photos, and everything worth holding onto.",
+    testimonial: {
+      quote:
+        "I set up the Nest, uploaded 20 years of our favourite family photos, and wrapped the login on a card. My mum cried. My wife said it was the best gift I'd ever given. It cost less than a large bouquet of flowers.",
+      cite: "Daniel R., Portland, OR",
+    },
+    countdownTarget: "2026-06-15T00:00:00",
+    countdownOccasion: "Father's Day",
+  },
+};
 
 const legacyFeatures = [
   { icon: Infinity, text: "Lifetime access. Pay once, keep it forever" },
@@ -25,27 +75,39 @@ const legacyFeatures = [
 const steps = [
   {
     number: "1",
-    title: "Start your family's Nest",
-    description: "Sign up in 30 seconds and pick the Legacy plan. Upload a few photos to get it started.",
+    title: "Pick the occasion",
+    description: "Father's Day, Mother's Day, birthday, just-because. The gift works for any moment that calls for something they'll keep.",
   },
   {
     number: "2",
-    title: "Make it feel like home",
-    description: "Add a journal entry, a favourite recipe, or a voice memo. Even one memory makes the gift feel real.",
+    title: "Enter their email + a message",
+    description: "Their first name, their email, and a few lines from you. The card-style email goes to them — never to you.",
   },
   {
     number: "3",
-    title: "Wrap the login on a card",
-    description: "Write the email and password on a card — pick a memorable password and an email the recipient already uses, so the credentials feel like theirs from day one. Many families add a printed photo as the cover.",
+    title: "Pay once",
+    description: "One-time payment via Stripe. We send you a receipt. We send them their gift link.",
   },
   {
     number: "4",
-    title: "Invite everyone",
-    description: "The whole family joins free. They just need an email address. No app to download, no subscription.",
+    title: "They open it, set a password, walk in",
+    description: "Their Nest is already set up with Legacy. They can invite the rest of the family for free. No subscription, no download, no app store.",
   },
 ];
 
-export default function GiftPage() {
+export default async function GiftPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ campaign?: string }>;
+}) {
+  const params = await searchParams;
+  // Accept ?campaign=fathers-day (preferred) and ?father (alias).
+  const campaignKey =
+    params.campaign === "fathers-day" || params.campaign === "father"
+      ? "fathers-day"
+      : "default";
+  const campaign = CAMPAIGNS[campaignKey];
+
   return (
     <div className="landing" style={{ fontFamily: "var(--font-body)" }}>
       <Navbar />
@@ -58,7 +120,7 @@ export default function GiftPage() {
               style={{ backgroundColor: "rgba(61,107,94,0.1)", color: "var(--primary)" }}
             >
               <Gift className="h-4 w-4" />
-              Mother&apos;s Day is May 10. 45 days away.
+              {campaign.banner}
             </div>
 
             <h1
@@ -69,32 +131,38 @@ export default function GiftPage() {
                 textWrap: "balance",
               }}
             >
-              The best gift for mum is the one the whole family keeps.
+              {campaign.headline}
             </h1>
 
             <p
               className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed"
               style={{ color: "var(--muted)" }}
             >
-              The Legacy plan is a one-time gift your family keeps forever. Lifetime access. A private nest for journals, voice memos, photos, and everything worth holding onto. Wrap the login on a card.
+              {campaign.subhead}
             </p>
 
-            {/* Founding rate callout */}
+            {/* Price callout — the founding-rate countdown only renders
+                if the gift checkout's FOUNDING_RATE_END is still in the
+                future. After it passes, this is just the standard price. */}
             <div className="mt-8 rounded-2xl border-2 p-6 text-center" style={{ borderColor: "var(--accent)", backgroundColor: "rgba(61,107,94,0.06)" }}>
-              <p className="text-sm font-semibold uppercase tracking-widest" style={{ color: "var(--accent)" }}>Founding Family Rate</p>
+              <p className="text-sm font-semibold uppercase tracking-widest" style={{ color: "var(--accent)" }}>The Legacy Plan</p>
               <div className="mt-2 flex items-baseline justify-center gap-3">
-                <span className="font-display text-5xl font-bold" style={{ color: "var(--foreground)" }}>$249</span>
-                <span className="text-xl line-through" style={{ color: "var(--muted)" }}>$349</span>
+                <span className="font-display text-5xl font-bold" style={{ color: "var(--foreground)" }}>$349</span>
               </div>
-              <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>One time. No subscription ever. Goes to $349 after Mother&apos;s Day.</p>
+              <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>One time. No subscription ever.</p>
               <div className="mt-2">
-                <FoundingRateCountdown />
+                <FoundingRateCountdown
+                  targetDate={campaign.countdownTarget}
+                  label="Father's Day is in"
+                  occasion={campaign.countdownOccasion}
+                  newPrice="$349"
+                />
               </div>
             </div>
 
             <div className="mt-8 flex flex-col items-center gap-4">
               <Link
-                href="/gift/buy"
+                href={campaignKey === "fathers-day" ? "/gift/buy?campaign=fathers-day" : "/gift/buy"}
                 className="inline-flex items-center justify-center gap-2 rounded-full px-10 py-4 text-base font-semibold shadow-lg transition-all duration-200 hover:brightness-110 hover:shadow-xl hover:-translate-y-0.5"
                 style={{ backgroundColor: "var(--accent)", color: "#fff" }}
               >
@@ -102,7 +170,7 @@ export default function GiftPage() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <p className="text-sm" style={{ color: "var(--muted)" }}>
-                $249 one-time &middot; No subscription &middot; Theirs for life
+                $349 one-time &middot; No subscription &middot; Theirs for life
               </p>
             </div>
           </div>
@@ -151,12 +219,10 @@ export default function GiftPage() {
                   textWrap: "balance",
                 }}
               >
-                &ldquo;I set up the Nest, uploaded 20 years of our favourite family photos, and wrapped the login
-                on a card. My mum cried. My wife said it was the best gift I&apos;d ever given.
-                It cost less than a large bouquet of flowers.&rdquo;
+                &ldquo;{campaign.testimonial.quote}&rdquo;
               </p>
               <p className="text-sm" style={{ color: "var(--muted)" }}>
-                Daniel R., Portland, OR
+                {campaign.testimonial.cite}
               </p>
             </div>
           </div>
@@ -320,7 +386,7 @@ export default function GiftPage() {
                 className="underline underline-offset-4"
                 style={{ color: "var(--primary)" }}
               >
-                The Full Nest at $49/year
+                The Full Nest at $6.99/month
               </Link>
               . Upgrade anytime.
             </p>
