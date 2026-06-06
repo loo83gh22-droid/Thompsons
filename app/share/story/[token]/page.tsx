@@ -2,6 +2,7 @@
 import { createAdminClient } from "@/src/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { ShareCTA } from "@/app/share/_components/ShareCTA";
 import type { Metadata } from "next";
 
 type Props = { params: Promise<{ token: string }> };
@@ -135,21 +136,7 @@ export default async function PublicStoryPage({ params }: Props) {
           ))}
         </article>
 
-        {/* CTA */}
-        <div className="mt-12 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 text-center sm:p-8">
-          <h2 className="font-display text-xl font-bold text-[var(--foreground)]">
-            Every family has stories worth preserving.
-          </h2>
-          <p className="mt-2 text-[var(--muted)]">
-            Family Nest is a private space to capture memories, photos, recipes, and voices for generations to come.
-          </p>
-          <Link
-            href="/login"
-            className="mt-4 inline-block rounded-full bg-[var(--primary)] px-8 py-3 font-medium text-[var(--primary-foreground)] hover:opacity-90"
-          >
-            Start Your Family Nest (Free)
-          </Link>
-        </div>
+        <ShareCTA familyName={familyName} contentType="story" />
       </main>
     </div>
   );
