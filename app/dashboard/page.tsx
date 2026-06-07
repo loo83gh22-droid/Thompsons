@@ -17,6 +17,7 @@ import { BirthdayBanner, type BirthdayPerson } from "./BirthdayBanner";
 import { GiftWelcomeBanner } from "./GiftWelcomeBanner";
 import { StarterProgress } from "./StarterProgress";
 import { FirstWinPrompt } from "./FirstWinPrompt";
+import { FirstMemoryCapture } from "./FirstMemoryCapture";
 
 export default async function DashboardPage({
   searchParams,
@@ -352,12 +353,18 @@ export default async function DashboardPage({
           </div>
 
           <div className="mt-4">
-            <OnboardingChecklist
-              memberCount={stats.memberCount}
-              journalCount={stats.journalCount}
-              storyCount={stats.storyCount}
-              photoCount={stats.photoCount}
-            />
+            {!hasAnyEntry ? (
+              /* Blank Nest → one-textarea capture so the first memory lands
+                 in ~30s instead of bouncing off the full journal form. */
+              <FirstMemoryCapture firstName={userFirstName} />
+            ) : (
+              <OnboardingChecklist
+                memberCount={stats.memberCount}
+                journalCount={stats.journalCount}
+                storyCount={stats.storyCount}
+                photoCount={stats.photoCount}
+              />
+            )}
           </div>
 
           {/* First-win celebration: fires once after the user posts their
