@@ -366,6 +366,74 @@ export async function addFamilyMember(
  * user posts their first entry — the highest-intent invite window
  * we have. Keeps friction to two fields.
  */
+/**
+ * createShareableInvite — generate an invite LINK for someone whose email
+ * you don't have yet. Creates a pending, email-less family member with an
+ * opaque token and returns a URL the owner can text/share via any channel.
+ *
+ * The recipient opens the link, enters their own email + password, and the
+ * existing email-keyed linking takes over: their email is written onto this
+ * member row at claim time (via /api/invite/claim-email), then the normal
+ * auth-callback linking (contact_email === user.email) attaches them. No
+ * changes to the signup/confirmation path are needed.
+ *
+ * Owner/adult only; counts against the family's member limit.
+ */
+export async function createShareableInvite(
+  name: string
+): Promise<{ ok: boolean; url?: string; error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Not authenticated" };
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return { ok: false, error: "No active family" };
+
+  const { data: caller } = await supabase
+    .from("family_members")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+  if (!caller || !["owner", "adult"].includes(caller.role)) {
+    return { ok: false, error: "Only adults and owners can create invite links." };
+  }
+
+  // Enforce member limit for free plans (mirrors addFamilyMember).
+  const plan = await getFamilyPlan(supabase, activeFamilyId);
+  const limit = memberLimit(plan.planType);
+  if (limit !== null) {
+    const { count } = await supabase
+      .from("family_members")
+      .select("id", { count: "exact", head: true })
+      .eq("family_id", activeFamilyId);
+    if ((count ?? 0) >= limit) {
+      return {
+        ok: false,
+        error: `Your free plan supports up to ${limit} family members. Upgrade to The Full Nest to add more.`,
+      };
+    }
+  }
+
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (typeof process.env.VERCEL_URL === "string" ? `https://${process.env.VERCEL_URL}` : null);
+  if (!baseUrl) return { ok: false, error: "App URL not configured." };
+
+  const inviteToken = crypto.randomUUID();
+  const { error } = await supabase.from("family_members").insert({
+    family_id: activeFamilyId,
+    name: name.trim() || "Family member",
+    relationship: "Family",
+    role: "adult",
+    invite_token: inviteToken,
+  });
+  if (error) return { ok: false, error: error.message || "Couldn't create the invite link." };
+
+  revalidatePath("/dashboard/our-family");
+  revalidatePath("/dashboard/members");
+  return { ok: true, url: `${baseUrl}/login?mode=invited&token=${inviteToken}` };
+}
+
 export async function quickInvite(
   name: string,
   email: string

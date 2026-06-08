@@ -31,7 +31,7 @@ export async function GET(request: Request) {
     .eq("invite_token", token)
     .single();
 
-  if (!anyMember || !anyMember.contact_email) {
+  if (!anyMember) {
     return NextResponse.json(
       { error: "This invite link isn't valid. Ask your family owner to send a new one.", reason: "not_found" },
       { status: 404 }
@@ -46,6 +46,22 @@ export async function GET(request: Request) {
   }
 
   const familyData = anyMember.families as unknown as { name: string } | null;
+
+  // Email-less shareable invite (created via createShareableInvite): the owner
+  // didn't have the recipient's email, so there's nothing to pre-fill. The
+  // recipient supplies their own email, which is written onto this row at
+  // claim time via /api/invite/claim-email. We can't know yet whether they
+  // already have an account, so default hasAccount=false and let the claim
+  // step resolve it.
+  if (!anyMember.contact_email) {
+    return NextResponse.json({
+      email: null,
+      name: anyMember.name,
+      familyName: familyData?.name ?? "",
+      hasAccount: false,
+      emailless: true,
+    });
+  }
 
   // Check if any family_members row with this email already has a user_id (i.e. account exists)
   const { data: existingLink } = await supabase

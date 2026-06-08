@@ -51,6 +51,9 @@ function LoginForm() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   // null = unknown, true = has existing account (show sign-in), false = new user (show create-password)
   const [inviteHasAccount, setInviteHasAccount] = useState<boolean | null>(null);
+  // Email-less "shareable link" invite: the owner didn't have the recipient's
+  // email, so the recipient supplies it. Submit-time claim resolves new-vs-existing.
+  const [tokenEmailless, setTokenEmailless] = useState(false);
 
   const supabase = createClient();
 
@@ -68,6 +71,7 @@ function LoginForm() {
           return;
         }
         if (data.email) setEmail(data.email);
+        if (data.emailless) setTokenEmailless(true);
         if (data.name && !name) setName(data.name);
         if (data.familyName) setFamilyName(data.familyName);
         if (typeof data.hasAccount === "boolean") setInviteHasAccount(data.hasAccount);
@@ -91,32 +95,50 @@ function LoginForm() {
     setMessage(null);
 
     try {
-      if (isInvited && inviteHasAccount) {
-        // Existing user accepting an invite: sign in then link to the new family
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        // Link them to any pending family_members rows with their email
-        await fetch("/api/auth/link-invite", { method: "POST" });
-        router.push(next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard");
-        router.refresh();
-      } else if (isInvited) {
-        // New user accepting an invite: sign up using their pre-set email, no new family needed
-        const res = await fetch("/api/auth/signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: email.trim(),
-            password,
-            name: name.trim() || undefined,
-            isInvited: true, // tells signup route to skip the "new family" admin notification
-            // No familyName — dashboard layout will link them to the existing family member row
-            redirectTo: typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Signup failed");
-        fbqTrack("CompleteRegistration", { content_name: "Invited Signup" });
-        setSignUpSuccess(true);
+      if (isInvited) {
+        let hasAccount = inviteHasAccount === true;
+
+        // Email-less shareable invite: write the entered email onto the pending
+        // member row (by token) and learn whether an account already exists.
+        if (tokenEmailless && inviteToken) {
+          const cr = await fetch("/api/invite/claim-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: inviteToken, email: email.trim() }),
+          });
+          const cd = await cr.json();
+          if (!cr.ok) throw new Error(cd.error || "Couldn't process this invite.");
+          hasAccount = !!cd.hasAccount;
+        }
+
+        if (hasAccount) {
+          // Existing user accepting an invite: sign in then link to the new family
+          const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+          if (error) throw error;
+          // Link them to any pending family_members rows with their email
+          await fetch("/api/auth/link-invite", { method: "POST" });
+          router.push(next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard");
+          router.refresh();
+        } else {
+          // New user accepting an invite: sign up using their email; the auth
+          // callback links them to the pending member row by email match. No
+          // new family is created (no familyName sent).
+          const res = await fetch("/api/auth/signup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: email.trim(),
+              password,
+              name: name.trim() || undefined,
+              isInvited: true, // tells signup route to skip the "new family" admin notification
+              redirectTo: typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined,
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Signup failed");
+          fbqTrack("CompleteRegistration", { content_name: "Invited Signup" });
+          setSignUpSuccess(true);
+        }
       } else if (isSignUp) {
         // Use our custom signup API to send branded confirmation email
         const res = await fetch("/api/auth/signup", {
@@ -313,7 +335,9 @@ function LoginForm() {
                     Create your password
                   </h1>
                   <p className="mt-1 text-sm text-[var(--muted)]">
-                    That&apos;s all you need. Your email is recognised and your profile is ready.
+                    {tokenEmailless
+                      ? "Enter your email and choose a password to join your family's Nest."
+                      : "That’s all you need. Your email is recognised and your profile is ready."}
                   </p>
 
                   <form onSubmit={handleSubmit} className="mt-6 space-y-4">
