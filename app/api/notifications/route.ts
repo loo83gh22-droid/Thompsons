@@ -71,6 +71,12 @@ export async function GET(request: Request) {
   const resend = new Resend(resendKey);
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+  // Dry-run: when ?dryRun=1 is present (and authed), the event-reminder
+  // block reports what it WOULD send without sending, and the handler
+  // returns immediately — before any other (real-sending) block runs.
+  // This makes it safe to verify the new block against live data.
+  const dryRun = new URL(request.url).searchParams.get("dryRun") === "1";
+
   const today = new Date();
   const todayStr = today.toISOString().slice(0, 10);
   const dayOfWeek = today.getDay(); // 0 = Sunday
@@ -93,8 +99,129 @@ export async function GET(request: Request) {
     graceReminders: 0,
     graceEnforced: 0,
     storageWarnings: 0,
+    eventReminders: 0,
     errors: [] as string[],
+    dryRunPreview: [] as { campaignType: string; to: string; subject: string }[],
   };
+
+  // ── Event reminders (anniversaries, holidays, reunions, one-time events; ~3 days out) ──
+  //
+  // Mirrors the birthday block but for the family_events table. Birthdays
+  // are intentionally EXCLUDED (category 'birthday') because they are
+  // already reminded below via family_members.birth_date — including them
+  // here would double-send. Monthly events are skipped to avoid recurring
+  // spam; we only remind on 'annual' and one-time ('none') events.
+  //
+  // Dedup + retry window match the birthday block: we look 3 AND 4 days
+  // out (so a missed cron day still delivers) and rely on email_campaigns
+  // to guarantee a single send per recipient per occurrence.
+  try {
+    const { data: allEvents } = await supabase
+      .from("family_events")
+      .select("id, family_id, title, event_date, recurring, category")
+      .neq("category", "birthday");
+
+    const threeMMDD = threeDaysOut.slice(5);
+    const fourMMDD = fourDaysOut.slice(5);
+
+    const dueEvents = (allEvents ?? []).filter((e) => {
+      if (!e.event_date) return false;
+      if (e.recurring === "annual") {
+        const mmdd = e.event_date.slice(5);
+        return mmdd === threeMMDD || mmdd === fourMMDD;
+      }
+      // One-time event: match the exact upcoming date (+1-day retry window).
+      if (!e.recurring || e.recurring === "none") {
+        return e.event_date === threeDaysOut || e.event_date === fourDaysOut;
+      }
+      // 'monthly' and anything else: not reminded (avoids monthly spam).
+      return false;
+    });
+
+    for (const ev of dueEvents) {
+      // Annual events must be able to remind again next year, so scope the
+      // dedup key by year. One-time events fire at most once, ever.
+      const occurrenceKey = ev.recurring === "annual" ? `${today.getFullYear()}_` : "";
+      const campaignType = `event_${occurrenceKey}${ev.id}`;
+
+      const categoryLabel =
+        ev.category === "anniversary"
+          ? "anniversary"
+          : ev.category === "holiday"
+          ? "holiday"
+          : ev.category === "reunion"
+          ? "reunion"
+          : "event";
+
+      const { data: recipients } = await supabase
+        .from("family_members")
+        .select("id, contact_email, name")
+        .eq("family_id", ev.family_id)
+        .eq("email_notifications", true)
+        .in("role", ["owner", "adult"])
+        .not("contact_email", "is", null);
+
+      for (const fm of recipients ?? []) {
+        if (!fm.contact_email) continue;
+        if (isOutreachSuppressed(fm.contact_email)) continue;
+
+        const { data: alreadySent } = await supabase
+          .from("email_campaigns")
+          .select("id")
+          .eq("family_member_id", fm.id)
+          .eq("campaign_type", campaignType)
+          .maybeSingle();
+        if (alreadySent) continue;
+
+        const subject = `🗓️ ${ev.title} is in 3 days`;
+
+        if (dryRun) {
+          results.dryRunPreview.push({ campaignType, to: fm.contact_email, subject });
+          results.eventReminders++;
+          continue;
+        }
+
+        try {
+          const html = emailWrapper(
+            card(`
+            <h1 style="margin:0 0 8px;font-size:22px;color:#f8fafc;">🗓️ ${esc(ev.title)} is in 3 days</h1>
+            <p style="margin:0 0 20px;color:#94a3b8;font-size:15px;line-height:1.6;">
+              Hi ${esc(fm.name?.split(" ")[0] || "there")}, a quick heads-up — your family ${categoryLabel}
+              <strong style="color:#f8fafc;">${esc(ev.title)}</strong> is coming up in a few days. Want to mark it?
+              Write a note, record a voice memo, or add a photo so it&#39;s saved.
+            </p>
+            ${ctaButton("Open Family Nest", `${appUrl}/dashboard`)}
+          `)
+          );
+          await resend.emails.send({
+            from: fromEmail,
+            to: fm.contact_email,
+            subject,
+            html,
+          });
+          await supabase.from("email_campaigns").insert({
+            family_member_id: fm.id,
+            campaign_type: campaignType,
+          });
+          results.eventReminders++;
+        } catch (err) {
+          results.errors.push(`Event reminder to ${fm.contact_email}: ${err}`);
+        }
+      }
+    }
+  } catch (err) {
+    results.errors.push(`Event reminders: ${err}`);
+  }
+
+  // Dry-run gate: return now, before any real-sending block executes.
+  if (dryRun) {
+    return NextResponse.json({
+      dryRun: true,
+      eventReminders: results.eventReminders,
+      preview: results.dryRunPreview,
+      errors: results.errors,
+    });
+  }
 
   // ── 1. Birthday reminders (3 days before) ──
   try {
