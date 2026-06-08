@@ -45,7 +45,7 @@ const faqs = [
   {
     question: "What's the founding member rate?",
     answer:
-      "The founding member rate is $49/year - a thank-you to the first families who commit to Family Nest early. When we retire the founding rate (we'll announce it in advance), the standard annual price of $79/year applies to new subscribers. Founding members keep their rate for as long as they stay subscribed. The Legacy plan also has a founding rate of $249 (down from $349) available until Mother's Day 2026. After that, Legacy goes to $349.",
+      "The founding member rate is $49/year - a thank-you to the first families who commit to Family Nest early. When we retire the founding rate (we'll announce it in advance), the standard annual price of $79/year applies to new subscribers. Founding members keep their rate for as long as they stay subscribed. The Legacy plan is a $349 one-time purchase with lifetime access for the whole family.",
   },
 ];
 
@@ -164,12 +164,11 @@ export default function PricingPage() {
               Lifetime access. Pass it down.
             </p>
             <div className="mt-6 flex items-baseline gap-2">
-              <span className="font-display text-5xl font-bold text-[var(--accent)]">$249</span>
-              <span className="text-xl line-through text-[var(--muted)]">$349</span>
+              <span className="font-display text-5xl font-bold text-[var(--accent)]">$349</span>
               <span className="text-base text-[var(--muted)]"> one-time</span>
             </div>
             <p className="mt-2 text-sm font-medium text-[var(--muted)]">
-              Founding Family rate. Goes to $349 after Mother&apos;s Day.
+              Pay once. No subscription, ever. Yours for life.
             </p>
             <hr className="my-6 border-[var(--border)]" />
             <ul className="flex-1 space-y-3 text-sm">

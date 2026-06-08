@@ -12,7 +12,7 @@ const testimonials = [
   },
   {
     quote:
-      "I set up the Nest, uploaded 20 years of our favourite family photos, invited everyone, and wrapped the login on a card. My mom cried. My wife said it was the best gift I\u2019d ever given. It cost less than a large bouquet of flowers.",
+      "I set up the Nest, uploaded 20 years of our favourite family photos, and sent it to my whole family as a gift. My mom cried. My wife said it was the best gift I\u2019d ever given. It cost less than a large bouquet of flowers.",
     name: "Daniel R.",
     location: "Portland, OR",
     role: "Dad & Nest creator",

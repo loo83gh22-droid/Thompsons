@@ -12,7 +12,7 @@ const faqs = [
   {
     question: "Can I give this as a gift?",
     answer:
-      "Absolutely, and it makes an incredible one. Start a Nest, upload some family photos to get it going, then invite the family. Many people wrap the login details on a card for Christmas or Mother\u2019s Day. The Legacy plan is especially popular as a gift since it\u2019s a one-time purchase that lasts forever.",
+      "Absolutely, and it makes an incredible one. The Legacy plan is especially popular as a gift \u2014 it\u2019s a one-time purchase that lasts forever. You buy it, we email your recipient a private link to open their Nest, and the whole family joins free.",
   },
   {
     question: "Will my family actually use this?",
