@@ -324,6 +324,47 @@ export async function createJournalEntry(formData: FormData): Promise<CreateJour
   }
 }
 
+/**
+ * createQuickMemory — one-field entry point for the dashboard empty-state
+ * capture (FirstMemoryCapture). Lets a brand-new user save their first
+ * memory from a single textarea without the full /journal/new form, which
+ * is the single biggest activation drop-off. Reuses createJournalEntry for
+ * all the safe plumbing (auth, family scoping, plan limits, validation,
+ * idempotency); we just resolve the author's own member row and a default
+ * title (today's date) server-side so the client only sends content.
+ */
+export async function createQuickMemory(content: string): Promise<CreateJournalResult> {
+  const trimmed = content.trim();
+  if (!trimmed) return { success: false, error: "Write a little something first." };
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+  const { activeFamilyId } = await getActiveFamilyId(supabase);
+  if (!activeFamilyId) return { success: false, error: "No active family" };
+
+  const { data: myMember } = await supabase
+    .from("family_members")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("family_id", activeFamilyId)
+    .single();
+
+  if (!myMember?.id) {
+    return { success: false, error: "Couldn't find your family profile. Try refreshing." };
+  }
+
+  const fd = new FormData();
+  fd.set("content", trimmed);
+  fd.set(
+    "title",
+    new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+  );
+  fd.append("member_ids", myMember.id);
+
+  return createJournalEntry(fd);
+}
+
 export async function updateJournalEntry(entryId: string, formData: FormData) {
   const supabase = await createClient();
   const {
