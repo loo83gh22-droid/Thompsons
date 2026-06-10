@@ -2,6 +2,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { getActiveFamilyId } from "@/src/lib/family";
 import { OurFamilyClient } from "./OurFamilyClient";
 import { AddMemberForm } from "../members/AddMemberForm";
+import { ShareableInviteLink } from "../members/ShareableInviteLink";
 import type { MemberRole } from "@/src/lib/roles";
 import Link from "next/link";
 import { buildDerivedRelationshipMap } from "@/src/lib/deriveRelationship";
@@ -147,6 +148,11 @@ export default async function OurFamilyPage() {
             linkMembers={safeMembers}
           />
         </div>
+        {viewerIsAdminOrOwner && (
+          <div className="mt-4 border-t border-[var(--border)] pt-4">
+            <ShareableInviteLink />
+          </div>
+        )}
       </div>
 
       <OurFamilyClient
