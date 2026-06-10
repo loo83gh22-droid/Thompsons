@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ArrowRight, Check, Gift, Heart, Shield, Infinity, HardDrive, Download } from "lucide-react";
 import { Navbar } from "@/app/components/home/Navbar";
 import { Footer } from "@/app/components/home/Footer";
-import { FoundingRateCountdown } from "@/app/components/home/FoundingRateCountdown";
 
 const occasions = [
   { emoji: "🌸", label: "Mother's Day" },
@@ -25,23 +24,23 @@ const legacyFeatures = [
 const steps = [
   {
     number: "1",
-    title: "Start your family's Nest",
-    description: "Sign up in 30 seconds and pick the Legacy plan. Upload a few photos to get it started.",
+    title: "Buy the gift in two minutes",
+    description: "Enter your details and your recipient's name and email, add a personal message, and pay once. No account needed to give it.",
   },
   {
     number: "2",
-    title: "Make it feel like home",
-    description: "Add a journal entry, a favourite recipe, or a voice memo. Even one memory makes the gift feel real.",
+    title: "We email them their gift",
+    description: "Your recipient gets a warm email with a private link to claim their Legacy Nest — beautifully presented, with your message inside.",
   },
   {
     number: "3",
-    title: "Wrap the login on a card",
-    description: "Write the email and password on a card — pick a memorable password and an email the recipient already uses, so the credentials feel like theirs from day one. Many families add a printed photo as the cover.",
+    title: "They open it in one click",
+    description: "They set a password and their Nest is ready — Legacy plan, lifetime access, nothing to download or install.",
   },
   {
     number: "4",
-    title: "Invite everyone",
-    description: "The whole family joins free. They just need an email address. No app to download, no subscription.",
+    title: "The whole family joins free",
+    description: "They invite everyone they love. No subscription, ever — the family's memories live in one private place.",
   },
 ];
 
@@ -58,7 +57,7 @@ export default function GiftPage() {
               style={{ backgroundColor: "rgba(61,107,94,0.1)", color: "var(--primary)" }}
             >
               <Gift className="h-4 w-4" />
-              Mother&apos;s Day is May 10. 45 days away.
+              A gift your whole family keeps — forever.
             </div>
 
             <h1
@@ -69,27 +68,24 @@ export default function GiftPage() {
                 textWrap: "balance",
               }}
             >
-              The best gift for mum is the one the whole family keeps.
+              The best gift for your family is the one you all keep.
             </h1>
 
             <p
               className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed"
               style={{ color: "var(--muted)" }}
             >
-              The Legacy plan is a one-time gift your family keeps forever. Lifetime access. A private nest for journals, voice memos, photos, and everything worth holding onto. Wrap the login on a card.
+              The Legacy plan is a one-time gift your family keeps forever. Lifetime access. A private nest for journals, voice memos, photos, and everything worth holding onto. Buy it in two minutes — we&apos;ll send them a link to open it.
             </p>
 
-            {/* Founding rate callout */}
+            {/* Pricing callout */}
             <div className="mt-8 rounded-2xl border-2 p-6 text-center" style={{ borderColor: "var(--accent)", backgroundColor: "rgba(61,107,94,0.06)" }}>
-              <p className="text-sm font-semibold uppercase tracking-widest" style={{ color: "var(--accent)" }}>Founding Family Rate</p>
+              <p className="text-sm font-semibold uppercase tracking-widest" style={{ color: "var(--accent)" }}>The Legacy Plan</p>
               <div className="mt-2 flex items-baseline justify-center gap-3">
-                <span className="font-display text-5xl font-bold" style={{ color: "var(--foreground)" }}>$249</span>
-                <span className="text-xl line-through" style={{ color: "var(--muted)" }}>$349</span>
+                <span className="font-display text-5xl font-bold" style={{ color: "var(--foreground)" }}>$349</span>
+                <span className="text-xl" style={{ color: "var(--muted)" }}>one-time</span>
               </div>
-              <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>One time. No subscription ever. Goes to $349 after Mother&apos;s Day.</p>
-              <div className="mt-2">
-                <FoundingRateCountdown />
-              </div>
+              <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>Pay once. No subscription, ever. Yours for life.</p>
             </div>
 
             <div className="mt-8 flex flex-col items-center gap-4">
@@ -102,7 +98,7 @@ export default function GiftPage() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <p className="text-sm" style={{ color: "var(--muted)" }}>
-                $249 one-time &middot; No subscription &middot; Theirs for life
+                $349 one-time &middot; No subscription &middot; Theirs for life
               </p>
             </div>
           </div>
@@ -151,8 +147,8 @@ export default function GiftPage() {
                   textWrap: "balance",
                 }}
               >
-                &ldquo;I set up the Nest, uploaded 20 years of our favourite family photos, and wrapped the login
-                on a card. My mum cried. My wife said it was the best gift I&apos;d ever given.
+                &ldquo;I set up the Nest, uploaded 20 years of our favourite family photos, and sent it to my mum.
+                She cried. My wife said it was the best gift I&apos;d ever given.
                 It cost less than a large bouquet of flowers.&rdquo;
               </p>
               <p className="text-sm" style={{ color: "var(--muted)" }}>
@@ -227,7 +223,7 @@ export default function GiftPage() {
                   textWrap: "balance",
                 }}
               >
-                It takes ten minutes. They&apos;ll remember it forever.
+                It takes two minutes. They&apos;ll remember it forever.
               </h2>
             </div>
 
@@ -320,7 +316,7 @@ export default function GiftPage() {
                 className="underline underline-offset-4"
                 style={{ color: "var(--primary)" }}
               >
-                The Full Nest at $49/year
+                The Full Nest at $6.99/month
               </Link>
               . Upgrade anytime.
             </p>

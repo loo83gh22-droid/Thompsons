@@ -31,7 +31,7 @@ const personas = [
     label: "For gift-givers",
     headline: "Better than a candle. We're allowed to say that.",
     description:
-      "Set up a Nest, add some photos, wrap the login on a card. One-time purchase. No subscription for them to manage. The Legacy plan is built for this.",
+      "Buy it once and we email your recipient a private link to open their Nest. One-time purchase. No subscription for them to manage. The Legacy plan is built for this.",
     cta: { text: "See the gift plan", href: "/gift" },
   },
 ];

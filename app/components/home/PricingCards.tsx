@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Check, Lock } from "lucide-react";
-import { FoundingRateCountdown } from "./FoundingRateCountdown";
 
 type PlanEntry = {
   name: string;
@@ -45,10 +44,9 @@ const plans: PlanEntry[] = [
   },
   {
     name: "The Legacy",
-    price: "$249",
-    originalPrice: "$349",
+    price: "$349",
     period: " one-time",
-    description: "Founding Family rate. Goes to $349 after Mother\u2019s Day.",
+    description: "Pay once, keep it forever. Lifetime access for the whole family.",
     features: [
       "Lifetime access. No subscription, ever",
       "10 GB storage (add more anytime)",
@@ -56,10 +54,10 @@ const plans: PlanEntry[] = [
       "Full data export",
       "Everything in Full Nest, forever",
     ],
-    cta: "Get the Founding Rate ($249)",
+    cta: "Get Lifetime Access",
     featured: true,
     ctaStyle: "primary",
-    note: "Wrap the login on a card. The whole family joins free.",
+    note: "The whole family joins free. No subscription, ever.",
   },
 ];
 
@@ -159,11 +157,6 @@ export function PricingCards() {
                   <span className="text-sm" style={{ color: "var(--muted)" }}>
                     {plan.period}
                   </span>
-                )}
-                {plan.name === "The Legacy" && (
-                  <div className="mt-2">
-                    <FoundingRateCountdown />
-                  </div>
                 )}
               </div>
 
