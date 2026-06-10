@@ -321,21 +321,25 @@ export async function addFamilyMember(
     } catch (err) {
       console.error("[addFamilyMember] Invite email failed for", trimmedEmail, err);
       emailFailed = true;
-      // Build a fallback invite URL the owner can share manually
-      const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL ||
-        (typeof process.env.VERCEL_URL === "string" ? `https://${process.env.VERCEL_URL}` : null);
-      if (baseUrl && member?.id) {
-        const { data: memberRow } = await supabase
-          .from("family_members")
-          .select("invite_token")
-          .eq("id", member.id)
-          .single();
-        if (memberRow?.invite_token) {
-          inviteUrl = `${baseUrl}/login?mode=invited&token=${memberRow.invite_token}`;
-        } else {
-          inviteUrl = `${baseUrl}/login?mode=invited&email=${encodeURIComponent(trimmedEmail)}`;
-        }
+    }
+    // Always surface the shareable invite link so the owner can also
+    // copy/text it directly — email deliverability (spam folders) is the
+    // single biggest reason invites never get accepted. The token was
+    // created by sendInviteEmail; read it back whether or not the send
+    // succeeded.
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (typeof process.env.VERCEL_URL === "string" ? `https://${process.env.VERCEL_URL}` : null);
+    if (baseUrl && member?.id) {
+      const { data: memberRow } = await supabase
+        .from("family_members")
+        .select("invite_token")
+        .eq("id", member.id)
+        .single();
+      if (memberRow?.invite_token) {
+        inviteUrl = `${baseUrl}/login?mode=invited&token=${memberRow.invite_token}`;
+      } else if (emailFailed) {
+        inviteUrl = `${baseUrl}/login?mode=invited&email=${encodeURIComponent(trimmedEmail)}`;
       }
     }
   }
@@ -369,7 +373,7 @@ export async function addFamilyMember(
 export async function quickInvite(
   name: string,
   email: string
-): Promise<{ ok: boolean; error?: string; emailFailed?: boolean }> {
+): Promise<{ ok: boolean; error?: string; emailFailed?: boolean; inviteUrl?: string }> {
   const trimmedName = name.trim();
   const trimmedEmail = email.trim();
   if (!trimmedName) return { ok: false, error: "Please add a name." };
@@ -390,7 +394,7 @@ export async function quickInvite(
       false,
       ""
     );
-    return { ok: true, emailFailed: result.emailFailed };
+    return { ok: true, emailFailed: result.emailFailed, inviteUrl: result.inviteUrl };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Couldn't send invite.";
     return { ok: false, error: msg };

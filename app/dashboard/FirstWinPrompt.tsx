@@ -49,6 +49,9 @@ export function FirstWinPrompt({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [canNativeShare, setCanNativeShare] = useState(false);
 
   useEffect(() => {
     // Defer past hydration so the modal doesn't flash during SSR.
@@ -57,6 +60,7 @@ export function FirstWinPrompt({
     // This mirrors the pattern used by OnboardingChecklist.tsx.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
+    setCanNativeShare(typeof navigator !== "undefined" && "share" in navigator);
     const dismissed = getCookie(DISMISSED_COOKIE) === "true";
     if (hasFirstEntry && memberCount < 2 && !dismissed) {
       setOpen(true);
@@ -79,10 +83,32 @@ export function FirstWinPrompt({
       return;
     }
     setSent(true);
+    setInviteUrl(result.inviteUrl ?? null);
     setCookie(DISMISSED_COOKIE, "true", COOKIE_DAYS);
-    // Auto-close after 2.5 seconds so the celebration feels light, not
-    // a popup the user has to manually close.
-    setTimeout(() => setOpen(false), 2500);
+    // We intentionally do NOT auto-close: if we captured a shareable
+    // invite link, the owner should have time to copy/text it. Email
+    // deliverability is unreliable, so a textable link materially lifts
+    // the odds the invite is actually accepted.
+  }
+
+  function copyLink() {
+    if (!inviteUrl) return;
+    navigator.clipboard?.writeText(inviteUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  }
+
+  function shareLink() {
+    if (!inviteUrl || typeof navigator === "undefined" || !navigator.share) return;
+    navigator
+      .share({
+        title: "Join our Family Nest",
+        text: `Join our family on Family Nest:`,
+        url: inviteUrl,
+      })
+      .catch(() => {
+        /* user cancelled */
+      });
   }
 
   if (!mounted || !open) return null;
@@ -106,7 +132,7 @@ export function FirstWinPrompt({
           </button>
 
           {sent ? (
-            <div className="py-4 text-center">
+            <div className="py-2 text-center">
               <div className="text-4xl">📬</div>
               <h2
                 id="first-win-title"
@@ -115,8 +141,50 @@ export function FirstWinPrompt({
                 Invite sent
               </h2>
               <p className="mt-2 text-sm text-[var(--muted)]">
-                We just emailed {name.split(" ")[0] || "them"} a link to join your Nest.
+                We emailed {name.split(" ")[0] || "them"} a link to join your Nest.
+                {inviteUrl ? " Want to make sure they get it?" : ""}
               </p>
+
+              {inviteUrl && (
+                <div className="mt-4 text-left">
+                  <p className="mb-2 text-xs text-[var(--muted)]">
+                    Send {name.split(" ")[0] || "them"} this link directly — texting it
+                    beats an email that might land in spam.
+                  </p>
+                  <div className="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2">
+                    <span className="flex-1 truncate text-xs text-[var(--muted)] select-all">
+                      {inviteUrl}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={copyLink}
+                      className="flex-1 rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-hover)]"
+                    >
+                      {copied ? "Copied!" : "Copy link"}
+                    </button>
+                    {canNativeShare && (
+                      <button
+                        type="button"
+                        onClick={shareLink}
+                        className="flex-1 rounded-full px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                        style={{ backgroundColor: "var(--accent)" }}
+                      >
+                        Share…
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="mt-5 text-xs text-[var(--muted)] hover:underline"
+              >
+                Done
+              </button>
             </div>
           ) : (
             <>
