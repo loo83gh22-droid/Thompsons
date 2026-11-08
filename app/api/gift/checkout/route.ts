@@ -22,6 +22,7 @@
 import { NextResponse } from "next/server";
 import { stripe, STRIPE_PRICES } from "@/src/lib/stripe";
 import { checkHttpRateLimit, strictLimiter } from "@/src/lib/httpRateLimit";
+import { GIFT_PURCHASES_OPEN } from "@/src/lib/serviceStatus";
 
 // Mother's Day 2026 — same cutoff used by FoundingRateCountdown.
 // After this date, gifts charge the standard $349 Legacy price.
@@ -44,6 +45,20 @@ function trimAndCap(input: unknown, max: number): string {
 }
 
 export async function POST(request: Request) {
+  // Gift purchases are closed while the recipient's redemption email cannot be
+  // delivered. This route takes a real payment and the webhook then emails the
+  // recipient their claim link, so leaving it open means taking $249-349 and
+  // delivering nothing.
+  if (!GIFT_PURCHASES_OPEN) {
+    return NextResponse.json(
+      {
+        error:
+          "Family Nest gifts are not available right now. We cannot email the recipient their redemption link, so we are not taking gift payments until that is fixed.",
+      },
+      { status: 503 },
+    );
+  }
+
   const limited = await checkHttpRateLimit(request, strictLimiter);
   if (limited) return limited;
 

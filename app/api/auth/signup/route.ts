@@ -9,6 +9,7 @@ import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
 import { checkHttpRateLimit, strictLimiter } from "@/src/lib/httpRateLimit";
+import { SIGNUPS_OPEN } from "@/src/lib/serviceStatus";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -20,6 +21,19 @@ function esc(s: string): string {
 }
 
 export async function POST(request: NextRequest) {
+  // Signups are closed while confirmation emails cannot be delivered. Without
+  // this guard the route creates an unusable auth.users row and then reports
+  // success anyway, which is exactly how 14 accounts were stranded.
+  if (!SIGNUPS_OPEN) {
+    return NextResponse.json(
+      {
+        error:
+          "Family Nest is not taking new accounts right now. Confirmation emails cannot be delivered, so a new account could never be verified.",
+      },
+      { status: 503 },
+    );
+  }
+
   const rateLimitResponse = await checkHttpRateLimit(request, strictLimiter);
   if (rateLimitResponse) return rateLimitResponse;
 

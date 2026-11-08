@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Navbar } from "@/app/components/home/Navbar";
 import { Footer } from "@/app/components/home/Footer";
 import { GiftBuyForm } from "./GiftBuyForm";
+import { GIFT_PURCHASES_OPEN } from "@/src/lib/serviceStatus";
+import { ServiceClosedNotice } from "@/app/components/ServiceClosedNotice";
 
 export const metadata: Metadata = {
   title: "Give the Gift of Family Nest",
@@ -46,20 +48,40 @@ export default function GiftBuyPage() {
                 color: "var(--foreground)",
               }}
             >
-              Tell us who it&apos;s for.
+              {GIFT_PURCHASES_OPEN
+                ? "Tell us who it's for."
+                : "Gifts are on hold right now."}
             </h1>
             <p
               className="mx-auto max-w-lg text-base leading-relaxed"
               style={{ color: "var(--muted)" }}
             >
-              We&apos;ll email them a redemption link after you pay. They set
-              their own password and own the Nest from day one — you don&apos;t
-              hand over your login.
+              {GIFT_PURCHASES_OPEN
+                ? "We'll email them a redemption link after you pay. They set their own password and own the Nest from day one, so you don't hand over your login."
+                : "A gift only works if we can email the recipient their redemption link, and we can't send email at the moment."}
             </p>
           </div>
 
           <div className="mt-10">
-            <GiftBuyForm priceUsd={priceUsd} isFoundingActive={isFoundingActive} />
+            {GIFT_PURCHASES_OPEN ? (
+              <GiftBuyForm priceUsd={priceUsd} isFoundingActive={isFoundingActive} />
+            ) : (
+              <ServiceClosedNotice
+                title="We're not taking gift purchases right now"
+                showSignIn={false}
+              >
+                <p>
+                  A Family Nest gift works by emailing your recipient a private
+                  redemption link once you&apos;ve paid. I can&apos;t send that
+                  email at the moment, so taking your money today would mean
+                  charging you for something I can&apos;t deliver.
+                </p>
+                <p>
+                  I&apos;d rather tell you that up front. Nothing has been
+                  charged.
+                </p>
+              </ServiceClosedNotice>
+            )}
           </div>
         </div>
       </main>

@@ -7,6 +7,7 @@ import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
 import { checkHttpRateLimit, strictLimiter } from "@/src/lib/httpRateLimit";
+import { SIGNUPS_OPEN } from "@/src/lib/serviceStatus";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -18,6 +19,19 @@ function esc(s: string): string {
 }
 
 export async function POST(request: NextRequest) {
+  // Closed while email delivery is down. Previously this returned 200 on a
+  // failed send, so the button reported "Sent! Check your inbox" and nothing
+  // arrived.
+  if (!SIGNUPS_OPEN) {
+    return NextResponse.json(
+      {
+        error:
+          "We cannot send confirmation emails right now, so resending will not help. Sorry about that.",
+      },
+      { status: 503 },
+    );
+  }
+
   const rateLimitResponse = await checkHttpRateLimit(request, strictLimiter);
   if (rateLimitResponse) return rateLimitResponse;
 

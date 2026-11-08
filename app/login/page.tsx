@@ -7,6 +7,8 @@ import { LogoMark } from "@/app/components/LogoMark";
 import { createClient } from "@/src/lib/supabase/client";
 import { RELATIONSHIP_OPTIONS } from "@/app/dashboard/members/constants";
 import { fbqTrack } from "@/app/components/MetaPixel";
+import { SIGNUPS_OPEN } from "@/src/lib/serviceStatus";
+import { ServiceClosedNotice } from "@/app/components/ServiceClosedNotice";
 
 function LoginForm() {
   const router = useRouter();
@@ -522,6 +524,18 @@ function LoginForm() {
               ← Back to sign in
             </Link>
           </div>
+        ) : isSignUp && !SIGNUPS_OPEN ? (
+          <div className="mt-8">
+            <ServiceClosedNotice title="Not taking new Nests right now">
+              <p>
+                I can&apos;t send confirmation emails at the moment, which means a
+                new account can&apos;t be verified and you wouldn&apos;t be able to
+                get in. Rather than take your email address and leave you stuck,
+                I&apos;ve paused new signups until that&apos;s fixed.
+              </p>
+              <p>If you already have a Nest, signing in works normally.</p>
+            </ServiceClosedNotice>
+          </div>
         ) : (
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           {isGiftSetup && (
@@ -674,14 +688,14 @@ function LoginForm() {
                 Sign in
               </Link>
             </>
-          ) : (
+          ) : SIGNUPS_OPEN ? (
             <>
               Don&apos;t have an account?{" "}
               <Link href="/login?mode=signup" className="text-[var(--accent)] hover:underline">
                 Sign up our Family
               </Link>
             </>
-          )}
+          ) : null}
         </p>
 
         <p className="mt-8 text-center text-xs text-[var(--muted)]">

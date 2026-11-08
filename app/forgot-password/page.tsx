@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { PASSWORD_RESET_OPEN } from "@/src/lib/serviceStatus";
+import { ServiceClosedNotice } from "@/app/components/ServiceClosedNotice";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -52,13 +54,31 @@ export default function ForgotPasswordPage() {
         <h1 className="font-display text-3xl font-bold text-[var(--foreground)]">
           {sent ? "Check your email" : "Forgot password?"}
         </h1>
-        <p className="mt-2 text-[var(--muted)]">
-          {sent
-            ? "If an account exists for that email, we sent a reset link."
-            : "Enter your email and we’ll send a link to reset your password."}
-        </p>
+        {PASSWORD_RESET_OPEN && (
+          <p className="mt-2 text-[var(--muted)]">
+            {sent
+              ? "If an account exists for that email, we sent a reset link."
+              : "Enter your email and we’ll send a link to reset your password."}
+          </p>
+        )}
 
-        {!sent ? (
+        {!PASSWORD_RESET_OPEN ? (
+          <div className="mt-8">
+            <ServiceClosedNotice
+              title="Password resets are unavailable right now"
+              showSignIn={false}
+            >
+              <p>
+                Password resets work by emailing you a link, and email delivery
+                is down at the moment, so submitting this form would tell you a
+                link was on the way when it isn&apos;t.
+              </p>
+              <p>
+                Email me and I&apos;ll get you back into your account by hand.
+              </p>
+            </ServiceClosedNotice>
+          </div>
+        ) : !sent ? (
           <form onSubmit={handleSubmit} className="mt-8 space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-[var(--muted)]">
