@@ -9,6 +9,7 @@ import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
 import { checkHttpRateLimit, strictLimiter } from "@/src/lib/httpRateLimit";
+import { PASSWORD_RESET_OPEN } from "@/src/lib/serviceStatus";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -21,6 +22,18 @@ function esc(s: string): string {
 }
 
 export async function POST(request: NextRequest) {
+  // Closed while email delivery is down: a reset link that cannot be sent
+  // leaves the user believing one is on the way.
+  if (!PASSWORD_RESET_OPEN) {
+    return NextResponse.json(
+      {
+        error:
+          "We cannot send password reset emails right now. Email hello@familynest.io and we will sort your account out by hand.",
+      },
+      { status: 503 },
+    );
+  }
+
   const rateLimitResponse = await checkHttpRateLimit(request, strictLimiter);
   if (rateLimitResponse) return rateLimitResponse;
 
